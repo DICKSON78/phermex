@@ -30,6 +30,16 @@
   scrollbar-color: #0FD452 #000F14;
 }
 
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
 @layer components {
   .btn-asaak {
     @apply bg-black text-white px-8 py-3 text-sm font-semibold tracking-wider transition-all duration-300 inline-flex items-center justify-center gap-2;

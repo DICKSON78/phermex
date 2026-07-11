@@ -26,7 +26,7 @@ function App() {
     <BrowserRouter>
       <ScrollToTop />
       <Navbar />
-      <main className="pt-[72px]">
+      <main className="pt-[72px] overflow-x-hidden">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />

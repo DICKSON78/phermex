@@ -46,9 +46,9 @@ export default function NewsroomPage() {
             </div>
           </div>
 
-          <div className="flex gap-2 mb-10 overflow-x-auto pb-2 -mx-6 px-6 sm:mx-0 sm:px-0 sm:flex-wrap hide-scrollbar">
+          <div className="flex flex-wrap gap-2 mb-10">
             {categories.map((cat, i) => (
-              <button key={i} className={`px-5 py-2 rounded-full text-xs font-bold transition-colors ${i === 0 ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              <button key={i} className={`px-3 sm:px-5 py-2 rounded-full text-[10px] sm:text-xs font-bold transition-colors ${i === 0 ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                 {cat}
               </button>
             ))}

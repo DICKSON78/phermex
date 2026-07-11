@@ -30,10 +30,10 @@ const milestones = [
 ]
 
 const team = [
-  { name: 'Isack Mahozi', role: 'CEO & Co-Founder', img: isackMahozi },
-  { name: 'Fred Tom', role: 'Co-Founder & CSO', img: fredTom },
-  { name: 'Michael Maduhu', role: 'Co-Founder & COO', img: michaelMaduhu },
-  { name: 'Dickson Steven', role: 'Software Engineer & CTO', img: dicksonSteven },
+  { name: 'Isack Mahozi', role: 'Founder & Chief Executive Officer (CEO)', img: isackMahozi },
+  { name: 'Michael Maduhu', role: 'Co-founder & Chief Operating Officer (COO)', img: michaelMaduhu },
+  { name: 'Fred Tom', role: 'Co-founder & Chief Strategy Officer (CSO)', img: fredTom },
+  { name: 'Dickson Steven', role: 'Software Engineer & Chief Technical Officer (CTO)', img: dicksonSteven },
 ]
 
 export default function AboutPage() {
@@ -81,7 +81,7 @@ export default function AboutPage() {
             </div>
             <div className="relative lg:order-1">
               <div className="rounded-2xl overflow-hidden shadow-xl aspect-[3/4]">
-                <img src={isackMahozi} alt="Isack Mahozi - CEO & Co-Founder" className="w-full h-full object-cover" loading="lazy" />
+                <img src={isackMahozi} alt="Isack Mahozi - Founder & CEO" className="w-full h-full object-cover" loading="lazy" />
               </div>
               <div className="absolute -bottom-5 -right-5 bg-[#0FD452] p-5 rounded-2xl shadow-lg">
                 <p className="text-white text-3xl font-extrabold">500+</p>

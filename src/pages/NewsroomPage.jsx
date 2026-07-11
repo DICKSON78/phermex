@@ -93,9 +93,9 @@ export default function NewsroomPage() {
           <div className="max-w-xl mx-auto text-center">
             <h2 className="text-2xl lg:text-3xl font-extrabold text-white mb-3">Stay in the Loop</h2>
             <p className="text-gray-400 text-sm mb-6">Get the latest news and updates delivered to your inbox.</p>
-            <div className="flex gap-3 max-w-md mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input type="email" placeholder="Enter your email" className="flex-1 px-4 py-3 rounded-full text-sm bg-white/10 border border-white/20 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#0FD452]" />
-              <button className="btn-asaak shrink-0 hover:!bg-white hover:!text-black">Subscribe</button>
+              <button className="btn-asaak hover:!bg-white hover:!text-black">Subscribe</button>
             </div>
           </div>
         </div>

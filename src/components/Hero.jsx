@@ -9,7 +9,6 @@ export default function Hero() {
           loop
           muted
           playsInline
-          poster="https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=1920"
           className="w-full h-full object-cover"
         >
           <source src="https://assets.mixkit.co/videos/16420/16420-720.mp4" type="video/mp4" />

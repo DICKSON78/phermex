@@ -1,19 +1,19 @@
 export default function News() {
   const articles = [
     {
-      title: 'Phermex Raises $5M to Expand Pharmacy Tech Across Tanzania',
+      title: 'Pharmex Raises $5M to Expand Pharmacy Tech Across Africa',
       source: 'TechCrunch',
-      img: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=600&q=80',
+      img: 'https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=600',
     },
     {
       title: 'How Digital Tools Are Transforming Pharmacy Management',
       source: 'Reuters',
-      img: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=600&q=80',
+      img: 'https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=600',
     },
     {
-      title: 'Phermex Partners with Major Pharma Distributors',
+      title: 'Pharmex Partners with Major Pharma Distributors',
       source: 'Bloomberg',
-      img: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&q=80',
+      img: 'https://images.pexels.com/photos/30689320/pexels-photo-30689320.jpeg?auto=compress&cs=tinysrgb&w=600',
     },
   ]
 

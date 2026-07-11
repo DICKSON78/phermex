@@ -11,7 +11,7 @@ export default function ContactPage() {
     <>
       <section className="relative py-24 lg:py-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&q=80" alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img src="https://images.pexels.com/photos/30677717/pexels-photo-30677717.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="" className="w-full h-full object-cover" loading="lazy" />
           <div className="absolute inset-0 bg-black/65" />
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -90,7 +90,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-400">Email</p>
-                      <a href="mailto:info@phermex.com" className="text-black font-bold hover:text-[#0FD452] transition-colors">info@phermex.com</a>
+                      <a href="mailto:info@pharmex.com" className="text-black font-bold hover:text-[#0FD452] transition-colors">info@pharmex.com</a>
                     </div>
                   </div>
                   <div className="flex gap-3">

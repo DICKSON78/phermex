@@ -8,7 +8,7 @@ export default function Story() {
           <div className="relative">
             <div className="rounded-2xl overflow-hidden shadow-xl">
               <img
-                src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=800&q=80"
+                src="https://images.pexels.com/photos/8248433/pexels-photo-8248433.jpeg?auto=compress&cs=tinysrgb&w=800"
                 alt="Pharmacy"
                 className="w-full h-80 lg:h-96 object-cover"
                 loading="lazy"
@@ -26,7 +26,7 @@ export default function Story() {
             </h2>
             <div className="mt-6 space-y-4 text-gray-500 text-sm leading-relaxed max-w-lg">
               <p>
-                We are on a mission to digitize pharmacies across Tanzania, providing the tools needed to manage inventory, process prescriptions, and serve patients better.
+                We are on a mission to digitize pharmacies across Africa, providing the tools needed to manage inventory, process prescriptions, and serve patients better.
               </p>
               <p>
                 Our platform empowers pharmacy owners to focus on what matters most — delivering quality healthcare to their communities.

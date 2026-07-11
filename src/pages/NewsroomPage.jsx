@@ -8,7 +8,7 @@ export default function NewsroomPage() {
     <>
       <section className="relative py-24 lg:py-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1495020689067-958852a7765e?w=1920&q=80" alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img src="https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="" className="w-full h-full object-cover" loading="lazy" />
           <div className="absolute inset-0 bg-black/65" />
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -19,7 +19,7 @@ export default function NewsroomPage() {
               <span className="text-[#0FD452]">Stories</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              Stay up to date with the latest from Phermex — company updates, industry insights, and customer success stories.
+              Stay up to date with the latest from Pharmex — company updates, industry insights, and customer success stories.
             </p>
           </div>
         </div>

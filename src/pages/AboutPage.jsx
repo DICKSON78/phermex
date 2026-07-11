@@ -1,35 +1,39 @@
 import { Link } from 'react-router-dom'
 import WhyChoose from '../components/WhyChoose'
 import MainCta from '../components/MainCta'
+import isackMahozi from '../Isack Mahozi.jpeg'
+import fredTom from '../Fred Tom  co-founder & CSO.jpeg'
+import michaelMaduhu from '../Michael Maduhu Co-founder & COO.jpeg'
+import dicksonSteven from '../Dickson Steven CTO.png'
 
 const milestones = [
   {
     year: '2023', title: 'The Beginning',
-    desc: 'Phermex was founded in Dar es Salaam with a vision to digitize pharmacies across Tanzania.',
+    desc: 'Pharmex was founded in Dar es Salaam with a vision to digitize pharmacies across Africa.',
     icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
   },
   {
     year: '2024', title: 'First 100 Pharmacies',
-    desc: 'Reached our first 100 pharmacy partners and expanded to 3 regions in Tanzania.',
+    desc: 'Reached our first 100 pharmacy partners and expanded to 3 regions in Africa.',
     icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
   },
   {
     year: '2025', title: 'Regional Expansion',
-    desc: 'Expanded to 5 regions across Tanzania and secured $2M in seed funding to accelerate growth.',
+    desc: 'Expanded to 5 regions across Africa and secured $2M in seed funding to accelerate growth.',
     icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z',
   },
   {
     year: '2026', title: 'National Expansion',
-    desc: 'Now serving 500+ pharmacies across Tanzania with a team of 50+ employees.',
+    desc: 'Now serving 500+ pharmacies across Africa with a team of 50+ employees.',
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
   },
 ]
 
 const team = [
-  { name: 'Dr. Amani Mwangi', role: 'CEO & Co-Founder', img: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&q=80' },
-  { name: 'Sarah Kiptoo', role: 'CTO & Co-Founder', img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&q=80' },
-  { name: 'James Ochieng', role: 'Head of Product', img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&q=80' },
-  { name: 'Grace Mwenda', role: 'Head of Operations', img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&q=80' },
+  { name: 'Isack Mahozi', role: 'CEO & Co-Founder', img: isackMahozi },
+  { name: 'Fred Tom', role: 'Co-Founder & CSO', img: fredTom },
+  { name: 'Michael Maduhu', role: 'Co-Founder & COO', img: michaelMaduhu },
+  { name: 'Dickson Steven', role: 'Software Engineer & CTO', img: dicksonSteven },
 ]
 
 export default function AboutPage() {
@@ -37,18 +41,18 @@ export default function AboutPage() {
     <>
       <section className="relative py-28 lg:py-36 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1920&q=80" alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img src="https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="" className="w-full h-full object-cover" loading="lazy" />
           <div className="absolute inset-0 bg-black/60" />
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">ABOUT PHERMEX</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">ABOUT PHARMEX</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
               Empowering Pharmacies Across{' '}
-              <span className="text-[#0FD452]">Tanzania</span>
+              <span className="text-[#0FD452]">Africa</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              Phermex is building the digital backbone for Tanzanian pharmacies. We provide a complete management platform that helps pharmacy owners streamline operations, serve patients better, and grow their business.
+              Pharmex is building the digital backbone for African pharmacies. We provide a complete management platform that helps pharmacy owners streamline operations, serve patients better, and grow their business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <Link to="/products" className="btn-asaak hover:!bg-white hover:!text-black">
@@ -70,14 +74,14 @@ export default function AboutPage() {
               <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">OUR STORY</p>
               <h2 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight">Built by Pharmacists, for Pharmacists</h2>
               <div className="mt-6 space-y-4 text-gray-500 text-sm leading-relaxed">
-                <p>Phermex started in 2023 when our founder, Dr. Amani Mwangi, saw firsthand the challenges pharmacy owners face managing their businesses — from inventory tracking to prescription management.</p>
-                <p>What began as a simple inventory tool has grown into a comprehensive pharmacy management platform used by hundreds of pharmacies across Tanzania.</p>
-                <p>Today, we're a team of 50+ passionate individuals working to make pharmacy management simple, efficient, and accessible for every pharmacy in Tanzania.</p>
+                <p>Pharmex started in 2023 when our founder, Isack Mahozi, saw firsthand the challenges pharmacy owners face managing their businesses — from inventory tracking to prescription management.</p>
+                <p>What began as a simple inventory tool has grown into a comprehensive pharmacy management platform used by hundreds of pharmacies across Africa.</p>
+                <p>Today, we're a team of 50+ passionate individuals working to make pharmacy management simple, efficient, and accessible for every pharmacy in Africa.</p>
               </div>
             </div>
             <div className="relative lg:order-1">
-              <div className="rounded-2xl overflow-hidden shadow-xl">
-                <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&q=80" alt="Pharmacy" className="w-full h-80 lg:h-96 object-cover" loading="lazy" />
+              <div className="rounded-2xl overflow-hidden shadow-xl aspect-[3/4]">
+                <img src={isackMahozi} alt="Isack Mahozi - CEO & Co-Founder" className="w-full h-full object-cover" loading="lazy" />
               </div>
               <div className="absolute -bottom-5 -right-5 bg-[#0FD452] p-5 rounded-2xl shadow-lg">
                 <p className="text-white text-3xl font-extrabold">500+</p>
@@ -92,7 +96,7 @@ export default function AboutPage() {
 
       <section className="relative py-20 lg:py-28 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1557683311-e2e2b4a952c4?w=1920&q=80" alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img src="https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="" className="w-full h-full object-cover" loading="lazy" />
           <div className="absolute inset-0 bg-white/85" />
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#0FD452 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#0FD452]/[0.04] blur-[100px] pointer-events-none" />
@@ -165,7 +169,7 @@ export default function AboutPage() {
             <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">LEADERSHIP</p>
             <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Meet the Team</h2>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {team.map((member, i) => (
               <div key={i} className="group">
                 <div className="aspect-[3/4] overflow-hidden rounded-2xl mb-4 ring-1 ring-[#0FD452]/10 group-hover:ring-[#0FD452]/30 transition-all">
@@ -183,7 +187,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-2">OUR MISSION</p>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-white max-w-3xl mx-auto leading-tight">
-            Making pharmacy management simple, efficient, and accessible for every pharmacy in Tanzania.
+            Making pharmacy management simple, efficient, and accessible for every pharmacy in Africa.
           </h2>
         </div>
       </section>

@@ -3,23 +3,23 @@ import { Link } from 'react-router-dom'
 
 const faqs = [
   {
-    q: 'What is Phermex?',
-    a: 'Phermex is a web-based pharmacy management system designed for pharmacies in Tanzania. It helps you manage inventory, process prescriptions, handle sales, and generate business insights — all from one platform.',
+    q: 'What is Pharmex?',
+    a: 'Pharmex is a web-based pharmacy management system designed for pharmacies in Africa. It helps you manage inventory, process prescriptions, handle sales, and generate business insights — all from one platform.',
     cat: 'General',
   },
   {
-    q: 'How much does Phermex cost?',
+    q: 'How much does Pharmex cost?',
     a: 'We offer flexible pricing plans tailored to pharmacies of all sizes. Contact our sales team for a custom quote based on your pharmacy needs.',
     cat: 'Pricing',
   },
   {
-    q: 'Is Phermex cloud-based?',
-    a: 'Yes! Phermex is fully cloud-based — accessible from any device with an internet connection. Your data is securely stored and backed up automatically.',
+    q: 'Is Pharmex cloud-based?',
+    a: 'Yes! Pharmex is fully cloud-based — accessible from any device with an internet connection. Your data is securely stored and backed up automatically.',
     cat: 'General',
   },
   {
-    q: 'Do I need special hardware to use Phermex?',
-    a: 'No special hardware is required. Phermex works on any device with a modern web browser — computers, tablets, and smartphones.',
+    q: 'Do I need special hardware to use Pharmex?',
+    a: 'No special hardware is required. Pharmex works on any device with a modern web browser — computers, tablets, and smartphones.',
     cat: 'Technical',
   },
   {
@@ -43,13 +43,13 @@ const faqs = [
     cat: 'General',
   },
   {
-    q: 'Can I use Phermex on my phone?',
-    a: 'Yes, Phermex is fully responsive and works on mobile browsers. We also have a dedicated mobile interface optimized for pharmacy staff on the go.',
+    q: 'Can I use Pharmex on my phone?',
+    a: 'Yes, Pharmex is fully responsive and works on mobile browsers. We also have a dedicated mobile interface optimized for pharmacy staff on the go.',
     cat: 'Technical',
   },
   {
-    q: 'Does Phermex work offline?',
-    a: 'Currently, Phermex requires an internet connection. However, we have taken measures to ensure it works well even on slower connections common in some areas.',
+    q: 'Does Pharmex work offline?',
+    a: 'Currently, Pharmex requires an internet connection. However, we have taken measures to ensure it works well even on slower connections common in some areas.',
     cat: 'Technical',
   },
   {
@@ -76,7 +76,7 @@ export default function FAQPage() {
     <>
       <section className="relative py-24 lg:py-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1920&q=80" alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img src="https://images.pexels.com/photos/30689320/pexels-photo-30689320.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="" className="w-full h-full object-cover" loading="lazy" />
           <div className="absolute inset-0 bg-black/65" />
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -87,7 +87,7 @@ export default function FAQPage() {
               <span className="text-[#0FD452]">Questions</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 max-w-lg mx-auto">
-              Everything you need to know about Phermex. Can't find what you're looking for? Get in touch.
+              Everything you need to know about Pharmex. Can't find what you're looking for? Get in touch.
             </p>
           </div>
         </div>

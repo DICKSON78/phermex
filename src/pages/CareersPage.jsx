@@ -39,17 +39,17 @@ export default function CareersPage() {
     <>
       <section className="relative py-24 lg:py-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80" alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img src="https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="" className="w-full h-full object-cover" loading="lazy" />
           <div className="absolute inset-0 bg-black/65" />
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
           <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">CAREERS</p>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight max-w-3xl mx-auto">
             Join Us in Transforming{' '}
-          <span className="text-[#0FD452]">Tanzanian Pharmacy</span>
+          <span className="text-[#0FD452]">African Pharmacy</span>
           </h1>
           <p className="text-gray-300 text-sm mt-6 max-w-xl mx-auto">
-            We're building the future of pharmacy management in Tanzania. Come make an impact with us.
+            We're building the future of pharmacy management in Africa. Come make an impact with us.
           </p>
           <div className="mt-10 flex justify-center">
             <a href="#openings" className="btn-asaak hover:!bg-white hover:!text-black">
@@ -67,7 +67,7 @@ export default function CareersPage() {
               <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">WHY JOIN US</p>
               <h2 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight">Build the Future of Healthcare</h2>
               <p className="text-gray-500 text-sm mt-6 leading-relaxed">
-                At Phermex, you'll work on meaningful problems that directly impact healthcare delivery across Tanzania. We're a fast-growing startup where your work matters from day one.
+                At Pharmex, you'll work on meaningful problems that directly impact healthcare delivery across Africa. We're a fast-growing startup where your work matters from day one.
               </p>
               <div className="mt-8 space-y-4">
                 {['Competitive salary & equity', 'Flexible working hours', 'Health insurance', 'Annual learning budget', 'Team retreats & social events'].map((item, i) => (
@@ -83,18 +83,18 @@ export default function CareersPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-4">
                 <div className="rounded-2xl overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80" alt="" className="w-full h-48 object-cover" loading="lazy" />
+                  <img src="https://images.pexels.com/photos/30689320/pexels-photo-30689320.jpeg?auto=compress&cs=tinysrgb&w=400" alt="" className="w-full h-48 object-cover" loading="lazy" />
                 </div>
                 <div className="rounded-2xl overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=80" alt="" className="w-full h-36 object-cover" loading="lazy" />
+                  <img src="https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=400" alt="" className="w-full h-36 object-cover" loading="lazy" />
                 </div>
               </div>
               <div className="space-y-4 pt-8">
                 <div className="rounded-2xl overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=80" alt="" className="w-full h-36 object-cover" loading="lazy" />
+                  <img src="https://images.pexels.com/photos/30688588/pexels-photo-30688588.jpeg?auto=compress&cs=tinysrgb&w=400" alt="" className="w-full h-36 object-cover" loading="lazy" />
                 </div>
                 <div className="rounded-2xl overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&q=80" alt="" className="w-full h-48 object-cover" loading="lazy" />
+                  <img src="https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=400" alt="" className="w-full h-48 object-cover" loading="lazy" />
                 </div>
               </div>
             </div>
@@ -141,7 +141,7 @@ export default function CareersPage() {
               We are not currently hiring, but we are always looking for talented people. Send us your CV and we will keep you in mind for future opportunities.
             </p>
             <div className="mt-8 flex flex-wrap gap-4 justify-center">
-              <a href="mailto:careers@phermex.com" className="btn-asaak hover:!bg-white hover:!text-black">
+              <a href="mailto:careers@pharmex.com" className="btn-asaak hover:!bg-white hover:!text-black">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 Send Your CV
               </a>

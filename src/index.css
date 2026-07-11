@@ -11,6 +11,25 @@
   }
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000F14;
+}
+::-webkit-scrollbar-thumb {
+  background: #0FD452;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0cc947;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #0FD452 #000F14;
+}
+
 @layer components {
   .btn-asaak {
     @apply bg-black text-white px-8 py-3 text-sm font-semibold tracking-wider transition-all duration-300 inline-flex items-center justify-center gap-2;

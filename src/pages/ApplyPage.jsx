@@ -1,41 +1,42 @@
 import { Link } from 'react-router-dom'
+import deliveryVideo from '../Deliverymedication.mp4'
 
 const services = [
   {
     title: 'Inventory Management',
     desc: 'Track stock levels in real-time, manage expirations, set automated reorder points, and never run out of essential medications.',
     features: ['Real-time stock tracking', 'Expiry date alerts', 'Automated reorder points', 'Multi-location support'],
-    img: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&q=80',
+    img: 'https://images.pexels.com/photos/7490839/pexels-photo-7490839.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     title: 'Point of Sale (POS)',
     desc: 'Process sales quickly with an intuitive POS system designed for pharmacy workflows. Supports multiple payment methods.',
     features: ['Fast checkout flow', 'Receipt printing', 'Multi-payment support', 'Sales history'],
-    img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80',
+      img: 'https://images.pexels.com/photos/30688588/pexels-photo-30688588.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     title: 'Prescription Management',
     desc: 'Digitize prescription processing from intake to fulfillment. Track history, manage refills, and reduce medication errors.',
     features: ['Digital prescription intake', 'Patient history', 'Refill reminders', 'Drug interaction checks'],
-    img: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=600&q=80',
+      img: 'https://images.pexels.com/photos/30677717/pexels-photo-30677717.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     title: 'Analytics & Reporting',
     desc: 'Understand your business with data-driven insights. Track sales trends, profit margins, and make informed decisions.',
     features: ['Sales dashboards', 'Inventory analytics', 'Profit reports', 'Custom export'],
-    img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
+    img: 'https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     title: 'Customer Management',
     desc: 'Build patient profiles, track purchase history, manage loyalty programs, and communicate effectively with your customers.',
     features: ['Patient profiles', 'Purchase history', 'Loyalty program', 'SMS notifications'],
-    img: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&q=80',
+    img: 'https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     title: 'Staff & Access Control',
     desc: 'Manage your team with role-based permissions. Track activity logs and ensure accountability across your pharmacy.',
     features: ['Role-based access', 'Activity logs', 'Staff scheduling', 'Performance tracking'],
-    img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80',
+      img: 'https://images.pexels.com/photos/30689320/pexels-photo-30689320.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
 ]
 
@@ -44,26 +45,26 @@ export default function ApplyPage() {
     <>
       <section className="relative py-28 lg:py-36 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1920&q=80" alt="" className="w-full h-full object-cover" loading="lazy" />
+          <video src={deliveryVideo} autoPlay muted loop playsInline className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/65" />
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">OUR SERVICES</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">PHARMEX</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
-              Complete Pharmacy{' '}
-              <span className="text-[#0FD452]">Management</span>
+              Don't Wait,{' '}
+              <span className="text-[#0FD452]">Apply Today</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              Everything you need to run your pharmacy efficiently — from inventory and prescriptions to analytics and staff management. All in one platform.
+              The all-in-one pharmacy management platform built for African pharmacies. Streamline operations, serve patients better, and grow your business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <a href="#services" className="btn-asaak hover:!bg-white hover:!text-black">
                 Explore Services
               </a>
-              <a href="#contact" className="btn-asaak hover:!bg-white hover:!text-black">
+              <a href="#steps" className="btn-asaak hover:!bg-white hover:!text-black">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                Get Started
+                Apply Now
               </a>
             </div>
           </div>
@@ -113,9 +114,9 @@ export default function ApplyPage() {
           </div>
           <div className="grid lg:grid-cols-3 gap-10 max-w-4xl mx-auto">
             {[
-              { num: '01', title: 'Tell Us About Your Pharmacy', desc: 'Fill out a quick form and let us know your needs. We\'ll match you with the right plan.', img: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&q=80' },
-              { num: '02', title: 'Onboarding & Setup', desc: 'We schedule a call, set up your account, import your data, and train your team.', img: 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=600&q=80' },
-              { num: '03', title: 'Go Live & Grow', desc: 'Start serving patients on day one with 24/7 support from our team whenever you need it.', img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&q=80' },
+              { num: '01', title: 'Tell Us About Your Pharmacy', desc: 'Fill out a quick form and let us know your needs. We\'ll match you with the right plan.', img: 'https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=600' },
+              { num: '02', title: 'Onboarding & Setup', desc: 'We schedule a call, set up your account, import your data, and train your team.', img: 'https://images.pexels.com/photos/30689320/pexels-photo-30689320.jpeg?auto=compress&cs=tinysrgb&w=600' },
+              { num: '03', title: 'Go Live & Grow', desc: 'Start serving patients on day one with 24/7 support from our team whenever you need it.', img: 'https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=600' },
             ].map((step, i) => (
               <div key={i} className="text-center">
                 <div className="rounded-2xl overflow-hidden mb-5">
@@ -143,7 +144,7 @@ export default function ApplyPage() {
               </p>
               <div className="mt-8 space-y-4">
                 {[
-                  { title: 'Free personalized demo', desc: 'See exactly how Phermex works for your pharmacy.' },
+                  { title: 'Free personalized demo', desc: 'See exactly how Pharmex works for your pharmacy.' },
                   { title: 'Quick 48-hour setup', desc: 'From sign-up to live in under two days.' },
                   { title: '24/7 support', desc: 'We are always here when you need us.' },
                 ].map((item, i) => (

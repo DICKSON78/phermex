@@ -35,12 +35,8 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-[72px]">
             <Link to="/" className="flex items-center gap-2">
-              <svg width="100" height="28" viewBox="0 0 120 32" fill="none">
-                <rect width="28" height="28" rx="4" fill="#0FD452"/>
-                <path d="M10 14C10 11.8 11.8 10 14 10C16.2 10 18 11.8 18 14C18 16.2 16.2 18 14 18C11.8 18 10 16.2 10 14Z" fill="white" fillOpacity="0.3"/>
-                <path d="M13 14L14 15L16 13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <text x="34" y="20" fill="white" fontFamily="Poppins" fontSize="16" fontWeight="700">PHERMEX</text>
-              </svg>
+              <img src="/logo.jpeg" alt="Pharmex" className="h-10 w-10 rounded-full object-cover" />
+              <span className="text-[#0FD452] font-bold text-lg tracking-wide">PHARMEX</span>
             </Link>
 
             <div className="hidden lg:flex items-center gap-8">

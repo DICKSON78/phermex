@@ -9,7 +9,7 @@ export default function Hero() {
           loop
           muted
           playsInline
-          poster="https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1920&q=80"
+          poster="https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=1920"
           className="w-full h-full object-cover"
         >
           <source src="https://assets.mixkit.co/videos/16420/16420-720.mp4" type="video/mp4" />
@@ -19,13 +19,13 @@ export default function Hero() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">PHERMEX</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">PHARMEX</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
               DON'T WAIT,<br />
               <span className="text-[#0FD452]">APPLY TODAY</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-md">
-              The all-in-one pharmacy management platform built for Tanzanian pharmacies. Streamline operations, serve patients better, and grow your business.
+              The all-in-one pharmacy management platform built for African pharmacies. Streamline operations, serve patients better, and grow your business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <Link to="/apply" className="btn-asaak hover:!bg-white hover:!text-black">
@@ -50,7 +50,7 @@ export default function Hero() {
                       <path d="M12 6l4 6h-8l4-6z" fill="white" fillOpacity="0.3"/>
                       <path d="M10 13h4v5h-4z" fill="white"/>
                     </svg>
-                    <span className="text-black font-bold text-sm">Phermex</span>
+                    <span className="text-black font-bold text-sm">Pharmex</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
@@ -68,7 +68,7 @@ export default function Hero() {
               </div>
               <div className="bg-[#000F14] rounded-2xl shadow-xl p-5 min-h-[140px] flex flex-col justify-center">
                 <p className="text-gray-400 text-[10px] font-semibold uppercase tracking-wider mb-1">Today's Sales</p>
-                <p className="text-white text-3xl font-extrabold">TZS 2.4M</p>
+                <p className="text-white text-3xl font-extrabold">USD 2,400</p>
                 <p className="text-[#0FD452] text-xs mt-1 font-semibold">&uarr; 12% vs yesterday</p>
               </div>
             </div>
@@ -95,9 +95,9 @@ export default function Hero() {
                 </div>
                 <div className="space-y-2">
                   {[
-                    { drug: 'Amoxicillin 500mg', time: '2 min ago', amount: 'TZS 45,000', status: 'Completed' },
-                    { drug: 'Metformin 850mg', time: '15 min ago', amount: 'TZS 18,000', status: 'Completed' },
-                    { drug: 'Paracetamol 500mg', time: '1 hr ago', amount: 'TZS 25,000', status: 'Pending' },
+                    { drug: 'Amoxicillin 500mg', time: '2 min ago', amount: 'USD 18', status: 'Completed' },
+                    { drug: 'Metformin 850mg', time: '15 min ago', amount: 'USD 7', status: 'Completed' },
+                    { drug: 'Paracetamol 500mg', time: '1 hr ago', amount: 'USD 10', status: 'Pending' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                       <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function Hero() {
                       <path d="M12 6l4 6h-8l4-6z" fill="white" fillOpacity="0.3"/>
                       <path d="M10 13h4v5h-4z" fill="white"/>
                     </svg>
-                    <span className="text-black font-bold text-xs">Phermex</span>
+                    <span className="text-black font-bold text-xs">Pharmex</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
@@ -158,7 +158,7 @@ export default function Hero() {
             <div className="space-y-3 pt-6">
               <div className="bg-[#000F14] rounded-2xl shadow-xl p-4 min-h-[100px] flex flex-col justify-center">
                 <p className="text-gray-400 text-[10px] font-semibold uppercase tracking-wider mb-1">Today's Sales</p>
-                <p className="text-white text-2xl font-extrabold">TZS 2.4M</p>
+                <p className="text-white text-2xl font-extrabold">USD 2,400</p>
                 <p className="text-[#0FD452] text-[10px] mt-0.5 font-semibold">&uarr; 12% vs yesterday</p>
               </div>
               <div className="bg-white rounded-2xl shadow-xl p-4 min-h-[180px]">
@@ -168,9 +168,9 @@ export default function Hero() {
                 </div>
                 <div className="space-y-1.5">
                   {[
-                    { drug: 'Amoxicillin 500mg', time: '2 min ago', amount: 'TZS 45,000', status: 'Completed' },
-                    { drug: 'Metformin 850mg', time: '15 min ago', amount: 'TZS 18,000', status: 'Completed' },
-                    { drug: 'Paracetamol 500mg', time: '1 hr ago', amount: 'TZS 25,000', status: 'Pending' },
+                    { drug: 'Amoxicillin 500mg', time: '2 min ago', amount: 'USD 18', status: 'Completed' },
+                    { drug: 'Metformin 850mg', time: '15 min ago', amount: 'USD 7', status: 'Completed' },
+                    { drug: 'Paracetamol 500mg', time: '1 hr ago', amount: 'USD 10', status: 'Pending' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
                       <div className="flex items-center gap-1.5">

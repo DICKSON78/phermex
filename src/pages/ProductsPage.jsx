@@ -7,25 +7,25 @@ const features = [
     title: 'Inventory Management',
     desc: 'Track stock levels, expiration dates, and reorder points in real-time. Get alerts when stock is running low.',
     icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
-    img: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&q=80',
+    img: 'https://images.pexels.com/photos/7490839/pexels-photo-7490839.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     title: 'Point of Sale (POS)',
     desc: 'Fast, intuitive POS system with support for multiple payment methods, invoice generation, and receipt printing.',
     icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
-    img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80',
+    img: 'https://images.pexels.com/photos/30688588/pexels-photo-30688588.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     title: 'Prescription Management',
     desc: 'Digital prescription processing from patient intake to fulfillment. Track prescription history and automate refills.',
     icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-    img: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=600&q=80',
+    img: 'https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     title: 'Analytics & Reports',
     desc: 'Data-driven insights on sales trends, inventory turnover, and profitability. Make informed business decisions.',
     icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-    img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
+    img: 'https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
 ]
 
@@ -43,7 +43,7 @@ export default function ProductsPage() {
     <>
       <section className="relative py-28 lg:py-36 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1920&q=80" alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img src="https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="" className="w-full h-full object-cover" loading="lazy" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/40" />
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -54,7 +54,7 @@ export default function ProductsPage() {
               <span className="text-[#0FD452]">Pharmacy</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              From inventory to prescriptions, Phermex provides all the tools you need to manage your pharmacy efficiently and grow your business.
+              From inventory to prescriptions, Pharmex provides all the tools you need to manage your pharmacy efficiently and grow your business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <Link to="/apply" className="btn-asaak hover:!bg-white hover:!text-black">
@@ -91,7 +91,7 @@ export default function ProductsPage() {
                   </ul>
                 </div>
                 <div className={i % 2 === 1 ? 'lg:order-1' : ''}>
-                  <div className="rounded-2xl overflow-hidden shadow-xl">
+                  <div className="rounded-2xl overflow-hidden shadow-xl h-72 lg:h-80">
                     <img src={feature.img} alt={feature.title} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 </div>
@@ -105,7 +105,7 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
             <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">BENEFITS</p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Why Choose Phermex</h2>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Why Choose Pharmex</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {benefits.map((b, i) => (

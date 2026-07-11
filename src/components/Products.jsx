@@ -5,22 +5,22 @@ export default function Products() {
     {
       title: 'INVENTORY',
       desc: 'Track stock levels and expiration dates in real-time with automated alerts.',
-      img: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&q=80',
+      img: 'https://images.pexels.com/photos/7490839/pexels-photo-7490839.jpeg?auto=compress&cs=tinysrgb&w=400',
     },
     {
       title: 'POS',
       desc: 'Seamless point-of-sale with integrated payment processing and invoice generation.',
-      img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80',
+      img: 'https://images.pexels.com/photos/30688588/pexels-photo-30688588.jpeg?auto=compress&cs=tinysrgb&w=400',
     },
     {
       title: 'PRESCRIPTIONS',
       desc: 'Digital prescription management from patient intake to fulfillment tracking.',
-      img: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=400&q=80',
+      img: 'https://images.pexels.com/photos/30677717/pexels-photo-30677717.jpeg?auto=compress&cs=tinysrgb&w=400',
     },
     {
       title: 'ANALYTICS',
       desc: 'Data-driven insights to optimize sales, inventory turnover, and profitability.',
-      img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80',
+      img: 'https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=400',
     },
   ]
 

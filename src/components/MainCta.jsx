@@ -11,7 +11,7 @@ export default function MainCta() {
             <span className="text-[#0FD452]">Today</span>
           </h2>
           <p className="text-gray-400 text-sm mt-6 leading-relaxed max-w-xl mx-auto">
-            Take control of your pharmacy operations with our all-in-one management platform. Join 500+ pharmacies already using Phermex.
+            Take control of your pharmacy operations with our all-in-one management platform. Join 500+ pharmacies already using Pharmex.
           </p>
 
           <div className="mt-10 flex flex-wrap gap-4 justify-center">

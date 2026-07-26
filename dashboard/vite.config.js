@@ -3,8 +3,10 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  base: '/dashboard/',
   build: {
     sourcemap: true,
+    outDir: 'dist',
   },
   server: {
     host: '0.0.0.0',

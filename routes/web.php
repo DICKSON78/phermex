@@ -2,11 +2,34 @@
 
 use Illuminate\Support\Facades\Route;
 
-$dashboardUrl = env('DASHBOARD_URL', 'http://localhost:3001');
-
-Route::get('/dashboard/{any?}', function () use ($dashboardUrl) {
-    $any = request()->route('any');
-    return redirect($dashboardUrl . '/' . ($any ?: ''));
+Route::get('/dashboard/{any?}', function ($any = null) {
+    $path = trim($any ?: '/', '/');
+    if ($path && file_exists(public_path('dashboard/' . $path))) {
+        $file = public_path('dashboard/' . $path);
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $mimeMap = [
+            'js' => 'application/javascript',
+            'css' => 'text/css',
+            'html' => 'text/html',
+            'json' => 'application/json',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'svg' => 'image/svg+xml',
+            'ico' => 'image/x-icon',
+            'webp' => 'image/webp',
+            'woff' => 'font/woff',
+            'woff2' => 'font/woff2',
+        ];
+        $mime = $mimeMap[$ext] ?? (mime_content_type($file) ?: 'application/octet-stream');
+        return response()->file($file, [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ]);
+    }
+    return response()->file(public_path('dashboard/index.html'), [
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+    ]);
 })->where('any', '.*');
 
 Route::post('/demo-requests', [\App\Http\Controllers\Api\DemoRequestController::class, 'store']);

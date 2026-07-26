@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000F14;
+}
+::-webkit-scrollbar-thumb {
+  background: #0FD452;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0cc947;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #0FD452 #000F14;
+}
+
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer components {
+  .btn-asaak {
+    @apply bg-black text-white px-8 py-3 text-sm font-semibold tracking-wider transition-all duration-300 inline-flex items-center justify-center gap-2;
+    border-radius: 50px;
+  }
+  .btn-asaak:hover {
+    @apply bg-white text-black;
+    border: 1px solid #000;
+  }
+  .btn-asaak-green {
+    @apply bg-black px-8 py-3 text-sm font-semibold tracking-wider transition-all duration-300 inline-flex items-center justify-center gap-2;
+    border-radius: 50px;
+    color: #0FD452;
+  }
+  .btn-asaak-green:hover {
+    @apply bg-[#0FD452] text-black;
+    border: 1px solid #000;
+  }
+}

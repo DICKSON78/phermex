@@ -1,0 +1,15 @@
+node_modules/
+vendor/
+dist/
+.env
+.env.backup
+*.log
+.DS_Store
+public/website/
+dashboard/dist/
+storage/*.key
+storage/framework/sessions/*
+storage/framework/cache/*
+storage/framework/views/*
+storage/logs/*
+!storage/.gitkeep

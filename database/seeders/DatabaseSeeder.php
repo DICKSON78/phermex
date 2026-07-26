@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
             AccountingSeeder::class,
             RegulatorySeeder::class,
             ChatSeeder::class,
+            AdminModuleSeeder::class,
         ]);
     }
 

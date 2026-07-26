@@ -16,25 +16,6 @@ const STATUS_STYLES = {
   Void: 'badge badge-gray',
 }
 
-const FALLBACK_INVOICE = {
-  id: 1,
-  invoiceNumber: 'INV-2026-0487',
-  pharmacy: 'HealthPlus Pharmacy',
-  amount: 2450,
-  currency: 'TZS',
-  status: 'Paid',
-  dueDate: '2026-07-01',
-  paidDate: '2026-06-28',
-  tax: 196,
-  total: 2646,
-  paymentMethod: 'Bank Transfer',
-  transactionId: 'TXN-894123',
-  paymentGateway: 'Stripe',
-  notes: 'Monthly subscription fee for July 2026',
-  billingPeriod: 'July 2026',
-  createdAt: '2026-06-15',
-}
-
 function formatCurrency(amount) {
   if (amount == null) return '\u2014'
   return new Intl.NumberFormat('en-US', {
@@ -79,7 +60,7 @@ export default function AdminRevenueShowPage() {
       const res = await api.get(`/admin/revenue/${id}`)
       setInvoice(res.data.data || res.data)
     } catch {
-      setInvoice(FALLBACK_INVOICE)
+      setInvoice(null)
     } finally {
       setLoading(false)
     }

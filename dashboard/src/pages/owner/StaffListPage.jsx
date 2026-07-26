@@ -8,13 +8,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const sampleStaff = [
-  { id: 1, name: 'Sarah Nakamya', phone: '+256701111111', license_number: 'PH-2024-001', position: 'pharmacist', salary: 250000, active: true, permissions: { inventory: ['view', 'add', 'edit', 'delete'], orders: ['view', 'create', 'cancel'], prescriptions: ['view', 'dispense'], customers: ['view', 'add', 'edit'], reports: ['view'], settings: ['view'] } },
-  { id: 2, name: 'James Ochieng', phone: '+256702222222', license_number: 'PH-2024-002', position: 'technician', salary: 180000, active: true, permissions: { inventory: ['view', 'add', 'edit'], orders: ['view', 'create'], prescriptions: ['view'], customers: ['view', 'add'], reports: [], settings: [] } },
-  { id: 3, name: 'Mary Ajambo', phone: '+256703333333', license_number: 'PH-2024-003', position: 'cashier', salary: 120000, active: true, permissions: { inventory: ['view'], orders: ['view', 'create'], prescriptions: [], customers: ['view'], reports: [], settings: [] } },
-  { id: 4, name: 'Peter Ssekitooleko', phone: '+256704444444', license_number: 'PH-2024-004', position: 'intern', salary: 80000, active: false, permissions: { inventory: ['view'], orders: ['view'], prescriptions: ['view'], customers: ['view'], reports: [], settings: [] } },
-]
-
 const positionColors = {
   pharmacist: 'bg-green-100 text-green-700',
   technician: 'bg-blue-100 text-blue-700',
@@ -58,7 +51,7 @@ export default function StaffListPage() {
         permissions: e.permissions || {},
       })))
     } catch {
-      setStaff(sampleStaff)
+      setStaff([])
     } finally {
       setLoading(false)
     }

@@ -7,14 +7,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const sampleDeliveries = [
-  { id: 1, code: 'DEL-0001', order_code: 'ORD-001234', customer: 'Alice Johnson', address: 'Plot 12, Jinja Road, Kampala', fee: 5000, status: 'delivered', assigned_to: 'Peter Driver', eta: '2026-07-18 14:00' },
-  { id: 2, code: 'DEL-0002', order_code: 'ORD-001240', customer: 'Bob Smith', address: '23 Acacia Avenue, Kololo', fee: 7500, status: 'in_transit', assigned_to: 'Peter Driver', eta: '2026-07-19 16:30' },
-  { id: 3, code: 'DEL-0003', order_code: 'ORD-001241', customer: 'Carol White', address: '56 Nkrumah Road, Kampala', fee: 4000, status: 'pending', assigned_to: null, eta: null },
-  { id: 4, code: 'DEL-0004', order_code: 'ORD-001242', customer: 'David Brown', address: '14 Ggaba Road, Kisaasi', fee: 8000, status: 'assigned', assigned_to: 'John Boda', eta: '2026-07-19 18:00' },
-  { id: 5, code: 'DEL-0005', order_code: 'ORD-001243', customer: 'Eva Martinez', address: '78 Entebbe Road, Nsambya', fee: 6000, status: 'picked_up', assigned_to: 'Peter Driver', eta: '2026-07-19 15:45' },
-  { id: 6, code: 'DEL-0006', order_code: 'ORD-001244', customer: 'Frank Lee', address: '90 Lira Street, Kampala', fee: 5500, status: 'failed', assigned_to: 'John Boda', eta: null },
-]
 
 const statusConfig = {
   pending: { color: 'bg-yellow-100 text-yellow-700', icon: Clock, label: 'Pending' },
@@ -41,7 +33,7 @@ export default function DeliveryListPage() {
       const res = await api.get('/deliveries')
       setDeliveries(toArray(res.data))
     } catch {
-      setDeliveries(sampleDeliveries)
+      setDeliveries([])
     } finally {
       setLoading(false)
     }

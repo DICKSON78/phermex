@@ -4,11 +4,6 @@ import { Plus, ArrowRightLeft, CheckCircle, Truck as TruckIcon, Package, XCircle
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE = [
-  { id: 1, transfer_number: 'ST-00001', from_location: 'Main Warehouse', to_location: 'Branch Pharmacy', status: 'completed', total_items: 20, total_value: 5000, requested_by: { name: 'John Doe' }, created_at: '2026-07-18' },
-  { id: 2, transfer_number: 'ST-00002', from_location: 'Main Warehouse', to_location: 'Dispensary B', status: 'in_transit', total_items: 15, total_value: 3200, requested_by: { name: 'Jane Smith' }, created_at: '2026-07-20' },
-]
-
 const STATUS_COLORS = { pending: 'bg-yellow-100 text-yellow-700', approved: 'bg-blue-100 text-blue-700', in_transit: 'bg-indigo-100 text-indigo-700', completed: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600' }
 
 export default function StockTransferPage() {
@@ -21,13 +16,13 @@ export default function StockTransferPage() {
 
   const fetchTransfers = useCallback(async () => {
     setLoading(true)
-    try { const res = await api.get('/stock-transfers'); setTransfers(toArray(res.data)) } catch { setTransfers(SAMPLE) } finally { setLoading(false) }
+    try { const res = await api.get('/stock-transfers'); setTransfers(toArray(res.data)) } catch { setTransfers([]) } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchTransfers() }, [fetchTransfers])
 
   useEffect(() => {
-    api.get('/drugs').then(res => setDrugs(toArray(res.data))).catch(() => setDrugs([{ id: 1, name: 'Amoxicillin 500mg' }, { id: 2, name: 'Paracetamol 500mg' }]))
+    api.get('/drugs').then(res => setDrugs(toArray(res.data))).catch(() => setDrugs([]))
   }, [])
 
   const handleSubmit = async (e) => {

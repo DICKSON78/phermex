@@ -34,53 +34,6 @@ function timeAgo(dateStr) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-const FALLBACK_NOTIFICATIONS = [
-  {
-    id: 1,
-    type: 'warning',
-    title: 'Low Stock Alert',
-    message: 'Amoxicillin 500mg is running low. Only 12 units remaining.',
-    time: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-    read: false,
-    link: '/owner/drugs',
-  },
-  {
-    id: 2,
-    type: 'success',
-    title: 'Order Delivered',
-    message: 'Order #1042 has been successfully delivered to Sarah Johnson.',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    read: false,
-    link: '/owner/deliveries',
-  },
-  {
-    id: 3,
-    type: 'danger',
-    title: 'Expiring Soon',
-    message: '3 drugs are expiring within the next 30 days. Review inventory.',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    read: true,
-    link: '/owner/expiring',
-  },
-  {
-    id: 4,
-    type: 'info',
-    title: 'System Update',
-    message: 'Pharmex has been updated to version 2.4.0. Check out the new features!',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    read: true,
-    link: null,
-  },
-  {
-    id: 5,
-    type: 'success',
-    title: 'New Staff Member',
-    message: 'Dr. Michael Chen has been added as a pharmacist.',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    read: true,
-    link: '/owner/staff',
-  },
-]
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([])
@@ -102,7 +55,7 @@ export default function NotificationsPage() {
       }
       setHasMore(data.has_more ?? (data.notifications?.length >= 20))
     } catch {
-      if (pageNum === 1) setNotifications(FALLBACK_NOTIFICATIONS)
+      if (pageNum === 1) setNotifications([])
       setHasMore(false)
     } finally {
       setLoading(false)

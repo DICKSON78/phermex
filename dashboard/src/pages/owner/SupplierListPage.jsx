@@ -5,13 +5,6 @@ import { Plus, Search, Star, Eye, Trash2, Phone, Mail, ChevronLeft, ChevronRight
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE_SUPPLIERS = [
-  { id: 1, name: 'MedSupply Tanzania', contact_person: 'John Mwangi', email: 'john@medsupply.co.tz', phone: '+255 754 123 456', city: 'Dar es Salaam', country: 'Tanzania', tax_id: 'TIN-123456789', payment_terms: 'net_30', rating: 4.50, total_orders: 24, total_purchased: 45000.00, is_active: true },
-  { id: 2, name: 'PharmaDistributors Ltd', contact_person: 'Sarah Kimaro', email: 'sarah@pharmadist.co.tz', phone: '+255 765 234 567', city: 'Arusha', country: 'Tanzania', tax_id: 'TIN-987654321', payment_terms: 'net_15', rating: 4.20, total_orders: 18, total_purchased: 32000.00, is_active: true },
-  { id: 3, name: 'HealthCorp East Africa', contact_person: 'David Omari', email: 'david@healthcorp.co.ke', phone: '+254 712 345 678', city: 'Nairobi', country: 'Kenya', tax_id: 'TIN-456789123', payment_terms: 'net_60', rating: 3.80, total_orders: 12, total_purchased: 28000.00, is_active: true },
-  { id: 4, name: 'Local Pharma Wholesalers', contact_person: 'Amina Hassan', email: 'amina@localpharma.co.tz', phone: '+255 786 345 678', city: 'Dodoma', country: 'Tanzania', tax_id: 'TIN-321654987', payment_terms: 'cod', rating: 4.00, total_orders: 8, total_purchased: 15000.00, is_active: false },
-]
-
 function LoadingSkeleton() {
   return (
     <div className="p-6 space-y-6">
@@ -52,7 +45,7 @@ export default function SupplierListPage() {
       const res = await api.get(`/suppliers?${params.toString()}`)
       setSuppliers(toArray(res.data))
     } catch {
-      setSuppliers(SAMPLE_SUPPLIERS)
+      setSuppliers([])
     } finally {
       setLoading(false)
     }

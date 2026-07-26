@@ -16,18 +16,6 @@ function daysUntil(dateStr) {
   return diff
 }
 
-const SAMPLE_EXPIRING = [
-  { id: 1, name: 'Omeprazole 20mg', category: 'Antacids', batch_number: 'BATCH-006', quantity: 120, expiry_date: '2026-07-30', buying_price: 3.50 },
-  { id: 2, name: 'Cetirizine 10mg', category: 'Antihistamines', batch_number: 'BATCH-005', quantity: 200, expiry_date: '2026-08-10', buying_price: 2.00 },
-  { id: 3, name: 'Metformin 850mg', category: 'Antidiabetics', batch_number: 'BATCH-003', quantity: 8, expiry_date: '2026-08-05', buying_price: 4.00 },
-  { id: 4, name: 'Amoxicillin 500mg', category: 'Antibiotics', batch_number: 'BATCH-001', quantity: 150, expiry_date: '2026-07-25', buying_price: 5.00 },
-  { id: 5, name: 'Azithromycin 250mg', category: 'Antibiotics', batch_number: 'BATCH-008', quantity: 5, expiry_date: '2026-10-05', buying_price: 8.00 },
-  { id: 6, name: 'Insulin Glargine', category: 'Antidiabetics', batch_number: 'BATCH-011', quantity: 10, expiry_date: '2026-07-22', buying_price: 25.00 },
-  { id: 7, name: 'Vitamin C 1000mg', category: 'Supplements', batch_number: 'BATCH-010', quantity: 250, expiry_date: '2026-09-10', buying_price: 3.00 },
-  { id: 8, name: 'Paracetamol 500mg', category: 'Analgesics', batch_number: 'BATCH-002', quantity: 300, expiry_date: '2026-07-19', buying_price: 1.50 },
-  { id: 9, name: 'Ibuprofen 400mg', category: 'Analgesics', batch_number: 'BATCH-007', quantity: 180, expiry_date: '2026-12-15', buying_price: 2.50 },
-]
-
 const FILTER_TABS = [
   { key: '7', label: '7 Days' },
   { key: '30', label: '30 Days' },
@@ -55,7 +43,7 @@ export default function ExpiringSoonPage() {
       const res = await api.get('/drugs', { params: { expiry: 'expiring_soon' } })
       setDrugs(toArray(res.data))
     } catch {
-      setDrugs(SAMPLE_EXPIRING)
+      setDrugs([])
     } finally {
       setLoading(false)
     }

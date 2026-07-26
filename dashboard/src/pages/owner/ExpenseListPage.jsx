@@ -9,17 +9,6 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import api from '../../services/api'
 
-const sampleExpenses = [
-  { id: 1, date: '2026-07-18', category: 'Rent', description: 'Monthly shop rent - July', amount: 150000, recorded_by: 'Sarah Nakamya', receipt_number: 'REC-001' },
-  { id: 2, date: '2026-07-17', category: 'Utilities', description: 'Electricity bill', amount: 45000, recorded_by: 'James Ochieng', receipt_number: 'REC-002' },
-  { id: 3, date: '2026-07-15', category: 'Supplies', description: 'Pharmacy bags and labels', amount: 25000, recorded_by: 'Mary Ajambo', receipt_number: 'REC-003' },
-  { id: 4, date: '2026-07-14', category: 'Salaries', description: 'Staff salaries - July', amount: 630000, recorded_by: 'Sarah Nakamya', receipt_number: 'REC-004' },
-  { id: 5, date: '2026-07-12', category: 'Transport', description: 'Drug delivery from supplier', amount: 35000, recorded_by: 'James Ochieng', receipt_number: 'REC-005' },
-  { id: 6, date: '2026-07-10', category: 'Utilities', description: 'Water bill', amount: 15000, recorded_by: 'Mary Ajambo', receipt_number: 'REC-006' },
-  { id: 7, date: '2026-07-08', category: 'Other', description: 'Office cleaning service', amount: 20000, recorded_by: 'Sarah Nakamya', receipt_number: 'REC-007' },
-  { id: 8, date: '2026-07-05', category: 'Supplies', description: 'Printer ink and paper', amount: 12000, recorded_by: 'James Ochieng', receipt_number: 'REC-008' },
-  { id: 9, date: '2026-07-01', category: 'Rent', description: 'Monthly shop rent - July', amount: 150000, recorded_by: 'Sarah Nakamya', receipt_number: 'REC-009' },
-]
 
 const categoryColors = {
   Rent: { bg: 'bg-blue-100', text: 'text-blue-700' },
@@ -56,7 +45,7 @@ export default function ExpenseListPage() {
       const res = await api.get('/expenses')
       setExpenses(toArray(res.data))
     } catch {
-      setExpenses(sampleExpenses)
+      setExpenses([])
     } finally {
       setLoading(false)
     }

@@ -4,19 +4,6 @@ import { Plus, FileCheck, Send, Eye, Clock, CheckCircle, FileText, Hash, Calenda
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE = [
-  { id: 1, report_type: 'monthly_sales', report_period_month: 6, report_period_year: 2026, status: 'approved', submitted_to: 'TMDA', submitted_at: '2026-07-05T10:00:00', report_data: { pharmacy_name: 'Pharmex Central', period: '6/2026', total_orders: 150, total_revenue: 45000 } },
-  { id: 2, report_type: 'quarterly_tmda', report_period_month: 6, report_period_year: 2026, status: 'submitted', submitted_to: 'TMDA', submitted_at: '2026-07-10T14:30:00', report_data: { pharmacy_name: 'Pharmex Central', quarter: 'Q2 2026', total_drugs_sold: 1200, compliance_status: 'compliant' } },
-  { id: 3, report_type: 'control_substance', report_period_month: 7, report_period_year: 2026, status: 'draft', report_data: { pharmacy_name: 'Pharmex Central', period: '7/2026', total_entries: 12, total_received: 300, total_issued: 50, total_balance: 250 } },
-]
-
-const TEMPLATE_INFO = {
-  monthly_sales: { label: 'Monthly Sales Report', description: 'TMDA monthly sales summary', icon: '📊' },
-  quarterly_tmda: { label: 'Quarterly TMDA Report', description: 'Quarterly compliance report', icon: '📋' },
-  annual_return: { label: 'Annual Return', description: 'Annual pharmacy return filing', icon: '📈' },
-  control_substance: { label: 'Controlled Substance Report', description: 'Controlled substance usage report', icon: '🛡️' },
-  expiry_report: { label: 'Drug Expiry Report', description: 'Expired and expiring drugs', icon: '⏰' },
-}
 
 const STATUS_STYLES = { draft: 'bg-gray-100 text-gray-600', submitted: 'bg-blue-100 text-blue-700', approved: 'bg-green-100 text-green-700' }
 
@@ -31,12 +18,12 @@ export default function RegulatoryReportsPage() {
 
   const fetchReports = useCallback(async () => {
     setLoading(true)
-    try { const res = await api.get('/regulatory-reports'); setReports(toArray(res.data)) } catch { setReports(SAMPLE) } finally { setLoading(false) }
+    try { const res = await api.get('/regulatory-reports'); setReports(toArray(res.data)) } catch { setReports([]) } finally { setLoading(false) }
   }, [])
 
   useEffect(() => {
     fetchReports()
-    api.get('/regulatory-reports/templates').then(res => setTemplates(res.data.templates || [])).catch(() => setTemplates(Object.entries(TEMPLATE_INFO).map(([type, info]) => ({ type, ...info }))))
+    api.get('/regulatory-reports/templates').then(res => setTemplates(res.data.templates || [])).catch(() => setTemplates([]))
   }, [fetchReports])
 
   const handleGenerate = async () => {

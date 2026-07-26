@@ -15,24 +15,6 @@ const STATUS_STYLES = {
   Recalled: 'badge badge-red',
 }
 
-const FALLBACK_DRUG = {
-  id: 1,
-  name: 'Amoxicillin 500mg',
-  generic: 'Amoxicillin',
-  category: 'Antibiotics',
-  form: 'Capsule',
-  strength: '500mg',
-  manufacturer: 'GSK Pharma',
-  status: 'Active',
-  usedBy: 87,
-  description: 'A broad-spectrum antibiotic used to treat a wide variety of bacterial infections.',
-  controlledStatus: 'Non-Controlled',
-  deaSchedule: 'None',
-  ndcNumber: '12345-678-90',
-  approvalDate: '2020-03-15',
-  countryOfOrigin: 'United Kingdom',
-}
-
 function formatDate(dateStr) {
   if (!dateStr) return '\u2014'
   const d = new Date(dateStr)
@@ -51,7 +33,7 @@ export default function AdminDrugShowPage() {
       const res = await api.get(`/admin/drug-database/${id}`)
       setDrug(res.data.data || res.data)
     } catch {
-      setDrug(FALLBACK_DRUG)
+      setDrug(null)
     } finally {
       setLoading(false)
     }

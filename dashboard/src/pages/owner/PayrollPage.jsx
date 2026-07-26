@@ -13,12 +13,6 @@ function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount || 0)
 }
 
-const FALLBACK_PAYROLL = [
-  { id: 1, employee: { id: 1, first_name: 'Sarah', last_name: 'Nakamya', employee_number: 'EMP-00001' }, period_month: 7, period_year: 2026, basic_salary: 1500, allowances: 300, overtime_pay: 0, gross_salary: 1800, paye_tax: 120, nssf_employee: 150, nssf_employer: 150, nhif: 1700, housing_levy: 27, other_deductions: 0, net_salary: 1503, status: 'paid', payment_method: 'bank' },
-  { id: 2, employee: { id: 2, first_name: 'James', last_name: 'Ochieng', employee_number: 'EMP-00002' }, period_month: 7, period_year: 2026, basic_salary: 1200, allowances: 200, overtime_pay: 50, gross_salary: 1450, paye_tax: 50, nssf_employee: 120, nssf_employer: 120, nhif: 1700, housing_levy: 21.75, other_deductions: 0, net_salary: 1258.25, status: 'approved', payment_method: 'bank' },
-  { id: 3, employee: { id: 3, first_name: 'Mary', last_name: 'Ajambo', employee_number: 'EMP-00003' }, period_month: 7, period_year: 2026, basic_salary: 1000, allowances: 150, overtime_pay: 0, gross_salary: 1150, paye_tax: 0, nssf_employee: 100, nssf_employer: 100, nhif: 1700, housing_levy: 17.25, other_deductions: 0, net_salary: 1032.75, status: 'draft', payment_method: 'bank' },
-]
-
 const STATUS_COLORS = { draft: 'bg-gray-100 text-gray-600 border-gray-200', pending: 'bg-yellow-100 text-yellow-700 border-yellow-200', approved: 'bg-blue-100 text-blue-700 border-blue-200', paid: 'bg-green-100 text-green-700 border-green-200', cancelled: 'bg-red-100 text-red-700 border-red-200' }
 const PIE_COLORS = ['#0FD452', '#EF4444', '#3B82F6', '#F59E0B', '#8B5CF6']
 
@@ -45,7 +39,7 @@ export default function PayrollPage() {
       const res = await payroll.getAll(params)
       setPayrollList(toArray(res.data))
     } catch {
-      setPayrollList(FALLBACK_PAYROLL)
+      setPayrollList([])
     } finally { setLoading(false) }
   }
 
@@ -54,7 +48,7 @@ export default function PayrollPage() {
       const res = await payroll.getSummary({ period_month: periodMonth, period_year: periodYear })
       setSummary(res.data)
     } catch {
-      setSummary({ total_gross: 4400, total_paye: 170, total_nssf: 370, total_nhif: 5100, total_housing_levy: 65.75, total_deductions: 5705.75, total_net: 3794, employee_count: 3 })
+      setSummary({})
     }
   }
 

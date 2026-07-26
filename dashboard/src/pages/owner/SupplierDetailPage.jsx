@@ -3,8 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Star, Mail, Phone, MapPin, Building, CreditCard, Package, TrendingUp } from 'lucide-react'
 import api from '../../services/api'
 
-const FALLBACK = { name: 'MedSupply Tanzania', contact_person: 'John Mwangi', email: 'john@medsupply.co.tz', phone: '+255 754 123 456', address: '123 Medical Road', city: 'Dar es Salaam', country: 'Tanzania', tax_id: 'TIN-123456789', payment_terms: 'net_30', rating: 4.50, total_orders: 24, total_purchased: 45000.00, is_active: true, notes: 'Preferred supplier for antibiotics.', purchaseOrders: [] }
-
 export default function SupplierDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -17,7 +15,7 @@ export default function SupplierDetailPage() {
         const res = await api.get(`/suppliers/${id}`)
         setSupplier(res.data.supplier || res.data)
       } catch {
-        setSupplier(FALLBACK)
+        setSupplier(null)
       } finally {
         setLoading(false)
       }

@@ -28,57 +28,16 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const FALLBACK_DATA = {
-  user: { name: 'Owner' },
-  pharmacy: { name: 'Pharmex Pharmacy' },
-  todaySales: 847500,
-  salesTrend: 12.5,
-  monthlyRevenue: 18450000,
-  ordersToday: 12,
-  pendingPrescriptions: 3,
-  lowStockAlerts: 2,
+const DEFAULT_DATA = {
+  todaySales: 0,
+  monthlyRevenue: 0,
+  ordersToday: 0,
+  pendingPrescriptions: 0,
+  lowStockAlerts: 0,
   expiringDrugs: 0,
-  revenueChart: [
-    { day: 'Jul 12', revenue: 980000 },
-    { day: 'Jul 13', revenue: 1350000 },
-    { day: 'Jul 14', revenue: 870000 },
-    { day: 'Jul 15', revenue: 650000 },
-    { day: 'Jul 16', revenue: 1020000 },
-    { day: 'Jul 17', revenue: 790000 },
-    { day: 'Jul 18', revenue: 1180000 },
-    { day: 'Jul 19', revenue: 930000 },
-    { day: 'Jul 20', revenue: 1450000 },
-    { day: 'Jul 21', revenue: 810000 },
-    { day: 'Jul 22', revenue: 1060000 },
-    { day: 'Jul 23', revenue: 740000 },
-    { day: 'Jul 24', revenue: 1290000 },
-    { day: 'Jul 25', revenue: 847500 },
-    { day: 'Jul 26', revenue: 1100000 },
-  ],
-  revenueBreakdown: [
-    { name: 'Week 1', value: 3540000, color: '#0FD452' },
-    { name: 'Week 2', value: 2970000, color: '#3b82f6' },
-    { name: 'Week 3', value: 4120000, color: '#f59e0b' },
-    { name: 'Week 4', value: 3820000, color: '#8b5cf6' },
-  ],
-  recentOrders: [
-    { id: 1, code: 'ORD-1042', customer: 'Alice Mwamba', total: 45000, status: 'dispensed', time: '10 min ago' },
-    { id: 2, code: 'ORD-1041', customer: 'Bob Phiri', total: 128500, status: 'confirmed', time: '25 min ago' },
-    { id: 3, code: 'ORD-1040', customer: 'Carol Banda', total: 32000, status: 'pending', time: '1 hr ago' },
-    { id: 4, code: 'ORD-1039', customer: 'David Lungu', total: 89750, status: 'dispensed', time: '2 hrs ago' },
-    { id: 5, code: 'ORD-1038', customer: 'Eva Tembo', total: 15000, status: 'cancelled', time: '3 hrs ago' },
-  ],
-  topSellingDrugs: [
-    { name: 'Amoxicillin 500mg', quantitySold: 142, revenue: 710000 },
-    { name: 'Paracetamol 500mg', quantitySold: 128, revenue: 256000 },
-    { name: 'Metformin 850mg', quantitySold: 95, revenue: 570000 },
-    { name: 'Cetirizine 10mg', quantitySold: 82, revenue: 246000 },
-    { name: 'Omeprazole 20mg', quantitySold: 71, revenue: 497000 },
-  ],
-  lowStockDrugs: [
-    { name: 'Insulin Glargine', currentStock: 0, reorderLevel: 10 },
-    { name: 'Salbutamol Inhaler', currentStock: 3, reorderLevel: 8 },
-  ],
+  revenueChart: [],
+  revenueBreakdown: [],
+  topSellingDrugs: [],
 }
 
 function getGreeting() {
@@ -112,7 +71,7 @@ function OwnerDashboard() {
         const response = await api.get('/dashboard/owner')
         const apiData = response.data || {}
 
-        const revenueChart = (apiData.revenue_chart || FALLBACK_DATA.revenueChart).map((item) => ({
+        const revenueChart = (apiData.revenue_chart || []).map((item) => ({
           day: item.day || (item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''),
           revenue: item.revenue,
         }))
@@ -127,28 +86,27 @@ function OwnerDashboard() {
           }))
         })()
 
-        const topSellingDrugs = (apiData.top_selling_drugs || FALLBACK_DATA.topSellingDrugs).map((item) => ({
+        const topSellingDrugs = (apiData.top_selling_drugs || []).map((item) => ({
           name: item.name || item.drug?.name || 'Unknown',
           quantitySold: item.quantitySold ?? item.total_sold ?? 0,
           revenue: item.revenue ?? 0,
         }))
 
         setData({
-          ...FALLBACK_DATA,
-          todaySales: apiData.today_sales ?? FALLBACK_DATA.todaySales,
-          monthlyRevenue: apiData.monthly_revenue ?? FALLBACK_DATA.monthlyRevenue,
-          ordersToday: apiData.orders_today ?? FALLBACK_DATA.ordersToday,
-          pendingPrescriptions: apiData.active_prescriptions ?? FALLBACK_DATA.pendingPrescriptions,
-          lowStockAlerts: apiData.low_stock_alerts ?? FALLBACK_DATA.lowStockAlerts,
-          expiringDrugs: apiData.expiring_drugs ?? FALLBACK_DATA.expiringDrugs,
+          todaySales: apiData.today_sales ?? 0,
+          monthlyRevenue: apiData.monthly_revenue ?? 0,
+          ordersToday: apiData.orders_today ?? 0,
+          pendingPrescriptions: apiData.active_prescriptions ?? 0,
+          lowStockAlerts: apiData.low_stock_alerts ?? 0,
+          expiringDrugs: apiData.expiring_drugs ?? 0,
           revenueChart,
           revenueBreakdown,
           topSellingDrugs,
         })
       } catch (err) {
-        console.warn('Failed to fetch dashboard data, using fallback:', err.message)
+        console.warn('Failed to fetch dashboard data:', err.message)
         setError(err.message)
-        setData(FALLBACK_DATA)
+        setData(DEFAULT_DATA)
       } finally {
         setLoading(false)
       }

@@ -4,11 +4,6 @@ import { Plus, Shield, ShieldAlert, Printer, BookOpen, AlertTriangle, Hash, Pack
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE = [
-  { id: 1, register_number: 'CS-II-00001', drug: { name: 'Morphine Sulfate 10mg' }, schedule: 'schedule_ii', date_received: '2026-07-01', quantity_received: 100, balance_stock: 75, issued_to: 'Regional Hospital', quantity_issued: 25, issue_date: '2026-07-10', issuing_pharmacist: { name: 'Dr. Mwangi' }, receiving_person_name: 'Dr. Peter', receiving_person_id_number: 'NIDA-12345678', witness_name: 'Nurse Amina', witness_id_number: 'NIDA-87654321' },
-  { id: 2, register_number: 'CS-III-00001', drug: { name: 'Codeine 30mg' }, schedule: 'schedule_iii', date_received: '2026-07-05', quantity_received: 200, balance_stock: 180, issued_to: null, quantity_issued: 0, issue_date: null, issuing_pharmacist: null, receiving_person_name: null, receiving_person_id_number: null, witness_name: null, witness_id_number: null },
-]
-
 const SCHEDULE_TABS = [
   { key: 'all', label: 'All Schedules' },
   { key: 'schedule_i', label: 'Schedule I' },
@@ -38,11 +33,11 @@ export default function ControlledSubstancePage() {
       ])
       setRecords(regRes.data.data || regRes.data || [])
       setBalanceReport(balRes.data)
-    } catch { setRecords(SAMPLE); setBalanceReport({ total_received: 300, total_issued: 25, total_balance: 275, by_schedule: {} }) } finally { setLoading(false) }
+    } catch { setRecords([]); setBalanceReport(null) } finally { setLoading(false) }
   }, [scheduleTab])
 
   useEffect(() => { fetchRecords() }, [fetchRecords])
-  useEffect(() => { api.get('/drugs').then(res => setDrugs(toArray(res.data))).catch(() => setDrugs([{ id: 1, name: 'Morphine Sulfate 10mg' }])) }, [])
+  useEffect(() => { api.get('/drugs').then(res => setDrugs(toArray(res.data))).catch(() => setDrugs([])) }, [])
 
   const handleRegister = async (e) => {
     e.preventDefault()

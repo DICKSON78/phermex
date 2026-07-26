@@ -29,97 +29,6 @@ const ACTION_STYLES = {
   logout: 'bg-gray-100 text-gray-600',
 }
 
-const FALLBACK_LOGS = [
-  {
-    id: 1,
-    user: { name: 'Admin User', role: 'admin' },
-    action: 'create',
-    model_type: 'Drug',
-    model_id: 1,
-    old_values: null,
-    new_values: { name: 'Amoxicillin 500mg', selling_price: 8.5, quantity: 150 },
-    ip_address: '192.168.1.100',
-    created_at: '2026-07-21T10:30:00Z',
-  },
-  {
-    id: 2,
-    user: { name: 'John Mwalimu', role: 'owner' },
-    action: 'update',
-    model_type: 'Drug',
-    model_id: 2,
-    old_values: { quantity: 300, selling_price: 3.0 },
-    new_values: { quantity: 280, selling_price: 3.5 },
-    ip_address: '192.168.1.101',
-    created_at: '2026-07-21T09:15:00Z',
-  },
-  {
-    id: 3,
-    user: { name: 'Dr. Amina Juma', role: 'pharmacist' },
-    action: 'create',
-    model_type: 'Order',
-    model_id: 15,
-    old_values: null,
-    new_values: { order_code: 'ORD-2026-0015', total: 125.0, customer: 'Alice Mwamba' },
-    ip_address: '192.168.1.102',
-    created_at: '2026-07-21T08:45:00Z',
-  },
-  {
-    id: 4,
-    user: { name: 'Admin User', role: 'admin' },
-    action: 'delete',
-    model_type: 'Customer',
-    model_id: 8,
-    old_values: { full_name: 'Guest Customer', phone: null },
-    new_values: null,
-    ip_address: '192.168.1.100',
-    created_at: '2026-07-20T16:20:00Z',
-  },
-  {
-    id: 5,
-    user: { name: 'John Mwalimu', role: 'owner' },
-    action: 'login',
-    model_type: 'User',
-    model_id: 2,
-    old_values: null,
-    new_values: { email: 'owner@pharmex.com' },
-    ip_address: '192.168.1.101',
-    created_at: '2026-07-20T08:00:00Z',
-  },
-  {
-    id: 6,
-    user: { name: 'Dr. Amina Juma', role: 'pharmacist' },
-    action: 'update',
-    model_type: 'Prescription',
-    model_id: 5,
-    old_values: { status: 'pending' },
-    new_values: { status: 'dispensed' },
-    ip_address: '192.168.1.102',
-    created_at: '2026-07-20T11:30:00Z',
-  },
-  {
-    id: 7,
-    user: { name: 'Admin User', role: 'admin' },
-    action: 'create',
-    model_type: 'Pharmacy',
-    model_id: 1,
-    old_values: null,
-    new_values: { pharmacy_name: 'Mwalimu Pharmacy', country: 'Tanzania', status: 'active' },
-    ip_address: '192.168.1.100',
-    created_at: '2026-07-19T14:00:00Z',
-  },
-  {
-    id: 8,
-    user: { name: 'John Mwalimu', role: 'owner' },
-    action: 'update',
-    model_type: 'Order',
-    model_id: 12,
-    old_values: { payment_status: 'unpaid', total: 89.0 },
-    new_values: { payment_status: 'paid', total: 89.0 },
-    ip_address: '192.168.1.101',
-    created_at: '2026-07-19T10:15:00Z',
-  },
-]
-
 const ROLE_STYLES = {
   admin: 'bg-red-100 text-red-700',
   owner: 'bg-primary/10 text-primary',
@@ -234,7 +143,7 @@ export default function AdminAuditLogsPage() {
       const response = await api.get(`/admin/audit-logs?${params.toString()}`)
       setLogs(response.data.data || response.data || [])
     } catch {
-      setLogs(FALLBACK_LOGS)
+      setLogs([])
     } finally {
       setLoading(false)
     }

@@ -15,26 +15,6 @@ function formatCurrency(amount) {
 const DEPARTMENTS = { pharmacy: 'Pharmacy', management: 'Management', finance: 'Finance', operations: 'Operations', hr: 'HR' }
 const STATUS_COLORS = { active: 'bg-green-100 text-green-700 border-green-200', inactive: 'bg-gray-100 text-gray-500 border-gray-200', suspended: 'bg-yellow-100 text-yellow-700 border-yellow-200', terminated: 'bg-red-100 text-red-700 border-red-200' }
 
-const FALLBACK_EMPLOYEE = {
-  id: 1, employee_number: 'EMP-00001', first_name: 'Sarah', last_name: 'Nakamya',
-  email: 'sarah@pharmex.co.tz', phone: '+255701111111', gender: 'female',
-  date_of_birth: '1990-05-15', national_id: 'NIDA-1234567890', department: 'pharmacy',
-  position: 'Lead Pharmacist', employment_type: 'full_time', hire_date: '2024-01-15',
-  basic_salary: 1500, allowances: 300, tax_id: 'TIN-12345', bank_name: 'CRDB Bank',
-  bank_account_number: '0123456789', emergency_contact_name: 'John Nakamya',
-  emergency_contact_phone: '+255701999999', status: 'active',
-  attendance: [
-    { id: 1, date: '2026-07-20', clock_in: '2026-07-20 07:55:00', clock_out: '2026-07-20 17:05:00', hours_worked: 8, overtime_hours: 0.17, status: 'present' },
-    { id: 2, date: '2026-07-19', clock_in: '2026-07-19 08:10:00', clock_out: '2026-07-19 17:00:00', hours_worked: 8, overtime_hours: 0, status: 'late' },
-    { id: 3, date: '2026-07-18', clock_in: '2026-07-18 07:50:00', clock_out: '2026-07-18 17:00:00', hours_worked: 8, overtime_hours: 0, status: 'present' },
-  ],
-  leaves: [
-    { id: 1, leave_type: 'annual', start_date: '2026-08-01', end_date: '2026-08-05', days_count: 5, status: 'pending', reason: 'Family vacation' },
-  ],
-  payroll: [],
-  performanceReviews: [],
-}
-
 const TABS = [
   { id: 'overview', label: 'Overview', icon: User },
   { id: 'attendance', label: 'Attendance', icon: Clock },
@@ -58,7 +38,7 @@ export default function EmployeeDetailPage() {
       const res = await employees.getById(id)
       setEmployee(res.data.employee)
     } catch {
-      setEmployee(FALLBACK_EMPLOYEE)
+      setEmployee(null)
     } finally { setLoading(false) }
   }
 

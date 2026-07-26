@@ -7,17 +7,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const SAMPLE_LOW_STOCK = [
-  { id: 1, name: 'Amoxicillin 500mg', generic_name: 'Amoxicillin', category: 'Antibiotics', quantity: 3, reorder_level: 20, buying_price: 5.00 },
-  { id: 2, name: 'Metformin 850mg', generic_name: 'Metformin HCl', category: 'Antidiabetics', quantity: 8, reorder_level: 25, buying_price: 4.00 },
-  { id: 3, name: 'Lisinopril 10mg', generic_name: 'Lisinopril', category: 'Antihypertensives', quantity: 0, reorder_level: 15, buying_price: 6.00 },
-  { id: 4, name: 'Azithromycin 250mg', generic_name: 'Azithromycin', category: 'Antibiotics', quantity: 5, reorder_level: 10, buying_price: 8.00 },
-  { id: 5, name: 'Insulin Glargine', generic_name: 'Insulin', category: 'Antidiabetics', quantity: 0, reorder_level: 10, buying_price: 25.00 },
-  { id: 6, name: 'Salbutamol Inhaler', generic_name: 'Albuterol', category: 'Respiratory', quantity: 3, reorder_level: 8, buying_price: 12.00 },
-  { id: 7, name: 'Omeprazole 20mg', generic_name: 'Omeprazole', category: 'Antacids', quantity: 12, reorder_level: 20, buying_price: 3.50 },
-  { id: 8, name: 'Cetirizine 10mg', generic_name: 'Cetirizine HCl', category: 'Antihistamines', quantity: 15, reorder_level: 30, buying_price: 2.00 },
-]
-
 export default function LowStockPage() {
   const navigate = useNavigate()
   const [drugs, setDrugs] = useState([])
@@ -37,7 +26,7 @@ export default function LowStockPage() {
       const res = await api.get('/drugs', { params: { stock_status: 'low_stock' } })
       setDrugs(toArray(res.data))
     } catch {
-      setDrugs(SAMPLE_LOW_STOCK)
+      setDrugs([])
     } finally {
       setLoading(false)
     }

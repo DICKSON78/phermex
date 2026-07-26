@@ -11,20 +11,6 @@ import api from '../../services/api'
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
-const FALLBACK_ACCOUNTS = [
-  { id: 1, bank_name: 'CRDB Bank', account_name: 'Business Account', account_number: '0150123456789', current_balance: 45230.50, opening_balance: 25000, is_default: true, is_active: true },
-  { id: 2, bank_name: 'NBC Bank', account_name: 'Savings Account', account_number: '0123456789012', current_balance: 12800.00, opening_balance: 10000, is_default: false, is_active: true },
-  { id: 3, bank_name: 'Equity Bank', account_name: 'Operations Account', account_number: '9876543210987', current_balance: 8500.00, opening_balance: 5000, is_default: false, is_active: true },
-]
-
-const FALLBACK_TRANSACTIONS = [
-  { id: 1, transaction_date: '2026-07-20', type: 'deposit', amount: 5200, balance_after: 45230.50, description: 'Daily sales deposit', reference_number: 'DEP-001', reconciled: true },
-  { id: 2, transaction_date: '2026-07-19', type: 'withdrawal', amount: -2000, balance_after: 40030.50, description: 'Supplier payment', reference_number: 'WD-001', reconciled: false },
-  { id: 3, transaction_date: '2026-07-18', type: 'deposit', amount: 3800, balance_after: 42030.50, description: 'Insurance claim received', reference_number: 'DEP-002', reconciled: true },
-  { id: 4, transaction_date: '2026-07-17', type: 'transfer', amount: -1500, balance_after: 38230.50, description: 'Transfer to NBC savings', reference_number: 'TRF-001', reconciled: false },
-  { id: 5, transaction_date: '2026-07-15', type: 'withdrawal', amount: -3500, balance_after: 39730.50, description: 'Staff salaries', reference_number: 'WD-002', reconciled: true },
-  { id: 6, transaction_date: '2026-07-14', type: 'deposit', amount: 6700, balance_after: 43230.50, description: 'Weekend sales deposit', reference_number: 'DEP-003', reconciled: true },
-]
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(Math.abs(amount))
@@ -60,10 +46,10 @@ export default function BankManagementPage() {
         setTransactions(txRes.data.data || [])
       }
     } catch {
-      setBankAccounts(FALLBACK_ACCOUNTS)
-      setTransactions(FALLBACK_TRANSACTIONS)
-      setSelectedAccount(FALLBACK_ACCOUNTS[0])
-      setSummary({ total_balance: 66530.50, account_count: 3, accounts: FALLBACK_ACCOUNTS.map((a) => ({ id: a.id, bank_name: a.bank_name, account_name: a.account_name, current_balance: a.current_balance, is_default: a.is_default })) })
+      setBankAccounts([])
+      setTransactions([])
+      setSelectedAccount(null)
+      setSummary(null)
     } finally { setLoading(false) }
   }
 
@@ -73,7 +59,7 @@ export default function BankManagementPage() {
     try {
       const res = await api.get(`/bank/${account.id}/transactions`)
       setTransactions(toArray(res.data))
-    } catch { setTransactions(FALLBACK_TRANSACTIONS) }
+    } catch { setTransactions([]) }
   }
 
   const filteredTx = useMemo(() => {

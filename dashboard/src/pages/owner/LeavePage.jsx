@@ -7,13 +7,6 @@ import {
 import toast from 'react-hot-toast'
 import { leaves, employees } from '../../services/api'
 
-const FALLBACK_LEAVES = [
-  { id: 1, employee: { id: 1, first_name: 'Sarah', last_name: 'Nakamya', employee_number: 'EMP-00001' }, leave_type: 'annual', start_date: '2026-08-01', end_date: '2026-08-05', days_count: 5, reason: 'Family vacation to Zanzibar', status: 'pending' },
-  { id: 2, employee: { id: 2, first_name: 'James', last_name: 'Ochieng', employee_number: 'EMP-00002' }, leave_type: 'sick', start_date: '2026-07-18', end_date: '2026-07-19', days_count: 2, reason: 'Medical appointment', status: 'approved' },
-  { id: 3, employee: { id: 3, first_name: 'Mary', last_name: 'Ajambo', employee_number: 'EMP-00003' }, leave_type: 'annual', start_date: '2026-09-10', end_date: '2026-09-15', days_count: 6, reason: 'Personal matters', status: 'pending' },
-  { id: 4, employee: { id: 4, first_name: 'Peter', last_name: 'Ssekitooleko', employee_number: 'EMP-00004' }, leave_type: 'bereavement', start_date: '2026-07-10', end_date: '2026-07-12', days_count: 3, reason: 'Family bereavement', status: 'approved' },
-]
-
 const TYPE_LABELS = { annual: 'Annual Leave', sick: 'Sick Leave', maternity: 'Maternity', paternity: 'Paternity', bereavement: 'Bereavement', unpaid: 'Unpaid Leave', study: 'Study Leave' }
 const STATUS_COLORS = { pending: 'bg-yellow-900/40 text-yellow-400 border-yellow-700/50', approved: 'bg-green-900/40 text-green-400 border-green-700/50', rejected: 'bg-red-900/40 text-red-400 border-red-700/50', cancelled: 'bg-gray-700/40 text-gray-400 border-gray-600/50' }
 const STATUS_ICONS = { pending: Clock, approved: CheckCircle, rejected: XCircle, cancelled: Ban }
@@ -44,8 +37,8 @@ export default function LeavePage() {
       setLeaveList(data)
       setUpcomingLeaves(data.filter(l => l.status === 'approved' && new Date(l.start_date) >= new Date()).slice(0, 5))
     } catch {
-      setLeaveList(FALLBACK_LEAVES)
-      setUpcomingLeaves(FALLBACK_LEAVES.filter(l => l.status === 'approved').slice(0, 5))
+      setLeaveList([])
+      setUpcomingLeaves([])
     } finally { setLoading(false) }
   }
 
@@ -54,7 +47,7 @@ export default function LeavePage() {
       const res = await employees.getAll({ per_page: 100 })
       setEmployeeList(toArray(res.data))
     } catch {
-      setEmployeeList(FALLBACK_LEAVES.map(l => l.employee))
+      setEmployeeList([])
     }
   }
 
@@ -63,7 +56,7 @@ export default function LeavePage() {
       const res = await leaves.getBalance({ employee_id: selectedEmployee })
       setLeaveBalances(res.data.balance || {})
     } catch {
-      setLeaveBalances({ annual: 25, sick: 14, maternity: 90, paternity: 10, bereavement: 5 })
+      setLeaveBalances({})
     }
   }
 

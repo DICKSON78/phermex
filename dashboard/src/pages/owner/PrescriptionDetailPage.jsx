@@ -19,22 +19,6 @@ import {
   Calendar,
 } from 'lucide-react'
 
-const FALLBACK_PRESCRIPTION = {
-  id: 1,
-  code: 'RX-1001',
-  status: 'pending',
-  doctor: 'Dr. Mwamba',
-  hospital: 'Central Hospital',
-  patient: 'Alice Mwamba',
-  patientPhone: '+260 97 123 4567',
-  diagnosis: 'Bacterial throat infection',
-  notes: 'Complete full course even if symptoms improve.',
-  date: '2025-07-18',
-  items: [
-    { id: 1, drug: 'Amoxicillin 500mg', quantity: 30, dosage: '500mg', frequency: '3x daily', duration: '10 days', notes: 'Take with food', dispensed: false },
-    { id: 2, drug: 'Paracetamol 500mg', quantity: 20, dosage: '500mg', frequency: 'As needed', duration: 'As needed', notes: 'For fever/pain', dispensed: false },
-  ],
-}
 
 const STATUS_CONFIG = {
   pending: { label: 'Pending', style: 'bg-yellow-100 text-yellow-800', icon: Clock },
@@ -56,7 +40,7 @@ export default function PrescriptionDetailPage() {
         const res = await api.get(`/prescriptions/${id}`)
         setRx(toArray(res.data))
       } catch {
-        setRx(FALLBACK_PRESCRIPTION)
+        setRx(null)
       } finally {
         setLoading(false)
       }

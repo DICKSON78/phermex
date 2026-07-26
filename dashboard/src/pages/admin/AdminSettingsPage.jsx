@@ -18,28 +18,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const SAMPLE_SETTINGS = {
-  platform: {
-    name: 'Pharmex',
-    tagline: 'Modern Pharmacy Management Platform',
-    support_email: 'support@pharmex.com',
-    support_phone: '+1 (800) 555-PHARM',
-  },
-  plans: [
-    { id: 1, name: 'Trial', price: 0, duration: '14 days', features: 'Up to 100 drugs, 2 users, basic reports' },
-    { id: 2, name: 'Basic', price: 29, duration: 'Monthly', features: 'Up to 500 drugs, 5 users, sales reports, prescriptions' },
-    { id: 3, name: 'Pro', price: 79, duration: 'Monthly', features: 'Unlimited drugs, 15 users, advanced analytics, API access' },
-    { id: 4, name: 'Enterprise', price: 199, duration: 'Monthly', features: 'Unlimited everything, multi-branch, priority support, custom integrations' },
-  ],
-  notifications: {
-    email_enabled: true,
-    sms_enabled: false,
-  },
-  data_retention: {
-    period: '24',
-  },
-}
-
 const PLAN_COLORS = {
   Trial: 'border-gray-200 bg-gray-50',
   Basic: 'border-green-200 bg-green-50',
@@ -61,9 +39,9 @@ export default function AdminSettingsPage() {
     try {
       const response = await api.get('/admin/settings')
       const remote = response.data || {}
-      setSettings({ ...SAMPLE_SETTINGS, ...remote, platform: { ...SAMPLE_SETTINGS.platform, ...(remote.platform || {}) } })
+      setSettings(remote)
     } catch {
-      setSettings(SAMPLE_SETTINGS)
+      setSettings({})
     } finally {
       setLoading(false)
     }

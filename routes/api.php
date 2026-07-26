@@ -2,6 +2,13 @@
 
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\AdminContentController;
+use App\Http\Controllers\Api\AdminDrugDatabaseController;
+use App\Http\Controllers\Api\AdminReportController;
+use App\Http\Controllers\Api\AdminRevenueController;
+use App\Http\Controllers\Api\AdminSettingController;
+use App\Http\Controllers\Api\AdminSupportController;
+use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BankController;
@@ -11,6 +18,8 @@ use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\CustomerAppController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DrugController;
+use App\Http\Controllers\Api\DrugMovementController;
+use App\Http\Middleware\AutoScopePharmacy;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LeaveController;
@@ -31,8 +40,12 @@ use App\Http\Controllers\Api\LicenseController;
 use App\Http\Controllers\Api\RegulatoryReportController;
 use App\Http\Controllers\Api\DrugRecallController;
 use App\Http\Controllers\Api\DemoRequestController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\SubscriptionController;
+use App\Http\Controllers\Api\ExpenseController;
+use App\Http\Controllers\Api\DeliveryController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Middleware\PharmacyScopeMiddleware;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/user', [AuthController::class, 'me']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/user/password', [AuthController::class, 'changePassword']);
 
     Route::prefix('customer-app')->group(function () {
         Route::get('/me', [CustomerAppController::class, 'me']);
@@ -78,10 +92,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/chats/{pharmacyId}/read', [ChatController::class, 'customerMarkRead']);
     });
 
-    Route::middleware(PharmacyScopeMiddleware::class)->group(function () {
+    Route::middleware([PharmacyScopeMiddleware::class, AutoScopePharmacy::class])->group(function () {
         Route::get('/pharmacies', [PharmacyController::class, 'index'])
             ->middleware(RoleMiddleware::class . ':admin');
         Route::post('/pharmacies/{id}/switch', [PharmacyController::class, 'switchPharmacy']);
+        Route::get('/pharmacies/current', [PharmacyController::class, 'current']);
         Route::get('/pharmacies/{pharmacy}', [PharmacyController::class, 'show']);
         Route::put('/pharmacies/{pharmacy}', [PharmacyController::class, 'update']);
         Route::get('/pharmacies/{pharmacy}/stats', [PharmacyController::class, 'stats']);
@@ -96,6 +111,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/drugs/{id}', [DrugController::class, 'update']);
         Route::delete('/drugs/{id}', [DrugController::class, 'destroy']);
 
+        Route::get('/drug-movements', [DrugMovementController::class, 'index']);
+        Route::post('/drug-movements', [DrugMovementController::class, 'store']);
+        Route::get('/drug-movements/{id}', [DrugMovementController::class, 'show']);
+        Route::get('/drug-movements/monthly-summary', [DrugMovementController::class, 'monthlySummary']);
+
         Route::get('/orders/daily-report/{pharmacyId}', [OrderController::class, 'dailyReport']);
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
@@ -106,11 +126,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/prescriptions', [PrescriptionController::class, 'index']);
         Route::post('/prescriptions', [PrescriptionController::class, 'store']);
         Route::post('/prescriptions/{id}/dispense', [PrescriptionController::class, 'dispense']);
+        Route::post('/prescriptions/{id}/cancel', [PrescriptionController::class, 'cancel']);
         Route::get('/prescriptions/{id}', [PrescriptionController::class, 'show']);
 
         Route::get('/customers', [CustomerController::class, 'index']);
         Route::post('/customers', [CustomerController::class, 'store']);
         Route::get('/customers/{id}/purchase-history', [CustomerController::class, 'purchaseHistory']);
+        Route::get('/customers/{id}/prescriptions', [CustomerController::class, 'prescriptions']);
         Route::get('/customers/{id}', [CustomerController::class, 'show']);
         Route::put('/customers/{id}', [CustomerController::class, 'update']);
 
@@ -263,6 +285,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/drug-recalls/{id}/acknowledge', [DrugRecallController::class, 'acknowledge']);
         Route::post('/drug-recalls/{id}/process', [DrugRecallController::class, 'process']);
 
+        Route::get('/expenses/monthly-summary', [ExpenseController::class, 'monthlySummary']);
+        Route::get('/expenses', [ExpenseController::class, 'index']);
+        Route::post('/expenses', [ExpenseController::class, 'store']);
+        Route::get('/expenses/{id}', [ExpenseController::class, 'show']);
+        Route::put('/expenses/{id}', [ExpenseController::class, 'update']);
+        Route::delete('/expenses/{id}', [ExpenseController::class, 'destroy']);
+
+        Route::get('/deliveries', [DeliveryController::class, 'index']);
+        Route::post('/deliveries', [DeliveryController::class, 'store']);
+        Route::get('/deliveries/{id}', [DeliveryController::class, 'show']);
+        Route::patch('/deliveries/{id}', [DeliveryController::class, 'update']);
+        Route::put('/deliveries/{id}/status', [DeliveryController::class, 'updateStatus']);
+        Route::post('/deliveries/{id}/assign-driver', [DeliveryController::class, 'assignDriver']);
+
+        Route::get('/reports/sales', [ReportController::class, 'salesReport']);
+        Route::get('/reports/inventory', [ReportController::class, 'inventoryReport']);
+        Route::get('/reports/financial', [ReportController::class, 'financialReport']);
+        Route::get('/reports/customers', [ReportController::class, 'customerReport']);
+
         Route::get('/chats', [ChatController::class, 'pharmacyConversations']);
         Route::get('/chats/{customerId}', [ChatController::class, 'pharmacyMessages']);
         Route::post('/chats/{customerId}', [ChatController::class, 'pharmacySend']);
@@ -289,6 +330,66 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/pharmacies/{id}/reject', [AdminController::class, 'rejectPharmacy']);
         Route::patch('/pharmacies/{id}/confirm-payment', [AdminController::class, 'confirmPayment']);
         Route::get('/pending-pharmacies', [AdminController::class, 'listPendingPharmacies']);
+
+        // Admin User Management
+        Route::get('/users/all', [AdminUserController::class, 'index']);
+        Route::post('/users', [AdminUserController::class, 'store']);
+        Route::get('/users/{id}/stats', [AdminUserController::class, 'show']);
+        Route::put('/users/{id}', [AdminUserController::class, 'update']);
+        Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
+        Route::patch('/users/{id}/toggle-status', [AdminUserController::class, 'toggleActive']);
+
+        // Admin Settings
+        Route::get('/settings', [AdminSettingController::class, 'index']);
+        Route::put('/settings/platform', [AdminSettingController::class, 'updatePlatform']);
+        Route::put('/settings/notifications', [AdminSettingController::class, 'updateNotifications']);
+        Route::put('/settings/retention', [AdminSettingController::class, 'updateRetention']);
+
+        // Admin Content Management
+        Route::get('/content', [AdminContentController::class, 'index']);
+        Route::post('/content', [AdminContentController::class, 'store']);
+        Route::get('/content/{id}', [AdminContentController::class, 'show']);
+        Route::put('/content/{id}', [AdminContentController::class, 'update']);
+        Route::delete('/content/{id}', [AdminContentController::class, 'destroy']);
+        Route::patch('/content/{id}/toggle-status', [AdminContentController::class, 'toggleStatus']);
+        Route::post('/content/{id}/duplicate', [AdminContentController::class, 'duplicate']);
+
+        // Admin Support Tickets
+        Route::get('/support/tickets', [AdminSupportController::class, 'index']);
+        Route::post('/support/tickets', [AdminSupportController::class, 'store']);
+        Route::get('/support/tickets/{id}', [AdminSupportController::class, 'show']);
+        Route::delete('/support/tickets/{id}', [AdminSupportController::class, 'destroy']);
+        Route::post('/support/tickets/{id}/resolve', [AdminSupportController::class, 'resolve']);
+        Route::post('/support/tickets/{id}/close', [AdminSupportController::class, 'close']);
+        Route::post('/support/tickets/{id}/reply', [AdminSupportController::class, 'reply']);
+
+        // Admin Revenue
+        Route::get('/revenue', [AdminRevenueController::class, 'index']);
+        Route::post('/revenue', [AdminRevenueController::class, 'store']);
+        Route::get('/revenue/{id}', [AdminRevenueController::class, 'show']);
+        Route::delete('/revenue/{id}', [AdminRevenueController::class, 'destroy']);
+        Route::patch('/revenue/{id}', [AdminRevenueController::class, 'update']);
+        Route::post('/revenue/{id}/reminder', [AdminRevenueController::class, 'reminder']);
+
+        // Admin Drug Database
+        Route::get('/drug-database', [AdminDrugDatabaseController::class, 'index']);
+        Route::post('/drug-database', [AdminDrugDatabaseController::class, 'store']);
+        Route::get('/drug-database/{id}', [AdminDrugDatabaseController::class, 'show']);
+        Route::put('/drug-database/{id}', [AdminDrugDatabaseController::class, 'update']);
+        Route::delete('/drug-database/{id}', [AdminDrugDatabaseController::class, 'destroy']);
+        Route::patch('/drug-database/{id}/toggle-status', [AdminDrugDatabaseController::class, 'toggleStatus']);
+
+        // Admin Reports
+        Route::get('/reports', [AdminReportController::class, 'index']);
+    });
+
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::get('/{id}', [NotificationController::class, 'show']);
+        Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::put('/read-all', [NotificationController::class, 'markAllRead']);
+        Route::delete('/{id}', [NotificationController::class, 'destroy']);
     });
 
     Route::prefix('subscriptions')->group(function () {

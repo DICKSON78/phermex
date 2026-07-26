@@ -4,11 +4,6 @@ import { Plus, RotateCcw, CheckCircle, Truck, CreditCard, Hash, CalendarDays, Us
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE = [
-  { id: 1, return_number: 'SR-00001', supplier: { name: 'MedSupply Tanzania' }, return_date: '2026-07-15', reason: 'damaged', status: 'shipped', total_items: 10, total_value: 500 },
-  { id: 2, return_number: 'SR-00002', supplier: { name: 'PharmaDistributors Ltd' }, return_date: '2026-07-19', reason: 'expired', status: 'pending', total_items: 5, total_value: 250 },
-]
-
 const STATUS_COLORS = { pending: 'bg-yellow-100 text-yellow-700', approved: 'bg-blue-100 text-blue-700', shipped: 'bg-indigo-100 text-indigo-700', refunded: 'bg-green-100 text-green-700' }
 const REASON_COLORS = { damaged: 'text-red-600', expired: 'text-orange-600', wrong_item: 'text-purple-600', quality_issue: 'text-yellow-600', overstock: 'text-blue-600' }
 
@@ -23,14 +18,14 @@ export default function StockReturnsPage() {
 
   const fetchReturns = useCallback(async () => {
     setLoading(true)
-    try { const res = await api.get('/stock-returns'); setReturns(toArray(res.data)) } catch { setReturns(SAMPLE) } finally { setLoading(false) }
+    try { const res = await api.get('/stock-returns'); setReturns(toArray(res.data)) } catch { setReturns([]) } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchReturns() }, [fetchReturns])
   useEffect(() => {
     Promise.all([api.get('/suppliers').catch(() => ({ data: [] })), api.get('/drugs').catch(() => ({ data: [] }))]).then(([s, d]) => {
-      setSuppliers(s.data.data || s.data || [{ id: 1, name: 'MedSupply Tanzania' }])
-      setDrugs(d.data.data || d.data || [{ id: 1, name: 'Amoxicillin 500mg', buying_price: 5 }])
+      setSuppliers(s.data.data || s.data || [])
+      setDrugs(d.data.data || d.data || [])
     })
   }, [])
 

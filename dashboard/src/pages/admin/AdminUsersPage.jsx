@@ -30,21 +30,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const SAMPLE_USERS = [
-  { id: 1, name: 'Admin User', email: 'admin@pharmex.com', phone: '+256700000000', code: 'PHX-000001', role: 'admin', pharmacy: '—', status: 'active', joined: '2025-06-01' },
-  { id: 2, name: 'Alice Mwamba', email: 'alice@healthplus.com', phone: '+256701111111', code: 'PHX-000042', role: 'owner', pharmacy: 'HealthPlus Pharmacy', status: 'active', joined: '2026-01-15' },
-  { id: 3, name: 'Bob Phiri', email: 'bob@wellcare.com', phone: '+234801222222', code: 'PHX-000089', role: 'owner', pharmacy: 'WellCare Drugs', status: 'active', joined: '2026-02-20' },
-  { id: 4, name: 'Sarah Nakamya', email: 'sarah@healthplus.com', phone: '+256703333333', code: 'PHX-000115', role: 'pharmacist', pharmacy: 'HealthPlus Pharmacy', status: 'active', joined: '2026-03-01' },
-  { id: 5, name: 'James Ochieng', email: 'james@medvita.com', phone: '+254704444444', code: 'PHX-000148', role: 'pharmacist', pharmacy: 'MedVita Pharmacy', status: 'active', joined: '2026-03-10' },
-  { id: 6, name: 'Mary Ajambo', email: 'mary@healthplus.com', phone: '+256705555555', code: 'PHX-000176', role: 'cashier', pharmacy: 'HealthPlus Pharmacy', status: 'active', joined: '2026-04-05' },
-  { id: 7, name: 'David Lungu', email: 'david@lifeline.com', phone: '+255706666666', code: 'PHX-000203', role: 'owner', pharmacy: 'LifeLine Chemists', status: 'pending', joined: '2026-07-15' },
-  { id: 8, name: 'Eva Tembo', email: 'eva@pharmastar.com', phone: '+256707777777', code: 'PHX-000234', role: 'owner', pharmacy: 'PharmaStar', status: 'active', joined: '2026-03-12' },
-  { id: 9, name: 'Frank Zulu', email: 'frank@carepoint.com', phone: '+260708888888', code: 'PHX-000267', role: 'owner', pharmacy: 'CarePoint Pharmacy', status: 'active', joined: '2025-12-01' },
-  { id: 10, name: 'Peter Delivery', email: 'peter@healthplus.com', phone: '+256709999999', code: 'PHX-000301', role: 'delivery', pharmacy: 'HealthPlus Pharmacy', status: 'active', joined: '2026-05-20' },
-  { id: 11, name: 'Grace NCustomer', email: 'grace@email.com', phone: '+260710000000', code: 'PHX-000345', role: 'customer', pharmacy: '—', status: 'active', joined: '2026-06-01' },
-  { id: 12, name: 'Peter Ssekitooleko', email: 'peter.s@medvita.com', phone: '+254711111111', code: 'PHX-000378', role: 'pharmacist', pharmacy: 'MedVita Pharmacy', status: 'inactive', joined: '2026-02-14' },
-]
-
 const ROLE_STYLES = {
   admin: 'bg-red-100 text-red-700',
   owner: 'bg-blue-100 text-blue-700',
@@ -99,7 +84,7 @@ export default function AdminUsersPage() {
           : (typeof u.pharmacy === 'object' ? u.pharmacy?.pharmacy_name || '' : u.pharmacy || ''),
       })))
     } catch {
-      setUsers(SAMPLE_USERS)
+      setUsers([])
     } finally {
       setLoading(false)
     }

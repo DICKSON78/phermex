@@ -27,35 +27,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const FALLBACK_DATA = {
-  stats: {
-    totalRevenue: 48750,
-    totalOrders: 3842,
-    activeUsers: 186,
-    growthRate: 12.4,
-  },
-  revenueChart: [
-    { month: 'Jan', revenue: 2800 },
-    { month: 'Feb', revenue: 3200 },
-    { month: 'Mar', revenue: 3600 },
-    { month: 'Apr', revenue: 3100 },
-    { month: 'May', revenue: 4200 },
-    { month: 'Jun', revenue: 4800 },
-    { month: 'Jul', revenue: 5100 },
-    { month: 'Aug', revenue: 4600 },
-    { month: 'Sep', revenue: 5400 },
-    { month: 'Oct', revenue: 5900 },
-    { month: 'Nov', revenue: 6200 },
-    { month: 'Dec', revenue: 6800 },
-  ],
-  ordersByStatus: [
-    { status: 'Completed', count: 2890, fill: '#0FD452' },
-    { status: 'Pending', count: 412, fill: '#f59e0b' },
-    { status: 'Cancelled', count: 298, fill: '#ef4444' },
-    { status: 'Refunded', count: 242, fill: '#6b7280' },
-  ],
-}
-
 const REPORT_LINKS = [
   { label: 'Revenue Report', desc: 'Detailed revenue breakdown', to: '/admin/revenue', bg: 'bg-primary-light', color: 'text-primary', icon: DollarSign },
   { label: 'Order Analytics', desc: 'Orders and transactions', to: '/admin/orders', bg: 'bg-blue-100', color: 'text-blue-600', icon: ShoppingCart },
@@ -85,11 +56,11 @@ export default function AdminReportsPage() {
     try {
       setLoading(true)
       const response = await api.get('/admin/reports')
-      setData({ ...FALLBACK_DATA, ...(response.data || {}) })
+      setData(response.data || {})
     } catch (err) {
       console.warn('Failed to fetch reports:', err.message)
       setError(err.message)
-      setData(FALLBACK_DATA)
+      setData({})
     } finally {
       setLoading(false)
     }
@@ -119,7 +90,7 @@ export default function AdminReportsPage() {
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Using offline data — could not reach server.
+          Failed to load reports. Please try again.
         </div>
       )}
 

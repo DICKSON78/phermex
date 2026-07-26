@@ -16,79 +16,6 @@ const REPORT_TABS = [
   { id: 'trial', label: 'Trial Balance', icon: BarChart3 },
 ]
 
-const FALLBACK_INCOME = {
-  revenue: [
-    { account: '4000 - Sales Revenue', amount: 128500 },
-    { account: '4100 - Service Revenue', amount: 15200 },
-  ],
-  expenses: [
-    { account: '5000 - Cost of Goods Sold', amount: 78400 },
-    { account: '5100 - Rent Expense', amount: 12000 },
-    { account: '5200 - Salary Expense', amount: 36000 },
-    { account: '5300 - Utilities', amount: 3600 },
-    { account: '5400 - Marketing', amount: 2400 },
-    { account: '5500 - Depreciation', amount: 1800 },
-    { account: '5600 - Insurance', amount: 2400 },
-  ],
-  totalRevenue: 143700,
-  totalExpenses: 136600,
-  netIncome: 7100,
-}
-
-const FALLBACK_BALANCE = {
-  assets: [
-    { account: '1000 - Cash', amount: 25430 },
-    { account: '1100 - Accounts Receivable', amount: 12800 },
-    { account: '1200 - Inventory', amount: 45200 },
-    { account: '1300 - Fixed Assets', amount: 35000 },
-  ],
-  liabilities: [
-    { account: '2000 - Accounts Payable', amount: 8500 },
-    { account: '2100 - Loan Payable', amount: 50000 },
-    { account: '2200 - Tax Payable', amount: 4500 },
-  ],
-  equity: [
-    { account: '3000 - Owner Equity', amount: 75000 },
-    { account: '3100 - Retained Earnings', answer: -19370 },
-  ],
-  totalAssets: 118430,
-  totalLiabilities: 63000,
-  totalEquity: 55430,
-}
-
-const FALLBACK_CASHFLOW = {
-  operating: [
-    { item: 'Cash received from customers', amount: 142000 },
-    { item: 'Cash paid to suppliers', amount: -72000 },
-    { item: 'Cash paid for salaries', amount: -36000 },
-    { item: 'Cash paid for rent', amount: -12000 },
-    { item: 'Cash paid for utilities', amount: -3600 },
-  ],
-  investing: [
-    { item: 'Purchase of equipment', amount: -15000 },
-  ],
-  financing: [
-    { item: 'Loan proceeds', amount: 50000 },
-    { item: 'Owner drawings', amount: -8000 },
-  ],
-  netOperating: 18400,
-  netInvesting: -15000,
-  netFinancing: 42000,
-  netCashChange: 45400,
-}
-
-const FALLBACK_TRIAL = [
-  { account_code: '1000', account_name: 'Cash', debit: 25430, credit: 0 },
-  { account_code: '1100', account_name: 'Accounts Receivable', debit: 12800, credit: 0 },
-  { account_code: '1200', account_name: 'Inventory', debit: 45200, credit: 0 },
-  { account_code: '2000', account_name: 'Accounts Payable', debit: 0, credit: 8500 },
-  { account_code: '2100', account_name: 'Loan Payable', debit: 0, credit: 50000 },
-  { account_code: '3000', account_name: 'Owner Equity', debit: 0, credit: 75000 },
-  { account_code: '4000', account_name: 'Sales Revenue', debit: 0, credit: 128500 },
-  { account_code: '5000', account_name: 'Cost of Goods Sold', debit: 78400, credit: 0 },
-  { account_code: '5100', account_name: 'Rent Expense', debit: 12000, credit: 0 },
-  { account_code: '5200', account_name: 'Salary Expense', debit: 36000, credit: 0 },
-]
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount)
@@ -113,13 +40,13 @@ export default function FinancialReportsPage() {
         api.get('/journal/trial-balance'),
       ])
       setData({
-        income: FALLBACK_INCOME,
-        balance: FALLBACK_BALANCE,
-        cashflow: FALLBACK_CASHFLOW,
-        trial: trialRes.status === 'fulfilled' ? trialRes.value.data : { accounts: FALLBACK_TRIAL },
+        income: null,
+        balance: null,
+        cashflow: null,
+        trial: trialRes.status === 'fulfilled' ? trialRes.value.data : { accounts: [] },
       })
     } catch {
-      setData({ income: FALLBACK_INCOME, balance: FALLBACK_BALANCE, cashflow: FALLBACK_CASHFLOW, trial: { accounts: FALLBACK_TRIAL } })
+      setData({ income: null, balance: null, cashflow: null, trial: { accounts: [] } })
     } finally { setLoading(false) }
   }
 

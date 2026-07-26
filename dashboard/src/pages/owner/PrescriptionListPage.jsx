@@ -25,16 +25,6 @@ import {
   Calendar,
 } from 'lucide-react'
 
-const FALLBACK_PRESCRIPTIONS = [
-  { id: 1, code: 'RX-1001', doctor: 'Dr. Mwamba', hospital: 'Central Hospital', patient: 'Alice Mwamba', itemsCount: 3, status: 'dispensed', date: '2025-07-18' },
-  { id: 2, code: 'RX-1002', doctor: 'Dr. Phiri', hospital: 'City Clinic', patient: 'Bob Phiri', itemsCount: 2, status: 'pending', date: '2025-07-18' },
-  { id: 3, code: 'RX-1003', doctor: 'Dr. Banda', hospital: 'St. Marys', patient: 'Carol Banda', itemsCount: 5, status: 'pending', date: '2025-07-17' },
-  { id: 4, code: 'RX-1004', doctor: 'Dr. Lungu', hospital: 'Central Hospital', patient: 'David Lungu', itemsCount: 1, status: 'cancelled', date: '2025-07-17' },
-  { id: 5, code: 'RX-1005', doctor: 'Dr. Tembo', hospital: 'Health Center', patient: 'Eva Tembo', itemsCount: 4, status: 'dispensed', date: '2025-07-16' },
-  { id: 6, code: 'RX-1006', doctor: 'Dr. Mwamba', hospital: 'Central Hospital', patient: 'Frank Zulu', itemsCount: 2, status: 'pending', date: '2025-07-16' },
-  { id: 7, code: 'RX-1007', doctor: 'Dr. Banda', hospital: 'City Clinic', patient: 'Grace Mwale', itemsCount: 3, status: 'dispensed', date: '2025-07-15' },
-  { id: 8, code: 'RX-1008', doctor: 'Dr. Phiri', hospital: 'St. Marys', patient: 'Henry Banda', itemsCount: 1, status: 'cancelled', date: '2025-07-15' },
-]
 
 const STATUS_STYLES = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -69,7 +59,7 @@ export default function PrescriptionListPage() {
           date: rx.created_at || rx.date || '—',
         })))
       } catch {
-        setPrescriptions(FALLBACK_PRESCRIPTIONS)
+        setPrescriptions([])
       } finally {
         setLoading(false)
       }

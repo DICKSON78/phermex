@@ -37,91 +37,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const FALLBACK_DATA = {
-  totalPharmacies: 24,
-  newPharmaciesThisMonth: 5,
-  totalUsers: 186,
-  activeSubscriptions: 21,
-  platformRevenue: 28500000,
-  supportTicketsOpen: 7,
-  monthlyGrowth: 12.4,
-  revenueChart: (() => {
-    const data = []
-    const base = 800000
-    for (let i = 14; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      data.push({
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        revenue: Math.floor(base + Math.random() * 1200000 + Math.sin(i * 0.3) * 400000),
-      })
-    }
-    return data
-  })(),
-  revenueBreakdown: (() => {
-    const base = 800000
-    return [
-      { name: 'Week 1', value: Math.floor(base * 3.2 + Math.random() * 500000), color: '#0FD452' },
-      { name: 'Week 2', value: Math.floor(base * 2.8 + Math.random() * 400000), color: '#3b82f6' },
-      { name: 'Week 3', value: Math.floor(base * 3.5 + Math.random() * 600000), color: '#f59e0b' },
-      { name: 'Week 4', value: Math.floor(base * 2.5 + Math.random() * 300000), color: '#8b5cf6' },
-    ]
-  })(),
-  userGrowth: (() => {
-    const months = ['Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul']
-    let users = 60
-    return months.map((month) => {
-      users += Math.floor(Math.random() * 18 + 5)
-      return { month, users }
-    })
-  })(),
-  regionalDistribution: [
-    { region: 'Tanzania', count: 10, percent: 40 },
-    { region: 'Kenya', count: 6, percent: 25 },
-    { region: 'Nigeria', count: 5, percent: 20 },
-    { region: 'Zambia', count: 2, percent: 10 },
-    { region: 'Other', count: 1, percent: 5 },
-  ],
-  systemHealth: {
-    apiResponse: 99.8,
-    uptime: 99.9,
-    errorRate: 0.2,
-    activeSessions: 47,
-  },
-  topPharmaciesByRevenue: [
-    { rank: 1, name: 'HealthPlus Pharmacy', revenue: 12400000, status: 'active' },
-    { rank: 2, name: 'PharmaStar', revenue: 9800000, status: 'active' },
-    { rank: 3, name: 'MedVita Pharmacy', revenue: 8200000, status: 'active' },
-    { rank: 4, name: 'WellCare Drugs', revenue: 6500000, status: 'pending' },
-    { rank: 5, name: 'LifeLine Chemists', revenue: 5100000, status: 'active' },
-  ],
-  recentPharmacies: [
-    { id: 1, name: 'HealthPlus Pharmacy', owner: 'Alice Mwamba', country: 'Zambia', status: 'active', date: '2026-07-18' },
-    { id: 2, name: 'WellCare Drugs', owner: 'Bob Phiri', country: 'Nigeria', status: 'pending', date: '2026-07-17' },
-    { id: 3, name: 'MedVita Pharmacy', owner: 'Carol Banda', country: 'Kenya', status: 'active', date: '2026-07-16' },
-    { id: 4, name: 'LifeLine Chemists', owner: 'David Lungu', country: 'Tanzania', status: 'pending', date: '2026-07-15' },
-    { id: 5, name: 'PharmaStar', owner: 'Eva Tembo', country: 'Uganda', status: 'active', date: '2026-07-14' },
-  ],
-  subscriptionBreakdown: [
-    { name: 'Trial', count: 8, color: '#94a3b8' },
-    { name: 'Basic', count: 7, color: '#0FD452' },
-    { name: 'Pro', count: 6, color: '#3b82f6' },
-    { name: 'Enterprise', count: 3, color: '#f59e0b' },
-  ],
-  recentActivity: [
-    { id: 1, action: 'New pharmacy registered', detail: 'HealthPlus Pharmacy', time: '10 min ago', icon: Building2 },
-    { id: 2, action: 'Subscription upgraded', detail: 'WellCare Drugs — Basic to Pro', time: '1 hr ago', icon: CreditCard },
-    { id: 3, action: 'New user created', detail: 'pharmacist@medvita.com', time: '2 hrs ago', icon: Users },
-    { id: 4, action: 'Pharmacy activated', detail: 'LifeLine Chemists', time: '3 hrs ago', icon: Activity },
-    { id: 5, action: 'Payment received', detail: 'TZS 750,000 from PharmaStar', time: '5 hrs ago', icon: DollarSign },
-    { id: 6, action: 'Pharmacy pending review', detail: 'CarePoint Pharmacy', time: '6 hrs ago', icon: Clock },
-    { id: 7, action: 'Support ticket opened', detail: 'Ticket #1042 — Billing issue', time: '8 hrs ago', icon: FileText },
-    { id: 8, action: 'New pharmacy registered', detail: 'Sun Pharma Hub', time: '10 hrs ago', icon: Building2 },
-    { id: 9, action: 'User deactivated', detail: 'temp@lifeline.com', time: '12 hrs ago', icon: Shield },
-    { id: 10, action: 'Plan changed', detail: 'MedVita — Trial to Basic', time: '1 day ago', icon: TrendingUp },
-  ],
-}
-
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -170,20 +85,19 @@ export default function AdminDashboard() {
         }).filter((w) => w.value > 0)
 
         setData({
-          ...FALLBACK_DATA,
-          totalPharmacies: raw.total_pharmacies ?? FALLBACK_DATA.totalPharmacies,
-          totalUsers: raw.total_users ?? FALLBACK_DATA.totalUsers,
-          activeSubscriptions: raw.active_subscriptions ?? FALLBACK_DATA.activeSubscriptions,
-          newPharmaciesThisMonth: raw.new_registrations_this_month ?? FALLBACK_DATA.newPharmaciesThisMonth,
-          platformRevenue: raw.monthly_revenue ?? FALLBACK_DATA.platformRevenue,
-          revenueChart: revenueChart.length > 0 ? revenueChart : FALLBACK_DATA.revenueChart,
-          revenueBreakdown: revenueBreakdown.length > 0 ? revenueBreakdown : FALLBACK_DATA.revenueBreakdown,
-          pharmaciesByStatus: raw.pharmacies_by_status ?? FALLBACK_DATA.pharmaciesByStatus,
+          totalPharmacies: raw.total_pharmacies ?? 0,
+          totalUsers: raw.total_users ?? 0,
+          activeSubscriptions: raw.active_subscriptions ?? 0,
+          newPharmaciesThisMonth: raw.new_registrations_this_month ?? 0,
+          platformRevenue: raw.monthly_revenue ?? 0,
+          revenueChart,
+          revenueBreakdown,
+          pharmaciesByStatus: raw.pharmacies_by_status ?? [],
         })
       } catch (err) {
-        console.warn('Failed to fetch admin dashboard, using fallback:', err.message)
+        console.warn('Failed to fetch admin dashboard:', err.message)
         setError(err.message)
-        setData(FALLBACK_DATA)
+        setData({})
       } finally {
         setLoading(false)
       }
@@ -219,7 +133,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Using offline data — could not reach server.
+          Failed to load dashboard data. Please try again.
         </div>
       )}
 

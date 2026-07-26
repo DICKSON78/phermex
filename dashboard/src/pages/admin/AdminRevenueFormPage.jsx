@@ -32,7 +32,7 @@ export default function AdminRevenueFormPage() {
         notes: data.notes || '',
       })
     } catch {
-      setForm({ pharmacy: 'Sample Pharmacy', amount: '1000', dueDate: '2026-08-01', notes: '' })
+      // Failed to fetch invoice data — leave form with empty values
     } finally {
       setFetching(false)
     }

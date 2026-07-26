@@ -17,14 +17,6 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString()
 }
 
-const FALLBACK_ATTENDANCE = [
-  { id: 1, employee: { id: 1, first_name: 'Sarah', last_name: 'Nakamya', employee_number: 'EMP-00001' }, date: '2026-07-21', clock_in: '2026-07-21 07:55:00', clock_out: '2026-07-21 17:05:00', hours_worked: 8.17, overtime_hours: 0.17, status: 'present' },
-  { id: 2, employee: { id: 2, first_name: 'James', last_name: 'Ochieng', employee_number: 'EMP-00002' }, date: '2026-07-21', clock_in: '2026-07-21 08:10:00', clock_out: null, hours_worked: 0, overtime_hours: 0, status: 'late' },
-  { id: 3, employee: { id: 3, first_name: 'Mary', last_name: 'Ajambo', employee_number: 'EMP-00003' }, date: '2026-07-21', clock_in: '2026-07-21 07:48:00', clock_out: '2026-07-21 17:00:00', hours_worked: 8, overtime_hours: 0, status: 'present' },
-  { id: 4, employee: { id: 4, first_name: 'Peter', last_name: 'Ssekitooleko', employee_number: 'EMP-00004' }, date: '2026-07-21', clock_in: null, clock_out: null, hours_worked: 0, overtime_hours: 0, status: 'absent' },
-  { id: 5, employee: { id: 5, first_name: 'Grace', last_name: 'Mwangi', employee_number: 'EMP-00005' }, date: '2026-07-21', clock_in: '2026-07-21 07:50:00', clock_out: '2026-07-21 13:00:00', hours_worked: 4, overtime_hours: 0, status: 'half_day' },
-]
-
 const STATUS_COLORS = {
   present: 'bg-green-100 text-green-700 border-green-200',
   absent: 'bg-red-100 text-red-700 border-red-200',
@@ -58,7 +50,7 @@ export default function AttendancePage() {
       const res = await attendance.getAll(params)
       setRecords(toArray(res.data))
     } catch {
-      setRecords(FALLBACK_ATTENDANCE)
+      setRecords([])
     } finally { setLoading(false) }
   }
 
@@ -71,7 +63,7 @@ export default function AttendancePage() {
       const res = await attendance.getReport(params)
       setReport(res.data)
     } catch {
-      setReport({ total_days: 5, present: 3, absent: 1, late: 1, total_hours: 20, total_overtime: 0.17, attendance_rate: 60, avg_hours_per_day: 6.67 })
+      setReport({})
     }
   }
 
@@ -80,7 +72,7 @@ export default function AttendancePage() {
       const res = await employees.getAll({ per_page: 100 })
       setEmployeeList(toArray(res.data))
     } catch {
-      setEmployeeList(FALLBACK_ATTENDANCE.map(r => r.employee))
+      setEmployeeList([])
     }
   }
 

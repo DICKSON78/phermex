@@ -42,7 +42,7 @@ export default function AdminDrugFormPage() {
         status: data.status || 'Active',
       })
     } catch {
-      setForm({ name: 'Sample Drug', generic: 'Sample Generic', category: 'Antibiotics', manufacturer: 'Sample Pharma', status: 'Active' })
+      // Failed to fetch drug data — leave form with empty values
     } finally {
       setFetching(false)
     }

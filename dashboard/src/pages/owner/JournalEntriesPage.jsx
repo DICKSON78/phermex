@@ -20,28 +20,6 @@ const STATUS_COLORS = {
   reversed: 'bg-red-100 text-red-700',
 }
 
-const FALLBACK_ENTRIES = [
-  { id: 1, entry_number: 'JE-2026-00001', entry_date: '2026-07-20', description: 'Initial cash deposit', total_debit: 50000, total_credit: 50000, status: 'posted', poster: { name: 'Admin' }, lines: [
-    { id: 1, account: { account_code: '1000', account_name: 'Cash' }, debit: 50000, credit: 0 },
-    { id: 2, account: { account_code: '3000', account_name: 'Owner Equity' }, debit: 0, credit: 50000 },
-  ]},
-  { id: 2, entry_number: 'JE-2026-00002', entry_date: '2026-07-20', description: 'Purchased inventory on credit', total_debit: 12500, total_credit: 12500, status: 'posted', poster: { name: 'Admin' }, lines: [
-    { id: 3, account: { account_code: '1200', account_name: 'Inventory' }, debit: 12500, credit: 0 },
-    { id: 4, account: { account_code: '2000', account_name: 'Accounts Payable' }, debit: 0, credit: 12500 },
-  ]},
-  { id: 3, entry_number: 'JE-2026-00003', entry_date: '2026-07-19', description: 'Cash sales revenue', total_debit: 8200, total_credit: 8200, status: 'draft', poster: null, lines: [
-    { id: 5, account: { account_code: '1000', account_name: 'Cash' }, debit: 8200, credit: 0 },
-    { id: 6, account: { account_code: '4000', account_name: 'Sales Revenue' }, debit: 0, credit: 8200 },
-  ]},
-  { id: 4, entry_number: 'JE-2026-00004', entry_date: '2026-07-18', description: 'Monthly rent payment', total_debit: 2000, total_credit: 2000, status: 'posted', poster: { name: 'Admin' }, lines: [
-    { id: 7, account: { account_code: '5100', account_name: 'Rent Expense' }, debit: 2000, credit: 0 },
-    { id: 8, account: { account_code: '1000', account_name: 'Cash' }, debit: 0, credit: 2000 },
-  ]},
-  { id: 5, entry_number: 'JE-2026-00005', entry_date: '2026-07-15', description: 'Reversal of incorrect entry', total_debit: 3500, total_credit: 3500, status: 'reversed', poster: { name: 'Admin' }, reverser: { name: 'Admin' }, reversal_reason: 'Incorrect amount recorded', lines: [
-    { id: 9, account: { account_code: '5200', account_name: 'Salary Expense' }, debit: 3500, credit: 0 },
-    { id: 10, account: { account_code: '1000', account_name: 'Cash' }, debit: 0, credit: 3500 },
-  ]},
-]
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount)
@@ -73,16 +51,8 @@ export default function JournalEntriesPage() {
       setEntries(entriesRes.data.data || [])
       setAccounts(accountsRes.data.data || [])
     } catch {
-      setEntries(FALLBACK_ENTRIES)
-      setAccounts([
-        { id: 1, account_code: '1000', account_name: 'Cash' },
-        { id: 2, account_code: '2000', account_name: 'Accounts Payable' },
-        { id: 3, account_code: '3000', account_name: 'Owner Equity' },
-        { id: 4, account_code: '4000', account_name: 'Sales Revenue' },
-        { id: 5, account_code: '5100', account_name: 'Rent Expense' },
-        { id: 6, account_code: '5200', account_name: 'Salary Expense' },
-        { id: 7, account_code: '1200', account_name: 'Inventory' },
-      ])
+      setEntries([])
+      setAccounts([])
     } finally {
       setLoading(false)
     }

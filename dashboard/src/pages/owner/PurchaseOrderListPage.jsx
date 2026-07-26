@@ -5,13 +5,6 @@ import { Plus, Search, Eye, ShoppingCart, Package, Clock, CheckCircle, XCircle, 
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE_ORDERS = [
-  { id: 1, order_number: 'PO-00001', supplier: { name: 'MedSupply Tanzania' }, order_date: '2026-07-15', status: 'ordered', total: 12500.00, payment_status: 'unpaid', expected_delivery_date: '2026-07-22' },
-  { id: 2, order_number: 'PO-00002', supplier: { name: 'PharmaDistributors Ltd' }, order_date: '2026-07-10', status: 'received', total: 8200.00, payment_status: 'paid', expected_delivery_date: '2026-07-17' },
-  { id: 3, order_number: 'PO-00003', supplier: { name: 'HealthCorp East Africa' }, order_date: '2026-07-18', status: 'draft', total: 5600.00, payment_status: 'unpaid', expected_delivery_date: '2026-07-25' },
-  { id: 4, order_number: 'PO-00004', supplier: { name: 'MedSupply Tanzania' }, order_date: '2026-07-20', status: 'pending_approval', total: 15000.00, payment_status: 'unpaid', expected_delivery_date: '2026-07-28' },
-]
-
 const STATUS_TABS = ['all', 'draft', 'pending_approval', 'ordered', 'partially_received', 'received', 'cancelled']
 
 const STATUS_COLORS = {
@@ -40,7 +33,7 @@ export default function PurchaseOrderListPage() {
       if (search) params.append('search', search)
       const res = await api.get(`/purchase-orders?${params.toString()}`)
       setOrders(toArray(res.data))
-    } catch { setOrders(SAMPLE_ORDERS) } finally { setLoading(false) }
+    } catch { setOrders([]) } finally { setLoading(false) }
   }, [statusTab, search])
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
@@ -52,8 +45,8 @@ export default function PurchaseOrderListPage() {
         setSuppliers(sRes.data.data || sRes.data || [])
         setDrugs(dRes.data.data || dRes.data || [])
       } catch {
-        setSuppliers([{ id: 1, name: 'MedSupply Tanzania' }, { id: 2, name: 'PharmaDistributors Ltd' }])
-        setDrugs([{ id: 1, name: 'Amoxicillin 500mg', buying_price: 5 }, { id: 2, name: 'Paracetamol 500mg', buying_price: 1.5 }])
+        setSuppliers([])
+        setDrugs([])
       }
     }
     fetchFormData()

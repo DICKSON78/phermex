@@ -6,19 +6,6 @@ import {
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
 
-const SAMPLE_CATEGORIES = [
-  { id: 1, name: 'Antibiotics', description: 'Medications used to treat bacterial infections', drug_count: 12 },
-  { id: 2, name: 'Analgesics', description: 'Pain relievers and fever reducers', drug_count: 8 },
-  { id: 3, name: 'Antihistamines', description: 'Allergy and hypersensitivity treatments', drug_count: 5 },
-  { id: 4, name: 'Antacids', description: 'Digestive and gastrointestinal medications', drug_count: 6 },
-  { id: 5, name: 'Antidiabetics', description: 'Medications for managing diabetes', drug_count: 4 },
-  { id: 6, name: 'Antihypertensives', description: 'Blood pressure management drugs', drug_count: 7 },
-  { id: 7, name: 'Respiratory', description: 'Asthma and respiratory treatment medications', drug_count: 3 },
-  { id: 8, name: 'Supplements', description: 'Vitamins and nutritional supplements', drug_count: 9 },
-  { id: 9, name: 'Dermatological', description: 'Skin care and topical treatments', drug_count: 4 },
-  { id: 10, name: 'Cardiovascular', description: 'Heart and circulatory system medications', drug_count: 5 },
-]
-
 const CATEGORY_COLORS = [
   { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200' },
   { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
@@ -50,7 +37,7 @@ export default function CategoryListPage() {
       const res = await api.get('/drug-categories')
       setCategories(toArray(res.data))
     } catch {
-      setCategories(SAMPLE_CATEGORIES)
+      setCategories([])
     } finally {
       setLoading(false)
     }

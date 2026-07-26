@@ -4,17 +4,12 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Save, Loader2, Users, User, MapPin, HeartPulse, X } from 'lucide-react'
 import api from '../../services/api'
 
-const sampleCustomer = {
-  name: '', phone: '', email: '', dob: '', gender: '',
-  allergies: '', medical_conditions: '', location: '', street: '',
-}
-
 export default function CustomerFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = Boolean(id)
 
-  const [form, setForm] = useState({ ...sampleCustomer })
+  const [form, setForm] = useState({})
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
@@ -39,7 +34,7 @@ export default function CustomerFormPage() {
         street: data.street || '',
       })
     } catch {
-      setForm({ ...sampleCustomer, name: 'Sample Customer', phone: '+256700000000' })
+      setForm({})
     } finally {
       setFetching(false)
     }

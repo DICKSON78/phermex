@@ -7,20 +7,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const SAMPLE_MOVEMENTS = [
-  { id: 1, drug_name: 'Amoxicillin 500mg', type: 'purchase', quantity: 100, unit_cost: 5.00, total_value: 500.00, reference: 'PO-2026001', performed_by: 'Sarah Nakamya', notes: 'Bulk order from MedSupply Co.', created_at: '2026-07-21 09:30:00' },
-  { id: 2, drug_name: 'Paracetamol 500mg', type: 'sale', quantity: -15, unit_cost: 1.50, total_value: 22.50, reference: 'ORD-202607001', performed_by: 'James Ochieng', notes: '', created_at: '2026-07-21 10:15:00' },
-  { id: 3, drug_name: 'Metformin 850mg', type: 'adjustment', quantity: -2, unit_cost: 4.00, total_value: 8.00, reference: 'ADJ-001', performed_by: 'Sarah Nakamya', notes: 'Damaged during storage', created_at: '2026-07-21 11:00:00' },
-  { id: 4, drug_name: 'Cetirizine 10mg', type: 'sale', quantity: -5, unit_cost: 2.00, total_value: 10.00, reference: 'ORD-202607002', performed_by: 'Mary Ajambo', notes: '', created_at: '2026-07-20 14:30:00' },
-  { id: 5, drug_name: 'Insulin Glargine', type: 'expiry', quantity: -10, unit_cost: 25.00, total_value: 250.00, reference: 'EXP-001', performed_by: 'System', notes: 'Batch BATCH-011 expired', created_at: '2026-07-20 00:00:00' },
-  { id: 6, drug_name: 'Omeprazole 20mg', type: 'return', quantity: 3, unit_cost: 3.50, total_value: 10.50, reference: 'RET-001', performed_by: 'James Ochieng', notes: 'Customer returned unused', created_at: '2026-07-19 16:45:00' },
-  { id: 7, drug_name: 'Lisinopril 10mg', type: 'transfer', quantity: -8, unit_cost: 6.00, total_value: 48.00, reference: 'TRF-001', performed_by: 'Sarah Nakamya', notes: 'Transfer to Branch 2', created_at: '2026-07-19 11:20:00' },
-  { id: 8, drug_name: 'Ibuprofen 400mg', type: 'purchase', quantity: 200, unit_cost: 2.50, total_value: 500.00, reference: 'PO-2026002', performed_by: 'James Ochieng', notes: 'Restocked from PharmaDist', created_at: '2026-07-19 09:00:00' },
-  { id: 9, drug_name: 'Salbutamol Inhaler', type: 'sale', quantity: -2, unit_cost: 12.00, total_value: 24.00, reference: 'ORD-202607004', performed_by: 'Mary Ajambo', notes: '', created_at: '2026-07-18 15:30:00' },
-  { id: 10, drug_name: 'Azithromycin 250mg', type: 'purchase', quantity: 50, unit_cost: 8.00, total_value: 400.00, reference: 'PO-2026003', performed_by: 'Sarah Nakamya', notes: '', created_at: '2026-07-18 08:15:00' },
-  { id: 11, drug_name: 'Vitamin C 1000mg', type: 'sale', quantity: -20, unit_cost: 3.00, total_value: 60.00, reference: 'ORD-202607005', performed_by: 'James Ochieng', notes: '', created_at: '2026-07-18 10:00:00' },
-  { id: 12, drug_name: 'Paracetamol 500mg', type: 'adjustment', quantity: 10, unit_cost: 1.50, total_value: 15.00, reference: 'ADJ-002', performed_by: 'Sarah Nakamya', notes: 'Inventory count correction', created_at: '2026-07-17 14:00:00' },
-]
 
 const TYPE_CONFIG = {
   purchase: { color: 'bg-green-100 text-green-700', icon: ArrowDown, label: 'Purchase' },
@@ -59,7 +45,7 @@ export default function StockMovementsPage() {
       const res = await api.get('/stock-movements')
       setMovements(toArray(res.data))
     } catch {
-      setMovements(SAMPLE_MOVEMENTS)
+      setMovements([])
     } finally {
       setLoading(false)
     }

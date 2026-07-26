@@ -24,37 +24,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const FALLBACK_DATA = {
-  stats: {
-    totalDrugs: 1248,
-    active: 1089,
-    discontinued: 124,
-    categories: 35,
-  },
-  drugs: [
-    { id: 1, name: 'Amoxicillin 500mg', generic: 'Amoxicillin', category: 'Antibiotics', manufacturer: 'GSK Pharma', status: 'Active', usedBy: 87 },
-    { id: 2, name: 'Metformin 850mg', generic: 'Metformin HCl', category: 'Antidiabetics', manufacturer: 'Merck Life', status: 'Active', usedBy: 92 },
-    { id: 3, name: 'Paracetamol 500mg', generic: 'Acetaminophen', category: 'Analgesics', manufacturer: 'Sun Pharma', status: 'Active', usedBy: 145 },
-    { id: 4, name: 'Lisinopril 10mg', generic: 'Lisinopril', category: 'ACE Inhibitors', manufacturer: 'Pfizer Labs', status: 'Active', usedBy: 64 },
-    { id: 5, name: 'Cetirizine 10mg', generic: 'Cetirizine HCl', category: 'Antihistamines', manufacturer: 'Johnson Pharma', status: 'Active', usedBy: 112 },
-    { id: 6, name: 'Omeprazole 20mg', generic: 'Omeprazole', category: 'PPIs', manufacturer: 'AstraZeneca', status: 'Active', usedBy: 78 },
-    { id: 7, name: 'Salbutamol Inhaler', generic: 'Salbutamol', category: 'Respiratory', manufacturer: 'GSK Pharma', status: 'Active', usedBy: 56 },
-    { id: 8, name: 'Artemether/Lumefantrine', generic: 'Coartem', category: 'Antimalarials', manufacturer: 'Novartis', status: 'Active', usedBy: 134 },
-    { id: 9, name: 'Diazepam 5mg', generic: 'Diazepam', category: 'Benzodiazepines', manufacturer: 'Roche Pharma', status: 'Active', usedBy: 41 },
-    { id: 10, name: 'Ciprofloxacin 500mg', generic: 'Ciprofloxacin', category: 'Antibiotics', manufacturer: 'Bayer Pharma', status: 'Active', usedBy: 73 },
-    { id: 11, name: 'Glibenclamide 5mg', generic: 'Glibenclamide', category: 'Antidiabetics', manufacturer: 'Sanofi Pharma', status: 'Active', usedBy: 58 },
-    { id: 12, name: 'Ibuprofen 400mg', generic: 'Ibuprofen', category: 'NSAIDs', manufacturer: 'Abbott Labs', status: 'Active', usedBy: 129 },
-    { id: 13, name: 'Nevirapine 200mg', generic: 'Nevirapine', category: 'Antiretrovirals', manufacturer: 'Cipla Pharma', status: 'Active', usedBy: 88 },
-    { id: 14, name: 'Fluconazole 150mg', generic: 'Fluconazole', category: 'Antifungals', manufacturer: 'Pfizer Labs', status: 'Active', usedBy: 67 },
-    { id: 15, name: 'Old Formula Syrup', generic: 'Chloramphenicol', category: 'Antibiotics', manufacturer: 'Sun Pharma', status: 'Discontinued', usedBy: 0 },
-    { id: 16, name: 'Phenoxymethylpenicillin 250mg', generic: 'Penicillin V', category: 'Antibiotics', manufacturer: 'GSK Pharma', status: 'Discontinued', usedBy: 3 },
-    { id: 17, name: 'Metronidazole 200mg', generic: 'Metronidazole', category: 'Antiprotozoals', manufacturer: 'Sanofi Pharma', status: 'Discontinued', usedBy: 0 },
-    { id: 18, name: 'Codeine Phosphate 30mg', generic: 'Codeine', category: 'Opioid Analgesics', manufacturer: 'Johnson Pharma', status: 'Recalled', usedBy: 0 },
-    { id: 19, name: 'Dextromethorphan Syrup', generic: 'Dextromethorphan', category: 'Antitussives', manufacturer: 'Abbott Labs', status: 'Active', usedBy: 94 },
-    { id: 20, name: 'ORS Sachets', generic: 'Oral Rehydration Salts', category: 'Electrolytes', manufacturer: 'UNICEF Supply', status: 'Active', usedBy: 140 },
-  ],
-}
-
 const STATUS_STYLES = {
   Active: 'badge badge-green',
   Discontinued: 'badge badge-gray',
@@ -111,11 +80,11 @@ export default function AdminDrugDatabasePage() {
     try {
       setLoading(true)
       const response = await api.get('/admin/drug-database')
-      setData({ ...FALLBACK_DATA, ...(response.data || {}) })
+      setData(response.data || {})
     } catch (err) {
       console.warn('Failed to fetch drug database:', err.message)
       setError(err.message)
-      setData(FALLBACK_DATA)
+      setData({})
     } finally {
       setLoading(false)
     }
@@ -159,7 +128,7 @@ export default function AdminDrugDatabasePage() {
   const totalPages = Math.ceil(filtered.length / pageSize)
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-  const stats = data?.stats || FALLBACK_DATA.stats
+  const stats = data?.stats || { totalDrugs: 0, active: 0, discontinued: 0, categories: 0 }
 
   if (loading) {
     return (
@@ -182,7 +151,7 @@ export default function AdminDrugDatabasePage() {
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Using offline data — could not reach server.
+          Failed to load drug database. Please try again.
         </div>
       )}
 

@@ -6,20 +6,13 @@ import api from '../../services/api'
 
 const categories = ['Rent', 'Utilities', 'Supplies', 'Salaries', 'Transport', 'Other']
 
-const sampleExpense = {
-  category: '',
-  description: '',
-  amount: '',
-  date: new Date().toISOString().split('T')[0],
-  receipt_number: '',
-}
 
 export default function ExpenseFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = Boolean(id)
 
-  const [form, setForm] = useState({ ...sampleExpense })
+  const [form, setForm] = useState({ category: '', description: '', amount: '', date: new Date().toISOString().split('T')[0], receipt_number: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
@@ -40,7 +33,7 @@ export default function ExpenseFormPage() {
         receipt_number: data.receipt_number || '',
       })
     } catch {
-      setForm({ ...sampleExpense, description: 'Sample Expense' })
+      setForm({ category: '', description: '', amount: '', date: new Date().toISOString().split('T')[0], receipt_number: '' })
     } finally {
       setFetching(false)
     }

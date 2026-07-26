@@ -8,26 +8,6 @@ import {
 import { toArray } from '../../utils/safeData'
 import api from '../../services/api'
 
-const sampleCustomer = {
-  id: 1, code: 'CUS-000001', name: 'Alice Johnson', phone: '+256701234567',
-  email: 'alice@example.com', gender: 'Female', dob: '1990-05-15',
-  allergies: 'Penicillin, Sulfa drugs', medical_conditions: 'Hypertension, Type 2 Diabetes',
-  location: 'Kampala', street: 'Plot 12, Jinja Road',
-}
-
-const sampleOrders = [
-  { id: 1, code: 'ORD-001234', date: '2026-07-18', items: 3, total: 45000, payment_status: 'paid', status: 'completed' },
-  { id: 2, code: 'ORD-001180', date: '2026-07-10', items: 1, total: 12000, payment_status: 'paid', status: 'completed' },
-  { id: 3, code: 'ORD-001095', date: '2026-06-25', items: 5, total: 78000, payment_status: 'pending', status: 'completed' },
-  { id: 4, code: 'ORD-000980', date: '2026-06-12', items: 2, total: 23000, payment_status: 'paid', status: 'completed' },
-]
-
-const samplePrescriptions = [
-  { id: 1, code: 'RX-000045', doctor: 'Dr. Okello', hospital: 'Mulago Hospital', date: '2026-07-18', status: 'dispensed', dispensed_date: '2026-07-18' },
-  { id: 2, code: 'RX-000038', doctor: 'Dr. Nambi', hospital: 'Naguru Hospital', date: '2026-07-01', status: 'dispensed', dispensed_date: '2026-07-02' },
-  { id: 3, code: 'RX-000022', doctor: 'Dr. Ssemanda', hospital: 'Case Hospital', date: '2026-06-15', status: 'pending', dispensed_date: null },
-]
-
 const statusColors = {
   completed: 'bg-green-100 text-green-700',
   pending: 'bg-yellow-100 text-yellow-700',
@@ -110,12 +90,12 @@ export default function CustomerDetailPage() {
         const rxData = rxRes.data.prescriptions || rxRes.data.data || rxRes.data
         setPrescriptions(toArray(rxData).map(normalizeRx))
       } catch {
-        setPrescriptions(samplePrescriptions.map(normalizeRx))
+        setPrescriptions([])
       }
     } catch {
-      setCustomer(sampleCustomer)
-      setOrders(sampleOrders)
-      setPrescriptions(samplePrescriptions)
+      setCustomer(null)
+      setOrders([])
+      setPrescriptions([])
     } finally {
       setLoading(false)
     }

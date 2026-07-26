@@ -135,6 +135,22 @@ class PharmacyController extends Controller
         }
     }
 
+    public function current(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user()->load('pharmacy');
+            $pharmacy = $user->pharmacy()->first();
+
+            if (!$pharmacy) {
+                return response()->json(['message' => 'No pharmacy associated with this account.'], 404);
+            }
+
+            return response()->json($pharmacy);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to fetch current pharmacy.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function switchPharmacy($id): JsonResponse
     {
         try {

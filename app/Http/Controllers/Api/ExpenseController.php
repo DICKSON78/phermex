@@ -33,7 +33,39 @@ class ExpenseController extends Controller
 
             $expenses = $query->latest('date')->paginate($request->input('per_page', 20));
 
-            return response()->json($expenses);
+            $summaryQuery = Expense::where('pharmacy_id', $pharmacyId);
+
+            if ($request->filled('category')) {
+                $summaryQuery->where('category', $request->input('category'));
+            }
+
+            if ($request->filled('date_from')) {
+                $summaryQuery->whereDate('date', '>=', $request->input('date_from'));
+            }
+
+            if ($request->filled('date_to')) {
+                $summaryQuery->whereDate('date', '<=', $request->input('date_to'));
+            }
+
+            $summary = [
+                'total_amount' => (float) $summaryQuery->sum('amount'),
+                'expense_count' => $summaryQuery->count(),
+                'category_breakdown' => (clone $summaryQuery)
+                    ->select('category', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
+                    ->groupBy('category')
+                    ->get(),
+            ];
+
+            return response()->json([
+                'data' => $expenses->items(),
+                'summary' => $summary,
+                'meta' => [
+                    'current_page' => $expenses->currentPage(),
+                    'last_page' => $expenses->lastPage(),
+                    'per_page' => $expenses->perPage(),
+                    'total' => $expenses->total(),
+                ],
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch expenses.',
@@ -150,31 +182,54 @@ class ExpenseController extends Controller
     {
         try {
             $pharmacyId = $request->input('pharmacy_id');
-            $year = $request->input('date_from', now()->year);
-            $month = $request->input('date_to', now()->month);
+            $months = (int) $request->input('months', 6);
 
-            $query = Expense::where('pharmacy_id', $pharmacyId)
-                ->whereYear('date', $year)
-                ->whereMonth('date', $month);
+            $monthlyData = Expense::where('pharmacy_id', $pharmacyId)
+                ->whereDate('date', '>=', now()->subMonths($months)->startOfMonth())
+                ->select(
+                    DB::raw('YEAR(date) as year'),
+                    DB::raw('MONTH(date) as month'),
+                    DB::raw('SUM(amount) as total'),
+                    DB::raw('COUNT(*) as expense_count')
+                )
+                ->groupBy('year', 'month')
+                ->orderBy('year')
+                ->orderBy('month')
+                ->get();
 
-            $totalExpenses = (clone $query)->sum('amount');
-            $categoryBreakdown = (clone $query)
+            $categoryBreakdown = Expense::where('pharmacy_id', $pharmacyId)
+                ->whereDate('date', '>=', now()->subMonths($months)->startOfMonth())
                 ->select('category', DB::raw('SUM(amount) as total'))
                 ->groupBy('category')
+                ->orderByDesc('total')
                 ->get();
 
-            $dailyExpenses = (clone $query)
-                ->select('date', DB::raw('SUM(amount) as total'))
-                ->groupBy('date')
-                ->orderBy('date')
-                ->get();
+            $currentMonthTotal = (float) Expense::where('pharmacy_id', $pharmacyId)
+                ->whereYear('date', now()->year)
+                ->whereMonth('date', now()->month)
+                ->sum('amount');
+
+            $previousMonthTotal = (float) Expense::where('pharmacy_id', $pharmacyId)
+                ->whereYear('date', now()->subMonth()->year)
+                ->whereMonth('date', now()->subMonth()->month)
+                ->sum('amount');
 
             return response()->json([
-                'year' => (int) $year,
-                'month' => (int) $month,
-                'total_expenses' => (float) $totalExpenses,
+                'monthly_data' => $monthlyData,
                 'category_breakdown' => $categoryBreakdown,
-                'daily_expenses' => $dailyExpenses,
+                'current_month' => [
+                    'year' => (int) now()->year,
+                    'month' => (int) now()->month,
+                    'total' => $currentMonthTotal,
+                ],
+                'previous_month' => [
+                    'year' => (int) now()->subMonth()->year,
+                    'month' => (int) now()->subMonth()->month,
+                    'total' => $previousMonthTotal,
+                ],
+                'month_over_month_change' => $previousMonthTotal > 0
+                    ? round((($currentMonthTotal - $previousMonthTotal) / $previousMonthTotal) * 100, 2)
+                    : null,
             ]);
         } catch (\Exception $e) {
             return response()->json([

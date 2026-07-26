@@ -226,6 +226,28 @@ class PrescriptionController extends Controller
         }
     }
 
+    public function cancel(Request $request, $id): JsonResponse
+    {
+        try {
+            $prescription = Prescription::findOrFail($id);
+
+            if (!in_array($prescription->status, ['pending'])) {
+                return response()->json(['message' => 'Only pending prescriptions can be cancelled.'], 422);
+            }
+
+            $prescription->update(['status' => 'cancelled']);
+
+            return response()->json([
+                'message' => 'Prescription cancelled.',
+                'prescription' => $prescription->fresh()->load(['customer', 'items.drug']),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Prescription not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to cancel prescription.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function searchByDoctor(Request $request): JsonResponse
     {
         try {

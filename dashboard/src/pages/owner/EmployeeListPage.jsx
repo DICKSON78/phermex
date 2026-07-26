@@ -14,14 +14,6 @@ function formatCurrency(amount) {
   }).format(amount || 0)
 }
 
-const FALLBACK_EMPLOYEES = [
-  { id: 1, employee_number: 'EMP-00001', first_name: 'Sarah', last_name: 'Nakamya', email: 'sarah@pharmex.co.tz', phone: '+255701111111', department: 'pharmacy', position: 'Lead Pharmacist', employment_type: 'full_time', status: 'active', basic_salary: 1500, allowances: 300, hire_date: '2024-01-15' },
-  { id: 2, employee_number: 'EMP-00002', first_name: 'James', last_name: 'Ochieng', email: 'james@pharmex.co.tz', phone: '+255702222222', department: 'pharmacy', position: 'Pharmacist', employment_type: 'full_time', status: 'active', basic_salary: 1200, allowances: 200, hire_date: '2024-03-01' },
-  { id: 3, employee_number: 'EMP-00003', first_name: 'Mary', last_name: 'Ajambo', email: 'mary@pharmex.co.tz', phone: '+255703333333', department: 'finance', position: 'Accountant', employment_type: 'full_time', status: 'active', basic_salary: 1000, allowances: 150, hire_date: '2024-06-10' },
-  { id: 4, employee_number: 'EMP-00004', first_name: 'Peter', last_name: 'Ssekitooleko', email: 'peter@pharmex.co.tz', phone: '+255704444444', department: 'operations', position: 'Store Manager', employment_type: 'contract', status: 'active', basic_salary: 900, allowances: 100, hire_date: '2025-01-05' },
-  { id: 5, employee_number: 'EMP-00005', first_name: 'Grace', last_name: 'Mwangi', email: 'grace@pharmex.co.tz', phone: '+255705555555', department: 'hr', position: 'HR Officer', employment_type: 'full_time', status: 'inactive', basic_salary: 800, allowances: 100, hire_date: '2024-09-20' },
-]
-
 const DEPARTMENTS = { pharmacy: 'Pharmacy', management: 'Management', finance: 'Finance', operations: 'Operations', hr: 'HR' }
 const STATUSES = { active: 'Active', inactive: 'Inactive', suspended: 'Suspended', terminated: 'Terminated' }
 const STATUS_COLORS = { active: 'bg-green-100 text-green-700 border-green-200', inactive: 'bg-gray-100 text-gray-500 border-gray-200', suspended: 'bg-yellow-100 text-yellow-700 border-yellow-200', terminated: 'bg-red-100 text-red-700 border-red-200' }
@@ -53,7 +45,7 @@ export default function EmployeeListPage() {
       setEmployeeList(toArray(res.data))
       setTotalPages(res.data.last_page || 1)
     } catch {
-      setEmployeeList(FALLBACK_EMPLOYEES)
+      setEmployeeList([])
       setTotalPages(1)
     } finally { setLoading(false) }
   }
@@ -63,7 +55,7 @@ export default function EmployeeListPage() {
       const res = await employees.getStats()
       setStats(res.data)
     } catch {
-      setStats({ total: 5, active: 4, on_leave: 0, new_this_month: 1 })
+      setStats({ total: 0, active: 0, on_leave: 0, new_this_month: 0 })
     }
   }
 

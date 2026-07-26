@@ -23,6 +23,18 @@ class DeliveryController extends Controller
                 $query->where('status', $request->input('status'));
             }
 
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->input('date_from'));
+            }
+
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->input('date_to'));
+            }
+
+            if ($request->filled('assigned_to')) {
+                $query->where('assigned_to', $request->input('assigned_to'));
+            }
+
             $deliveries = $query->latest()->paginate($request->input('per_page', 20));
 
             return response()->json($deliveries);
@@ -94,18 +106,52 @@ class DeliveryController extends Controller
         }
     }
 
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+            $delivery = Delivery::findOrFail($id);
+
+            $validated = $request->validate([
+                'customer_name' => 'sometimes|string|max:255',
+                'customer_phone' => 'sometimes|string|max:20',
+                'delivery_address' => 'sometimes|string|max:500',
+                'delivery_fee' => 'sometimes|numeric|min:0',
+                'estimated_arrival' => 'nullable|date',
+            ]);
+
+            $delivery->update($validated);
+
+            return response()->json([
+                'message' => 'Delivery updated successfully.',
+                'delivery' => $delivery->fresh()->load(['order', 'driver']),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Delivery not found.'], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update delivery.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function updateStatus(Request $request, $id): JsonResponse
     {
         try {
             $delivery = Delivery::findOrFail($id);
 
             $validated = $request->validate([
-                'status' => 'required|in:pending,assigned,picked_up,in_transit,delivered,failed',
+                'status' => 'required|in:pending,assigned,picked_up,in_transit,out_for_delivery,delivered,failed',
             ]);
 
             $statusTimestamps = [];
 
-            if ($validated['status'] === 'picked_up') {
+            if ($validated['status'] === 'picked_up' || $validated['status'] === 'out_for_delivery') {
                 $statusTimestamps['picked_up_at'] = now();
             } elseif ($validated['status'] === 'delivered') {
                 $statusTimestamps['actual_arrival'] = now();
@@ -115,6 +161,8 @@ class DeliveryController extends Controller
 
             if ($validated['status'] === 'delivered') {
                 $delivery->order->update(['order_status' => 'delivered']);
+            } elseif ($validated['status'] === 'out_for_delivery') {
+                $delivery->order->update(['order_status' => 'out_for_delivery']);
             }
 
             return response()->json([

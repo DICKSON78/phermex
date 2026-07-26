@@ -28,29 +28,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const FALLBACK_DATA = {
-  stats: {
-    activeCampaigns: 8,
-    totalSent: 24560,
-    openRate: 34.7,
-    clickRate: 12.3,
-  },
-  campaigns: [
-    { id: 1, name: 'Q3 Platform Update Newsletter', type: 'Email', audience: 'All Owners', status: 'Active', startDate: '2026-07-10', endDate: '2026-07-25', conversions: 89 },
-    { id: 2, name: 'Welcome Series — New Pharmacies', type: 'Email', audience: 'New Owners', status: 'Active', startDate: '2026-06-01', endDate: '2026-12-31', conversions: 156 },
-    { id: 3, name: 'Controlled Substance Reminder', type: 'SMS', audience: 'Pharmacists', status: 'Active', startDate: '2026-07-05', endDate: '2026-07-12', conversions: 203 },
-    { id: 4, name: 'Monthly Feature Spotlight', type: 'Push', audience: 'All Users', status: 'Completed', startDate: '2026-06-15', endDate: '2026-06-30', conversions: 342 },
-    { id: 5, name: 'Annual Subscription Discount', type: 'Email', audience: 'Trial Users', status: 'Active', startDate: '2026-07-01', endDate: '2026-07-31', conversions: 47 },
-    { id: 6, name: 'Inventory Alert Campaign', type: 'In-App', audience: 'Owners', status: 'Paused', startDate: '2026-06-20', endDate: '2026-07-20', conversions: 118 },
-    { id: 7, name: 'Staff Training Webinar Invite', type: 'Email', audience: 'All Users', status: 'Completed', startDate: '2026-06-01', endDate: '2026-06-14', conversions: 87 },
-    { id: 8, name: 'Regulatory Update Broadcast', type: 'SMS', audience: 'Pharmacists', status: 'Active', startDate: '2026-07-14', endDate: '2026-07-21', conversions: 312 },
-    { id: 9, name: 'New POS Feature Rollout', type: 'Push', audience: 'Owners', status: 'Draft', startDate: '2026-07-20', endDate: '2026-08-05', conversions: 0 },
-    { id: 10, name: 'Feedback Survey Campaign', type: 'In-App', audience: 'All Users', status: 'Paused', startDate: '2026-06-10', endDate: '2026-06-30', conversions: 64 },
-    { id: 11, name: 'Referral Program Launch', type: 'Email', audience: 'All Owners', status: 'Active', startDate: '2026-07-08', endDate: '2026-08-08', conversions: 210 },
-    { id: 12, name: 'Drug Recall Alert Blast', type: 'SMS', audience: 'Pharmacists', status: 'Completed', startDate: '2026-05-20', endDate: '2026-05-22', conversions: 502 },
-  ],
-}
-
 const TYPE_STYLES = {
   Email: 'badge badge-blue',
   SMS: 'badge badge-yellow',
@@ -123,11 +100,11 @@ export default function AdminMarketingPage() {
     try {
       setLoading(true)
       const response = await api.get('/admin/marketing')
-      setData({ ...FALLBACK_DATA, ...(response.data || {}) })
+      setData(response.data || {})
     } catch (err) {
       console.warn('Failed to fetch marketing data:', err.message)
       setError(err.message)
-      setData(FALLBACK_DATA)
+      setData({})
     } finally {
       setLoading(false)
     }
@@ -167,7 +144,7 @@ export default function AdminMarketingPage() {
   const totalPages = Math.ceil(filtered.length / pageSize)
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-  const stats = data?.stats || FALLBACK_DATA.stats
+  const stats = data?.stats || { activeCampaigns: 0, totalSent: 0, openRate: 0, clickRate: 0 }
 
   if (loading) {
     return (
@@ -190,7 +167,7 @@ export default function AdminMarketingPage() {
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Using offline data — could not reach server.
+          Failed to load marketing data. Please try again.
         </div>
       )}
 

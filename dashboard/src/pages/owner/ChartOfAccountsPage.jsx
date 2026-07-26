@@ -22,21 +22,6 @@ const TYPE_COLORS = {
   expense: { bg: 'bg-orange-500/10', text: 'text-orange-400', badge: 'bg-orange-500/20 text-orange-300', border: 'border-orange-500/20' },
 }
 
-const FALLBACK_ACCOUNTS = [
-  { id: 1, account_code: '1000', account_name: 'Cash', account_type: 'asset', balance: 25430.50, is_active: true, children: [
-    { id: 2, account_code: '1010', account_name: 'Petty Cash', account_type: 'asset', balance: 500.00, is_active: true, children: [] },
-  ]},
-  { id: 3, account_code: '1100', account_name: 'Accounts Receivable', account_type: 'asset', balance: 12800.00, is_active: true, children: [] },
-  { id: 4, account_code: '1200', account_name: 'Inventory', account_type: 'asset', balance: 45200.00, is_active: true, children: [] },
-  { id: 5, account_code: '2000', account_name: 'Accounts Payable', account_type: 'liability', balance: -8500.00, is_active: true, children: [] },
-  { id: 6, account_code: '2100', account_name: 'Loan Payable', account_type: 'liability', balance: -50000.00, is_active: true, children: [] },
-  { id: 7, account_code: '3000', account_name: 'Owner Equity', account_type: 'equity', balance: -75000.00, is_active: true, children: [] },
-  { id: 8, account_code: '4000', account_name: 'Sales Revenue', account_type: 'revenue', balance: -128500.00, is_active: true, children: [] },
-  { id: 9, account_code: '4100', account_name: 'Service Revenue', account_type: 'revenue', balance: -15200.00, is_active: true, children: [] },
-  { id: 10, account_code: '5000', account_name: 'Cost of Goods Sold', account_type: 'expense', balance: 78400.00, is_active: true, children: [] },
-  { id: 11, account_code: '5100', account_name: 'Rent Expense', account_type: 'expense', balance: 12000.00, is_active: true, children: [] },
-  { id: 12, account_code: '5200', account_name: 'Salary Expense', account_type: 'expense', balance: 36000.00, is_active: true, children: [] },
-]
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(Math.abs(amount))
@@ -117,9 +102,9 @@ export default function ChartOfAccountsPage() {
       const flatRes = await api.get('/accounts', { params: { per_page: 200 } })
       setAccounts(flatRes.data.data || [])
     } catch {
-      setTree(buildTree(FALLBACK_ACCOUNTS))
-      setAccounts(FALLBACK_ACCOUNTS)
-      setBalances({ total_debit: 163900.50, total_credit: 163900.50, is_balanced: true })
+      setTree([])
+      setAccounts([])
+      setBalances(null)
     } finally {
       setLoading(false)
     }

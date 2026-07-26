@@ -103,12 +103,7 @@ export default function AdminPharmacyFormPage() {
         license_expiry: d.license_expiry || '',
       })
     } catch {
-      setForm({
-        pharmacy_name: 'Sample Pharmacy', owner_name: 'John Doe', country: 'Tanzania',
-        region: 'Dar es Salaam', district: 'Kinondoni', ward: 'Mikocheni', street: 'Bagamoyo Road',
-        phone: '+255700000000', email: 'john@pharmacy.com', pharmacy_type: 'independent',
-        license_number: 'TZ-PH-2026-0042', license_expiry: '2027-12-31',
-      })
+      // Failed to fetch pharmacy data — leave form with empty values
     } finally { setLoading(false) }
   }
 

@@ -19,28 +19,6 @@ const TYPE_COLORS = { VAT: 'bg-blue-100 text-blue-700', PAYE: 'bg-purple-100 tex
 const STATUS_COLORS = { draft: 'bg-yellow-100 text-yellow-700', filed: 'bg-blue-100 text-blue-700', paid: 'bg-green-100 text-green-700', none: 'bg-gray-100 text-gray-500', overdue: 'bg-red-100 text-red-700' }
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-const FALLBACK_CALENDAR = (() => {
-  const cal = []
-  const types = ['VAT', 'PAYE', 'NSSF', 'NHIF', 'Housing']
-  const deadlines = { VAT: 20, PAYE: 15, NSSF: 15, NHIF: 15, Housing: 9 }
-  for (const type of types) {
-    for (let m = 1; m <= 12; m++) {
-      const deadline = `2026-${String(m).padStart(2, '0')}-${String(deadlines[type]).padStart(2, '0')}`
-      const isPast = new Date(deadline) < new Date()
-      cal.push({ tax_type: type, period_month: m, period_year: 2026, deadline, status: isPast && m < 7 ? 'paid' : m === 7 ? 'filed' : 'none', tax_amount: m <= 7 ? [1800, 3500, 800, 300, 200][types.indexOf(type)] : null, is_overdue: isPast && (!isPast || m >= 7) })
-    }
-  }
-  return cal
-})()
-
-const FALLBACK_RECORDS = [
-  { id: 1, tax_type: 'VAT', period_month: 7, period_year: 2026, taxable_amount: 25000, tax_amount: 4500, status: 'filed', filed_date: '2026-07-18' },
-  { id: 2, tax_type: 'PAYE', period_month: 7, period_year: 2026, taxable_amount: 15000, tax_amount: 4500, status: 'draft' },
-  { id: 3, tax_type: 'NSSF', period_month: 7, period_year: 2026, taxable_amount: 8000, tax_amount: 800, status: 'paid', payment_date: '2026-07-15', receipt_number: 'NSSF-2026-001' },
-  { id: 4, tax_type: 'NHIF', period_month: 7, period_year: 2026, taxable_amount: 8000, tax_amount: 400, status: 'paid', payment_date: '2026-07-14', receipt_number: 'NHIF-2026-001' },
-  { id: 5, tax_type: 'Housing', period_month: 6, period_year: 2026, taxable_amount: 15000, tax_amount: 225, status: 'paid', payment_date: '2026-07-10', receipt_number: 'HL-2026-006' },
-  { id: 6, tax_type: 'VAT', period_month: 6, period_year: 2026, taxable_amount: 22000, tax_amount: 3960, status: 'paid', payment_date: '2026-07-05', receipt_number: 'VAT-2026-006' },
-]
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount || 0)
@@ -77,9 +55,9 @@ export default function TaxManagementPage() {
       setCalendar(calRes.data.calendar || [])
       setSummary(sumRes.data)
     } catch {
-      setRecords(FALLBACK_RECORDS)
-      setCalendar(FALLBACK_CALENDAR)
-      setSummary({ total_liability: 14385, total_paid: 5385, total_pending: 9000, by_type: TAX_TYPES.map((t) => ({ tax_type: t.id, total_tax: t.id === 'VAT' ? 8460 : t.id === 'PAYE' ? 4500 : t.id === 'NSSF' ? 800 : t.id === 'NHIF' ? 400 : 225 })), records_count: 6 })
+      setRecords([])
+      setCalendar([])
+      setSummary(null)
     } finally { setLoading(false) }
   }
 

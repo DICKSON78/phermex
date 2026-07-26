@@ -14,17 +14,6 @@ import api from '../../services/api'
 
 const UNITS = ['Tablets', 'Capsules', 'Bottles', 'Tubes', 'Vials', 'Sachets', 'Syrup']
 
-const SAMPLE_CATEGORIES = [
-  { id: 1, name: 'Antibiotics' },
-  { id: 2, name: 'Analgesics' },
-  { id: 3, name: 'Antidiabetics' },
-  { id: 4, name: 'Antihypertensives' },
-  { id: 5, name: 'Antihistamines' },
-  { id: 6, name: 'Antacids' },
-  { id: 7, name: 'Respiratory' },
-  { id: 8, name: 'Supplements' },
-]
-
 const INITIAL_FORM = {
   name: '',
   generic_name: '',
@@ -70,7 +59,7 @@ export default function DrugFormPage() {
       const response = await api.get('/drug-categories')
       setCategories(Array.isArray(response.data.data) ? response.data.data : [])
     } catch {
-      setCategories(SAMPLE_CATEGORIES)
+      setCategories([])
     }
   }, [])
 
@@ -101,47 +90,7 @@ export default function DrugFormPage() {
         is_published: drug.is_published !== false,
       })
     } catch {
-      const sample = {
-        id: Number(id),
-        name: 'Sample Drug',
-        generic_name: 'Sample Generic',
-        category_id: 1,
-        description: 'Sample description',
-        buying_price: 5.00,
-        selling_price: 10.00,
-        wholesale_price: 7.50,
-        quantity: 100,
-        unit: 'Tablets',
-        reorder_level: 20,
-        batch_number: 'BATCH-001',
-        expiry_date: '2027-06-15',
-        manufacturer: 'Sample Pharma',
-        nafdac_number: 'A1-12345',
-        barcode: generateBarcode(),
-        requires_prescription: false,
-        is_generic: true,
-        is_published: true,
-      }
-      setForm({
-        name: sample.name,
-        generic_name: sample.generic_name,
-        category_id: sample.category_id,
-        description: sample.description,
-        buying_price: sample.buying_price.toString(),
-        selling_price: sample.selling_price.toString(),
-        wholesale_price: sample.wholesale_price.toString(),
-        quantity: sample.quantity.toString(),
-        unit: sample.unit,
-        reorder_level: sample.reorder_level.toString(),
-        batch_number: sample.batch_number,
-        expiry_date: sample.expiry_date,
-        manufacturer: sample.manufacturer,
-        nafdac_number: sample.nafdac_number,
-        barcode: sample.barcode,
-        requires_prescription: sample.requires_prescription,
-        is_generic: sample.is_generic,
-        is_published: sample.is_published,
-      })
+      // Drug fetch failed — form stays at initial empty state
     } finally {
       setFetching(false)
     }

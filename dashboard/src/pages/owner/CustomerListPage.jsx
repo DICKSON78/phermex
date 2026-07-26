@@ -8,14 +8,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const sampleCustomers = [
-  { id: 1, customer_code: 'CUS-000001', full_name: 'Alice Johnson', phone: '+256701234567', email: 'alice@example.com', gender: 'Female' },
-  { id: 2, customer_code: 'CUS-000002', full_name: 'Bob Smith', phone: '+256702345678', email: 'bob@example.com', gender: 'Male' },
-  { id: 3, customer_code: 'CUS-000003', full_name: 'Carol White', phone: '+256703456789', email: 'carol@example.com', gender: 'Female' },
-  { id: 4, customer_code: 'CUS-000004', full_name: 'David Brown', phone: '+256704567890', email: 'david@example.com', gender: 'Male' },
-  { id: 5, customer_code: 'CUS-000005', full_name: 'Eva Martinez', phone: '+256705678901', email: 'eva@example.com', gender: 'Female' },
-]
-
 function normalizeCustomer(c) {
   return {
     ...c,
@@ -44,7 +36,7 @@ export default function CustomerListPage() {
       const raw = toArray(res.data)
       setCustomers(Array.isArray(raw) ? raw.map(normalizeCustomer) : [])
     } catch {
-      setCustomers(sampleCustomers.map(normalizeCustomer))
+      setCustomers([])
     } finally {
       setLoading(false)
     }

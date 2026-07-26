@@ -23,21 +23,6 @@ import {
   Barcode,
 } from 'lucide-react'
 
-const FALLBACK_DRUGS = [
-  { id: 1, name: 'Amoxicillin 500mg', genericName: 'Amoxicillin', price: 5.0, stock: 142, category: 'Capsules', barcode: 'DRG001' },
-  { id: 2, name: 'Paracetamol 500mg', genericName: 'Acetaminophen', price: 2.0, stock: 230, category: 'Tablets', barcode: 'DRG002' },
-  { id: 3, name: 'Metformin 850mg', genericName: 'Metformin HCl', price: 6.0, stock: 95, category: 'Tablets', barcode: 'DRG003' },
-  { id: 4, name: 'Cetirizine 10mg', genericName: 'Cetirizine HCl', price: 3.0, stock: 82, category: 'Tablets', barcode: 'DRG004' },
-  { id: 5, name: 'Omeprazole 20mg', genericName: 'Omeprazole', price: 7.0, stock: 71, category: 'Capsules', barcode: 'DRG005' },
-  { id: 6, name: 'Salbutamol Inhaler', genericName: 'Salbutamol', price: 12.5, stock: 3, category: 'Inhalers', barcode: 'DRG006' },
-  { id: 7, name: 'Ibuprofen 400mg', genericName: 'Ibuprofen', price: 3.5, stock: 180, category: 'Tablets', barcode: 'DRG007' },
-  { id: 8, name: 'Cough Syrup 100ml', genericName: 'Dextromethorphan', price: 4.5, stock: 60, category: 'Bottles', barcode: 'DRG008' },
-  { id: 9, name: 'Vitamin C 1000mg', genericName: 'Ascorbic Acid', price: 8.0, stock: 0, category: 'Tablets', barcode: 'DRG009' },
-  { id: 10, name: 'ORS Sachets (20)', genericName: 'Oral Rehydration Salts', price: 6.5, stock: 45, category: 'Packets', barcode: 'DRG010' },
-  { id: 11, name: 'Fluconazole 150mg', genericName: 'Fluconazole', price: 4.0, stock: 38, category: 'Capsules', barcode: 'DRG011' },
-  { id: 12, name: 'Nystatin Cream', genericName: 'Nystatin', price: 3.5, stock: 25, category: 'Creams', barcode: 'DRG012' },
-]
-
 const CATEGORIES = ['All', 'Tablets', 'Capsules', 'Bottles', 'Inhalers', 'Creams', 'Packets']
 
 const PAYMENT_METHODS = [
@@ -96,7 +81,7 @@ export default function POSPage() {
         })) : []
         setDrugs(normalized)
       } catch {
-        setDrugs(FALLBACK_DRUGS)
+        setDrugs([])
       } finally {
         setLoading(false)
       }

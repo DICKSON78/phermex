@@ -19,12 +19,6 @@ import {
 import api from '../../services/api'
 import { toObject, toArray } from '../../utils/safeData'
 
-const SAMPLE_DRUGS = {
-  1: { id: 1, name: 'Amoxicillin 500mg', generic_name: 'Amoxicillin', category: 'Antibiotics', buying_price: 5.00, selling_price: 8.50, wholesale_price: 7.00, quantity: 150, unit: 'Capsules', reorder_level: 20, expiry_date: '2026-12-15', batch_number: 'BATCH-001', manufacturer: 'PharmaCorp', nafdac_number: 'A1-12345', barcode: '123456789012', requires_prescription: true, is_generic: false, description: 'Broad-spectrum antibiotic for bacterial infections.', movements: [] },
-  2: { id: 2, name: 'Paracetamol 500mg', generic_name: 'Acetaminophen', category: 'Analgesics', buying_price: 1.50, selling_price: 3.00, wholesale_price: 2.20, quantity: 300, unit: 'Tablets', reorder_level: 50, expiry_date: '2027-06-20', batch_number: 'BATCH-002', manufacturer: 'MediLab', nafdac_number: 'B2-67890', barcode: '234567890123', requires_prescription: false, is_generic: true, description: 'Common pain reliever and fever reducer.', movements: [] },
-  3: { id: 3, name: 'Metformin 850mg', generic_name: 'Metformin Hydrochloride', category: 'Antidiabetics', buying_price: 4.00, selling_price: 7.00, wholesale_price: 5.50, quantity: 8, unit: 'Tablets', reorder_level: 25, expiry_date: '2026-08-10', batch_number: 'BATCH-003', manufacturer: 'DiabetCare', nafdac_number: 'C3-11223', barcode: '345678901234', requires_prescription: true, is_generic: false, description: 'First-line medication for type 2 diabetes.', movements: [] },
-}
-
 function LoadingSkeleton() {
   return (
     <div className="space-y-6">
@@ -62,9 +56,9 @@ export default function DrugDetailPage() {
       const response = await api.get(`/drugs/${id}`)
       const res = response.data
       const raw = res.drug || res.data?.drug || res.data || res
-      setDrug(toObject(raw) || (SAMPLE_DRUGS[id] || SAMPLE_DRUGS[1]))
+      setDrug(toObject(raw) || null)
     } catch {
-      setDrug(SAMPLE_DRUGS[id] || SAMPLE_DRUGS[1])
+      setDrug(null)
     } finally {
       setLoading(false)
     }

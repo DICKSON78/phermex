@@ -4,11 +4,6 @@ import { Plus, Search, CheckCircle, AlertTriangle, Package, Hash, ClipboardList,
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE_GRNS = [
-  { id: 1, grn_number: 'GRN-00001', purchase_order: { order_number: 'PO-00001' }, supplier: { name: 'MedSupply Tanzania' }, received_date: '2026-07-22', total_items: 50, total_value: 12500, status: 'complete', quality_check: 'passed', received_by: { name: 'Dr. Mwangi' } },
-  { id: 2, grn_number: 'GRN-00002', purchase_order: { order_number: 'PO-00002' }, supplier: { name: 'PharmaDistributors Ltd' }, received_date: '2026-07-18', total_items: 30, total_value: 8200, status: 'partial', quality_check: 'pending', received_by: { name: 'Dr. Kimaro' } },
-]
-
 export default function GoodsReceivedPage() {
   const [grns, setGrns] = useState([])
   const [loading, setLoading] = useState(true)
@@ -19,7 +14,7 @@ export default function GoodsReceivedPage() {
 
   const fetchGRNs = useCallback(async () => {
     setLoading(true)
-    try { const res = await api.get('/goods-received'); setGrns(toArray(res.data)) } catch { setGrns(SAMPLE_GRNS) } finally { setLoading(false) }
+    try { const res = await api.get('/goods-received'); setGrns(toArray(res.data)) } catch { setGrns([]) } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchGRNs() }, [fetchGRNs])

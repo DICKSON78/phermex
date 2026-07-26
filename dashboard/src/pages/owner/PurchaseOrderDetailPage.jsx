@@ -4,8 +4,6 @@ import { ArrowLeft, CheckCircle, XCircle, Package, Truck, Printer, Pill, Hash, D
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE = { id: 1, order_number: 'PO-00001', supplier: { name: 'MedSupply Tanzania' }, order_date: '2026-07-15', expected_delivery_date: '2026-07-22', status: 'ordered', subtotal: 12000, tax_amount: 500, discount_amount: 0, total: 12500, payment_status: 'unpaid', amount_paid: 0, items: [{ id: 1, drug: { name: 'Amoxicillin 500mg' }, quantity_ordered: 500, quantity_received: 0, unit_cost: 5.00, total_cost: 2500, batch_number: 'BATCH-001', expiry_date: '2027-06-30' }, { id: 2, drug: { name: 'Paracetamol 500mg' }, quantity_ordered: 1000, quantity_received: 0, unit_cost: 1.50, total_cost: 1500, batch_number: 'BATCH-002', expiry_date: '2027-12-15' }] }
-
 const STATUS_COLORS = { draft: 'bg-gray-100 text-gray-600', pending_approval: 'bg-yellow-100 text-yellow-700', approved: 'bg-blue-100 text-blue-700', ordered: 'bg-indigo-100 text-indigo-700', partially_received: 'bg-orange-100 text-orange-700', received: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600' }
 
 export default function PurchaseOrderDetailPage() {
@@ -22,7 +20,7 @@ export default function PurchaseOrderDetailPage() {
       try {
         const res = await api.get(`/purchase-orders/${id}`)
         setOrder(res.data.order || res.data)
-      } catch { setOrder(SAMPLE) } finally { setLoading(false) }
+      } catch { setOrder(null) } finally { setLoading(false) }
     }
     fetchOrder()
   }, [id])

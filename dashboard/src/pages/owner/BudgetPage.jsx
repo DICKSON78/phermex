@@ -11,25 +11,6 @@ const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-const FALLBACK_BUDGETS = [
-  { id: 1, budget_year: 2026, budget_month: 7, budgeted_amount: 5000, actual_amount: 4200, account: { account_code: '5000', account_name: 'Cost of Goods Sold', account_type: 'expense' }, notes: 'Q3 inventory budget' },
-  { id: 2, budget_year: 2026, budget_month: 7, budgeted_amount: 3000, actual_amount: 3000, account: { account_code: '5200', account_name: 'Salary Expense', account_type: 'expense' } },
-  { id: 3, budget_year: 2026, budget_month: 7, budgeted_amount: 1500, actual_amount: 1350, account: { account_code: '5100', account_name: 'Rent Expense', account_type: 'expense' } },
-  { id: 4, budget_year: 2026, budget_month: 7, budgeted_amount: 500, actual_amount: 620, account: { account_code: '5300', account_name: 'Utilities', account_type: 'expense' } },
-  { id: 5, budget_year: 2026, budget_month: 7, budgeted_amount: 200, actual_amount: 150, account: { account_code: '5400', account_name: 'Marketing', account_type: 'expense' } },
-  { id: 6, budget_year: 2026, budget_month: 6, budgeted_amount: 4800, actual_amount: 4500, account: { account_code: '5000', account_name: 'Cost of Goods Sold', account_type: 'expense' } },
-  { id: 7, budget_year: 2026, budget_month: 6, budgeted_amount: 3000, actual_amount: 3000, account: { account_code: '5200', account_name: 'Salary Expense', account_type: 'expense' } },
-  { id: 8, budget_year: 2026, budget_month: 6, budgeted_amount: 1500, actual_amount: 1350, account: { account_code: '5100', account_name: 'Rent Expense', account_type: 'expense' } },
-]
-
-const FALLBACK_ACCOUNTS = [
-  { id: 1, account_code: '5000', account_name: 'Cost of Goods Sold', account_type: 'expense' },
-  { id: 2, account_code: '5100', account_name: 'Rent Expense', account_type: 'expense' },
-  { id: 3, account_code: '5200', account_name: 'Salary Expense', account_type: 'expense' },
-  { id: 4, account_code: '5300', account_name: 'Utilities', account_type: 'expense' },
-  { id: 5, account_code: '5400', account_name: 'Marketing', account_type: 'expense' },
-  { id: 6, account_code: '4000', account_name: 'Sales Revenue', account_type: 'revenue' },
-]
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount)
@@ -60,9 +41,9 @@ export default function BudgetPage() {
       setVarianceData(varRes.data)
       setAccounts(accRes.data.data || [])
     } catch {
-      setBudgets(FALLBACK_BUDGETS.filter((b) => b.budget_year === selectedYear && b.budget_month === selectedMonth))
-      setVarianceData({ monthly_data: MONTHS.map((m, i) => ({ month: i + 1, month_name: m, budgeted: 10200, actual: 9320, variance: -880, variance_percentage: -8.6 })), account_breakdown: [] })
-      setAccounts(FALLBACK_ACCOUNTS)
+      setBudgets([])
+      setVarianceData(null)
+      setAccounts([])
     } finally { setLoading(false) }
   }
 

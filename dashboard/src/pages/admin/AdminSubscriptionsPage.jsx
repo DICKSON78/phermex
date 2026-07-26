@@ -23,37 +23,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const FALLBACK_DATA = {
-  stats: {
-    activeSubscriptions: 21,
-    monthlyRevenue: 4850,
-    trialUsers: 8,
-    churnRate: 3.2,
-  },
-  subscriptions: [
-    { id: 1, pharmacy: 'HealthPlus Pharmacy', plan: 'Pro', status: 'active', amount: 149, startDate: '2026-01-15', expiryDate: '2026-08-15' },
-    { id: 2, pharmacy: 'WellCare Drugs', plan: 'Basic', status: 'active', amount: 49, startDate: '2026-02-20', expiryDate: '2026-08-20' },
-    { id: 3, pharmacy: 'MedVita Pharmacy', plan: 'Enterprise', status: 'active', amount: 299, startDate: '2025-11-08', expiryDate: '2026-11-08' },
-    { id: 4, pharmacy: 'LifeLine Chemists', plan: 'Trial', status: 'active', amount: 0, startDate: '2026-07-15', expiryDate: '2026-08-15' },
-    { id: 5, pharmacy: 'PharmaStar', plan: 'Basic', status: 'active', amount: 49, startDate: '2026-03-12', expiryDate: '2026-09-12' },
-    { id: 6, pharmacy: 'CarePoint Pharmacy', plan: 'Pro', status: 'suspended', amount: 149, startDate: '2025-12-01', expiryDate: '2026-12-01' },
-    { id: 7, pharmacy: 'Sun Pharma Hub', plan: 'Trial', status: 'active', amount: 0, startDate: '2026-07-10', expiryDate: '2026-08-10' },
-    { id: 8, pharmacy: 'VitalMeds', plan: 'Basic', status: 'expired', amount: 49, startDate: '2026-04-22', expiryDate: '2026-07-22' },
-    { id: 9, pharmacy: 'PrimeCare Drugs', plan: 'Pro', status: 'active', amount: 149, startDate: '2026-01-30', expiryDate: '2026-07-30' },
-    { id: 10, pharmacy: 'Neema Pharmacy', plan: 'Basic', status: 'expired', amount: 49, startDate: '2025-09-14', expiryDate: '2026-03-14' },
-    { id: 11, pharmacy: 'GreenLeaf Pharmacy', plan: 'Enterprise', status: 'active', amount: 299, startDate: '2026-05-01', expiryDate: '2027-05-01' },
-    { id: 12, pharmacy: 'Apollo Meds', plan: 'Trial', status: 'active', amount: 0, startDate: '2026-07-18', expiryDate: '2026-08-18' },
-    { id: 13, pharmacy: 'NovaCare Pharmacy', plan: 'Basic', status: 'suspended', amount: 49, startDate: '2025-10-05', expiryDate: '2026-04-05' },
-    { id: 14, pharmacy: 'ZenPharm', plan: 'Pro', status: 'active', amount: 149, startDate: '2026-06-10', expiryDate: '2026-12-10' },
-    { id: 15, pharmacy: 'Unity Drugs', plan: 'Enterprise', status: 'active', amount: 299, startDate: '2026-03-25', expiryDate: '2027-03-25' },
-    { id: 16, pharmacy: 'FirstHealth Pharmacy', plan: 'Trial', status: 'active', amount: 0, startDate: '2026-07-20', expiryDate: '2026-08-20' },
-    { id: 17, pharmacy: 'PharmaConnect', plan: 'Basic', status: 'expired', amount: 49, startDate: '2025-11-20', expiryDate: '2026-05-20' },
-    { id: 18, pharmacy: 'MedBridge Pharmacy', plan: 'Pro', status: 'active', amount: 149, startDate: '2026-04-14', expiryDate: '2026-10-14' },
-    { id: 19, pharmacy: 'TrueCare Meds', plan: 'Trial', status: 'active', amount: 0, startDate: '2026-07-12', expiryDate: '2026-08-12' },
-    { id: 20, pharmacy: 'Apex Pharma', plan: 'Enterprise', status: 'suspended', amount: 299, startDate: '2025-08-30', expiryDate: '2026-08-30' },
-  ],
-}
-
 const PLAN_STYLES = {
   Trial: 'badge badge-gray',
   Basic: 'badge badge-green',
@@ -104,11 +73,11 @@ export default function AdminSubscriptionsPage() {
       const response = await api.get('/subscriptions/plans')
       const rawData = response.data.data || response.data || {}
       const subscriptions = Array.isArray(rawData) ? rawData : (rawData.subscriptions || [])
-      setData({ ...FALLBACK_DATA, ...(typeof rawData === 'object' && !Array.isArray(rawData) ? rawData : {}), subscriptions })
+      setData({ ...(typeof rawData === 'object' && !Array.isArray(rawData) ? rawData : {}), subscriptions })
     } catch (err) {
       console.warn('Failed to fetch subscriptions:', err.message)
       setError(err.message)
-      setData(FALLBACK_DATA)
+      setData({ stats: { activeSubscriptions: 0, monthlyRevenue: 0, trialUsers: 0, churnRate: 0 }, subscriptions: [] })
     } finally {
       setLoading(false)
     }

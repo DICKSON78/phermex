@@ -4,12 +4,6 @@ import { Plus, BadgeAlert, AlertTriangle, CheckCircle, Clock, Shield, Hash, Pack
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE = [
-  { id: 1, recall_number: 'RC-2026-001', drug: { name: 'Ibuprofen 400mg' }, recall_reason: 'contamination', severity: 'class_i', manufacturer: 'PharmaCorp Ltd', batch_numbers: ['BATCH-001', 'BATCH-002'], date_issued: '2026-07-18', affected_quantity: 500, returned_quantity: 0, status: 'pending' },
-  { id: 2, recall_number: 'RC-2026-002', drug: { name: 'Amoxicillin 250mg' }, recall_reason: 'labeling', severity: 'class_ii', manufacturer: 'MediLab Inc', batch_numbers: ['BATCH-010'], date_issued: '2026-07-15', affected_quantity: 200, returned_quantity: 150, status: 'in_progress' },
-  { id: 3, recall_number: 'RC-2026-003', drug: { name: 'Vitamin C 1000mg' }, recall_reason: 'efficacy', severity: 'class_iii', manufacturer: 'HealthPlus', batch_numbers: ['BATCH-020', 'BATCH-021', 'BATCH-022'], date_issued: '2026-07-10', affected_quantity: 1000, returned_quantity: 1000, status: 'completed' },
-]
-
 const REASON_LABELS = { defective: 'Defective Product', contamination: 'Contamination', labeling: 'Labeling Error', efficacy: 'Efficacy Issue', safety: 'Safety Concern' }
 const SEVERITY_STYLES = { class_i: 'bg-red-100 text-red-700 border-red-300', class_ii: 'bg-orange-100 text-orange-700 border-orange-300', class_iii: 'bg-blue-100 text-blue-700 border-blue-300' }
 const SEVERITY_LABELS = { class_i: 'Class I (Most Serious)', class_ii: 'Class II (Moderate)', class_iii: 'Class III (Low Risk)' }
@@ -25,11 +19,11 @@ export default function DrugRecallPage() {
 
   const fetchRecalls = useCallback(async () => {
     setLoading(true)
-    try { const res = await api.get('/drug-recalls'); setRecalls(toArray(res.data)) } catch { setRecalls(SAMPLE) } finally { setLoading(false) }
+    try { const res = await api.get('/drug-recalls'); setRecalls(toArray(res.data)) } catch { setRecalls([]) } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchRecalls() }, [fetchRecalls])
-  useEffect(() => { api.get('/drugs').then(res => setDrugs(toArray(res.data))).catch(() => setDrugs([{ id: 1, name: 'Ibuprofen 400mg' }])) }, [])
+  useEffect(() => { api.get('/drugs').then(res => setDrugs(toArray(res.data))).catch(() => setDrugs([])) }, [])
 
   const activeRecalls = recalls.filter(r => ['pending', 'acknowledged', 'in_progress'].includes(r.status))
 

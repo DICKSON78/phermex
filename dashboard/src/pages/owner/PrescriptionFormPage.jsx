@@ -18,16 +18,6 @@ import {
   X,
 } from 'lucide-react'
 
-const FALLBACK_DRUGS = [
-  { id: 1, name: 'Amoxicillin 500mg', price: 5.0, stock: 142 },
-  { id: 2, name: 'Paracetamol 500mg', price: 2.0, stock: 230 },
-  { id: 3, name: 'Metformin 850mg', price: 6.0, stock: 95 },
-  { id: 4, name: 'Cetirizine 10mg', price: 3.0, stock: 82 },
-  { id: 5, name: 'Omeprazole 20mg', price: 7.0, stock: 71 },
-  { id: 6, name: 'Ibuprofen 400mg', price: 3.5, stock: 180 },
-  { id: 7, name: 'Cough Syrup 100ml', price: 4.5, stock: 60 },
-  { id: 8, name: 'ORS Sachets (20)', price: 6.5, stock: 45 },
-]
 
 const FREQUENCIES = ['1x daily', '2x daily', '3x daily', '4x daily', 'Once', 'As needed', 'Every 8 hours', 'Every 12 hours']
 
@@ -79,7 +69,7 @@ export default function PrescriptionFormPage() {
         const res = await api.get('/drugs')
         setDrugs(toArray(res.data))
       } catch {
-        setDrugs(FALLBACK_DRUGS)
+        setDrugs([])
       } finally {
         setLoading(false)
       }

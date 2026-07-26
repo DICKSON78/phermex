@@ -36,7 +36,7 @@ export default function AdminMarketingFormPage() {
         description: campaign.description || '',
       })
     } catch {
-      setForm({ ...EMPTY_FORM, name: 'Sample Campaign', description: 'Sample campaign description.' })
+      // Failed to fetch campaign data — leave form with empty values
     } finally {
       setFetching(false)
     }

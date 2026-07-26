@@ -55,99 +55,6 @@ const TABS = [
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
-const FALLBACK_SALES = {
-  totalRevenue: 45231.5,
-  totalOrders: 1234,
-  avgOrderValue: 36.65,
-  itemsSold: 3847,
-  revenueTrend: 12.5,
-  revenueChart: [
-    { date: 'Mon', revenue: 1850, orders: 52 },
-    { date: 'Tue', revenue: 2200, orders: 61 },
-    { date: 'Wed', revenue: 1950, orders: 54 },
-    { date: 'Thu', revenue: 2400, orders: 67 },
-    { date: 'Fri', revenue: 2100, orders: 58 },
-    { date: 'Sat', revenue: 2650, orders: 74 },
-    { date: 'Sun', revenue: 1245, orders: 35 },
-  ],
-  topSellingDrugs: [
-    { name: 'Amoxicillin 500mg', quantitySold: 142, revenue: 710.0 },
-    { name: 'Paracetamol 500mg', quantitySold: 128, revenue: 256.0 },
-    { name: 'Metformin 850mg', quantitySold: 95, revenue: 570.0 },
-    { name: 'Cetirizine 10mg', quantitySold: 82, revenue: 246.0 },
-    { name: 'Omeprazole 20mg', quantitySold: 71, revenue: 497.0 },
-  ],
-  paymentMethods: [
-    { method: 'Cash', count: 645, amount: 22450.0 },
-    { method: 'Mobile Money', count: 389, amount: 15200.0 },
-    { method: 'Insurance', count: 156, amount: 5800.0 },
-    { method: 'Card', count: 44, amount: 1781.5 },
-  ],
-}
-
-const FALLBACK_INVENTORY = {
-  totalDrugs: 856,
-  totalStockValue: 34520.0,
-  categoryDistribution: [
-    { category: 'Antibiotics', count: 145 },
-    { category: 'Analgesics', count: 128 },
-    { category: 'Supplements', count: 112 },
-    { category: 'Antihypertensives', count: 95 },
-    { category: 'Antidiabetics', count: 87 },
-    { category: 'Antihistamines', count: 76 },
-    { category: 'Respiratory', count: 68 },
-    { category: 'Other', count: 145 },
-  ],
-  lowStockItems: [
-    { name: 'Insulin Glargine', currentStock: 0, reorderLevel: 10 },
-    { name: 'Salbutamol Inhaler', currentStock: 3, reorderLevel: 8 },
-    { name: 'Azithromycin 250mg', currentStock: 5, reorderLevel: 10 },
-    { name: 'Metformin 850mg', currentStock: 8, reorderLevel: 25 },
-  ],
-  expiringSoon: [
-    { name: 'Omeprazole 20mg', expiryDate: '2026-08-15', quantity: 45 },
-    { name: 'Metformin 850mg', expiryDate: '2026-08-10', quantity: 32 },
-    { name: 'Cetirizine 10mg', expiryDate: '2026-09-25', quantity: 67 },
-  ],
-  stockMovements: { received: 245, dispensed: 312, returned: 18, expired: 5 },
-}
-
-const FALLBACK_FINANCIAL = {
-  revenue: 45231.5,
-  expenses: 28450.0,
-  profit: 16781.5,
-  profitMargin: 37.1,
-  expenseBreakdown: [
-    { category: 'Purchases', amount: 18200.0 },
-    { category: 'Salaries', amount: 4500.0 },
-    { category: 'Rent', amount: 2800.0 },
-    { category: 'Utilities', amount: 950.0 },
-    { category: 'Marketing', amount: 1200.0 },
-    { category: 'Other', amount: 800.0 },
-  ],
-  monthlyPL: [
-    { month: 'Jan', revenue: 38200, expenses: 24100, profit: 14100 },
-    { month: 'Feb', revenue: 41500, expenses: 26300, profit: 15200 },
-    { month: 'Mar', revenue: 39800, expenses: 25800, profit: 14000 },
-    { month: 'Apr', revenue: 43200, expenses: 27100, profit: 16100 },
-    { month: 'May', revenue: 45100, expenses: 28000, profit: 17100 },
-    { month: 'Jun', revenue: 45231.5, expenses: 28450, profit: 16781.5 },
-  ],
-}
-
-const FALLBACK_CUSTOMERS = {
-  totalCustomers: 328,
-  newCustomersThisMonth: 47,
-  retentionRate: 72.5,
-  avgOrdersPerCustomer: 3.8,
-  topCustomers: [
-    { name: 'Grace Hospital', totalSpent: 4520.0, orders: 42 },
-    { name: 'Alice Mwamba', totalSpent: 1280.5, orders: 18 },
-    { name: 'City Clinic', totalSpent: 3200.0, orders: 35 },
-    { name: 'Bob Phiri', totalSpent: 890.0, orders: 12 },
-    { name: 'Wellness Center', totalSpent: 2100.0, orders: 28 },
-  ],
-}
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', {
@@ -188,17 +95,17 @@ export default function ReportsPage() {
         api.get('/reports/customers', { params }),
       ])
       setData({
-        sales: salesRes.status === 'fulfilled' ? salesRes.value.data : FALLBACK_SALES,
-        inventory: inventoryRes.status === 'fulfilled' ? inventoryRes.value.data : FALLBACK_INVENTORY,
-        financial: financialRes.status === 'fulfilled' ? financialRes.value.data : FALLBACK_FINANCIAL,
-        customers: customersRes.status === 'fulfilled' ? customersRes.value.data : FALLBACK_CUSTOMERS,
+        sales: salesRes.status === 'fulfilled' ? salesRes.value.data : null,
+        inventory: inventoryRes.status === 'fulfilled' ? inventoryRes.value.data : null,
+        financial: financialRes.status === 'fulfilled' ? financialRes.value.data : null,
+        customers: customersRes.status === 'fulfilled' ? customersRes.value.data : null,
       })
     } catch {
       setData({
-        sales: FALLBACK_SALES,
-        inventory: FALLBACK_INVENTORY,
-        financial: FALLBACK_FINANCIAL,
-        customers: FALLBACK_CUSTOMERS,
+        sales: null,
+        inventory: null,
+        financial: null,
+        customers: null,
       })
     } finally {
       setLoading(false)

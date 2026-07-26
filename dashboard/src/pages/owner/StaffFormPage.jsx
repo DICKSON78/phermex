@@ -22,17 +22,12 @@ const defaultPermissions = {
   settings: [],
 }
 
-const sampleStaff = {
-  name: '', phone: '', license_number: '', position: 'pharmacist', salary: '', active: true,
-  permissions: { ...defaultPermissions },
-}
-
 export default function StaffFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = Boolean(id)
 
-  const [form, setForm] = useState({ ...sampleStaff })
+  const [form, setForm] = useState({})
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
@@ -55,7 +50,7 @@ export default function StaffFormPage() {
         permissions: data.permissions || { ...defaultPermissions },
       })
     } catch {
-      setForm({ ...sampleStaff, name: 'Sample Staff', phone: '+256700000000' })
+      setForm({})
     } finally {
       setFetching(false)
     }

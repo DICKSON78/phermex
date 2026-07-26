@@ -26,19 +26,6 @@ import {
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
 
-const SAMPLE_PHARMACIES = [
-  { id: 1, name: 'HealthPlus Pharmacy', owner: 'Alice Mwamba', owner_id: 1, code: 'PHM-001245', country: 'Zambia', city: 'Lusaka', phone: '+260-977-123456', email: 'alice@healthplus.com', drugs_count: 342, revenue: 12500.0, status: 'active', subscription: 'Pro', joined: '2026-01-15' },
-  { id: 2, name: 'WellCare Drugs', owner: 'Bob Phiri', owner_id: 2, code: 'PHM-001302', country: 'Nigeria', city: 'Lagos', phone: '+234-801-234567', email: 'bob@wellcare.com', drugs_count: 215, revenue: 8900.0, status: 'active', subscription: 'Basic', joined: '2026-02-20' },
-  { id: 3, name: 'MedVita Pharmacy', owner: 'Carol Banda', owner_id: 3, code: 'PHM-001458', country: 'Kenya', city: 'Nairobi', phone: '+254-712-345678', email: 'carol@medvita.com', drugs_count: 510, revenue: 21400.0, status: 'active', subscription: 'Enterprise', joined: '2025-11-08' },
-  { id: 4, name: 'LifeLine Chemists', owner: 'David Lungu', owner_id: 4, code: 'PHM-001523', country: 'Tanzania', city: 'Dar es Salaam', phone: '+255-754-345678', email: 'david@lifeline.com', drugs_count: 0, revenue: 0, status: 'pending', subscription: 'Trial', joined: '2026-07-15' },
-  { id: 5, name: 'PharmaStar', owner: 'Eva Tembo', owner_id: 5, code: 'PHM-001601', country: 'Uganda', city: 'Kampala', phone: '+256-701-456789', email: 'eva@pharmastar.com', drugs_count: 189, revenue: 6700.0, status: 'active', subscription: 'Basic', joined: '2026-03-12' },
-  { id: 6, name: 'CarePoint Pharmacy', owner: 'Frank Zulu', owner_id: 6, code: 'PHM-001712', country: 'Zambia', city: 'Kitwe', phone: '+260-966-567890', email: 'frank@carepoint.com', drugs_count: 402, revenue: 15300.0, status: 'active', subscription: 'Pro', joined: '2025-12-01' },
-  { id: 7, name: 'Sun Pharma Hub', owner: 'Grace Moyo', owner_id: 7, code: 'PHM-001844', country: 'Zimbabwe', city: 'Harare', phone: '+263-772-678901', email: 'grace@sunpharma.com', drugs_count: 78, revenue: 3200.0, status: 'pending', subscription: 'Trial', joined: '2026-07-10' },
-  { id: 8, name: 'VitalMeds', owner: 'Henry Katende', owner_id: 8, code: 'PHM-001900', country: 'Uganda', city: 'Entebbe', phone: '+256-783-789012', email: 'henry@vitalmeds.com', drugs_count: 0, revenue: 0, status: 'suspended', subscription: 'Basic', joined: '2026-04-22' },
-  { id: 9, name: 'PrimeCare Drugs', owner: 'Irene Nali', owner_id: 9, code: 'PHM-002015', country: 'Malawi', city: 'Blantyre', phone: '+265-991-890123', email: 'irene@primecare.com', drugs_count: 260, revenue: 9400.0, status: 'active', subscription: 'Pro', joined: '2026-01-30' },
-  { id: 10, name: 'Neema Pharmacy', owner: 'John Mwangi', owner_id: 10, code: 'PHM-002108', country: 'Kenya', city: 'Mombasa', phone: '+254-722-901234', email: 'john@neema.com', drugs_count: 145, revenue: 5100.0, status: 'closed', subscription: 'Basic', joined: '2025-09-14' },
-]
-
 const COUNTRIES = ['Zambia', 'Nigeria', 'Kenya', 'Tanzania', 'Uganda', 'Zimbabwe', 'Malawi']
 
 const STATUS_STYLES = {
@@ -96,7 +83,7 @@ export default function AdminPharmaciesPage() {
         owner: typeof p.owner === 'object' ? (p.owner?.name || 'Unknown') : (p.owner || 'Unknown'),
       })))
     } catch {
-      setPharmacies(SAMPLE_PHARMACIES)
+      setPharmacies([])
     } finally {
       setLoading(false)
     }

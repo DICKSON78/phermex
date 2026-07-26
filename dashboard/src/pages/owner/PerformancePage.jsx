@@ -11,20 +11,6 @@ import {
 import toast from 'react-hot-toast'
 import { performance, employees } from '../../services/api'
 
-const FALLBACK_REVIEWS = [
-  { id: 1, employee: { id: 1, first_name: 'Sarah', last_name: 'Nakamya' }, reviewer: { name: 'Dr. Mwamba' }, review_period_start: '2026-01-01', review_period_end: '2026-06-30', rating: 4.5, goals_met: 92, strengths: 'Excellent leadership and patient care skills', areas_for_improvement: 'Could improve documentation speed', status: 'submitted' },
-  { id: 2, employee: { id: 2, first_name: 'James', last_name: 'Ochieng' }, reviewer: { name: 'Dr. Mwamba' }, review_period_start: '2026-01-01', review_period_end: '2026-06-30', rating: 3.8, goals_met: 85, strengths: 'Strong technical knowledge', areas_for_improvement: 'Needs better time management', status: 'acknowledged' },
-  { id: 3, employee: { id: 3, first_name: 'Mary', last_name: 'Ajambo' }, reviewer: { name: 'Dr. Mwamba' }, review_period_start: '2026-01-01', review_period_end: '2026-06-30', rating: 4.0, goals_met: 88, strengths: 'Detail-oriented and accurate', areas_for_improvement: 'Should take more initiative', status: 'draft' },
-]
-
-const FALLBACK_DEPT_RATINGS = [
-  { department: 'Pharmacy', rating: 4.2 },
-  { department: 'Finance', rating: 4.0 },
-  { department: 'Operations', rating: 3.5 },
-  { department: 'HR', rating: 3.8 },
-  { department: 'Management', rating: 4.5 },
-]
-
 const STATUS_COLORS = { draft: 'bg-gray-100 text-gray-600 border-gray-200', submitted: 'bg-blue-100 text-blue-700 border-blue-200', acknowledged: 'bg-green-100 text-green-700 border-green-200' }
 
 export default function PerformancePage() {
@@ -51,7 +37,7 @@ export default function PerformancePage() {
       const res = await performance.getAll(params)
       setReviews(toArray(res.data))
     } catch {
-      setReviews(FALLBACK_REVIEWS)
+      setReviews([])
     } finally { setLoading(false) }
   }
 
@@ -59,10 +45,10 @@ export default function PerformancePage() {
     try {
       const res = await performance.getSummary()
       setSummary(res.data)
-      setDeptRatings(FALLBACK_DEPT_RATINGS)
+      setDeptRatings(toArray(res.data.dept_ratings || []))
     } catch {
-      setSummary({ average_rating: 4.1, average_goals_met: 88.3, total_reviews: 3, rating_distribution: { '5': 1, '4': 1, '3': 1, '2': 0, '1': 0 } })
-      setDeptRatings(FALLBACK_DEPT_RATINGS)
+      setSummary({})
+      setDeptRatings([])
     }
   }
 
@@ -71,7 +57,7 @@ export default function PerformancePage() {
       const res = await employees.getAll({ per_page: 100 })
       setEmployeeList(toArray(res.data))
     } catch {
-      setEmployeeList(FALLBACK_REVIEWS.map(r => r.employee))
+      setEmployeeList([])
     }
   }
 

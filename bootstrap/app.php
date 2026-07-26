@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AutoScopePharmacy;
 use App\Http\Middleware\PharmacyScopeMiddleware;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'pharmacy.scope' => PharmacyScopeMiddleware::class,
+            'auto.scope' => AutoScopePharmacy::class,
         ]);
 
         $middleware->statefulApi();

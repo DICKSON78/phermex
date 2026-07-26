@@ -35,7 +35,7 @@ export default function AdminContentFormPage() {
         status: post.status || 'Draft',
       })
     } catch {
-      setForm({ ...EMPTY_FORM, title: 'Sample Post', content: 'Sample content body.' })
+      // Failed to fetch post data — leave form with empty values
     } finally {
       setFetching(false)
     }

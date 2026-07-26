@@ -22,33 +22,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const FALLBACK_DATA = {
-  stats: {
-    openTickets: 14,
-    inProgress: 6,
-    resolvedToday: 9,
-    avgResponse: '2.4h',
-  },
-  tickets: [
-    { id: 'TKT-1042', subject: 'Billing discrepancy on last invoice', pharmacy: 'HealthPlus Pharmacy', priority: 'High', status: 'open', created: '2026-07-20' },
-    { id: 'TKT-1041', subject: 'Cannot add new drug to inventory', pharmacy: 'WellCare Drugs', priority: 'Medium', status: 'in_progress', created: '2026-07-19' },
-    { id: 'TKT-1040', subject: 'App crashing on mobile devices', pharmacy: 'MedVita Pharmacy', priority: 'Critical', status: 'open', created: '2026-07-19' },
-    { id: 'TKT-1039', subject: 'Need help with delivery setup', pharmacy: 'PharmaStar', priority: 'Low', status: 'resolved', created: '2026-07-18' },
-    { id: 'TKT-1038', subject: 'Subscription upgrade not reflecting', pharmacy: 'CarePoint Pharmacy', priority: 'High', status: 'in_progress', created: '2026-07-18' },
-    { id: 'TKT-1037', subject: 'Password reset not working', pharmacy: 'LifeLine Chemists', priority: 'Medium', status: 'closed', created: '2026-07-17' },
-    { id: 'TKT-1036', subject: 'Report export feature broken', pharmacy: 'Sun Pharma Hub', priority: 'High', status: 'open', created: '2026-07-17' },
-    { id: 'TKT-1035', subject: 'Request for dark mode', pharmacy: 'PrimeCare Drugs', priority: 'Low', status: 'resolved', created: '2026-07-16' },
-    { id: 'TKT-1034', subject: 'Cannot upload pharmacy logo', pharmacy: 'VitalMeds', priority: 'Medium', status: 'closed', created: '2026-07-15' },
-    { id: 'TKT-1033', subject: 'Integration with POS system', pharmacy: 'HealthPlus Pharmacy', priority: 'Medium', status: 'open', created: '2026-07-15' },
-    { id: 'TKT-1032', subject: 'Inventory count mismatch', pharmacy: 'Neema Pharmacy', priority: 'High', status: 'in_progress', created: '2026-07-14' },
-    { id: 'TKT-1031', subject: 'User permission error on reports', pharmacy: 'GreenLeaf Pharmacy', priority: 'Medium', status: 'in_progress', created: '2026-07-14' },
-    { id: 'TKT-1030', subject: 'Delivery tracking not updating', pharmacy: 'Apollo Meds', priority: 'High', status: 'open', created: '2026-07-13' },
-    { id: 'TKT-1029', subject: 'Custom receipt template request', pharmacy: 'NovaCare Pharmacy', priority: 'Low', status: 'resolved', created: '2026-07-12' },
-    { id: 'TKT-1028', subject: 'Cannot generate tax report', pharmacy: 'ZenPharm', priority: 'Critical', status: 'in_progress', created: '2026-07-12' },
-    { id: 'TKT-1027', subject: 'Slow page load times', pharmacy: 'Unity Drugs', priority: 'Medium', status: 'open', created: '2026-07-11' },
-  ],
-}
-
 const PRIORITY_STYLES = {
   Low: 'badge badge-gray',
   Medium: 'badge badge-yellow',
@@ -96,11 +69,11 @@ export default function AdminSupportPage() {
     try {
       setLoading(true)
       const response = await api.get('/admin/support/tickets')
-      setData({ ...FALLBACK_DATA, ...(response.data || {}) })
+      setData(response.data || {})
     } catch (err) {
       console.warn('Failed to fetch support tickets:', err.message)
       setError(err.message)
-      setData(FALLBACK_DATA)
+      setData({})
     } finally {
       setLoading(false)
     }
@@ -173,7 +146,7 @@ export default function AdminSupportPage() {
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Using offline data — could not reach server.
+          Failed to load support tickets. Please try again.
         </div>
       )}
 

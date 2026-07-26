@@ -3,12 +3,6 @@ import { Plus, BadgeCheck, Clock, AlertTriangle, XCircle, Calendar, Upload, File
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE = [
-  { id: 1, license_type: 'pharmacy_license', license_number: 'PH-2024-00123', issue_date: '2025-01-15', expiry_date: '2027-01-15', issuing_authority: 'TMDA', status: 'active' },
-  { id: 2, license_type: 'drug_dealer_license', license_number: 'DDL-2024-00456', issue_date: '2024-06-01', expiry_date: '2026-08-15', issuing_authority: 'TFDA', status: 'expiring' },
-  { id: 3, license_type: 'tmda_registration', license_number: 'TMDA-REG-00789', issue_date: '2024-03-20', expiry_date: '2026-03-20', issuing_authority: 'TMDA', status: 'expired' },
-  { id: 4, license_type: 'business_license', license_number: 'BL-2025-00321', issue_date: '2025-01-01', expiry_date: '2026-12-31', issuing_authority: 'Municipal Council', status: 'active' },
-]
 
 const TYPE_LABELS = { pharmacy_license: 'Pharmacy License', drug_dealer_license: 'Drug Dealer License', tmda_registration: 'TMDA Registration', business_license: 'Business License', fire_safety: 'Fire Safety Certificate', health_certificate: 'Health Certificate' }
 const STATUS_STYLES = { active: 'bg-green-100 text-green-700 border-green-300', expiring: 'bg-yellow-100 text-yellow-700 border-yellow-300', expired: 'bg-red-100 text-red-700 border-red-300', suspended: 'bg-gray-100 text-gray-600 border-gray-300' }
@@ -25,7 +19,7 @@ export default function LicenseManagementPage() {
 
   const fetchLicenses = useCallback(async () => {
     setLoading(true)
-    try { const res = await api.get('/licenses'); setLicenses(res.data.licenses || res.data || []) } catch { setLicenses(SAMPLE) } finally { setLoading(false) }
+    try { const res = await api.get('/licenses'); setLicenses(res.data.licenses || res.data || []) } catch { setLicenses([]) } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchLicenses() }, [fetchLicenses])

@@ -33,41 +33,6 @@ import {
 } from 'recharts'
 import api from '../../services/api'
 
-const FALLBACK_DATA = {
-  stats: {
-    totalRevenue: 187450,
-    pending: 23800,
-    overdue: 8920,
-    thisMonth: 31200,
-  },
-  invoices: [
-    { id: 1, invoiceNumber: 'INV-2026-0487', pharmacy: 'HealthPlus Pharmacy', amount: 2450, status: 'Paid', dueDate: '2026-07-01', paidDate: '2026-06-28' },
-    { id: 2, invoiceNumber: 'INV-2026-0488', pharmacy: 'WellCare Drugs', amount: 1890, status: 'Paid', dueDate: '2026-07-01', paidDate: '2026-06-30' },
-    { id: 3, invoiceNumber: 'INV-2026-0489', pharmacy: 'MedVita Pharmacy', amount: 3200, status: 'Pending', dueDate: '2026-07-15', paidDate: null },
-    { id: 4, invoiceNumber: 'INV-2026-0490', pharmacy: 'LifeLine Chemists', amount: 1200, status: 'Overdue', dueDate: '2026-06-30', paidDate: null },
-    { id: 5, invoiceNumber: 'INV-2026-0491', pharmacy: 'PharmaStar', amount: 950, status: 'Pending', dueDate: '2026-07-20', paidDate: null },
-    { id: 6, invoiceNumber: 'INV-2026-0492', pharmacy: 'CarePoint Pharmacy', amount: 2780, status: 'Paid', dueDate: '2026-06-15', paidDate: '2026-06-14' },
-    { id: 7, invoiceNumber: 'INV-2026-0493', pharmacy: 'Sun Pharma Hub', amount: 680, status: 'Overdue', dueDate: '2026-06-20', paidDate: null },
-    { id: 8, invoiceNumber: 'INV-2026-0494', pharmacy: 'VitalMeds', amount: 1450, status: 'Void', dueDate: '2026-07-01', paidDate: null },
-    { id: 9, invoiceNumber: 'INV-2026-0495', pharmacy: 'PrimeCare Drugs', amount: 2100, status: 'Paid', dueDate: '2026-06-25', paidDate: '2026-06-24' },
-    { id: 10, invoiceNumber: 'INV-2026-0496', pharmacy: 'Neema Pharmacy', amount: 1670, status: 'Pending', dueDate: '2026-07-25', paidDate: null },
-    { id: 11, invoiceNumber: 'INV-2026-0497', pharmacy: 'HealthPlus Pharmacy', amount: 2450, status: 'Paid', dueDate: '2026-06-01', paidDate: '2026-05-30' },
-    { id: 12, invoiceNumber: 'INV-2026-0498', pharmacy: 'WellCare Drugs', amount: 1890, status: 'Pending', dueDate: '2026-07-30', paidDate: null },
-    { id: 13, invoiceNumber: 'INV-2026-0499', pharmacy: 'MedVita Pharmacy', amount: 4100, status: 'Paid', dueDate: '2026-05-15', paidDate: '2026-05-14' },
-    { id: 14, invoiceNumber: 'INV-2026-0500', pharmacy: 'CarePoint Pharmacy', amount: 2780, status: 'Overdue', dueDate: '2026-06-10', paidDate: null },
-    { id: 15, invoiceNumber: 'INV-2026-0501', pharmacy: 'PrimeCare Drugs', amount: 2100, status: 'Paid', dueDate: '2026-05-25', paidDate: '2026-05-23' },
-  ],
-  revenueTrend: [
-    { month: 'Jan', revenue: 12400 },
-    { month: 'Feb', revenue: 14200 },
-    { month: 'Mar', revenue: 16800 },
-    { month: 'Apr', revenue: 15300 },
-    { month: 'May', revenue: 18900 },
-    { month: 'Jun', revenue: 22100 },
-    { month: 'Jul', revenue: 31200 },
-  ],
-}
-
 const STATUS_STYLES = {
   Paid: 'badge badge-green',
   Pending: 'badge badge-yellow',
@@ -127,11 +92,11 @@ export default function AdminRevenuePage() {
     try {
       setLoading(true)
       const response = await api.get('/admin/revenue')
-      setData({ ...FALLBACK_DATA, ...(response.data || {}) })
+      setData(response.data || {})
     } catch (err) {
       console.warn('Failed to fetch revenue:', err.message)
       setError(err.message)
-      setData(FALLBACK_DATA)
+      setData({})
     } finally {
       setLoading(false)
     }
@@ -185,8 +150,8 @@ export default function AdminRevenuePage() {
   const totalPages = Math.ceil(filtered.length / pageSize)
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-  const stats = data?.stats || FALLBACK_DATA.stats
-  const revenueTrend = data?.revenueTrend || FALLBACK_DATA.revenueTrend
+  const stats = data?.stats || { totalRevenue: 0, pending: 0, overdue: 0, thisMonth: 0 }
+  const revenueTrend = data?.revenueTrend || []
 
   if (loading) {
     return (
@@ -210,7 +175,7 @@ export default function AdminRevenuePage() {
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Using offline data — could not reach server.
+          Failed to load revenue data. Please try again.
         </div>
       )}
 

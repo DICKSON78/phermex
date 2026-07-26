@@ -23,32 +23,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const FALLBACK_DATA = {
-  stats: {
-    totalPosts: 48,
-    published: 31,
-    drafts: 12,
-    announcementsActive: 5,
-  },
-  posts: [
-    { id: 1, title: 'System Maintenance — July 28', type: 'Maintenance', target: 'All', status: 'Published', date: '2026-07-15' },
-    { id: 2, title: 'New Regulatory Compliance Requirements', type: 'Announcement', target: 'Owners', status: 'Published', date: '2026-07-12' },
-    { id: 3, title: 'PharmEx v4.2 Release Notes', type: 'Update', target: 'All', status: 'Published', date: '2026-07-10' },
-    { id: 4, title: 'Urgent: Controlled Substance Reporting Deadline', type: 'Alert', target: 'Pharmacists', status: 'Published', date: '2026-07-08' },
-    { id: 5, title: 'Quarterly Platform Analytics Summary', type: 'Announcement', target: 'Admins', status: 'Draft', date: '2026-07-06' },
-    { id: 6, title: 'Scheduled Database Migration', type: 'Maintenance', target: 'All', status: 'Draft', date: '2026-07-05' },
-    { id: 7, title: 'Pricing Plan Updates for Q3', type: 'Announcement', target: 'Owners', status: 'Draft', date: '2026-07-04' },
-    { id: 8, title: 'Security Patch — SSL Certificate Renewal', type: 'Maintenance', target: 'All', status: 'Archived', date: '2026-06-28' },
-    { id: 9, title: 'Drug Recall Protocol Update', type: 'Alert', target: 'Pharmacists', status: 'Published', date: '2026-06-25' },
-    { id: 10, title: 'New POS Integration Feature', type: 'Update', target: 'Owners', status: 'Published', date: '2026-06-20' },
-    { id: 11, title: 'Staff Training Webinar — Inventory Management', type: 'Announcement', target: 'All', status: 'Published', date: '2026-06-18' },
-    { id: 12, title: 'API Rate Limiting Enforcement', type: 'Maintenance', target: 'Admins', status: 'Archived', date: '2026-06-15' },
-    { id: 13, title: 'Platform Outage — Payment Gateway', type: 'Alert', target: 'All', status: 'Archived', date: '2026-06-10' },
-    { id: 14, title: 'New Customer Loyalty Module', type: 'Update', target: 'Owners', status: 'Draft', date: '2026-07-14' },
-    { id: 15, title: 'Annual Regulatory Audit Reminder', type: 'Announcement', target: 'Owners', status: 'Draft', date: '2026-07-16' },
-  ],
-}
-
 const TYPE_STYLES = {
   Announcement: 'badge badge-blue',
   Maintenance: 'badge badge-yellow',
@@ -115,11 +89,11 @@ export default function AdminContentPage() {
     try {
       setLoading(true)
       const response = await api.get('/admin/content')
-      setData({ ...FALLBACK_DATA, ...(response.data || {}) })
+      setData(response.data || {})
     } catch (err) {
       console.warn('Failed to fetch content:', err.message)
       setError(err.message)
-      setData(FALLBACK_DATA)
+      setData({})
     } finally {
       setLoading(false)
     }
@@ -159,7 +133,7 @@ export default function AdminContentPage() {
   const totalPages = Math.ceil(filtered.length / pageSize)
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-  const stats = data?.stats || FALLBACK_DATA.stats
+  const stats = data?.stats || { totalPosts: 0, published: 0, drafts: 0, announcementsActive: 0 }
 
   if (loading) {
     return (
@@ -182,7 +156,7 @@ export default function AdminContentPage() {
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Using offline data — could not reach server.
+          Failed to load content. Please try again.
         </div>
       )}
 

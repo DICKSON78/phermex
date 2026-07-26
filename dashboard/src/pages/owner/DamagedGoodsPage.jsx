@@ -5,12 +5,6 @@ import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
-const SAMPLE = [
-  { id: 1, damage_number: 'DG-00001', drug: { name: 'Amoxicillin 500mg' }, damage_date: '2026-07-10', quantity: 20, unit_cost: 5, total_loss: 100, reason: 'expired', disposal_method: 'documented_disposal', reported_by: { name: 'Dr. Mwangi' } },
-  { id: 2, damage_number: 'DG-00002', drug: { name: 'Paracetamol 500mg' }, damage_date: '2026-07-15', quantity: 50, unit_cost: 1.5, total_loss: 75, reason: 'damaged', disposal_method: null, reported_by: { name: 'Jane Smith' } },
-  { id: 3, damage_number: 'DG-00003', drug: { name: 'Metformin 850mg' }, damage_date: '2026-07-18', quantity: 10, unit_cost: 4, total_loss: 40, reason: 'contaminated', disposal_method: 'returned_to_supplier', reported_by: { name: 'Dr. Mwangi' } },
-]
-
 const REASON_COLORS = { expired: '#ef4444', damaged: '#f59e0b', contaminated: '#8b5cf6', stolen: '#6b7280', recalled: '#3b82f6' }
 const REASON_LABELS = { expired: 'Expired', damaged: 'Damaged', contaminated: 'Contaminated', stolen: 'Stolen', recalled: 'Recalled' }
 const DISPOSAL_LABELS = { returned_to_supplier: 'Returned to Supplier', documented_disposal: 'Documented Disposal', donated: 'Donated' }
@@ -26,11 +20,11 @@ export default function DamagedGoodsPage() {
 
   const fetchRecords = useCallback(async () => {
     setLoading(true)
-    try { const res = await api.get('/damaged-goods'); setRecords(toArray(res.data)) } catch { setRecords(SAMPLE) } finally { setLoading(false) }
+    try { const res = await api.get('/damaged-goods'); setRecords(toArray(res.data)) } catch { setRecords([]) } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchRecords() }, [fetchRecords])
-  useEffect(() => { api.get('/drugs').then(res => setDrugs(toArray(res.data))).catch(() => setDrugs([{ id: 1, name: 'Amoxicillin 500mg', buying_price: 5 }])) }, [])
+  useEffect(() => { api.get('/drugs').then(res => setDrugs(toArray(res.data))).catch(() => setDrugs([])) }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

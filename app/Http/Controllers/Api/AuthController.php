@@ -238,6 +238,30 @@ class AuthController extends Controller
         }
     }
 
+    public function changePassword(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'current_password' => 'required|string',
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+            ]);
+
+            $user = $request->user();
+
+            if (!Hash::check($validated['current_password'], $user->password)) {
+                return response()->json(['message' => 'Current password is incorrect.'], 422);
+            }
+
+            $user->update(['password' => Hash::make($validated['password'])]);
+
+            return response()->json(['message' => 'Password changed successfully.']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to change password.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function updateProfile(Request $request): JsonResponse
     {
         try {

@@ -15,42 +15,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const SAMPLE_DATA = {
-  drugs: [
-    { id: 1, name: 'Amoxicillin 500mg', category: 'Antibiotics', buying_price: 5.0, selling_price: 8.5, quantity: 150, expiry_date: '2026-12-15', batch_number: 'BATCH-001' },
-    { id: 2, name: 'Paracetamol 500mg', category: 'Pain Relief', buying_price: 1.5, selling_price: 3.0, quantity: 300, expiry_date: '2027-06-20', batch_number: 'BATCH-002' },
-    { id: 3, name: 'Metformin 850mg', category: 'Diabetes', buying_price: 4.0, selling_price: 7.0, quantity: 8, expiry_date: '2026-08-10', batch_number: 'BATCH-003' },
-    { id: 4, name: 'Amlodipine 5mg', category: 'Cardiovascular', buying_price: 3.0, selling_price: 5.5, quantity: 200, expiry_date: '2027-03-01', batch_number: 'BATCH-004' },
-    { id: 5, name: 'Omeprazole 20mg', category: 'Gastrointestinal', buying_price: 3.5, selling_price: 6.0, quantity: 120, expiry_date: '2026-07-30', batch_number: 'BATCH-005' },
-  ],
-  orders: [
-    { id: 1, order_code: 'ORD-2026-0001', customer: 'Grace Hospital', total: 1250.0, payment_method: 'bank', order_status: 'dispensed', created_at: '2026-07-20' },
-    { id: 2, order_code: 'ORD-2026-0002', customer: 'Alice Mwamba', total: 45.5, payment_method: 'cash', order_status: 'dispensed', created_at: '2026-07-20' },
-    { id: 3, order_code: 'ORD-2026-0003', customer: 'Bob Phiri', total: 89.0, payment_method: 'mobile', order_status: 'pending', created_at: '2026-07-19' },
-  ],
-  customers: [
-    { id: 1, full_name: 'Grace Hospital', phone: '+255700000010', email: 'grace@hospital.com', total_orders: 42, total_spent: 4520.0 },
-    { id: 2, full_name: 'Alice Mwamba', phone: '+255700000011', email: 'alice@email.com', total_orders: 18, total_spent: 1280.5 },
-    { id: 3, full_name: 'Bob Phiri', phone: '+255700000012', email: 'bob@email.com', total_orders: 12, total_spent: 890.0 },
-    { id: 4, full_name: 'City Clinic', phone: '+255700000013', email: 'clinic@city.com', total_orders: 35, total_spent: 3200.0 },
-    { id: 5, full_name: 'Carol Banda', phone: '+255700000014', email: 'carol@email.com', total_orders: 7, total_spent: 430.0 },
-  ],
-  prescriptions: [
-    { id: 1, prescription_code: 'RX-2026-0001', doctor: 'Dr. Mtembei', patient: 'Alice Mwamba', items: 3, status: 'dispensed', created_at: '2026-07-20' },
-    { id: 2, prescription_code: 'RX-2026-0002', doctor: 'Dr. Kimaro', patient: 'Bob Phiri', items: 2, status: 'pending', created_at: '2026-07-19' },
-  ],
-  expenses: [
-    { id: 1, category: 'Rent', description: 'Monthly shop rent - July 2026', amount: 850.0, date: '2026-07-01' },
-    { id: 2, category: 'Utilities', description: 'Electricity bill', amount: 120.0, date: '2026-07-05' },
-    { id: 3, category: 'Supplies', description: 'Packaging materials', amount: 45.0, date: '2026-07-10' },
-    { id: 4, category: 'Utilities', description: 'Internet service', amount: 65.0, date: '2026-07-12' },
-  ],
-  movements: [
-    { id: 1, drug_name: 'Amoxicillin 500mg', movement_type: 'purchase', quantity: 100, unit_cost: 5.0, reference_number: 'PO-001', created_at: '2026-07-15' },
-    { id: 2, drug_name: 'Paracetamol 500mg', movement_type: 'sale', quantity: 20, unit_cost: 1.5, reference_number: 'ORD-2026-0001', created_at: '2026-07-20' },
-    { id: 3, drug_name: 'Metformin 850mg', movement_type: 'adjustment', quantity: -5, unit_cost: 4.0, reference_number: null, created_at: '2026-07-18' },
-  ],
-}
 
 function exportToCSV(data, filename) {
   if (!data || data.length === 0) return
@@ -151,15 +115,15 @@ export default function ExportPage() {
         api.get('/drug-movements'),
       ])
       setData({
-        drugs: results[0].status === 'fulfilled' ? results[0].value.data.data || results[0].value.data : SAMPLE_DATA.drugs,
-        orders: results[1].status === 'fulfilled' ? results[1].value.data.data || results[1].value.data : SAMPLE_DATA.orders,
-        customers: results[2].status === 'fulfilled' ? results[2].value.data.data || results[2].value.data : SAMPLE_DATA.customers,
-        prescriptions: results[3].status === 'fulfilled' ? results[3].value.data.data || results[3].value.data : SAMPLE_DATA.prescriptions,
-        expenses: results[4].status === 'fulfilled' ? results[4].value.data.data || results[4].value.data : SAMPLE_DATA.expenses,
-        movements: results[5].status === 'fulfilled' ? results[5].value.data.data || results[5].value.data : SAMPLE_DATA.movements,
+        drugs: results[0].status === 'fulfilled' ? results[0].value.data.data || results[0].value.data : [],
+        orders: results[1].status === 'fulfilled' ? results[1].value.data.data || results[1].value.data : [],
+        customers: results[2].status === 'fulfilled' ? results[2].value.data.data || results[2].value.data : [],
+        prescriptions: results[3].status === 'fulfilled' ? results[3].value.data.data || results[3].value.data : [],
+        expenses: results[4].status === 'fulfilled' ? results[4].value.data.data || results[4].value.data : [],
+        movements: results[5].status === 'fulfilled' ? results[5].value.data.data || results[5].value.data : [],
       })
     } catch {
-      setData(SAMPLE_DATA)
+      setData({})
     } finally {
       setLoading(false)
     }

@@ -20,19 +20,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const SAMPLE_DRUGS = [
-  { id: 1, name: 'Amoxicillin 500mg', generic_name: 'Amoxicillin', category: 'Antibiotics', buying_price: 5.00, selling_price: 8.50, quantity: 150, reorder_level: 20, expiry_date: '2026-12-15', batch_number: 'BATCH-001' },
-  { id: 2, name: 'Paracetamol 500mg', generic_name: 'Acetaminophen', category: 'Analgesics', buying_price: 1.50, selling_price: 3.00, quantity: 300, reorder_level: 50, expiry_date: '2027-06-20', batch_number: 'BATCH-002' },
-  { id: 3, name: 'Metformin 850mg', generic_name: 'Metformin Hydrochloride', category: 'Antidiabetics', buying_price: 4.00, selling_price: 7.00, quantity: 8, reorder_level: 25, expiry_date: '2026-08-10', batch_number: 'BATCH-003' },
-  { id: 4, name: 'Lisinopril 10mg', generic_name: 'Lisinopril', category: 'Antihypertensives', buying_price: 6.00, selling_price: 10.00, quantity: 0, reorder_level: 15, expiry_date: '2027-03-01', batch_number: 'BATCH-004' },
-  { id: 5, name: 'Cetirizine 10mg', generic_name: 'Cetirizine HCl', category: 'Antihistamines', buying_price: 2.00, selling_price: 4.50, quantity: 200, reorder_level: 30, expiry_date: '2026-09-25', batch_number: 'BATCH-005' },
-  { id: 6, name: 'Omeprazole 20mg', generic_name: 'Omeprazole', category: 'Antacids', buying_price: 3.50, selling_price: 6.00, quantity: 120, reorder_level: 20, expiry_date: '2026-07-30', batch_number: 'BATCH-006' },
-  { id: 7, name: 'Ibuprofen 400mg', generic_name: 'Ibuprofen', category: 'Analgesics', buying_price: 2.50, selling_price: 5.00, quantity: 180, reorder_level: 40, expiry_date: '2027-11-15', batch_number: 'BATCH-007' },
-  { id: 8, name: 'Azithromycin 250mg', generic_name: 'Azithromycin', category: 'Antibiotics', buying_price: 8.00, selling_price: 14.00, quantity: 5, reorder_level: 10, expiry_date: '2026-10-05', batch_number: 'BATCH-008' },
-  { id: 9, name: 'Salbutamol Inhaler', generic_name: 'Albuterol', category: 'Respiratory', buying_price: 12.00, selling_price: 20.00, quantity: 45, reorder_level: 10, expiry_date: '2027-08-20', batch_number: 'BATCH-009' },
-  { id: 10, name: 'Vitamin C 1000mg', generic_name: 'Ascorbic Acid', category: 'Supplements', buying_price: 3.00, selling_price: 6.50, quantity: 250, reorder_level: 30, expiry_date: '2027-04-10', batch_number: 'BATCH-010' },
-]
-
 function LoadingSkeleton() {
   return (
     <div className="p-6 space-y-6">
@@ -117,7 +104,7 @@ export default function DrugListPage() {
       const response = await api.get(`/drugs?${params.toString()}`)
       setDrugs(response.data.data || response.data)
     } catch {
-      setDrugs(SAMPLE_DRUGS)
+      setDrugs([])
     } finally {
       setLoading(false)
     }
@@ -128,8 +115,7 @@ export default function DrugListPage() {
       const response = await api.get('/drug-categories')
       setCategories(Array.isArray(response.data.data) ? response.data.data : [])
     } catch {
-      const cats = [...new Set(SAMPLE_DRUGS.map(d => d.category))]
-      setCategories(cats.map((c, i) => ({ id: i + 1, name: c })))
+      setCategories([])
     }
   }, [])
 

@@ -13,38 +13,6 @@ import {
   Smartphone,
 } from 'lucide-react'
 
-const FALLBACK_DATA = {
-  general: {
-    platform_name: 'Pharmex',
-    platform_url: 'https://pharmex.co',
-    support_email: 'support@pharmex.co',
-    support_phone: '+255 625 460 081',
-    default_currency: 'TZS',
-    secondary_currency: 'USD',
-    exchange_rate: 2500,
-    default_timezone: 'Africa/Dar_es_Salaam',
-    maintenance_mode: false,
-  },
-  security: {
-    two_factor_required: false,
-    session_timeout: 60,
-    max_login_attempts: 5,
-    lockout_duration: 15,
-    password_min_length: 8,
-    require_special_chars: true,
-    require_numbers: true,
-  },
-  payment: {
-    gateway: 'Stripe',
-    test_mode: true,
-    monthly_fee_basic: 29.00,
-    monthly_fee_pro: 79.00,
-    monthly_fee_enterprise: 199.00,
-    trial_days: 14,
-    late_fee_percent: 5,
-  },
-}
-
 const SECTIONS = [
   { id: 'general', label: 'General', icon: Globe, description: 'Platform name, branding, and contact info' },
   { id: 'security', label: 'Security', icon: Shield, description: 'Authentication, passwords, and sessions' },
@@ -75,7 +43,7 @@ function Field({ label, children }) {
 
 export default function AdminPlatformSettingsPage() {
   const [activeSection, setActiveSection] = useState('general')
-  const [settings, setSettings] = useState(FALLBACK_DATA)
+  const [settings, setSettings] = useState({})
   const [saved, setSaved] = useState(false)
 
   const updateGeneral = (key, value) => {

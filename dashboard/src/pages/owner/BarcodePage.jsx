@@ -14,19 +14,6 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
-const SAMPLE_DRUGS = [
-  { id: 1, name: 'Amoxicillin 500mg', selling_price: 8.50, barcode: 'PHX-001-AMX500' },
-  { id: 2, name: 'Paracetamol 500mg', selling_price: 3.00, barcode: 'PHX-002-PAR500' },
-  { id: 3, name: 'Metformin 850mg', selling_price: 7.00, barcode: 'PHX-003-MET850' },
-  { id: 4, name: 'Amlodipine 5mg', selling_price: 5.50, barcode: 'PHX-004-AML005' },
-  { id: 5, name: 'Omeprazole 20mg', selling_price: 6.00, barcode: 'PHX-005-OMP020' },
-  { id: 6, name: 'Cetirizine 10mg', selling_price: 4.50, barcode: 'PHX-006-CET010' },
-  { id: 7, name: 'Salbutamol Inhaler', selling_price: 20.00, barcode: 'PHX-007-SALINH' },
-  { id: 8, name: 'Ibuprofen 400mg', selling_price: 5.00, barcode: 'PHX-008-IBU400' },
-  { id: 9, name: 'Azithromycin 250mg', selling_price: 14.00, barcode: 'PHX-009-AZI250' },
-  { id: 10, name: 'Vitamin C 1000mg', selling_price: 6.50, barcode: 'PHX-010-VTC1000' },
-]
-
 const LABEL_FORMATS = [
   { value: 'name_only', label: 'Drug Name' },
   { value: 'name_price', label: 'Drug Name + Price' },
@@ -105,13 +92,7 @@ export default function BarcodePage() {
       const response = await api.get(`/drugs/search?q=${encodeURIComponent(query)}`)
       setSearchResults(response.data.data || response.data || [])
     } catch {
-      setSearchResults(
-        SAMPLE_DRUGS.filter(
-          (d) =>
-            d.name.toLowerCase().includes(query.toLowerCase()) ||
-            d.barcode.toLowerCase().includes(query.toLowerCase())
-        )
-      )
+      setSearchResults([])
     } finally {
       setSearching(false)
     }

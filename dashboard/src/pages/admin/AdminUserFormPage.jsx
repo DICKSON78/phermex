@@ -43,7 +43,7 @@ export default function AdminUserFormPage() {
         password: '',
       })
     } catch {
-      setForm({ ...INITIAL_FORM, name: 'Sample User', email: 'sample@example.com', phone: '+256700000000' })
+      // Failed to fetch user data — leave form with empty values
     } finally {
       setLoading(false)
     }

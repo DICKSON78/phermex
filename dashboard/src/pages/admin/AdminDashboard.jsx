@@ -93,6 +93,7 @@ export default function AdminDashboard() {
           revenueChart,
           revenueBreakdown,
           pharmaciesByStatus: raw.pharmacies_by_status ?? [],
+          subscriptionBreakdown: raw.subscription_breakdown ?? [],
         })
       } catch (err) {
         console.warn('Failed to fetch admin dashboard:', err.message)
@@ -413,6 +414,7 @@ export default function AdminDashboard() {
         {/* Right Column */}
         <div className="space-y-6">
           {/* Subscription Breakdown */}
+          {data.subscriptionBreakdown?.length > 0 && (
           <div className="card">
             <div className="px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -454,12 +456,12 @@ export default function AdminDashboard() {
                     <span className="text-xs text-gray-600">
                       {plan.name}: <span className="font-semibold text-gray-900">{plan.count}</span>
                     </span>
-                    
                   </div>
                 ))}
               </div>
             </div>
           </div>
+          )}
 
           {/* Recent Activity Feed */}
           <div className="card">

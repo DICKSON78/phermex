@@ -122,6 +122,23 @@ class DashboardController extends Controller
                 ->orderBy('date')
                 ->get();
 
+            $COLORS = [
+                'trial' => '#0FD452',
+                'pending' => '#f59e0b',
+                'active' => '#3b82f6',
+                'expired' => '#ef4444',
+                'suspended' => '#8b5cf6',
+            ];
+            $subscriptionBreakdown = Pharmacy::select('status', DB::raw('count(*) as count'))
+                ->groupBy('status')
+                ->get()
+                ->map(fn ($row) => [
+                    'name' => ucfirst($row->status),
+                    'count' => (int) $row->count,
+                    'color' => $COLORS[$row->status] ?? '#6b7280',
+                ])
+                ->toArray();
+
             return response()->json([
                 'total_pharmacies' => $totalPharmacies,
                 'total_users' => $totalUsers,
@@ -130,6 +147,7 @@ class DashboardController extends Controller
                 'new_registrations_this_month' => $newRegistrationsThisMonth,
                 'pharmacies_by_status' => $pharmaciesByStatus,
                 'revenue_chart' => $revenueChart,
+                'subscription_breakdown' => $subscriptionBreakdown,
             ]);
         } catch (\Exception $e) {
             return response()->json([

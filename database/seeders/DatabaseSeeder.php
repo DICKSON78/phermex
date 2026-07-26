@@ -34,21 +34,20 @@ class DatabaseSeeder extends Seeder
         $this->seedPrescriptions();
         $this->seedExpenses();
         $this->seedStockMovements();
-        $this->seedNearbyPharmacies();
-
         $this->call([
+            SubscriptionPlanSeeder::class,
+            SubscriptionsSeeder::class,
+            NearbyPharmaciesSeeder::class,
             HRSeeder::class,
             SupplyChainSeeder::class,
             AccountingSeeder::class,
             RegulatorySeeder::class,
+            DeliveriesSeeder::class,
+            AuditLogsSeeder::class,
+            NotificationsSeeder::class,
             ChatSeeder::class,
             AdminModuleSeeder::class,
         ]);
-    }
-
-    private function seedNearbyPharmacies(): void
-    {
-        $this->call(NearbyPharmaciesSeeder::class);
     }
 
     private function seedUsers(): void

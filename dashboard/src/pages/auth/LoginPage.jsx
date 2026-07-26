@@ -84,7 +84,7 @@ export default function LoginPage() {
                 value={credentials}
                 onChange={(e) => setCredentials(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
-                placeholder="admin@pharmex.com"
+                placeholder="example@gmail.com"
                 required
               />
             </div>

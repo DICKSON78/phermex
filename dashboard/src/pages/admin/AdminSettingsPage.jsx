@@ -266,7 +266,7 @@ export default function AdminSettingsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {settings.plans.map((plan) => (
+                {settings.plans.length > 0 ? settings.plans.map((plan) => (
                   <tr key={plan.id} className="transition-colors hover:bg-[#0FD452]/5">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -284,7 +284,14 @@ export default function AdminSettingsPage() {
                     <td className="px-6 py-4 text-sm text-gray-600">{plan.duration}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{plan.features}</td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-10 text-center text-gray-400">
+                      <CreditCard className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                      <p className="text-sm font-medium">No subscription plans</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

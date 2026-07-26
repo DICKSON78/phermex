@@ -294,7 +294,7 @@ function SalesReport({ data }) {
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-[#000F14] mb-4">Top Selling Drugs</h3>
           <div className="space-y-4">
-            {data.topSellingDrugs.map((drug, idx) => (
+            {data.topSellingDrugs.length > 0 ? data.topSellingDrugs.map((drug, idx) => (
               <div key={idx}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-[#000F14]">{drug.name}</span>
@@ -308,7 +308,7 @@ function SalesReport({ data }) {
                 </div>
                 <p className="text-xs text-gray-400 mt-0.5">{formatCurrency(drug.revenue)} revenue</p>
               </div>
-            ))}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
           </div>
         </div>
 
@@ -316,7 +316,7 @@ function SalesReport({ data }) {
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-[#000F14] mb-4">Sales by Payment Method</h3>
           <div className="space-y-3">
-            {data.paymentMethods.map((pm, idx) => (
+            {data.paymentMethods.length > 0 ? data.paymentMethods.map((pm, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
@@ -327,7 +327,7 @@ function SalesReport({ data }) {
                 </div>
                 <span className="text-sm font-semibold text-[#000F14]">{formatCurrency(pm.amount)}</span>
               </div>
-            ))}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
           </div>
         </div>
       </div>
@@ -382,7 +382,7 @@ function InventoryReport({ data }) {
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-[#000F14] mb-4">Low Stock Items</h3>
           <div className="space-y-3">
-            {data.lowStockItems.map((item, idx) => (
+            {data.lowStockItems.length > 0 ? data.lowStockItems.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-red-50 rounded-xl">
                 <div>
                   <p className="text-sm font-medium text-[#000F14]">{item.name}</p>
@@ -394,7 +394,7 @@ function InventoryReport({ data }) {
                   {item.currentStock === 0 ? 'Out of stock' : `${item.currentStock} left`}
                 </span>
               </div>
-            ))}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
           </div>
         </div>
 
@@ -402,7 +402,7 @@ function InventoryReport({ data }) {
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-[#000F14] mb-4">Expiring Soon</h3>
           <div className="space-y-3">
-            {data.expiringSoon.map((item, idx) => (
+            {data.expiringSoon.length > 0 ? data.expiringSoon.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-orange-50 rounded-xl">
                 <div>
                   <p className="text-sm font-medium text-[#000F14]">{item.name}</p>
@@ -412,7 +412,7 @@ function InventoryReport({ data }) {
                   Expires {new Date(item.expiryDate).toLocaleDateString()}
                 </span>
               </div>
-            ))}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
           </div>
         </div>
       </div>
@@ -512,7 +512,7 @@ function FinancialReport({ data }) {
             </ResponsiveContainer>
           </div>
           <div className="mt-2 space-y-2">
-            {data.expenseBreakdown.map((exp, idx) => (
+            {data.expenseBreakdown.length > 0 ? data.expenseBreakdown.map((exp, idx) => (
               <div key={idx} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
@@ -520,7 +520,7 @@ function FinancialReport({ data }) {
                 </div>
                 <span className="font-medium text-[#000F14]">{formatCurrency(exp.amount)}</span>
               </div>
-            ))}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
           </div>
         </div>
       </div>
@@ -566,7 +566,7 @@ function FinancialReport({ data }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {data.monthlyPL.map((row, idx) => {
+                {data.monthlyPL.length > 0 ? data.monthlyPL.map((row, idx) => {
                   const margin = ((row.profit / row.revenue) * 100).toFixed(1)
                   return (
                     <tr key={idx} className="transition-colors hover:bg-[#0FD452]/5">
@@ -584,7 +584,7 @@ function FinancialReport({ data }) {
                       <td className="px-6 py-4 text-right text-sm text-gray-600">{margin}%</td>
                     </tr>
                   )
-                })}
+                }) : <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400"><p className="text-sm font-medium">No records found</p></td></tr>}
               </tbody>
             </table>
           </div>
@@ -659,7 +659,7 @@ function CustomersReport({ data }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {data.topCustomers.map((customer, idx) => (
+                {data.topCustomers.length > 0 ? data.topCustomers.map((customer, idx) => (
                   <tr key={idx} className="transition-colors hover:bg-[#0FD452]/5">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -685,7 +685,7 @@ function CustomersReport({ data }) {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )) : <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400"><p className="text-sm font-medium">No records found</p></td></tr>}
               </tbody>
             </table>
           </div>

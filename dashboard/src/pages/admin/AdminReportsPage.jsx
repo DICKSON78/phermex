@@ -250,8 +250,8 @@ export default function AdminReportsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {data.ordersByStatus.map((item) => {
-                const pct = ((item.count / data.stats.totalOrders) * 100).toFixed(1)
+              {data.ordersByStatus.length > 0 ? data.ordersByStatus.map((item) => {
+                const pct = data.stats.totalOrders > 0 ? ((item.count / data.stats.totalOrders) * 100).toFixed(1) : 0
                 return (
                   <tr key={item.status} className="transition-colors hover:bg-[#0FD452]/5">
                     <td className="px-6 py-4">
@@ -274,7 +274,14 @@ export default function AdminReportsPage() {
                     </td>
                   </tr>
                 )
-              })}
+              }) : (
+                <tr>
+                  <td colSpan={4} className="px-6 py-10 text-center text-gray-400">
+                    <Activity className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                    <p className="text-sm font-medium">No order data</p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

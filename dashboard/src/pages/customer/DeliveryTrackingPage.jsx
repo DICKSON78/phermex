@@ -292,7 +292,7 @@ export default function DeliveryTrackingPage() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 pb-6">
-              {order.items?.map((item, idx) => (
+              {order.items?.length > 0 ? order.items.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center shrink-0">
@@ -307,7 +307,9 @@ export default function DeliveryTrackingPage() {
                     {(Number(item.unit_price || item.price || 0) * item.quantity).toLocaleString('en-TZ')} <span className="text-[10px] text-gray-400">TZS</span>
                   </span>
                 </div>
-              ))}
+              )) : (
+                <p className="text-sm text-gray-400 py-6 text-center">No items</p>
+              )}
               <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
                 <span className="text-base font-bold text-gray-900">Total</span>
                 <span className="text-base font-bold text-[#0FD452]">{Number(order.total || 0).toLocaleString('en-TZ')} TZS</span>

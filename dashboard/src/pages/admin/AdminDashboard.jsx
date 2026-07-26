@@ -312,7 +312,7 @@ export default function AdminDashboard() {
             </h3>
           </div>
           <div className="p-6 space-y-4">
-            {data.regionalDistribution?.map((region) => (
+            {data.regionalDistribution?.length > 0 ? data.regionalDistribution.map((region) => (
               <div key={region.region}>
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-sm font-medium text-gray-700">{region.region}</span>
@@ -325,7 +325,12 @@ export default function AdminDashboard() {
                   />
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8 text-gray-400">
+                <Globe className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                <p className="text-sm font-medium">No regional data</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -384,7 +389,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {data.recentPharmacies?.map((pharmacy) => {
+                  {data.recentPharmacies?.length > 0 ? data.recentPharmacies.map((pharmacy) => {
                     const statusCfg = STATUS_MAP[pharmacy.status] || STATUS_MAP.pending
                     return (
                       <tr key={pharmacy.id} className="transition-colors hover:bg-[#0FD452]/5">
@@ -404,7 +409,14 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4 text-sm text-gray-500">{pharmacy.date}</td>
                       </tr>
                     )
-                  })}
+                  }                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
+                        <Building2 className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">No recent registrations</p>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -472,7 +484,7 @@ export default function AdminDashboard() {
               </h3>
             </div>
             <div className="p-6 space-y-3 max-h-80 overflow-y-auto">
-              {data.recentActivity?.map((item) => {
+              {data.recentActivity?.length > 0 ? data.recentActivity.map((item) => {
                 const Icon = item.icon
                 return (
                   <div key={item.id} className="flex items-start gap-3">
@@ -486,7 +498,12 @@ export default function AdminDashboard() {
                     <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">{item.time}</span>
                   </div>
                 )
-              })}
+              }) : (
+                <div className="text-center py-8 text-gray-400">
+                  <Activity className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                  <p className="text-sm font-medium">No recent activity</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -568,7 +585,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {data.topPharmaciesByRevenue?.map((pharmacy) => {
+                  {data.topPharmaciesByRevenue?.length > 0 ? data.topPharmaciesByRevenue.map((pharmacy) => {
                     const statusCfg = STATUS_MAP[pharmacy.status] || STATUS_MAP.pending
                     return (
                       <tr key={pharmacy.rank} className="transition-colors hover:bg-[#0FD452]/5">
@@ -596,7 +613,14 @@ export default function AdminDashboard() {
                         </td>
                       </tr>
                     )
-                  })}
+                  }) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-10 text-center text-gray-400">
+                        <Trophy className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">No revenue data</p>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

@@ -377,7 +377,7 @@ function OwnerDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {data.recentOrders?.map((order) => {
+                  {data.recentOrders?.length > 0 ? data.recentOrders.map((order) => {
                     const statusCfg = STATUS_MAP[order.status] || STATUS_MAP.pending
                     return (
                       <tr key={order.id} className="transition-colors hover:bg-[#0FD452]/5">
@@ -402,7 +402,14 @@ function OwnerDashboard() {
                         </td>
                       </tr>
                     )
-                  })}
+                  }                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
+                        <Receipt className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">No recent orders</p>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -420,7 +427,7 @@ function OwnerDashboard() {
               </h3>
             </div>
             <div className="p-6 space-y-4">
-              {data.topSellingDrugs?.map((drug, idx) => (
+              {data.topSellingDrugs?.length > 0 ? data.topSellingDrugs.map((drug, idx) => (
                 <div key={idx}>
                   <div className="mb-1.5 flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-900">{drug.name}</span>
@@ -438,7 +445,12 @@ function OwnerDashboard() {
                     {formatCurrency(drug.revenue)} revenue
                   </p>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-8 text-gray-400">
+                  <PillIcon className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                  <p className="text-sm font-medium">No sales data yet</p>
+                </div>
+              )}
             </div>
           </div>
 

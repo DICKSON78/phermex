@@ -83,7 +83,7 @@ export default function LicenseManagementPage() {
         })}
       </div>
 
-      {loading ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{[...Array(4)].map((_, i) => <div key={i} className="h-40 bg-gray-200 rounded-xl animate-pulse" />)}</div> : (
+      {loading ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{[...Array(4)].map((_, i) => <div key={i} className="h-40 bg-gray-200 rounded-xl animate-pulse" />)}</div> : licenses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {licenses.map(license => {
             const status = getStatus(license)
@@ -115,6 +115,11 @@ export default function LicenseManagementPage() {
               </div>
             )
           })}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-gray-400">
+          <Shield className="w-12 h-12 mx-auto mb-3 opacity-40" />
+          <p className="text-sm font-medium">No licenses recorded</p>
         </div>
       )}
 

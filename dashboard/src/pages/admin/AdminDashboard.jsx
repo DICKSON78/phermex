@@ -90,6 +90,7 @@ export default function AdminDashboard() {
           activeSubscriptions: raw.active_subscriptions ?? 0,
           newPharmaciesThisMonth: raw.new_registrations_this_month ?? 0,
           platformRevenue: raw.monthly_revenue ?? 0,
+          monthlyGrowth: raw.monthly_growth ?? 0,
           revenueChart,
           revenueBreakdown,
           pharmaciesByStatus: raw.pharmacies_by_status ?? [],

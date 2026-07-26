@@ -102,9 +102,20 @@ class DashboardController extends Controller
             $activeSubscriptions = Subscription::where('status', 'active')->count();
 
             $monthStart = now()->startOfMonth();
+            $lastMonthStart = now()->subMonth()->startOfMonth();
+            $lastMonthEnd = now()->subMonth()->endOfMonth();
+
             $monthlyRevenue = Subscription::where('status', 'active')
                 ->where('created_at', '>=', $monthStart)
                 ->sum('amount');
+
+            $lastMonthRevenue = Subscription::where('status', 'active')
+                ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+                ->sum('amount');
+
+            $monthlyGrowth = $lastMonthRevenue > 0
+                ? round((($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1)
+                : ($monthlyRevenue > 0 ? 100.0 : 0.0);
 
             $newRegistrationsThisMonth = User::where('created_at', '>=', $monthStart)->count();
 
@@ -144,6 +155,7 @@ class DashboardController extends Controller
                 'total_users' => $totalUsers,
                 'active_subscriptions' => $activeSubscriptions,
                 'monthly_revenue' => (float) $monthlyRevenue,
+                'monthly_growth' => $monthlyGrowth,
                 'new_registrations_this_month' => $newRegistrationsThisMonth,
                 'pharmacies_by_status' => $pharmaciesByStatus,
                 'revenue_chart' => $revenueChart,

@@ -77,22 +77,22 @@ export default function SessionTimeout() {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
       <div className="absolute inset-0 bg-black/50" onClick={handleStay} />
       <div className="relative z-10 w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-[#000F14] to-[#0a1f28] px-6 py-5 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
-            <Clock className="h-5 w-5 text-[#0FD452]" />
+        <div className="bg-gradient-to-r from-[#0FD452] to-[#0cb843] px-6 py-5 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+            <Clock className="h-5 w-5 text-[#000F14]" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">Session Timeout</h3>
-            <p className="text-sm text-gray-300">You've been inactive</p>
+            <h3 className="text-lg font-semibold text-[#000F14]">Session Timeout</h3>
+            <p className="text-sm text-[#000F14]/70">You've been inactive</p>
           </div>
         </div>
 
         <div className="p-6">
-          <div className="mb-6 rounded-xl bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
-            <Clock className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+          <div className="mb-6 rounded-xl bg-[#0FD452]/10 border border-[#0FD452]/30 p-4 flex items-start gap-3">
+            <Clock className="h-5 w-5 text-[#0FD452] mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-amber-800">Auto-logout in {countdown}s</p>
-              <p className="text-xs text-amber-600 mt-1">Your session will expire automatically if no action is taken.</p>
+              <p className="text-sm font-medium text-[#000F14]">Auto-logout in {countdown}s</p>
+              <p className="text-xs text-gray-600 mt-1">Your session will expire automatically if no action is taken.</p>
             </div>
           </div>
 

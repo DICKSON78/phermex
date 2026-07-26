@@ -10,6 +10,8 @@ class GoodsReceived extends Model
 {
     use HasFactory;
 
+    protected $table = 'goods_received';
+
     protected $fillable = [
         'pharmacy_id',
         'purchase_order_id',

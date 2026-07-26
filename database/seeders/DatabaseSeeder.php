@@ -15,6 +15,7 @@ use App\Models\Prescription;
 use App\Models\PrescriptionItem;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -25,6 +26,7 @@ class DatabaseSeeder extends Seeder
         $this->seedUsers();
         $this->seedPharmacy();
         $this->seedPharmacist();
+        $this->seedPharmacyUser();
         $this->seedCategories();
         $this->seedDrugs();
         $this->seedCustomers();
@@ -33,6 +35,14 @@ class DatabaseSeeder extends Seeder
         $this->seedExpenses();
         $this->seedStockMovements();
         $this->seedNearbyPharmacies();
+
+        $this->call([
+            HRSeeder::class,
+            SupplyChainSeeder::class,
+            AccountingSeeder::class,
+            RegulatorySeeder::class,
+            ChatSeeder::class,
+        ]);
     }
 
     private function seedNearbyPharmacies(): void
@@ -116,6 +126,15 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
             'is_published' => true,
             'subscription_expires_at' => now()->addYear(),
+        ]);
+    }
+
+    private function seedPharmacyUser(): void
+    {
+        DB::table('pharmacy_user')->insert([
+            ['pharmacy_id' => 1, 'user_id' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['pharmacy_id' => 1, 'user_id' => 3, 'created_at' => now(), 'updated_at' => now()],
+            ['pharmacy_id' => 1, 'user_id' => 4, 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 

@@ -47,6 +47,7 @@ class DatabaseSeeder extends Seeder
             NotificationsSeeder::class,
             ChatSeeder::class,
             AdminModuleSeeder::class,
+            DemoRequestsSeeder::class,
         ]);
     }
 
@@ -403,6 +404,44 @@ class DatabaseSeeder extends Seeder
             'is_verified' => true,
             'password' => Hash::make('password'),
         ]);
+
+        $extraPharmacists = [
+            ['name' => 'Dr. Amina Hassan', 'email' => 'amina.h@pharmex.com', 'phone' => '+255700000064', 'user_code' => 'PHX-PHR010'],
+            ['name' => 'Dr. Juma Mwamba', 'email' => 'juma.mw@pharmex.com', 'phone' => '+255700000065', 'user_code' => 'PHX-PHR011'],
+            ['name' => 'Dr. Zainab Kilonzo', 'email' => 'zainab.k@pharmex.com', 'phone' => '+255700000066', 'user_code' => 'PHX-PHR012'],
+            ['name' => 'Dr. Patrick Mwangi', 'email' => 'patrick.mw@pharmex.com', 'phone' => '+255700000067', 'user_code' => 'PHX-PHR013'],
+            ['name' => 'Dr. Neema Kimaro', 'email' => 'neema.k@pharmex.com', 'phone' => '+255700000068', 'user_code' => 'PHX-PHR014'],
+            ['name' => 'Dr. Emmanuel Mushi', 'email' => 'emmanuel.mu@pharmex.com', 'phone' => '+255700000069', 'user_code' => 'PHX-PHR015'],
+            ['name' => 'Dr. Theresia Mkwizu', 'email' => 'theresia.m@pharmex.com', 'phone' => '+255700000070', 'user_code' => 'PHX-PHR016'],
+            ['name' => 'Dr. George Nyerere', 'email' => 'george.ny@pharmex.com', 'phone' => '+255700000071', 'user_code' => 'PHX-PHR017'],
+            ['name' => 'Dr. Asha Bakari', 'email' => 'asha.b@pharmex.com', 'phone' => '+255700000072', 'user_code' => 'PHX-PHR018'],
+            ['name' => 'Dr. Salum Mweta', 'email' => 'salum.m@pharmex.com', 'phone' => '+255700000073', 'user_code' => 'PHX-PHR019'],
+            ['name' => 'Dr. Rehema Omari', 'email' => 'rehema.om@pharmex.com', 'phone' => '+255700000074', 'user_code' => 'PHX-PHR020'],
+            ['name' => 'Dr. Isack Mwase', 'email' => 'isack.mw@pharmex.com', 'phone' => '+255700000075', 'user_code' => 'PHX-PHR021'],
+            ['name' => 'Dr. Fatima Nyerere', 'email' => 'fatima.ny@pharmex.com', 'phone' => '+255700000076', 'user_code' => 'PHX-PHR022'],
+            ['name' => 'Dr. Charles Mwamba', 'email' => 'charles.mw@pharmex.com', 'phone' => '+255700000077', 'user_code' => 'PHX-PHR023'],
+            ['name' => 'Dr. Grace Kimaro', 'email' => 'grace.kim2@pharmex.com', 'phone' => '+255700000078', 'user_code' => 'PHX-PHR024'],
+            ['name' => 'Dr. Joseph Mtembei', 'email' => 'joseph.m@pharmex.com', 'phone' => '+255700000079', 'user_code' => 'PHX-PHR025'],
+            ['name' => 'Dr. Agnes Shirima', 'email' => 'agnes.s@pharmex.com', 'phone' => '+255700000080', 'user_code' => 'PHX-PHR026'],
+            ['name' => 'Dr. Stephen Mushi', 'email' => 'stephen.mu@pharmex.com', 'phone' => '+255700000081', 'user_code' => 'PHX-PHR027'],
+            ['name' => 'Dr. Halima Juma', 'email' => 'halima.j@pharmex.com', 'phone' => '+255700000082', 'user_code' => 'PHX-PHR028'],
+            ['name' => 'Dr. Vincent Nkosi', 'email' => 'vincent.n@pharmex.com', 'phone' => '+255700000083', 'user_code' => 'PHX-PHR029'],
+            ['name' => 'Dr. Sarah Mkwata', 'email' => 'sarah.mk@pharmex.com', 'phone' => '+255700000084', 'user_code' => 'PHX-PHR030'],
+            ['name' => 'Dr. Daniel Kimbikimbi', 'email' => 'daniel.k@pharmex.com', 'phone' => '+255700000085', 'user_code' => 'PHX-PHR031'],
+        ];
+
+        foreach ($extraPharmacists as $p) {
+            User::create([
+                'name' => $p['name'],
+                'email' => $p['email'],
+                'phone' => $p['phone'],
+                'role' => 'pharmacist',
+                'user_code' => $p['user_code'],
+                'is_active' => true,
+                'is_verified' => true,
+                'password' => Hash::make('password'),
+            ]);
+        }
     }
 
     private function seedPharmacy(): void
@@ -537,35 +576,61 @@ class DatabaseSeeder extends Seeder
             'salary' => 800.00,
             'is_active' => true,
         ]);
+
+        $extraPharmacists = [
+            ['user_id' => 33, 'name' => 'Dr. Amina Hassan', 'license' => 'TZ-PH-LIC-2026-0207'],
+            ['user_id' => 34, 'name' => 'Dr. Juma Mwamba', 'license' => 'TZ-PH-LIC-2026-0208'],
+            ['user_id' => 35, 'name' => 'Dr. Zainab Kilonzo', 'license' => 'TZ-PH-LIC-2026-0209'],
+            ['user_id' => 36, 'name' => 'Dr. Patrick Mwangi', 'license' => 'TZ-PH-LIC-2026-0210'],
+            ['user_id' => 37, 'name' => 'Dr. Neema Kimaro', 'license' => 'TZ-PH-LIC-2026-0211'],
+            ['user_id' => 38, 'name' => 'Dr. Emmanuel Mushi', 'license' => 'TZ-PH-LIC-2026-0212'],
+            ['user_id' => 39, 'name' => 'Dr. Theresia Mkwizu', 'license' => 'TZ-PH-LIC-2026-0213'],
+            ['user_id' => 40, 'name' => 'Dr. George Nyerere', 'license' => 'TZ-PH-LIC-2026-0214'],
+            ['user_id' => 41, 'name' => 'Dr. Asha Bakari', 'license' => 'TZ-PH-LIC-2026-0215'],
+            ['user_id' => 42, 'name' => 'Dr. Salum Mweta', 'license' => 'TZ-PH-LIC-2026-0216'],
+            ['user_id' => 43, 'name' => 'Dr. Rehema Omari', 'license' => 'TZ-PH-LIC-2026-0217'],
+            ['user_id' => 44, 'name' => 'Dr. Isack Mwase', 'license' => 'TZ-PH-LIC-2026-0218'],
+            ['user_id' => 45, 'name' => 'Dr. Fatima Nyerere', 'license' => 'TZ-PH-LIC-2026-0219'],
+            ['user_id' => 46, 'name' => 'Dr. Charles Mwamba', 'license' => 'TZ-PH-LIC-2026-0220'],
+            ['user_id' => 47, 'name' => 'Dr. Grace Kimaro', 'license' => 'TZ-PH-LIC-2026-0221'],
+            ['user_id' => 48, 'name' => 'Dr. Joseph Mtembei', 'license' => 'TZ-PH-LIC-2026-0222'],
+            ['user_id' => 49, 'name' => 'Dr. Agnes Shirima', 'license' => 'TZ-PH-LIC-2026-0223'],
+            ['user_id' => 50, 'name' => 'Dr. Stephen Mushi', 'license' => 'TZ-PH-LIC-2026-0224'],
+            ['user_id' => 51, 'name' => 'Dr. Halima Juma', 'license' => 'TZ-PH-LIC-2026-0225'],
+            ['user_id' => 52, 'name' => 'Dr. Vincent Nkosi', 'license' => 'TZ-PH-LIC-2026-0226'],
+            ['user_id' => 53, 'name' => 'Dr. Sarah Mkwata', 'license' => 'TZ-PH-LIC-2026-0227'],
+            ['user_id' => 54, 'name' => 'Dr. Daniel Kimbikimbi', 'license' => 'TZ-PH-LIC-2026-0228'],
+        ];
+
+        foreach ($extraPharmacists as $p) {
+            Pharmacist::create([
+                'user_id' => $p['user_id'],
+                'pharmacy_id' => 1,
+                'name' => $p['name'],
+                'phone' => '+2557000' . str_pad($p['user_id'], 7, '0', STR_PAD_LEFT),
+                'license_number' => $p['license'],
+                'position' => 'pharmacist',
+                'salary' => rand(750, 1200),
+                'is_active' => true,
+            ]);
+        }
     }
 
     private function seedPharmacyUser(): void
     {
-        DB::table('pharmacy_user')->insert([
-            ['pharmacy_id' => 1, 'user_id' => 2, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 3, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 4, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 5, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 6, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 7, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 8, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 9, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 10, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 11, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 12, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 13, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 14, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 15, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 16, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 17, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 18, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 19, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 20, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 29, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 30, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 31, 'created_at' => now(), 'updated_at' => now()],
-            ['pharmacy_id' => 1, 'user_id' => 32, 'created_at' => now(), 'updated_at' => now()],
-        ]);
+        $links = [];
+        for ($userId = 2; $userId <= 20; $userId++) {
+            $links[] = ['pharmacy_id' => 1, 'user_id' => $userId, 'created_at' => now(), 'updated_at' => now()];
+        }
+        $links[] = ['pharmacy_id' => 1, 'user_id' => 29, 'created_at' => now(), 'updated_at' => now()];
+        $links[] = ['pharmacy_id' => 1, 'user_id' => 30, 'created_at' => now(), 'updated_at' => now()];
+        $links[] = ['pharmacy_id' => 1, 'user_id' => 31, 'created_at' => now(), 'updated_at' => now()];
+        $links[] = ['pharmacy_id' => 1, 'user_id' => 32, 'created_at' => now(), 'updated_at' => now()];
+        for ($userId = 33; $userId <= 45; $userId++) {
+            $links[] = ['pharmacy_id' => 1, 'user_id' => $userId, 'created_at' => now(), 'updated_at' => now()];
+        }
+
+        DB::table('pharmacy_user')->insert($links);
     }
 
     private function seedCategories(): void
@@ -579,6 +644,28 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Respiratory', 'description' => 'Medications for respiratory conditions'],
             ['name' => 'Dermatology', 'description' => 'Skin care and dermatological treatments'],
             ['name' => 'Gastrointestinal', 'description' => 'Digestive system medications'],
+            ['name' => 'Antimalarials', 'description' => 'Medications for malaria prevention and treatment'],
+            ['name' => 'Antiretrovirals', 'description' => 'HIV/AIDS treatment medications'],
+            ['name' => 'Antifungals', 'description' => 'Medications for fungal infections'],
+            ['name' => 'Antiparasitics', 'description' => 'Medications for parasitic infections'],
+            ['name' => 'Hormones', 'description' => 'Hormonal and endocrine medications'],
+            ['name' => 'Neurological', 'description' => 'Medications for neurological conditions'],
+            ['name' => 'Ophthalmic', 'description' => 'Eye care medications and drops'],
+            ['name' => 'ENT', 'description' => 'Ear, nose, and throat medications'],
+            ['name' => 'Urological', 'description' => 'Urinary system medications'],
+            ['name' => 'Oncology', 'description' => 'Cancer treatment medications'],
+            ['name' => 'Pediatric', 'description' => 'Medications for children'],
+            ['name' => 'Maternity', 'description' => 'Maternal and reproductive health medications'],
+            ['name' => 'Surgical Supplies', 'description' => 'Surgical equipment and consumables'],
+            ['name' => 'Herbal Medicine', 'description' => 'Traditional and herbal remedies'],
+            ['name' => 'Contraceptives', 'description' => 'Family planning medications and devices'],
+            ['name' => 'Mental Health', 'description' => 'Psychiatric and mental health medications'],
+            ['name' => 'Dental Care', 'description' => 'Oral health and dental care products'],
+            ['name' => 'First Aid', 'description' => 'First aid supplies and wound care'],
+            ['name' => 'Skin Care', 'description' => 'Cosmetic and therapeutic skin care products'],
+            ['name' => 'Nutrition', 'description' => 'Nutritional supplements and meal replacements'],
+            ['name' => 'Sports Medicine', 'description' => 'Sports injury and performance medications'],
+            ['name' => 'Immunology', 'description' => 'Vaccines and immune system medications'],
         ];
 
         foreach ($categories as $category) {
@@ -947,351 +1034,49 @@ class DatabaseSeeder extends Seeder
 
     private function seedCustomers(): void
     {
-        $customers = [
-            [
-                'full_name' => 'Grace Hospital',
-                'customer_code' => 'CUS-000001',
-                'phone' => '+255700000010',
-                'email' => 'grace@hospital.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Sokoine Drive',
-                'medical_conditions' => 'Regular bulk orders for hospital pharmacy',
-            ],
-            [
-                'full_name' => 'Alice Mwamba',
-                'customer_code' => 'CUS-000002',
-                'phone' => '+255700000011',
-                'email' => 'alice@email.com',
-                'date_of_birth' => '1990-03-15',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Mtaa wa Amani',
-                'allergies' => 'Penicillin',
-            ],
-            [
-                'full_name' => 'Bob Phiri',
-                'customer_code' => 'CUS-000003',
-                'phone' => '+255700000012',
-                'email' => 'bob@email.com',
-                'date_of_birth' => '1985-07-22',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Bagamoyo Road',
-                'medical_conditions' => 'Hypertension, Type 2 Diabetes',
-            ],
-            [
-                'full_name' => 'City Clinic',
-                'customer_code' => 'CUS-000004',
-                'phone' => '+255700000013',
-                'email' => 'clinic@city.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Ohio Street',
-                'medical_conditions' => 'Regular medical supply orders',
-            ],
-            [
-                'full_name' => 'Carol Banda',
-                'customer_code' => 'CUS-000005',
-                'phone' => '+255700000014',
-                'email' => 'carol@email.com',
-                'date_of_birth' => '1992-11-08',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Mikocheni',
-            ],
-            [
-                'full_name' => 'Mwananyamala Health Centre',
-                'customer_code' => 'CUS-000006',
-                'phone' => '+255700000015',
-                'email' => 'info@mwananyamalahealth.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Mwananyamala Road',
-                'medical_conditions' => 'Regular medical supply orders',
-            ],
-            [
-                'full_name' => 'Peter Mtembei',
-                'customer_code' => 'CUS-000007',
-                'phone' => '+255700000016',
-                'email' => 'peter.mt@email.com',
-                'date_of_birth' => '1978-05-14',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Sinza',
-                'medical_conditions' => 'Asthma',
-            ],
-            [
-                'full_name' => 'Sarah Kimaro',
-                'customer_code' => 'CUS-000008',
-                'phone' => '+255700000017',
-                'email' => 'sarah.k@email.com',
-                'date_of_birth' => '1988-09-20',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Masaki',
-                'allergies' => 'Sulfonamides',
-            ],
-            [
-                'full_name' => 'Kigamboni Pharmacy',
-                'customer_code' => 'CUS-000009',
-                'phone' => '+255700000018',
-                'email' => 'orders@kigambonipharmacy.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Kigamboni Road',
-                'medical_conditions' => 'Wholesale drug orders',
-            ],
-            [
-                'full_name' => 'Emmanuel Mwangi',
-                'customer_code' => 'CUS-000010',
-                'phone' => '+255700000019',
-                'email' => 'emmanuel.mw@email.com',
-                'date_of_birth' => '1982-01-30',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Oysterbay',
-                'medical_conditions' => 'High cholesterol',
-            ],
-            [
-                'full_name' => 'Flora Nkosi',
-                'customer_code' => 'CUS-000011',
-                'phone' => '+255700000021',
-                'email' => 'flora.nk@email.com',
-                'date_of_birth' => '1995-04-12',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Seacliff',
-            ],
-            [
-                'full_name' => 'Sinza Medical Centre',
-                'customer_code' => 'CUS-000012',
-                'phone' => '+255700000022',
-                'email' => 'clinic@sinza.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Sinza Palestina',
-                'medical_conditions' => 'Regular medical supply orders',
-            ],
-            [
-                'full_name' => 'Julius Moyo',
-                'customer_code' => 'CUS-000013',
-                'phone' => '+255700000023',
-                'email' => 'julius.my@email.com',
-                'date_of_birth' => '1975-12-05',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Kinondoni',
-                'medical_conditions' => 'Type 2 Diabetes, Hypertension',
-            ],
-            [
-                'full_name' => 'Asha Safari',
-                'customer_code' => 'CUS-000014',
-                'phone' => '+255700000024',
-                'email' => 'asha.sf@email.com',
-                'date_of_birth' => '1991-08-17',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Kijitonyama',
-                'allergies' => 'Aspirin',
-            ],
-            [
-                'full_name' => 'Buguruni Clinic',
-                'customer_code' => 'CUS-000015',
-                'phone' => '+255700000025',
-                'email' => 'info@buguruniclinic.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Buguruni Mwanyamani',
-                'medical_conditions' => 'General clinic supplies',
-            ],
-            [
-                'full_name' => 'Henry Shirima',
-                'customer_code' => 'CUS-000016',
-                'phone' => '+255700000026',
-                'email' => 'henry.sh@email.com',
-                'date_of_birth' => '1980-06-25',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Makuburi',
-                'medical_conditions' => 'Gastric ulcer',
-            ],
-            [
-                'full_name' => 'Rehema Massawe',
-                'customer_code' => 'CUS-000017',
-                'phone' => '+255700000027',
-                'email' => 'rehema.ms@email.com',
-                'date_of_birth' => '1993-02-10',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Tandale',
-            ],
-            [
-                'full_name' => 'Masaki Health Point',
-                'customer_code' => 'CUS-000018',
-                'phone' => '+255700000028',
-                'email' => 'orders@masakihealth.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Masaki Plot 42',
-                'medical_conditions' => 'Regular pharmaceutical orders',
-            ],
-            [
-                'full_name' => 'George Mushi',
-                'customer_code' => 'CUS-000019',
-                'phone' => '+255700000029',
-                'email' => 'george.ms@email.com',
-                'date_of_birth' => '1970-11-18',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Posta',
-                'medical_conditions' => 'Hypertension, Arthritis',
-            ],
-            [
-                'full_name' => 'Theresa Mwamba',
-                'customer_code' => 'CUS-000020',
-                'phone' => '+255700000038',
-                'email' => 'theresa.mw@email.com',
-                'date_of_birth' => '1987-07-03',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Msasani',
-                'allergies' => 'Ibuprofen',
-            ],
-            [
-                'full_name' => 'Oysterbay Pharmacy',
-                'customer_code' => 'CUS-000021',
-                'phone' => '+255700000039',
-                'email' => 'orders@oysterbaypharmacy.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Oysterbay Plot 15',
-                'medical_conditions' => 'Wholesale drug orders',
-            ],
-            [
-                'full_name' => 'Samuel Mtelekano',
-                'customer_code' => 'CUS-000022',
-                'phone' => '+255700000048',
-                'email' => 'samuel.mt@email.com',
-                'date_of_birth' => '1983-04-22',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Vingunguti',
-                'medical_conditions' => 'Malaria prophylaxis',
-            ],
-            [
-                'full_name' => 'Zainab Lwakatare',
-                'customer_code' => 'CUS-000023',
-                'phone' => '+255700000049',
-                'email' => 'zainab.lw@email.com',
-                'date_of_birth' => '1994-10-08',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Kiwalani',
-            ],
-            [
-                'full_name' => 'Mikocheni Medical',
-                'customer_code' => 'CUS-000024',
-                'phone' => '+255700000054',
-                'email' => 'info@mikochenimedical.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Mikocheni B',
-                'medical_conditions' => 'Regular medical supply orders',
-            ],
-            [
-                'full_name' => 'Patrick Mwaipopo',
-                'customer_code' => 'CUS-000025',
-                'phone' => '+255700000055',
-                'email' => 'patrick.mw@email.com',
-                'date_of_birth' => '1976-09-14',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Tungi',
-                'medical_conditions' => 'Type 2 Diabetes',
-            ],
-            [
-                'full_name' => "Veronica Ng'wandu",
-                'customer_code' => 'CUS-000026',
-                'phone' => '+255700000056',
-                'email' => 'veronica.ng@email.com',
-                'date_of_birth' => '1989-03-27',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Mbagala',
-                'allergies' => 'Codeine',
-            ],
-            [
-                'full_name' => 'Kinondoni Health',
-                'customer_code' => 'CUS-000027',
-                'phone' => '+255700000057',
-                'email' => 'orders@kinondonihealth.com',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Kinondoni B',
-                'medical_conditions' => 'Regular pharmaceutical orders',
-            ],
-            [
-                'full_name' => 'Andrew Mziray',
-                'customer_code' => 'CUS-000028',
-                'phone' => '+255700000058',
-                'email' => 'andrew.mz@email.com',
-                'date_of_birth' => '1981-08-05',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Ada Estate',
-                'medical_conditions' => 'High blood pressure',
-            ],
-            [
-                'full_name' => 'Halima Mkumbwa',
-                'customer_code' => 'CUS-000029',
-                'phone' => '+255700000059',
-                'email' => 'halima.mk@email.com',
-                'date_of_birth' => '1996-12-20',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => "Chang'ombe",
-            ],
-            [
-                'full_name' => 'Temeke Hospital',
-                'customer_code' => 'CUS-000030',
-                'phone' => '+255700000060',
-                'email' => 'procurement@temekehospital.go.tz',
-                'gender' => 'other',
-                'location' => 'Dar es Salaam',
-                'street' => 'Temeke',
-                'medical_conditions' => 'Hospital bulk orders',
-            ],
-            [
-                'full_name' => 'Dennis Tandau',
-                'customer_code' => 'CUS-000031',
-                'phone' => '+255700000061',
-                'email' => 'dennis.td@email.com',
-                'date_of_birth' => '1984-05-09',
-                'gender' => 'male',
-                'location' => 'Dar es Salaam',
-                'street' => 'Gerezani',
-                'medical_conditions' => 'Malaria, Anemia',
-            ],
-            [
-                'full_name' => 'Lillian Kimbikimbi',
-                'customer_code' => 'CUS-000032',
-                'phone' => '+255700000062',
-                'email' => 'lillian.kb@email.com',
-                'date_of_birth' => '1990-01-15',
-                'gender' => 'female',
-                'location' => 'Dar es Salaam',
-                'street' => 'Kivukoni',
-                'allergies' => 'Cotrimoxazole',
-            ],
+        $faker = \Faker\Factory::create();
+        $tzRegions = [
+            'Dar es Salaam','Arusha','Mwanza','Dodoma','Tanga','Mbeya','Morogoro',
+            'Iringa','Kilimanjaro','Lindi','Mtwara','Njombe','Ruvuma','Shinyanga',
+            'Singida','Tabora','Kagera','Mara','Simiyu','Geita','Katavi','Kigoma',
+            'Pwani','Manyara','Songwe','Rukwa','Kaskazini A Unguja','Kaskazini B Unguja',
+            'Kusini Unguja','Mjini Magharibi','Kaskazini Pemba',
         ];
+        $customerNames = [
+            'Grace Hospital','Alice Mwamba','Bob Phiri','City Clinic','Carol Banda',
+            'Mwananyamala Health Centre','David Mwangi','Elizabeth Kimaro','Frank Ochieng',
+            'Genesis Medical Centre','Helen Nkosi','Ian Safari','Jackline Kimbikimbi',
+            'Karen Ng\'wandu','Leo Mtembei','Martha Lwakatare','Nathan Mahozi',
+            'Olivia Shighi','Patrick Mwakajila','Queen Mwamba','Rachel Ntayi',
+            'Samuel Mkumbwa','Teresa Mziray','Ulrich Olotu','Victoria Mushi',
+            'William Mtelekano','Xavier Mwaipopo','Yvette Mwamba','Zainab Lwakatare',
+            'Anthony Mwamba','Beatrice Tandau','Charles Moyo','Diana Shirima',
+        ];
+        $records = [];
 
-        foreach ($customers as $customer) {
-            Customer::create([
+        for ($i = 0; $i < 32; $i++) {
+            $region = $tzRegions[$i % count($tzRegions)];
+            $isInstitution = in_array($i, [0, 3, 5, 9, 13]);
+            $records[] = [
                 'pharmacy_id' => 1,
-                ...$customer,
-            ]);
+                'full_name' => $customerNames[$i],
+                'customer_code' => 'CUS-' . str_pad($i + 1, 6, '0', STR_PAD_LEFT),
+                'phone' => '+255700' . str_pad($i, 8, '0', STR_PAD_LEFT),
+                'email' => $isInstitution
+                    ? strtolower(str_replace(' ', '', $customerNames[$i])) . '@co.tz'
+                    : strtolower(str_replace(' ', '.', $customerNames[$i])) . '@email.com',
+                'date_of_birth' => $isInstitution ? null : $faker->dateTimeBetween('-45 years', '-20 years')->format('Y-m-d'),
+                'gender' => $isInstitution ? 'other' : $faker->randomElement(['male', 'female']),
+                'location' => $region,
+                'street' => $faker->streetName,
+                'allergies' => $faker->optional(40)->randomElement(['Penicillin','Sulfa drugs','Aspirin','Ibuprofen','Codeine','None known']),
+                'medical_conditions' => $isInstitution ? 'Institutional buyer — bulk orders' : $faker->optional(30)->randomElement(['Hypertension','Type 2 Diabetes','Asthma','Arthritis','None']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
         }
+
+        DB::table('customers')->insert($records);
     }
 
     private function seedOrders(): void

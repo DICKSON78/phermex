@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use Carbon\Carbon;
+use Faker\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -11,216 +13,135 @@ class SupplyChainSeeder extends Seeder
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-        $suppliers = $this->seedSuppliers();
-        $poIds = $this->seedPurchaseOrders($suppliers);
-        $this->seedPurchaseOrderItems($poIds);
-        $this->seedGoodsReceived($poIds, $suppliers);
-        $this->seedStockTransfers();
-        $this->seedStockReturns($suppliers);
-        $this->seedDamagedGoods();
-        $this->seedControlledSubstances();
-        $this->seedDrugRecalls();
+        $faker = Factory::create();
+        $now = now();
+
+        $suppliers = $this->seedSuppliers($faker, $now);
+        $poIds = $this->seedPurchaseOrders($faker, $now, $suppliers);
+        $this->seedPurchaseOrderItems($faker, $now, $poIds);
+        $goodsReceivedIds = $this->seedGoodsReceived($faker, $now, $poIds, $suppliers);
+        $transferIds = $this->seedStockTransfers($faker, $now);
+        $this->seedStockTransferItems($faker, $now, $transferIds);
+        $returnIds = $this->seedStockReturns($faker, $now, $suppliers);
+        $this->seedStockReturnItems($faker, $now, $returnIds);
+        $this->seedDamagedGoods($faker, $now);
+        $this->seedControlledSubstances($faker, $now);
+        $this->seedDrugRecalls($faker, $now);
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
-    private function seedSuppliers(): array
+    private function seedSuppliers($faker, $now): array
     {
-        $now = now();
-
-        $data = [
-            [
-                'pharmacy_id' => 1,
-                'name' => 'Generic Pharma Ltd',
-                'contact_person' => 'Hamisi Mwakasege',
-                'email' => 'orders@genericpharma.co.tz',
-                'phone' => '+255222110045',
-                'address' => 'Block B, Plot 45, Temeke Industrial Area',
-                'city' => 'Dar es Salaam',
-                'country' => 'Tanzania',
-                'tax_id' => 'TIN-102-345-678',
-                'payment_terms' => 'net_30',
-                'rating' => 4.50,
-                'total_orders' => 12,
-                'total_purchased' => 850000.00,
-                'is_active' => true,
-                'notes' => 'Primary supplier for generic antibiotics and pain relief medications',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'name' => 'HealthCare Tanzania',
-                'contact_person' => 'Rebecca Nkwabi',
-                'email' => 'supply@healthcaretz.co.tz',
-                'phone' => '+255272530012',
-                'address' => 'Sakina Road, Near Arusha Clock Tower',
-                'city' => 'Arusha',
-                'country' => 'Tanzania',
-                'tax_id' => 'TIN-203-456-789',
-                'payment_terms' => 'net_30',
-                'rating' => 4.20,
-                'total_orders' => 8,
-                'total_purchased' => 620000.00,
-                'is_active' => true,
-                'notes' => 'Specialist in chronic disease medications and cardiovascular drugs',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'name' => 'NutriVita Ltd',
-                'contact_person' => 'Juma Mwamba',
-                'email' => 'orders@nutrivita.co.tz',
-                'phone' => '+255282620078',
-                'address' => 'Plot 18, Mwanza Industrial Area',
-                'city' => 'Mwanza',
-                'country' => 'Tanzania',
-                'tax_id' => 'TIN-304-567-890',
-                'payment_terms' => 'net_15',
-                'rating' => 4.70,
-                'total_orders' => 6,
-                'total_purchased' => 340000.00,
-                'is_active' => true,
-                'notes' => 'Reliable supplier for vitamins, supplements and nutritional products',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'name' => 'CardioVita Pharma',
-                'contact_person' => 'Dr. Emmanuel Mkwizu',
-                'email' => 'procurement@cardiovita.co.tz',
-                'phone' => '+255222800199',
-                'address' => 'Shaaban Robert Street, Plot 78',
-                'city' => 'Dar es Salaam',
-                'country' => 'Tanzania',
-                'tax_id' => 'TIN-405-678-901',
-                'payment_terms' => 'net_30',
-                'rating' => 4.40,
-                'total_orders' => 5,
-                'total_purchased' => 520000.00,
-                'is_active' => true,
-                'notes' => 'Premium cardiovascular and hypertension medications',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'name' => 'DermaCare Labs',
-                'contact_person' => 'Sarah Wanjiku',
-                'email' => 'sales@dermacare.co.ke',
-                'phone' => '+254202400123',
-                'address' => 'Westlands Business Park, Unit 14',
-                'city' => 'Nairobi',
-                'country' => 'Kenya',
-                'tax_id' => 'KEN-TIN-789012',
-                'payment_terms' => 'net_60',
-                'rating' => 4.60,
-                'total_orders' => 3,
-                'total_purchased' => 280000.00,
-                'is_active' => true,
-                'notes' => 'International supplier for dermatology and skincare pharmaceutical products',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
+        $supplierNames = [
+            'Generic Pharma Ltd', 'HealthCare Tanzania', 'NutriVita Ltd',
+            'CardioVita Pharma', 'DermaCare Labs', 'MedSupply East Africa',
+            'PharmaDistributors TZ', 'LifeLine Medical Supplies', 'Apex Pharma Solutions',
+            'Vitality Health Distributors', 'EastAfrica Pharma Corp', 'SwiftMed Supplies',
+            'CareFirst Pharmaceuticals', 'BioMed Tanzania Ltd', 'PrimeHealth Distributors',
+            'PharmaLink Africa', 'MediSource International', 'TrueCare Pharma',
+            'Summit Pharma Supply', 'WellnessPlus Distributors', 'GlobalMed Tanzania',
+            'African Pharma Hub', 'TrustPharm Supplies', 'PrecisionPharma Ltd',
+            'Zenith Medical Distributors', 'OptimaHealth Supply Co', 'PharmaBridge Africa',
+            'MedVault Supply Chain', 'ClearPath Pharmaceuticals', 'Evergreen Pharma Supply',
+            'AlphaPharma Tanzania', 'NovaMed Distributors', 'PureHealth Supplies',
+            'Skyline Pharma Ltd', 'GoldenDrug Distributors',
         ];
+
+        $cities = [
+            'Dar es Salaam', 'Arusha', 'Mwanza', 'Dodoma', 'Zanzibar City',
+            'Mbeya', 'Tanga', 'Morogoro', 'Iringa', 'Kigoma', 'Kilimanjaro',
+            'Lindi', 'Mtwara', 'Njombe', 'Ruvuma', 'Shinyanga', 'Singida',
+            'Tabora', 'Kagera', 'Mara', 'Simiyu', 'Geita', 'Katavi',
+            'Songwe', 'Pwani', 'Rukwa', 'Manyara',
+        ];
+        $countries = ['Tanzania', 'Tanzania', 'Tanzania', 'Tanzania', 'Tanzania', 'Tanzania', 'Kenya', 'Uganda', 'Rwanda', 'Burundi'];
+        $paymentTerms = ['net_15', 'net_30', 'net_60', 'cod'];
+        $data = [];
+
+        for ($i = 0; $i < 35; $i++) {
+            $cityIndex = $i % count($cities);
+            $data[] = [
+                'pharmacy_id' => ($i % 6) + 1,
+                'name' => $supplierNames[$i],
+                'contact_person' => $faker->name,
+                'email' => $faker->unique()->safeEmail,
+                'phone' => '+255' . $faker->numerify('### ### ####'),
+                'address' => $faker->streetAddress . ', ' . $cities[$cityIndex],
+                'city' => $cities[$cityIndex],
+                'country' => $countries[$i % count($countries)],
+                'tax_id' => 'TIN-' . $faker->numerify('###-###-###'),
+                'payment_terms' => $paymentTerms[$i % count($paymentTerms)],
+                'rating' => round($faker->randomFloat(2, 3.0, 5.0), 2),
+                'total_orders' => $faker->numberBetween(2, 25),
+                'total_purchased' => $faker->randomFloat(2, 50000, 2000000),
+                'is_active' => $faker->boolean(85),
+                'notes' => $faker->sentence(12),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
 
         DB::table('suppliers')->insert($data);
 
-        return DB::table('suppliers')->where('pharmacy_id', 1)->pluck('id', 'name')->toArray();
+        return DB::table('suppliers')->pluck('id', 'name')->toArray();
     }
 
-    private function seedPurchaseOrders(array $suppliers): array
+    private function seedPurchaseOrders($faker, $now, array $suppliers): array
     {
-        $now = now();
+        $supplierIds = array_values($suppliers);
+        $statuses = ['draft', 'pending_approval', 'approved', 'approved', 'approved', 'received', 'received', 'received', 'cancelled'];
+        $paymentStatuses = ['unpaid', 'partial', 'paid', 'paid', 'paid'];
+        $orders = [];
 
-        $orders = [
-            [
-                'pharmacy_id' => 1,
-                'supplier_id' => $suppliers['Generic Pharma Ltd'],
-                'order_number' => 'PO-2026-0001',
-                'order_date' => '2026-01-15',
-                'expected_delivery_date' => '2026-01-25',
-                'status' => 'received',
-                'subtotal' => 1250.00,
-                'tax_amount' => 225.00,
-                'discount_amount' => 0.00,
-                'total' => 1475.00,
-                'payment_status' => 'paid',
-                'amount_paid' => 1475.00,
-                'notes' => 'Quarterly restock of antibiotics',
-                'approved_by' => 2,
-                'approved_at' => '2026-01-16 09:30:00',
-                'received_by' => 3,
-                'received_at' => '2026-01-24 14:00:00',
+        for ($i = 1; $i <= 35; $i++) {
+            $status = $faker->randomElement($statuses);
+            $orderDate = $faker->dateTimeBetween('-6 months', '-2 weeks');
+            $orderDateCarbon = Carbon::instance($orderDate);
+            $expectedDelivery = $orderDateCarbon->copy()->addDays($faker->numberBetween(5, 20));
+            $subtotal = $faker->randomFloat(2, 200, 5000);
+            $taxRate = 0.18;
+            $taxAmount = round($subtotal * $taxRate, 2);
+            $discount = $faker->boolean(30) ? $faker->randomFloat(2, 10, $subtotal * 0.15) : 0;
+            $total = round($subtotal + $taxAmount - $discount, 2);
+            $pStatus = $status === 'received' ? 'paid' : ($status === 'cancelled' ? 'unpaid' : $faker->randomElement($paymentStatuses));
+
+            $receivedAt = null;
+            $receivedBy = null;
+            $approvedAt = null;
+            $approvedBy = null;
+
+            if (in_array($status, ['approved', 'received', 'cancelled'])) {
+                $approvedAt = $orderDateCarbon->copy()->addHours($faker->numberBetween(2, 48))->toDateTimeString();
+                $approvedBy = $faker->numberBetween(1, 10);
+            }
+            if ($status === 'received') {
+                $receivedAt = $orderDateCarbon->copy()->addDays($faker->numberBetween(5, 18))->toDateTimeString();
+                $receivedBy = $faker->numberBetween(1, 15);
+            }
+
+            $orders[] = [
+                'pharmacy_id' => $faker->numberBetween(1, 6),
+                'supplier_id' => $faker->randomElement($supplierIds),
+                'order_number' => 'PO-2026-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'order_date' => $orderDateCarbon->format('Y-m-d'),
+                'expected_delivery_date' => $expectedDelivery->format('Y-m-d'),
+                'status' => $status,
+                'subtotal' => $subtotal,
+                'tax_amount' => $taxAmount,
+                'discount_amount' => $discount,
+                'total' => $total,
+                'payment_status' => $pStatus,
+                'amount_paid' => $pStatus === 'paid' ? $total : ($pStatus === 'partial' ? round($total * $faker->randomFloat(2, 0.3, 0.7), 2) : 0),
+                'notes' => $faker->sentence(8),
+                'approved_by' => $approvedBy,
+                'approved_at' => $approvedAt,
+                'received_by' => $receivedBy,
+                'received_at' => $receivedAt,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'supplier_id' => $suppliers['CardioVita Pharma'],
-                'order_number' => 'PO-2026-0002',
-                'order_date' => '2026-02-10',
-                'expected_delivery_date' => '2026-02-20',
-                'status' => 'received',
-                'subtotal' => 890.00,
-                'tax_amount' => 160.20,
-                'discount_amount' => 40.00,
-                'total' => 1010.20,
-                'payment_status' => 'paid',
-                'amount_paid' => 1010.20,
-                'notes' => 'Cardiovascular drugs restocking',
-                'approved_by' => 2,
-                'approved_at' => '2026-02-11 10:00:00',
-                'received_by' => 3,
-                'received_at' => '2026-02-18 11:30:00',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'supplier_id' => $suppliers['NutriVita Ltd'],
-                'order_number' => 'PO-2026-0003',
-                'order_date' => '2026-07-20',
-                'expected_delivery_date' => '2026-07-30',
-                'status' => 'pending_approval',
-                'subtotal' => 675.00,
-                'tax_amount' => 121.50,
-                'discount_amount' => 0.00,
-                'total' => 796.50,
-                'payment_status' => 'unpaid',
-                'amount_paid' => 0.00,
-                'notes' => 'Urgent vitamin and supplement restock before rainy season',
-                'approved_by' => null,
-                'approved_at' => null,
-                'received_by' => null,
-                'received_at' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'supplier_id' => $suppliers['HealthCare Tanzania'],
-                'order_number' => 'PO-2026-0004',
-                'order_date' => '2026-06-05',
-                'expected_delivery_date' => '2026-06-18',
-                'status' => 'partially_received',
-                'subtotal' => 1420.00,
-                'tax_amount' => 255.60,
-                'discount_amount' => 70.00,
-                'total' => 1605.60,
-                'payment_status' => 'partial',
-                'amount_paid' => 800.00,
-                'notes' => 'Partially delivered due to supply chain delay from Arusha warehouse',
-                'approved_by' => 2,
-                'approved_at' => '2026-06-06 08:45:00',
-                'received_by' => 3,
-                'received_at' => '2026-06-16 10:00:00',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ];
+            ];
+        }
 
         DB::table('purchase_orders')->insert($orders);
 
@@ -234,260 +155,138 @@ class SupplyChainSeeder extends Seeder
         return $poIds;
     }
 
-    private function seedPurchaseOrderItems(array $poIds): void
+    private function seedPurchaseOrderItems($faker, $now, array $poIds): void
     {
-        $now = now();
+        $poValues = array_values($poIds);
+        $items = [];
 
-        $items = [
-            [
-                'purchase_order_id' => $poIds['PO-2026-0001'],
-                'drug_id' => 1,
-                'quantity_ordered' => 200,
-                'quantity_received' => 200,
-                'unit_cost' => 5.00,
-                'total_cost' => 1000.00,
-                'batch_number' => 'BATCH-AMX-2601',
-                'expiry_date' => '2027-06-30',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'purchase_order_id' => $poIds['PO-2026-0001'],
-                'drug_id' => 11,
-                'quantity_ordered' => 50,
-                'quantity_received' => 50,
-                'unit_cost' => 8.00,
-                'total_cost' => 400.00,
-                'batch_number' => 'BATCH-AZI-2601',
-                'expiry_date' => '2027-09-15',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'purchase_order_id' => $poIds['PO-2026-0001'],
-                'drug_id' => 15,
-                'quantity_ordered' => 50,
-                'quantity_received' => 50,
-                'unit_cost' => 2.00,
-                'total_cost' => 100.00,
-                'batch_number' => 'BATCH-MTN-2601',
-                'expiry_date' => '2027-05-20',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
+        for ($i = 1; $i <= 45; $i++) {
+            $poId = $faker->randomElement($poValues);
+            $quantity = $faker->numberBetween(10, 300);
+            $unitCost = $faker->randomFloat(2, 1, 25);
+            $totalCost = round($quantity * $unitCost, 2);
 
-            // PO-2026-0002 items (CardioVita - cardiovascular)
-            [
-                'purchase_order_id' => $poIds['PO-2026-0002'],
-                'drug_id' => 4,
-                'quantity_ordered' => 100,
-                'quantity_received' => 100,
-                'unit_cost' => 3.00,
-                'total_cost' => 300.00,
-                'batch_number' => 'BATCH-AML-2602',
-                'expiry_date' => '2027-12-01',
-                'notes' => null,
+            $items[] = [
+                'purchase_order_id' => $poId,
+                'drug_id' => $faker->numberBetween(1, 50),
+                'quantity_ordered' => $quantity,
+                'quantity_received' => $faker->numberBetween(0, $quantity),
+                'unit_cost' => $unitCost,
+                'total_cost' => $totalCost,
+                'batch_number' => 'BATCH-' . strtoupper($faker->bothify('???-####')),
+                'expiry_date' => $faker->dateTimeBetween('+6 months', '+36 months')->format('Y-m-d'),
+                'notes' => $faker->boolean(20) ? $faker->sentence(6) : null,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ],
-            [
-                'purchase_order_id' => $poIds['PO-2026-0002'],
-                'drug_id' => 12,
-                'quantity_ordered' => 80,
-                'quantity_received' => 80,
-                'unit_cost' => 5.00,
-                'total_cost' => 400.00,
-                'batch_number' => 'BATCH-LOS-2602',
-                'expiry_date' => '2027-10-15',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'purchase_order_id' => $poIds['PO-2026-0002'],
-                'drug_id' => 13,
-                'quantity_ordered' => 30,
-                'quantity_received' => 30,
-                'unit_cost' => 6.00,
-                'total_cost' => 180.00,
-                'batch_number' => 'BATCH-ATV-2602',
-                'expiry_date' => '2027-11-20',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-
-            // PO-2026-0003 items (NutriVita - vitamins, pending)
-            [
-                'purchase_order_id' => $poIds['PO-2026-0003'],
-                'drug_id' => 9,
-                'quantity_ordered' => 100,
-                'quantity_received' => 0,
-                'unit_cost' => 3.00,
-                'total_cost' => 300.00,
-                'batch_number' => null,
-                'expiry_date' => '2027-10-01',
-                'notes' => 'Awaiting delivery',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'purchase_order_id' => $poIds['PO-2026-0003'],
-                'drug_id' => 17,
-                'quantity_ordered' => 60,
-                'quantity_received' => 0,
-                'unit_cost' => 4.00,
-                'total_cost' => 240.00,
-                'batch_number' => null,
-                'expiry_date' => '2027-11-15',
-                'notes' => 'Awaiting delivery',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'purchase_order_id' => $poIds['PO-2026-0003'],
-                'drug_id' => 19,
-                'quantity_ordered' => 25,
-                'quantity_received' => 0,
-                'unit_cost' => 3.50,
-                'total_cost' => 87.50,
-                'batch_number' => null,
-                'expiry_date' => '2027-08-10',
-                'notes' => 'Awaiting delivery',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-
-            // PO-2026-0004 items (HealthCare TZ - partially received)
-            [
-                'purchase_order_id' => $poIds['PO-2026-0004'],
-                'drug_id' => 3,
-                'quantity_ordered' => 100,
-                'quantity_received' => 100,
-                'unit_cost' => 4.00,
-                'total_cost' => 400.00,
-                'batch_number' => 'BATCH-MET-2606',
-                'expiry_date' => '2027-09-30',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'purchase_order_id' => $poIds['PO-2026-0004'],
-                'drug_id' => 5,
-                'quantity_ordered' => 80,
-                'quantity_received' => 80,
-                'unit_cost' => 3.50,
-                'total_cost' => 280.00,
-                'batch_number' => 'BATCH-OMP-2606',
-                'expiry_date' => '2027-08-01',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'purchase_order_id' => $poIds['PO-2026-0004'],
-                'drug_id' => 16,
-                'quantity_ordered' => 50,
-                'quantity_received' => 0,
-                'unit_cost' => 2.50,
-                'total_cost' => 125.00,
-                'batch_number' => null,
-                'expiry_date' => '2027-07-15',
-                'notes' => 'Delayed - expected in next shipment',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ];
+            ];
+        }
 
         DB::table('purchase_order_items')->insert($items);
     }
 
-    private function seedGoodsReceived(array $poIds, array $suppliers): void
+    private function seedGoodsReceived($faker, $now, array $poIds, array $suppliers): array
     {
-        $now = now();
+        $supplierIds = array_values($suppliers);
+        $poValues = array_values($poIds);
+        $statuses = ['complete', 'complete', 'complete', 'partial'];
+        $qualityChecks = ['passed', 'passed', 'passed', 'pending', 'failed'];
+        $records = [];
 
-        $records = [
-            [
-                'pharmacy_id' => 1,
-                'purchase_order_id' => $poIds['PO-2026-0001'],
-                'grn_number' => 'GRN-2026-0001',
-                'received_date' => '2026-01-24',
-                'received_by' => 3,
-                'supplier_id' => $suppliers['Generic Pharma Ltd'],
-                'total_items' => 300,
-                'total_value' => 1475.00,
-                'status' => 'complete',
-                'quality_check' => 'passed',
-                'quality_notes' => 'All batches verified. Packaging intact, expiry dates confirmed.',
-                'notes' => 'Delivered via Kariakoo Express Logistics',
+        for ($i = 1; $i <= 35; $i++) {
+            $receivedDate = $faker->dateTimeBetween('-6 months', '-1 week');
+            $receivedDateCarbon = Carbon::instance($receivedDate);
+            $totalItems = $faker->numberBetween(20, 500);
+            $totalValue = $faker->randomFloat(2, 100, 8000);
+
+            $records[] = [
+                'pharmacy_id' => $faker->numberBetween(1, 6),
+                'purchase_order_id' => $faker->randomElement($poValues),
+                'grn_number' => 'GRN-2026-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'received_date' => $receivedDateCarbon->format('Y-m-d'),
+                'received_by' => $faker->numberBetween(1, 15),
+                'supplier_id' => $faker->randomElement($supplierIds),
+                'total_items' => $totalItems,
+                'total_value' => $totalValue,
+                'status' => $faker->randomElement($statuses),
+                'quality_check' => $faker->randomElement($qualityChecks),
+                'quality_notes' => $faker->sentence(10),
+                'notes' => $faker->sentence(8),
                 'created_at' => $now,
                 'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'purchase_order_id' => $poIds['PO-2026-0002'],
-                'grn_number' => 'GRN-2026-0002',
-                'received_date' => '2026-02-18',
-                'received_by' => 3,
-                'supplier_id' => $suppliers['CardioVita Pharma'],
-                'total_items' => 210,
-                'total_value' => 1010.20,
-                'status' => 'complete',
-                'quality_check' => 'passed',
-                'quality_notes' => 'Cold chain maintained throughout transit. All temperature logs verified.',
-                'notes' => 'Priority delivery - temperature sensitive items',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ];
+            ];
+        }
 
         DB::table('goods_received')->insert($records);
+
+        $grnIds = [];
+        foreach ($records as $record) {
+            $grnIds[$record['grn_number']] = DB::table('goods_received')
+                ->where('grn_number', $record['grn_number'])
+                ->value('id');
+        }
+
+        return $grnIds;
     }
 
-    private function seedStockTransfers(): void
+    private function seedStockTransfers($faker, $now): array
     {
-        $now = now();
-
-        $transfers = [
-            [
-                'pharmacy_id' => 1,
-                'transfer_number' => 'STK-2026-0001',
-                'from_location' => 'Main Warehouse - Kariakoo',
-                'to_location' => 'Display Shelf A - Front Store',
-                'status' => 'completed',
-                'total_items' => 3,
-                'total_value' => 385.00,
-                'requested_by' => 3,
-                'approved_by' => 2,
-                'approved_at' => '2026-03-05 08:00:00',
-                'shipped_at' => '2026-03-05 10:30:00',
-                'received_at' => '2026-03-05 14:00:00',
-                'notes' => 'Restocking fast-moving items for customer accessibility',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'transfer_number' => 'STK-2026-0002',
-                'from_location' => 'Cold Storage Unit - Back Room',
-                'to_location' => 'Refrigerated Display Case',
-                'status' => 'completed',
-                'total_items' => 2,
-                'total_value' => 165.00,
-                'requested_by' => 3,
-                'approved_by' => 2,
-                'approved_at' => '2026-05-12 09:00:00',
-                'shipped_at' => '2026-05-12 11:00:00',
-                'received_at' => '2026-05-12 12:30:00',
-                'notes' => 'Monthly cold chain rotation to maintain proper storage temperatures',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
+        $transferStatuses = ['pending', 'approved', 'in_transit', 'completed', 'completed', 'completed'];
+        $locations = [
+            'Main Warehouse - Kariakoo', 'Branch Store - Mwananyamala',
+            'Cold Storage Unit - Ilala', 'Display Shelf A - Front Store',
+            'Refrigerated Display - Kinondoni', 'Dispensing Counter - Temeke',
+            'Emergency Stock Room - Masaki', 'Overflow Warehouse - Mikocheni',
+            'Distribution Hub - Arusha', 'Regional Store - Mwanza',
+            'Central Depot - Dodoma', 'Zanzibar Storage - Stone Town',
+            'Southern Warehouse - Mbeya', 'Coastal Depot - Tanga',
+            'Eastern Store - Morogoro', 'Highland Depot - Iringa',
         ];
+
+        $transfers = [];
+
+        for ($i = 1; $i <= 35; $i++) {
+            $fromPharmacy = $faker->numberBetween(1, 6);
+            $toPharmacy = $faker->numberBetween(1, 6);
+            while ($toPharmacy === $fromPharmacy) {
+                $toPharmacy = $faker->numberBetween(1, 6);
+            }
+
+            $status = $faker->randomElement($transferStatuses);
+            $createdAt = $faker->dateTimeBetween('-6 months', '-2 weeks');
+            $createdAtCarbon = Carbon::instance($createdAt);
+
+            $approvedAt = null;
+            $shippedAt = null;
+            $receivedAt = null;
+
+            if (in_array($status, ['approved', 'in_transit', 'completed'])) {
+                $approvedAt = $createdAtCarbon->copy()->addHours($faker->numberBetween(1, 24))->toDateTimeString();
+            }
+            if (in_array($status, ['in_transit', 'completed'])) {
+                $shippedAt = $createdAtCarbon->copy()->addDays($faker->numberBetween(1, 5))->toDateTimeString();
+            }
+            if ($status === 'completed') {
+                $receivedAt = $createdAtCarbon->copy()->addDays($faker->numberBetween(2, 10))->toDateTimeString();
+            }
+
+            $transfers[] = [
+                'pharmacy_id' => $fromPharmacy,
+                'transfer_number' => 'STK-2026-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'from_location' => $faker->randomElement($locations),
+                'to_location' => $faker->randomElement($locations),
+                'status' => $status,
+                'total_items' => $faker->numberBetween(1, 10),
+                'total_value' => $faker->randomFloat(2, 20, 2000),
+                'requested_by' => $faker->numberBetween(1, 15),
+                'approved_by' => in_array($status, ['approved', 'in_transit', 'completed']) ? $faker->numberBetween(1, 10) : null,
+                'approved_at' => $approvedAt,
+                'shipped_at' => $shippedAt,
+                'received_at' => $receivedAt,
+                'notes' => $faker->sentence(8),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
 
         DB::table('stock_transfers')->insert($transfers);
 
@@ -498,280 +297,220 @@ class SupplyChainSeeder extends Seeder
                 ->value('id');
         }
 
-        $transferItems = [
-            [
-                'stock_transfer_id' => $transferIds['STK-2026-0001'],
-                'drug_id' => 2,
-                'quantity_sent' => 100,
-                'quantity_received' => 100,
-                'batch_number' => 'BATCH-PAR-002',
-                'expiry_date' => '2027-06-20',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'stock_transfer_id' => $transferIds['STK-2026-0001'],
-                'drug_id' => 6,
-                'quantity_sent' => 50,
-                'quantity_received' => 50,
-                'batch_number' => 'BATCH-CET-006',
-                'expiry_date' => '2027-03-25',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'stock_transfer_id' => $transferIds['STK-2026-0001'],
-                'drug_id' => 10,
-                'quantity_sent' => 40,
-                'quantity_received' => 40,
-                'batch_number' => 'BATCH-IBU-010',
-                'expiry_date' => '2027-07-20',
-                'notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'stock_transfer_id' => $transferIds['STK-2026-0002'],
-                'drug_id' => 7,
-                'quantity_sent' => 2,
-                'quantity_received' => 2,
-                'batch_number' => 'BATCH-SAL-007',
-                'expiry_date' => '2027-08-20',
-                'notes' => 'Requires cold chain storage',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'stock_transfer_id' => $transferIds['STK-2026-0002'],
-                'drug_id' => 19,
-                'quantity_sent' => 10,
-                'quantity_received' => 10,
-                'batch_number' => 'BATCH-MVS-019',
-                'expiry_date' => '2026-09-15',
-                'notes' => 'Children syrup - keep refrigerated',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ];
-
-        DB::table('stock_transfer_items')->insert($transferItems);
+        return $transferIds;
     }
 
-    private function seedStockReturns(array $suppliers): void
+    private function seedStockTransferItems($faker, $now, array $transferIds): void
     {
-        $now = now();
+        $transferValues = array_values($transferIds);
+        $items = [];
 
-        DB::table('stock_returns')->insert([
-            'pharmacy_id' => 1,
-            'supplier_id' => $suppliers['HealthCare Tanzania'],
-            'return_number' => 'SR-2026-0001',
-            'return_date' => '2026-06-25',
-            'reason' => 'damaged',
-            'status' => 'refunded',
-            'total_items' => 2,
-            'total_value' => 95.00,
-            'notes' => 'Metformin batch received with damaged packaging during transit from Arusha. Supplier agreed to full refund.',
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        for ($i = 1; $i <= 45; $i++) {
+            $quantitySent = $faker->numberBetween(5, 200);
 
-        $returnId = DB::table('stock_returns')
-            ->where('return_number', 'SR-2026-0001')
-            ->value('id');
-
-        DB::table('stock_return_items')->insert([
-            [
-                'stock_return_id' => $returnId,
-                'drug_id' => 3,
-                'quantity' => 15,
-                'unit_cost' => 4.00,
-                'batch_number' => 'BATCH-MET-2606',
-                'expiry_date' => '2027-09-30',
-                'reason_notes' => 'Outer carton crushed during delivery. Inner blister packs contaminated with moisture.',
+            $items[] = [
+                'stock_transfer_id' => $faker->randomElement($transferValues),
+                'drug_id' => $faker->numberBetween(1, 50),
+                'quantity_sent' => $quantitySent,
+                'quantity_received' => $faker->numberBetween(0, $quantitySent),
+                'batch_number' => 'BATCH-' . strtoupper($faker->bothify('???-####')),
+                'expiry_date' => $faker->dateTimeBetween('+6 months', '+36 months')->format('Y-m-d'),
+                'notes' => $faker->boolean(15) ? $faker->sentence(5) : null,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ],
-            [
-                'stock_return_id' => $returnId,
-                'drug_id' => 5,
-                'quantity' => 10,
-                'unit_cost' => 3.50,
-                'batch_number' => 'BATCH-OMP-2606',
-                'expiry_date' => '2027-08-01',
-                'reason_notes' => 'Capsules discolored upon arrival. Possible cold chain breach during transport.',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ]);
+            ];
+        }
+
+        DB::table('stock_transfer_items')->insert($items);
     }
 
-    private function seedDamagedGoods(): void
+    private function seedStockReturns($faker, $now, array $suppliers): array
     {
-        $now = now();
+        $supplierIds = array_values($suppliers);
+        $returnReasons = ['damaged', 'expired', 'wrong_item', 'quality_issue', 'overstock'];
+        $statuses = ['pending', 'approved', 'shipped', 'refunded', 'approved'];
 
-        $records = [
-            [
-                'pharmacy_id' => 1,
-                'drug_id' => 19,
-                'damage_number' => 'DMG-2026-0001',
-                'damage_date' => '2026-04-10',
-                'quantity' => 5,
-                'unit_cost' => 3.50,
-                'total_loss' => 17.50,
-                'reason' => 'expired',
-                'reported_by' => 3,
-                'disposal_method' => 'documented_disposal',
-                'notes' => 'Multivitamin Syrup bottles found past expiry during monthly stock check. Batch BATCH-MVS-019 expired 2026-03-15.',
+        $returns = [];
+
+        for ($i = 1; $i <= 35; $i++) {
+            $returnDate = $faker->dateTimeBetween('-6 months', '-1 week');
+            $totalItems = $faker->numberBetween(1, 20);
+            $totalValue = $faker->randomFloat(2, 15, 1500);
+
+            $returns[] = [
+                'pharmacy_id' => $faker->numberBetween(1, 6),
+                'supplier_id' => $faker->randomElement($supplierIds),
+                'return_number' => 'SR-2026-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'return_date' => Carbon::instance($returnDate)->format('Y-m-d'),
+                'reason' => $faker->randomElement($returnReasons),
+                'status' => $faker->randomElement($statuses),
+                'total_items' => $totalItems,
+                'total_value' => $totalValue,
+                'notes' => $faker->sentence(10),
                 'created_at' => $now,
                 'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'drug_id' => 7,
-                'damage_number' => 'DMG-2026-0002',
-                'damage_date' => '2026-05-22',
-                'quantity' => 1,
-                'unit_cost' => 12.00,
-                'total_loss' => 12.00,
-                'reason' => 'damaged',
-                'reported_by' => 3,
-                'disposal_method' => 'returned_to_supplier',
-                'notes' => 'Salbutamol Inhaler nozzle cracked during handling. Returned to DermaCare Labs for replacement.',
+            ];
+        }
+
+        DB::table('stock_returns')->insert($returns);
+
+        $returnIds = [];
+        foreach ($returns as $return) {
+            $returnIds[$return['return_number']] = DB::table('stock_returns')
+                ->where('return_number', $return['return_number'])
+                ->value('id');
+        }
+
+        return $returnIds;
+    }
+
+    private function seedStockReturnItems($faker, $now, array $returnIds): void
+    {
+        $returnValues = array_values($returnIds);
+        $items = [];
+
+        for ($i = 1; $i <= 45; $i++) {
+            $quantity = $faker->numberBetween(1, 50);
+            $unitCost = $faker->randomFloat(2, 1, 20);
+
+            $items[] = [
+                'stock_return_id' => $faker->randomElement($returnValues),
+                'drug_id' => $faker->numberBetween(1, 50),
+                'quantity' => $quantity,
+                'unit_cost' => $unitCost,
+                'batch_number' => 'BATCH-' . strtoupper($faker->bothify('???-####')),
+                'expiry_date' => $faker->dateTimeBetween('+3 months', '+24 months')->format('Y-m-d'),
+                'reason_notes' => $faker->sentence(10),
                 'created_at' => $now,
                 'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'drug_id' => 20,
-                'damage_number' => 'DMG-2026-0003',
-                'damage_date' => '2026-06-18',
-                'quantity' => 8,
-                'unit_cost' => 4.50,
-                'total_loss' => 36.00,
-                'reason' => 'contaminated',
-                'reported_by' => 3,
-                'disposal_method' => 'documented_disposal',
-                'notes' => 'Benzoyl Peroxide tubes water damaged during heavy rains causing roof leak in storage area. Product compromised and unsellable.',
+            ];
+        }
+
+        DB::table('stock_return_items')->insert($items);
+    }
+
+    private function seedDamagedGoods($faker, $now): void
+    {
+        $damageReasons = ['expired', 'damaged', 'contaminated', 'recalled', 'stolen'];
+        $disposalMethods = ['documented_disposal', 'returned_to_supplier', 'donated', 'documented_disposal'];
+        $records = [];
+
+        for ($i = 1; $i <= 35; $i++) {
+            $quantity = $faker->numberBetween(1, 30);
+            $unitCost = $faker->randomFloat(2, 1, 25);
+
+            $records[] = [
+                'pharmacy_id' => $faker->numberBetween(1, 6),
+                'drug_id' => $faker->numberBetween(1, 50),
+                'damage_number' => 'DMG-2026-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'damage_date' => $faker->dateTimeBetween('-6 months', '-1 week')->format('Y-m-d'),
+                'quantity' => $quantity,
+                'unit_cost' => $unitCost,
+                'total_loss' => round($quantity * $unitCost, 2),
+                'reason' => $faker->randomElement($damageReasons),
+                'reported_by' => $faker->numberBetween(1, 15),
+                'disposal_method' => $faker->randomElement($disposalMethods),
+                'notes' => $faker->sentence(12),
                 'created_at' => $now,
                 'updated_at' => $now,
-            ],
-        ];
+            ];
+        }
 
         DB::table('damaged_goods')->insert($records);
     }
 
-    private function seedControlledSubstances(): void
+    private function seedControlledSubstances($faker, $now): void
     {
-        $now = now();
-
-        $records = [
-            [
-                'pharmacy_id' => 1,
-                'drug_id' => 1,
-                'schedule' => 'schedule_iii',
-                'register_number' => 'CSR-2026-0001',
-                'date_received' => '2026-01-24',
-                'quantity_received' => 200,
-                'balance_stock' => 135,
-                'issued_to' => 'Muhimbili National Hospital',
-                'quantity_issued' => 65,
-                'issue_date' => '2026-03-15',
-                'issuing_pharmacist_id' => 3,
-                'receiving_person_name' => 'Dr. James Mkwawa',
-                'receiving_person_id_number' => 'NIDA-1985-12345-67890',
-                'witness_name' => 'Amina Juma',
-                'witness_id_number' => 'NIDA-1990-54321-09876',
-                'notes' => 'Amoxicillin 500mg dispensed to hospital pharmacy under Schedule III controlled substance protocol',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'drug_id' => 16,
-                'schedule' => 'schedule_ii',
-                'register_number' => 'CSR-2026-0002',
-                'date_received' => '2026-02-18',
-                'quantity_received' => 100,
-                'balance_stock' => 78,
-                'issued_to' => 'Aga Khan Hospital Outpatient',
-                'quantity_issued' => 22,
-                'issue_date' => '2026-04-10',
-                'issuing_pharmacist_id' => 3,
-                'receiving_person_name' => 'Nurse Fatima Hussein',
-                'receiving_person_id_number' => 'NIDA-1992-67890-12345',
-                'witness_name' => 'Fatima Omari',
-                'witness_id_number' => 'NIDA-1988-11111-22222',
-                'notes' => 'Prednisolone 5mg dispensed under Schedule II - requires dual pharmacist verification',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'drug_id' => 11,
-                'schedule' => 'schedule_iii',
-                'register_number' => 'CSR-2026-0003',
-                'date_received' => '2026-03-01',
-                'quantity_received' => 50,
-                'balance_stock' => 38,
-                'issued_to' => null,
-                'quantity_issued' => 12,
-                'issue_date' => '2026-05-20',
-                'issuing_pharmacist_id' => 3,
-                'receiving_person_name' => 'Peter Mushi',
-                'receiving_person_id_number' => 'NIDA-1987-99999-00000',
-                'witness_name' => 'Rehema Mwangaza',
-                'witness_id_number' => 'NIDA-1995-88888-77777',
-                'notes' => 'Azithromycin 250mg dispensed to walk-in customer with valid prescription from Dr. Mtembei',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
+        $schedules = ['schedule_ii', 'schedule_iii', 'schedule_ii', 'schedule_iii', 'schedule_i'];
+        $hospitals = [
+            'Muhimbili National Hospital', 'Aga Khan Hospital',
+            'Catholic University Hospital', 'Temeke District Hospital',
+            'Ilala District Hospital', 'Kilimanjaro Christian Medical Centre',
+            'Bugando Medical Centre', 'Mbeya Zonal Hospital',
+            'Arusha Lutheran Medical Centre', 'Dodoma Medical Centre',
+            'Tanga Regional Hospital', 'Morogoro Regional Hospital',
+            'Mwananyamala District Hospital', 'Amana District Hospital',
+            'Mtwara Regional Hospital', 'Lindi Regional Hospital',
+            'Iringa Regional Hospital', 'Kigoma District Hospital',
+            'Singida Regional Hospital', 'Njombe Regional Hospital',
+            'Bugando Medical Centre Mwanza', 'Geita Regional Hospital',
+            'Songea Regional Hospital', 'Shinyanga District Hospital',
+            'Bukoba Regional Hospital', 'Musoma District Hospital',
         ];
+
+        $records = [];
+
+        for ($i = 1; $i <= 35; $i++) {
+            $qtyReceived = $faker->numberBetween(30, 300);
+            $qtyIssued = $faker->numberBetween(5, $qtyReceived - 5);
+
+            $records[] = [
+                'pharmacy_id' => $faker->numberBetween(1, 6),
+                'drug_id' => $faker->numberBetween(1, 50),
+                'schedule' => $faker->randomElement($schedules),
+                'register_number' => 'CSR-2026-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'date_received' => $faker->dateTimeBetween('-6 months', '-2 weeks')->format('Y-m-d'),
+                'quantity_received' => $qtyReceived,
+                'balance_stock' => $qtyReceived - $qtyIssued,
+                'issued_to' => $faker->randomElement($hospitals),
+                'quantity_issued' => $qtyIssued,
+                'issue_date' => $faker->dateTimeBetween('-5 months', '-1 week')->format('Y-m-d'),
+                'issuing_pharmacist_id' => $faker->numberBetween(1, 10),
+                'receiving_person_name' => $faker->name,
+                'receiving_person_id_number' => 'NIDA-' . $faker->year('Y') . '-' . $faker->numerify('#####') . '-' . $faker->numerify('#####'),
+                'witness_name' => $faker->name,
+                'witness_id_number' => 'NIDA-' . $faker->year('Y') . '-' . $faker->numerify('#####') . '-' . $faker->numerify('#####'),
+                'notes' => $faker->sentence(10),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
 
         DB::table('controlled_substances')->insert($records);
     }
 
-    private function seedDrugRecalls(): void
+    private function seedDrugRecalls($faker, $now): void
     {
-        $now = now();
-
-        $records = [
-            [
-                'pharmacy_id' => 1,
-                'drug_id' => 8,
-                'recall_number' => 'RC-2026-0001',
-                'recall_reason' => 'contamination',
-                'severity' => 'class_i',
-                'manufacturer' => 'DermaCare Labs',
-                'batch_numbers' => json_encode(['BATCH-HYD-2508', 'BATCH-HYD-2510']),
-                'date_issued' => '2026-03-01',
-                'date_acknowledged' => '2026-03-03',
-                'affected_quantity' => 20,
-                'returned_quantity' => 20,
-                'status' => 'completed',
-                'notes' => 'Class I recall - Hydrocortisone Cream batches found to contain bacterial contamination at manufacturing facility. All affected stock quarantined and returned to supplier. No adverse patient reactions reported in Tanzania.',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'pharmacy_id' => 1,
-                'drug_id' => 20,
-                'recall_number' => 'RC-2026-0002',
-                'recall_reason' => 'labeling',
-                'severity' => 'class_ii',
-                'manufacturer' => 'DermaCare Labs',
-                'batch_numbers' => json_encode(['BATCH-BPO-2601']),
-                'date_issued' => '2026-06-10',
-                'date_acknowledged' => '2026-06-12',
-                'affected_quantity' => 12,
-                'returned_quantity' => 4,
-                'status' => 'completed',
-                'notes' => 'Class II recall - Benzoyl Peroxide 5% tubes labeled with incorrect concentration (labeled as 2.5%). Affected stock quarantined. Remaining stock corrected with updated labels per FDA Tanzania guidance.',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
+        $recallReasons = ['contamination', 'labeling', 'defective', 'efficacy', 'safety', 'labeling'];
+        $severities = ['class_i', 'class_ii', 'class_iii'];
+        $manufacturers = [
+            'DermaCare Labs', 'Generic Pharma Ltd', 'CardioVita Pharma',
+            'NutriVita Ltd', 'HealthCare Tanzania', 'MedSupply East Africa',
+            'PharmaDistributors TZ', 'LifeLine Medical Supplies',
         ];
+        $recallStatuses = ['pending', 'in_progress', 'completed', 'completed', 'completed'];
+
+        $records = [];
+
+        for ($i = 1; $i <= 35; $i++) {
+            $dateIssued = $faker->dateTimeBetween('-6 months', '-2 weeks');
+            $dateIssuedCarbon = Carbon::instance($dateIssued);
+            $affectedQty = $faker->numberBetween(5, 100);
+
+            $dateAcknowledged = $faker->boolean(80)
+                ? $dateIssuedCarbon->copy()->addDays($faker->numberBetween(1, 10))->toDateString()
+                : null;
+
+            $status = $faker->randomElement($recallStatuses);
+
+            $records[] = [
+                'pharmacy_id' => $faker->numberBetween(1, 6),
+                'drug_id' => $faker->numberBetween(1, 50),
+                'recall_number' => 'RC-2026-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'recall_reason' => $faker->randomElement($recallReasons),
+                'severity' => $faker->randomElement($severities),
+                'manufacturer' => $faker->randomElement($manufacturers),
+                'batch_numbers' => json_encode([$faker->bothify('BATCH-???-####'), $faker->bothify('BATCH-???-####')]),
+                'date_issued' => $dateIssuedCarbon->format('Y-m-d'),
+                'date_acknowledged' => $dateAcknowledged,
+                'affected_quantity' => $affectedQty,
+                'returned_quantity' => $status === 'completed' ? $faker->numberBetween(0, $affectedQty) : 0,
+                'status' => $status,
+                'notes' => $faker->sentence(14),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
 
         DB::table('drug_recalls')->insert($records);
     }

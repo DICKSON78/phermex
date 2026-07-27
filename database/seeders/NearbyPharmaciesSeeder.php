@@ -149,6 +149,55 @@ class NearbyPharmaciesSeeder extends Seeder
             Pharmacy::create($data);
         }
 
+        $ownerIds = [2, 13, 14, 15, 16, 17, 18, 19, 14, 15, 16, 17, 18, 19, 14, 15, 16, 17, 18, 19, 14, 15, 16, 17, 18, 19, 14, 15, 16, 17, 18];
+        $names = [
+            'Arusha Central Pharmacy', 'Mwanza Health Pharmacy', 'Dodoma Community Pharmacy',
+            'Tanga Medical Centre', 'Mbeya Pharma Plus', 'Morogoro Health Pharmacy',
+            'Iringa Medical Pharmacy', 'Kilimanjaro Pharma', 'Zanzibar Health Point',
+            'Singida Community Pharmacy', 'Kagera Pharma Plus', 'Shinyanga Health Pharmacy',
+            'Katavi Medical Pharmacy', 'Njombe Pharma Care', 'Ruvuma Health Pharmacy',
+            'Lindi Medical Centre', 'Mtwara Pharma Plus', 'Songwe Health Pharmacy',
+            'Geita Community Pharmacy', 'Simiyu Medical Pharmacy', 'Kigoma Pharma Care',
+            'Tabora Health Pharmacy', 'Pwani Medical Centre', 'Manyara Pharma Plus',
+            'Mara Health Pharmacy', 'Rukwa Pharma Care', 'Kaskazini A Unguja Pharmacy',
+            'Kaskazini B Unguja Pharmacy', 'Kusini Unguja Pharmacy', 'Mjini Magharibi Pharmacy',
+            'Kaskazini Pemba Pharmacy',
+        ];
+        $regions = ['Arusha','Mwanza','Dodoma','Tanga','Mbeya','Morogoro','Iringa','Kilimanjaro','Zanzibar','Singida','Kagera','Shinyanga','Katavi','Njombe','Ruvuma','Lindi','Mtwara','Songwe','Geita','Simiyu','Kigoma','Tabora','Pwani','Manyara','Mara','Rukwa','Kaskazini A Unguja','Kaskazini B Unguja','Kusini Unguja','Mjini Magharibi','Kaskazini Pemba'];
+        $districts = ['Arusha DC','Mwanza MC','Dodoma MC','Tanga MC','Mbeya MC','Morogoro MC','Iringa MC','Moshi MC','Zanzibar City','Singida MC','Bukoba MC','Shinyanga MC','Tabora MC','Njombe MC','Songea MC','Lindi MC','Mtwara MC','Sumbawanga MC','Geita MC','Bariadi MC','Kigoma MC','Tabora MC','Bagamoyo DC','Babati DC','Musoma MC','Sumbawanga DC','Zanzibar City','Zanzibar City','Zanzibar City','Stone Town','Chake Chake'];
+        $wards = ['Central','Town','Market','Hospital Road','Main Street','Beach Road','University Road','Industrial Area','Ward 1','Ward 2','Ward 3','Ward 4','Ward 5'];
+        $faker = \Faker\Factory::create();
+
+        for ($i = 0; $i < count($names); $i++) {
+            $code = 'PHM-' . str_pad(7 + $i, 6, '0', STR_PAD_LEFT);
+            Pharmacy::create([
+                'owner_id' => $ownerIds[$i % count($ownerIds)],
+                'pharmacy_name' => $names[$i],
+                'pharmacy_code' => $code,
+                'license_number' => 'TZ-PH-2026-' . str_pad(100 + $i, 5, '0', STR_PAD_LEFT),
+                'pharmacy_type' => $faker->randomElement(['independent', 'chain', 'hospital']),
+                'business_category' => $faker->randomElement(['Retail Pharmacy', 'Community Pharmacy', 'Medical Centre']),
+                'country' => 'Tanzania',
+                'region' => $regions[$i % count($regions)],
+                'district' => $districts[$i % count($districts)],
+                'ward' => $wards[$i % count($wards)],
+                'street' => $faker->streetName,
+                'latitude' => $faker->randomFloat(4, -11, -1),
+                'longitude' => $faker->randomFloat(4, 29, 41),
+                'phone' => '+255' . $faker->numerify('7## ### ###'),
+                'email' => strtolower(str_replace(' ', '', $names[$i])) . '@pharmacy.com',
+                'description' => 'Professional pharmacy serving the ' . $regions[$i % count($regions)] . ' community.',
+                'working_days' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                'working_hours' => ['open' => '08:00', 'close' => '20:00'],
+                'opening_capital' => rand(30000, 100000),
+                'monthly_revenue' => rand(8000, 25000),
+                'status' => 'active',
+                'is_published' => true,
+                'license_expiry' => '2027-12-31',
+                'subscription_expires_at' => now()->addYear(),
+            ]);
+        }
+
         $this->seedDrugsForNearbyPharmacies();
     }
 

@@ -68,5 +68,15 @@ class SubscriptionsSeeder extends Seeder
         foreach ($extraSubscriptions as $sub) {
             Subscription::create($sub);
         }
+
+        $moreSubs = [
+            ['pharmacy_id' => 1, 'plan' => 'basic', 'amount' => 49000, 'payment_method' => 'mobile', 'status' => 'active', 'start_date' => now()->subDays(2), 'end_date' => now()->addMonth(), 'created_at' => now()->subDays(2)],
+            ['pharmacy_id' => 1, 'plan' => 'pro', 'amount' => 132300, 'payment_method' => 'bank', 'status' => 'active', 'start_date' => now()->subDays(8), 'end_date' => now()->addMonths(12), 'created_at' => now()->subDays(8)],
+            ['pharmacy_id' => 1, 'plan' => 'enterprise', 'amount' => 441000, 'payment_method' => 'bank', 'status' => 'active', 'start_date' => now()->subDays(29), 'end_date' => now()->addYear(), 'created_at' => now()->subDays(29)],
+        ];
+
+        foreach ($moreSubs as $sub) {
+            Subscription::create($sub);
+        }
     }
 }

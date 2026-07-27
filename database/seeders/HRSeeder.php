@@ -2,503 +2,348 @@
 
 namespace Database\Seeders;
 
-use App\Models\Employee;
+use Faker\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class HRSeeder extends Seeder
 {
+    private array $tzBanks = [
+        'CRDB Bank Plc',
+        'NMB Bank Plc',
+        'Stanbic Bank Tanzania',
+        'National Bank of Commerce (NBC)',
+        'Equity Bank Tanzania',
+        'Exim Bank Tanzania',
+        'Standard Chartered Bank',
+        'Diamond Trust Bank (DTB)',
+        'Bank of Africa (BOA)',
+        'Ecobank Tanzania',
+        'TPB Bank Ltd',
+        'Akiba Commercial Bank',
+        'DCB Commercial Bank',
+        'Hakika Bank',
+        'Mwalimu Commercial Bank',
+        'NCBA Bank Tanzania',
+        'I&M Bank Tanzania',
+        'KCB Bank Tanzania',
+        'Absa Bank Tanzania',
+        'Vodacom M-Pesa',
+        'Tigo Pesa',
+        'Airtel Money',
+        'Halotel Pesa',
+        'Azam Pesa',
+        'T-Pesa',
+    ];
+
+    private array $tzRegions = [
+        'Arusha',
+        'Dar es Salaam',
+        'Dodoma',
+        'Geita',
+        'Iringa',
+        'Kagera',
+        'Katavi',
+        'Kigoma',
+        'Kilimanjaro',
+        'Lindi',
+        'Manyara',
+        'Mara',
+        'Mbeya',
+        'Morogoro',
+        'Mtwara',
+        'Mwanza',
+        'Njombe',
+        'Pwani',
+        'Rukwa',
+        'Ruvuma',
+        'Shinyanga',
+        'Simiyu',
+        'Singida',
+        'Tabora',
+        'Tanga',
+        'Songwe',
+        'Kaskazini A Unguja',
+        'Kaskazini B Unguja',
+        'Kusini Unguja',
+        'Mjini Magharibi',
+        'Kaskazini Pemba',
+    ];
+
+    private array $tzDistricts = [
+        'Arusha DC', 'Arusha MC', 'Meru DC', 'Longido DC', 'Ngorongoro DC',
+        'Dar es Salaam Temeke', 'Dar es Salaam Kinondoni', 'Dar es Salaam Ilala',
+        'Dodoma MC', 'Dodoma DC', 'Kondoa DC', 'Manyoni DC', 'Mpwapwa DC',
+        'Geita DC', 'Geita MC', 'Bukoba DC', 'Bukoba MC', 'Muleba DC',
+        'Kigoma DC', 'Kigoma MC', 'Kasulu DC', 'Uvinza DC',
+        'Moshi DC', 'Moshi MC', 'Hai DC', 'Rombo DC', 'Siha DC',
+        'Lindi DC', 'Lindi MC', 'Nachingwea DC', 'Liwale DC',
+        'Babati DC', 'Babati MC', 'Mbulu DC', 'Hanang DC',
+        'Musoma DC', 'Musoma MC', 'Bunda DC', 'Serengeti DC',
+        'Mbeya DC', 'Mbeya MC', 'Mbarali DC', 'Kyela DC', 'Ileje DC',
+        'Morogoro DC', 'Morogoro MC', 'Kilombero DC', 'Mvomero DC', 'Ulanga DC',
+        'Mtwara DC', 'Mtwara MC', 'Masasi DC', 'Newala DC', 'Nanyumbu DC',
+        'Mwanza DC', 'Mwanza MC', 'Misungwi DC', 'Sengerema DC', 'Nyamagana DC',
+        'Njombe DC', 'Njombe MC', 'Makambako TC', 'Wanging\'ombe DC',
+        'Bagamoyo DC', 'Kisarawe DC', 'Mkuranga DC', 'Rufiji DC',
+        'Sumbawanga DC', 'Sumbawanga MC', 'Kalambo DC', 'Nkasi DC',
+        'Songea DC', 'Songea MC', 'Tunduru DC', 'Mbinga DC',
+        'Shinyanga DC', 'Shinyanga MC', 'Kahama DC', 'Kahama MC',
+        'Bariadi DC', 'Bariadi MC', 'Meatu DC',
+        'Singida DC', 'Singida MC', 'Manyoni DC', 'Iramba DC',
+        'Tabora DC', 'Tabora MC', 'Nzega DC', 'Igunga DC',
+        'Tanga DC', 'Tanga MC', 'Pangani DC', 'Kilindi DC', 'Muheza DC',
+        'Songwe DC', 'Momba DC', 'Ileje DC', 'Mbozi DC',
+        'Zanzibar City', 'Stone Town', 'Nungwi', 'Paje', 'Jambiani',
+        'Chake Chake', 'Wete', 'Mkoani',
+    ];
+
     public function run(): void
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-        $employees = $this->seedEmployees();
-        $this->seedAttendance($employees);
-        $this->seedLeaves($employees);
-        $this->seedPayroll($employees);
-        $this->seedPerformanceReviews($employees);
+        $this->seedEmployees();
+        $this->seedAttendance();
+        $this->seedLeaves();
+        $this->seedPayroll();
+        $this->seedPerformanceReviews();
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
-    private function seedEmployees(): array
+    private function seedEmployees(): void
     {
-        $employees = [
-            [
-                'pharmacy_id' => 1,
-                'user_id' => 3,
-                'employee_number' => 'EMP-001',
-                'first_name' => 'Amina',
-                'last_name' => 'Juma',
-                'email' => 'amina@pharmex.com',
-                'phone' => '+255700000002',
-                'date_of_birth' => '1990-05-12',
-                'gender' => 'female',
-                'national_id' => 'TZ-1990-12345-67890',
-                'position' => 'Pharmacist',
-                'department' => 'pharmacy',
-                'employment_type' => 'full_time',
-                'hire_date' => '2024-01-15',
-                'contract_end_date' => '2026-01-14',
-                'basic_salary' => 850000.00,
-                'allowances' => 100000.00,
-                'tax_id' => 'TIN-01-2345678-A',
-                'bank_name' => 'CRDB Bank',
-                'bank_account_number' => '0150123456789',
-                'emergency_contact_name' => 'Juma Hamisi',
-                'emergency_contact_phone' => '+255712000001',
-                'status' => 'active',
-            ],
-            [
-                'pharmacy_id' => 1,
-                'user_id' => null,
-                'employee_number' => 'EMP-002',
-                'first_name' => 'Rehema',
-                'last_name' => 'Mwangaza',
-                'email' => 'rehema@pharmex.com',
-                'phone' => '+255712345001',
-                'date_of_birth' => '1995-08-20',
-                'gender' => 'female',
-                'national_id' => 'TZ-1995-23456-78901',
-                'position' => 'Cashier',
-                'department' => 'operations',
-                'employment_type' => 'full_time',
-                'hire_date' => '2024-03-01',
-                'contract_end_date' => '2026-02-28',
-                'basic_salary' => 450000.00,
-                'allowances' => 50000.00,
-                'tax_id' => 'TIN-02-3456789-B',
-                'bank_name' => 'NMB Bank',
-                'bank_account_number' => '0280123456789',
-                'emergency_contact_name' => 'Mwangaza Abdalla',
-                'emergency_contact_phone' => '+255712000002',
-                'status' => 'active',
-            ],
-            [
-                'pharmacy_id' => 1,
-                'user_id' => null,
-                'employee_number' => 'EMP-003',
-                'first_name' => 'John',
-                'last_name' => 'Komba',
-                'email' => 'john@pharmex.com',
-                'phone' => '+255712345002',
-                'date_of_birth' => '1992-11-03',
-                'gender' => 'male',
-                'national_id' => 'TZ-1992-34567-89012',
-                'position' => 'Delivery Driver',
-                'department' => 'operations',
-                'employment_type' => 'full_time',
-                'hire_date' => '2024-06-15',
-                'contract_end_date' => '2026-06-14',
-                'basic_salary' => 350000.00,
-                'allowances' => 30000.00,
-                'tax_id' => 'TIN-03-4567890-C',
-                'bank_name' => 'Vodacom M-Pesa',
-                'bank_account_number' => '0712345002',
-                'emergency_contact_name' => 'Salome Komba',
-                'emergency_contact_phone' => '+255712000003',
-                'status' => 'active',
-            ],
-            [
-                'pharmacy_id' => 1,
-                'user_id' => null,
-                'employee_number' => 'EMP-004',
-                'first_name' => 'Fatima',
-                'last_name' => 'Omari',
-                'email' => 'fatima@pharmex.com',
-                'phone' => '+255712345003',
-                'date_of_birth' => '1988-02-14',
-                'gender' => 'female',
-                'national_id' => 'TZ-1988-45678-90123',
-                'position' => 'Pharmacist',
-                'department' => 'pharmacy',
-                'employment_type' => 'full_time',
-                'hire_date' => '2025-01-10',
-                'contract_end_date' => '2027-01-09',
-                'basic_salary' => 900000.00,
-                'allowances' => 120000.00,
-                'tax_id' => 'TIN-04-5678901-D',
-                'bank_name' => 'Stanbic Bank',
-                'bank_account_number' => '0120123456789',
-                'emergency_contact_name' => 'Omari Rashid',
-                'emergency_contact_phone' => '+255712000004',
-                'status' => 'active',
-            ],
-            [
-                'pharmacy_id' => 1,
-                'user_id' => null,
-                'employee_number' => 'EMP-005',
-                'first_name' => 'Peter',
-                'last_name' => 'Mushi',
-                'email' => 'peter@pharmex.com',
-                'phone' => '+255712345004',
-                'date_of_birth' => '1987-07-30',
-                'gender' => 'male',
-                'national_id' => 'TZ-1987-56789-01234',
-                'position' => 'Accountant',
-                'department' => 'finance',
-                'employment_type' => 'full_time',
-                'hire_date' => '2024-09-01',
-                'contract_end_date' => '2026-08-31',
-                'basic_salary' => 700000.00,
-                'allowances' => 80000.00,
-                'tax_id' => 'TIN-05-6789012-E',
-                'bank_name' => 'Equity Bank',
-                'bank_account_number' => '0420123456789',
-                'emergency_contact_name' => 'Joyce Mushi',
-                'emergency_contact_phone' => '+255712000005',
-                'status' => 'active',
-            ],
-            [
-                'pharmacy_id' => 1,
-                'user_id' => null,
-                'employee_number' => 'EMP-006',
-                'first_name' => 'Aisha',
-                'last_name' => 'Salim',
-                'email' => 'aisha@pharmex.com',
-                'phone' => '+255712345005',
-                'date_of_birth' => '1996-12-05',
-                'gender' => 'female',
-                'national_id' => 'TZ-1996-67890-12345',
-                'position' => 'Receptionist',
-                'department' => 'operations',
-                'employment_type' => 'full_time',
-                'hire_date' => '2025-03-01',
-                'contract_end_date' => '2027-02-28',
-                'basic_salary' => 400000.00,
-                'allowances' => 40000.00,
-                'tax_id' => 'TIN-06-7890123-F',
-                'bank_name' => 'Tigo Pesa',
-                'bank_account_number' => '0712345005',
-                'emergency_contact_name' => 'Salim Hassan',
-                'emergency_contact_phone' => '+255712000006',
-                'status' => 'active',
-            ],
-        ];
+        $faker = Factory::create();
+        $now = now();
+        $firstNames = ['Amina','Rehema','John','Fatima','Peter','Aisha','Emmanuel','Grace','Samuel','Rose','David','Monica','Joseph','Agnes','Hassan','Neema','Isack','Beatrice','Daniel','Vincent','Priscilla','Halima','George','Charles','Raphael','Stephen','Frederick','Leah','Sarah','Zainab','Theresa','Dennis','Julius','Henry','Andrew','Flora','Catherine','Moses','Lydia','James','Mercy'];
+        $lastNames = ['Juma','Mwangaza','Komba','Omari','Mushi','Salim','Shirima','Kimaro','Mwangi','Ochieng','Nkosi','Safari','Kimbikimbi','Ng\'wandu','Mtembei','Lwakatare','Mahozi','Shighi','Mwakajila','Mwamba','Ntayi','Mkumbwa','Mziray','Olotu','Mushi','Mtelekano','Mtelekano','Mwaipopo','Mwamba','Lwakatare','Mwamba','Tandau','Moyo','Shirima','Mziray','Nkosi','Kibona','Waziri','Mwakasege','Mwang\'ombe','Mweta'];
+        $positions = ['Pharmacist','Cashier','Delivery Driver','Accountant','Receptionist','Store Manager','Assistant Pharmacist','Inventory Clerk','Security Guard','Cleaner','IT Support','Marketing Officer','HR Officer','Quality Assurance','Procurement Officer','Branch Manager','Quality Controller','Compliance Officer'];
+        $departments = ['pharmacy','operations','logistics','finance','operations','management','pharmacy','operations','security','operations','it','marketing','hr','quality','procurement','management','quality','compliance'];
+        $employmentTypes = ['full_time','full_time','full_time','part_time','contract'];
+        $statuses = ['active','active','active','active','active','active','active','active','inactive','suspended'];
+        $records = [];
 
-        $created = [];
-        foreach ($employees as $data) {
-            $created[] = Employee::create($data);
+        for ($i = 1; $i <= 35; $i++) {
+            $fn = $firstNames[($i - 1) % count($firstNames)];
+            $ln = $lastNames[($i - 1) % count($lastNames)];
+            $posIdx = ($i - 1) % count($positions);
+            $region = $this->tzRegions[($i - 1) % count($this->tzRegions)];
+            $records[] = [
+                'pharmacy_id' => (($i - 1) % 6) + 1,
+                'user_id' => $i <= 31 ? $i : null,
+                'employee_number' => 'EMP-' . str_pad($i, 3, '0', STR_PAD_LEFT),
+                'first_name' => $fn,
+                'last_name' => $ln,
+                'email' => strtolower($fn . '.' . $ln . '@pharmex.com'),
+                'phone' => '+255' . $faker->numerify('7## ### ###'),
+                'date_of_birth' => $faker->dateTimeBetween('-30 years', '-22 years')->format('Y-m-d'),
+                'gender' => $faker->randomElement(['male', 'female']),
+                'national_id' => 'TZ-' . $faker->year('Y') . '-' . $faker->numerify('#####') . '-' . $faker->numerify('#####'),
+                'position' => $positions[$posIdx],
+                'department' => $departments[$posIdx],
+                'employment_type' => $faker->randomElement($employmentTypes),
+                'hire_date' => $faker->dateTimeBetween('-2 years', '-3 months')->format('Y-m-d'),
+                'contract_end_date' => $faker->dateTimeBetween('+6 months', '+2 years')->format('Y-m-d'),
+                'basic_salary' => rand(250000, 1200000),
+                'allowances' => rand(20000, 150000),
+                'tax_id' => 'TIN-' . str_pad($i, 2, '0', STR_PAD_LEFT) . '-' . $faker->numerify('#######') . '-' . chr(65 + ($i % 26)),
+                'bank_name' => $faker->randomElement($this->tzBanks),
+                'bank_account_number' => $faker->numerify('0############'),
+                'emergency_contact_name' => $faker->name,
+                'emergency_contact_phone' => '+255' . $faker->numerify('7## ### ###'),
+                'status' => $faker->randomElement($statuses),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
 
-        return $created;
+        DB::table('employees')->insert($records);
     }
 
-    private function seedAttendance(array $employees): void
+    private function seedAttendance(): void
     {
-        $weekdays = $this->getWeekdays('2026-07-14', '2026-07-25');
+        $faker = Factory::create();
+        $now = now();
+        $records = [];
+        $empCount = DB::table('employees')->count();
+        $statusWeights = ['present','present','present','present','present','present','late','late','absent','leave'];
 
-        $lateEmployees = [2, 4];
-        $absentEmployees = [3 => '2026-07-16', 5 => '2026-07-22'];
-        $overtimeEmployees = [1, 4];
+        for ($empId = 1; $empId <= $empCount; $empId++) {
+            $startDate = $now->copy()->subDays(30);
+            for ($day = 0; $day < 30; $day++) {
+                $date = $startDate->copy()->addDays($day);
+                if (in_array($date->dayOfWeek, [0, 6])) continue;
+                $status = $faker->randomElement($statusWeights);
+                $clockIn = $status === 'absent' ? null : $date->copy()->setTime(rand(7, 9), rand(0, 30))->format('Y-m-d H:i:s');
+                $clockOut = ($status === 'absent' || $status === 'leave') ? null : $date->copy()->setTime(rand(16, 18), rand(0, 59))->format('Y-m-d H:i:s');
+                $hours = $clockIn && $clockOut ? round((strtotime($clockOut) - strtotime($clockIn)) / 3600, 1) : 0;
 
-        foreach ($employees as $emp) {
-            foreach ($weekdays as $date) {
-                $dayOfWeek = date('w', strtotime($date));
-                $empIndex = $emp->id;
-
-                $clockInHour = 8;
-                $clockInMinute = 0;
-                $status = 'present';
-                $overtime = 0.0;
-                $hoursWorked = 9.0;
-                $notes = null;
-
-                if (isset($absentEmployees[$empIndex]) && $absentEmployees[$empIndex] === $date) {
-                    $clockInHour = null;
-                    $clockInMinute = null;
-                    $status = 'absent';
-                    $hoursWorked = 0;
-                } elseif (in_array($empIndex, $lateEmployees) && $this->isLateDay($empIndex, $date)) {
-                    $clockInMinute = rand(15, 30);
-                    $status = 'late';
-                } elseif (in_array($empIndex, $overtimeEmployees) && $this->isOvertimeDay($empIndex, $date)) {
-                    $overtime = round(rand(5, 20) / 10, 1);
-                    $hoursWorked = 9.0 + $overtime;
-                }
-
-                if ($status === 'absent') {
-                    $clockIn = null;
-                    $clockOut = null;
-                } else {
-                    $clockIn = "{$date} {$clockInHour}:" . str_pad($clockInMinute, 2, '0', STR_PAD_LEFT) . ':00';
-                    $clockOutTime = 17 + (int) $overtime;
-                    $clockOutMinute = $overtime > 0 ? ($overtime - (int) $overtime) * 60 : 0;
-                    $clockOut = "{$date} {$clockOutTime}:" . str_pad((int) $clockOutMinute, 2, '0', STR_PAD_LEFT) . ':00';
-                }
-
-                DB::table('attendance')->insert([
-                    'employee_id' => $empIndex,
-                    'date' => $date,
+                $records[] = [
+                    'employee_id' => $empId,
+                    'date' => $date->format('Y-m-d'),
                     'clock_in' => $clockIn,
                     'clock_out' => $clockOut,
                     'status' => $status,
-                    'hours_worked' => $hoursWorked,
-                    'overtime_hours' => $overtime,
-                    'notes' => $notes,
+                    'hours_worked' => $hours,
+                    'overtime_hours' => $status === 'present' && rand(1, 5) === 1 ? round(rand(10, 30) / 10, 1) : 0,
+                    'notes' => null,
                     'recorded_by' => 2,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
             }
         }
+
+        DB::table('attendance')->insert($records);
     }
 
-    private function seedLeaves(array $employees): void
+    private function seedLeaves(): void
     {
-        $leaves = [
-            [
-                'employee_id' => 2,
-                'leave_type' => 'annual',
-                'start_date' => '2026-07-07',
-                'end_date' => '2026-07-11',
-                'days_count' => 5,
-                'reason' => 'Family trip to Arusha for cultural festival',
-                'status' => 'approved',
-                'approved_by' => 2,
-                'approval_date' => '2026-07-01',
-            ],
-            [
-                'employee_id' => 3,
-                'leave_type' => 'sick',
-                'start_date' => '2026-07-28',
-                'end_date' => '2026-07-30',
-                'days_count' => 3,
-                'reason' => 'Medical treatment at Muhimbili Hospital for malaria',
-                'status' => 'pending',
-                'approved_by' => null,
-                'approval_date' => null,
-            ],
-            [
-                'employee_id' => 6,
-                'leave_type' => 'maternity',
-                'start_date' => '2026-08-01',
-                'end_date' => '2026-08-31',
-                'days_count' => 31,
-                'reason' => 'Maternity leave as per company policy',
-                'status' => 'approved',
-                'approved_by' => 2,
-                'approval_date' => '2026-07-15',
-            ],
-            [
-                'employee_id' => 5,
-                'leave_type' => 'annual',
-                'start_date' => '2026-07-21',
-                'end_date' => '2026-07-21',
-                'days_count' => 1,
-                'reason' => 'Personal errands in Morogoro',
-                'status' => 'rejected',
-                'approved_by' => 2,
-                'approval_date' => null,
-                'rejection_reason' => 'Busy month-end closing period. Please reschedule to next month.',
-            ],
-            [
-                'employee_id' => 1,
-                'leave_type' => 'sick',
-                'start_date' => '2026-06-15',
-                'end_date' => '2026-06-16',
-                'days_count' => 2,
-                'reason' => 'Severe flu and fever, doctor recommended rest',
-                'status' => 'approved',
-                'approved_by' => 2,
-                'approval_date' => '2026-06-15',
-            ],
+        $faker = Factory::create();
+        $now = now();
+        $leaveTypes = ['annual','sick','maternity','paternity','unpaid','bereavement','study'];
+        $statuses = ['pending','approved','rejected','approved','approved','cancelled'];
+        $reasons = [
+            'Family medical emergency in Arusha',
+            'Annual vacation to Mwanza',
+            'Malaria treatment at Muhimbili Hospital',
+            'Personal family matters in Dodoma',
+            'Maternity leave as per company policy',
+            'Medical follow-up appointment at KCMC',
+            'Bereavement in family',
+            'Relocation assistance to Iringa',
+            'Medical procedure requiring recovery',
+            'Family traditional ceremony in Kilimanjaro',
+            'Attending professional development workshop in Zanzibar',
+            'Government official duty in Dodoma',
+            'Medical treatment at Bugando Medical Centre',
+            'Family emergency in Tanga',
+            'Sick leave for tropical disease treatment',
+            'Maternity leave — delivery at Amana Hospital',
+            'Annual leave to visit Mbeya',
+            'Paternity leave for newborn child',
+            'Medical follow-up at Temeke Hospital',
+            'Family matters in Geita',
+            'Attending wedding in Morogoro',
+            'Medical treatment in Nairobi, Kenya',
+            'Annual vacation — Zanzibar trip',
+            'Personal health check-up at Aga Khan',
+            'Family gathering in Singida',
+            'Emergency dental care at Mwananyamala',
+            'Religious pilgrimage preparation',
+            'Continuing education at MUHAS',
+            'Bereavement — funeral in Mtwara',
+            'Medical eye surgery at Eye and Laser Centre',
+            'Sick leave — typhoid recovery',
+            'Family relocation to Njombe',
+            'Compassionate leave — relative hospitalization',
+            'Annual leave — travel to Katavi',
+            'Government training seminar in Songea',
         ];
+        $records = [];
 
-        foreach ($leaves as $leave) {
-            DB::table('leaves')->insert([
-                ...$leave,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        for ($i = 1; $i <= 35; $i++) {
+            $startDate = $faker->dateTimeBetween('-3 months', '+1 month');
+            $startCarbon = \Carbon\Carbon::instance($startDate);
+            $days = rand(1, 14);
+            $endCarbon = $startCarbon->copy()->addDays($days);
+            $status = $faker->randomElement($statuses);
+
+            $records[] = [
+                'employee_id' => rand(1, DB::table('employees')->count()),
+                'leave_type' => $faker->randomElement($leaveTypes),
+                'start_date' => $startCarbon->format('Y-m-d'),
+                'end_date' => $endCarbon->format('Y-m-d'),
+                'days_count' => $days,
+                'reason' => $faker->randomElement($reasons),
+                'status' => $status,
+                'approved_by' => $status === 'approved' ? rand(1, 5) : null,
+                'approval_date' => $status === 'approved' ? $startCarbon->copy()->subDays(rand(1, 5))->format('Y-m-d') : null,
+                'rejection_reason' => $status === 'rejected' ? $faker->sentence(8) : null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
+
+        DB::table('leaves')->insert($records);
     }
 
-    private function seedPayroll(array $employees): void
+    private function seedPayroll(): void
     {
-        $payrollData = [
-            1 => ['basic_salary' => 850000.00, 'allowances' => 100000.00, 'overtime_pay' => 45000.00],
-            2 => ['basic_salary' => 450000.00, 'allowances' => 50000.00, 'overtime_pay' => 0.00],
-            3 => ['basic_salary' => 350000.00, 'allowances' => 30000.00, 'overtime_pay' => 0.00],
-            4 => ['basic_salary' => 900000.00, 'allowances' => 120000.00, 'overtime_pay' => 30000.00],
-            5 => ['basic_salary' => 700000.00, 'allowances' => 80000.00, 'overtime_pay' => 0.00],
-            6 => ['basic_salary' => 400000.00, 'allowances' => 40000.00, 'overtime_pay' => 0.00],
-        ];
+        $faker = Factory::create();
+        $now = now();
+        $empCount = DB::table('employees')->count();
+        $records = [];
 
-        $statuses = [
-            1 => 'paid',
-            2 => 'paid',
-            3 => 'paid',
-            4 => 'paid',
-            5 => 'paid',
-            6 => 'pending',
-        ];
-
-        foreach ($payrollData as $empId => $data) {
-            $grossSalary = $data['basic_salary'] + $data['allowances'] + $data['overtime_pay'];
-            $payeTax = $this->calculatePAYE($data['basic_salary'] + $data['overtime_pay']);
-            $nssfEmployee = round($data['basic_salary'] * 0.10, 2);
-            $nssfEmployer = round($data['basic_salary'] * 0.10, 2);
-            $nhif = $this->calculateNHIF($grossSalary);
+        for ($empId = 1; $empId <= 35; $empId++) {
+            if ($empId > $empCount) break;
+            $basicSalary = rand(250000, 1200000);
+            $allowances = rand(20000, 150000);
+            $overtimePay = rand(0, 100000);
+            $grossSalary = $basicSalary + $allowances + $overtimePay;
+            $payeTax = round($basicSalary * 0.15, 2);
+            $nssf = round($basicSalary * 0.10, 2);
+            $nhif = round($grossSalary * 0.005, 2);
             $housingLevy = round($grossSalary * 0.03, 2);
-            $netSalary = $grossSalary - $payeTax - $nssfEmployee - $nhif - $housingLevy;
+            $netSalary = $grossSalary - $payeTax - $nssf - $nhif - $housingLevy;
+            $month = rand(1, 6);
+            $status = $month <= 4 ? 'paid' : $faker->randomElement(['paid', 'pending', 'approved']);
 
-            DB::table('payroll')->insert([
-                'pharmacy_id' => 1,
+            $records[] = [
+                'pharmacy_id' => (($empId - 1) % 6) + 1,
                 'employee_id' => $empId,
-                'period_month' => 7,
+                'period_month' => $month,
                 'period_year' => 2026,
-                'basic_salary' => $data['basic_salary'],
-                'allowances' => $data['allowances'],
-                'overtime_pay' => $data['overtime_pay'],
+                'basic_salary' => $basicSalary,
+                'allowances' => $allowances,
+                'overtime_pay' => $overtimePay,
                 'gross_salary' => $grossSalary,
                 'paye_tax' => $payeTax,
-                'nssf_employee' => $nssfEmployee,
-                'nssf_employer' => $nssfEmployer,
+                'nssf_employee' => $nssf,
+                'nssf_employer' => $nssf,
                 'nhif' => $nhif,
                 'housing_levy' => $housingLevy,
-                'other_deductions' => 0.00,
+                'other_deductions' => 0,
                 'net_salary' => $netSalary,
-                'status' => $statuses[$empId],
-                'paid_date' => $statuses[$empId] === 'paid' ? '2026-07-28' : null,
+                'status' => $status,
+                'paid_date' => $status === 'paid' ? "2026-" . str_pad($month + 1, 2, '0', STR_PAD_LEFT) . "-28" : null,
                 'payment_method' => 'bank',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
+
+        DB::table('payroll')->insert($records);
     }
 
-    private function seedPerformanceReviews(array $employees): void
+    private function seedPerformanceReviews(): void
     {
-        $reviews = [
-            [
-                'employee_id' => 1,
-                'reviewer_id' => 2,
+        $faker = Factory::create();
+        $now = now();
+        $empCount = DB::table('employees')->count();
+        $statuses = ['draft','submitted','acknowledged','acknowledged','submitted'];
+        $records = [];
+
+        for ($i = 1; $i <= 35; $i++) {
+            $rating = round(rand(20, 50) / 10, 1);
+            $status = $faker->randomElement($statuses);
+
+            $records[] = [
+                'employee_id' => rand(1, $empCount),
+                'reviewer_id' => rand(1, min(10, $empCount)),
                 'review_period_start' => '2026-01-01',
                 'review_period_end' => '2026-06-30',
-                'rating' => 4.5,
-                'goals_met' => 87.50,
-                'strengths' => 'Excellent patient counseling skills and consistently accurate dispensing. Maintained zero medication errors for the review period. Strong leadership in training new pharmacy staff.',
-                'areas_for_improvement' => 'Could improve inventory forecasting to reduce stock-outs of fast-moving items. Should delegate more routine tasks to support staff.',
-                'comments' => 'Dr. Amina is an outstanding pharmacist who consistently exceeds expectations. She has been instrumental in implementing our new dispensing protocols.',
-                'status' => 'acknowledged',
-            ],
-            [
-                'employee_id' => 4,
-                'reviewer_id' => 1,
-                'review_period_start' => '2026-01-01',
-                'review_period_end' => '2026-06-30',
-                'rating' => 4.0,
-                'goals_met' => 80.00,
-                'strengths' => 'Deep pharmacological knowledge with strong focus on chronic disease management. Excellent rapport with regular customers. Proactive in identifying drug interactions.',
-                'areas_for_improvement' => 'Needs to improve documentation of clinical consultations. Should work on faster turnaround during peak hours.',
-                'comments' => 'Fatima has been a valuable addition to the team. Her expertise in chronic disease medications has improved our service quality significantly.',
-                'status' => 'submitted',
-            ],
-            [
-                'employee_id' => 5,
-                'reviewer_id' => 2,
-                'review_period_start' => '2026-01-01',
-                'review_period_end' => '2026-06-30',
-                'rating' => 3.5,
-                'goals_met' => 70.00,
-                'strengths' => 'Accurate and timely financial reporting. Good attention to detail in reconciliation. Maintained proper books of accounts throughout the period.',
-                'areas_for_improvement' => 'Should develop more comprehensive financial analysis reports. Needs to improve communication with pharmacy staff on budget matters.',
-                'comments' => 'Peter handles day-to-day accounting well. Need to see more proactive financial analysis and cost-saving recommendations.',
-                'status' => 'draft',
-            ],
-        ];
-
-        foreach ($reviews as $review) {
-            DB::table('performance_reviews')->insert([
-                ...$review,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-    }
-
-    private function calculatePAYE(float $taxableIncome): float
-    {
-        $annualTaxable = $taxableIncome;
-        $paye = 0.0;
-
-        if ($annualTaxable <= 270000) {
-            $paye = 0;
-        } elseif ($annualTaxable <= 520000) {
-            $paye = ($annualTaxable - 270000) * 0.08;
-        } elseif ($annualTaxable <= 840000) {
-            $paye = 20000 + ($annualTaxable - 520000) * 0.20;
-        } elseif ($annualTaxable <= 1180000) {
-            $paye = 84000 + ($annualTaxable - 840000) * 0.25;
-        } else {
-            $paye = 169000 + ($annualTaxable - 1180000) * 0.30;
+                'rating' => $rating,
+                'goals_met' => round(rand(50, 100), 2),
+                'strengths' => $faker->sentence(12),
+                'areas_for_improvement' => $faker->sentence(10),
+                'comments' => $faker->sentence(15),
+                'status' => $status,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
 
-        return round($paye, 2);
-    }
-
-    private function calculateNHIF(float $grossSalary): float
-    {
-        $nhifScale = [
-            ['min' => 0, 'max' => 50000, 'deduction' => 500],
-            ['min' => 50001, 'max' => 80000, 'deduction' => 800],
-            ['min' => 80001, 'max' => 120000, 'deduction' => 1200],
-            ['min' => 120001, 'max' => 200000, 'deduction' => 1500],
-            ['min' => 200001, 'max' => 300000, 'deduction' => 2000],
-            ['min' => 300001, 'max' => 400000, 'deduction' => 2500],
-            ['min' => 400001, 'max' => 500000, 'deduction' => 3000],
-            ['min' => 500001, 'max' => 600000, 'deduction' => 3500],
-            ['min' => 600001, 'max' => 700000, 'deduction' => 4000],
-            ['min' => 700001, 'max' => 800000, 'deduction' => 4500],
-            ['min' => 800001, 'max' => 900000, 'deduction' => 5000],
-            ['min' => 900001, 'max' => 1000000, 'deduction' => 5500],
-            ['min' => 1000001, 'max' => PHP_INT_MAX, 'deduction' => 6000],
-        ];
-
-        foreach ($nhifScale as $tier) {
-            if ($grossSalary >= $tier['min'] && $grossSalary <= $tier['max']) {
-                return $tier['deduction'];
-            }
-        }
-
-        return 6000.00;
-    }
-
-    private function getWeekdays(string $startDate, string $endDate): array
-    {
-        $dates = [];
-        $current = new \DateTime($startDate);
-        $end = new \DateTime($endDate);
-
-        while ($current <= $end) {
-            $dayOfWeek = (int) $current->format('w');
-            if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
-                $dates[] = $current->format('Y-m-d');
-            }
-            $current->modify('+1 day');
-        }
-
-        return $dates;
-    }
-
-    private function isLateDay(int $empId, string $date): bool
-    {
-        $latePatterns = [
-            2 => ['2026-07-15', '2026-07-23'],
-            4 => ['2026-07-18', '2026-07-24'],
-        ];
-
-        return isset($latePatterns[$empId]) && in_array($date, $latePatterns[$empId]);
-    }
-
-    private function isOvertimeDay(int $empId, string $date): bool
-    {
-        $overtimePatterns = [
-            1 => ['2026-07-14', '2026-07-17', '2026-07-21', '2026-07-25'],
-            4 => ['2026-07-16', '2026-07-22'],
-        ];
-
-        return isset($overtimePatterns[$empId]) && in_array($date, $overtimePatterns[$empId]);
+        DB::table('performance_reviews')->insert($records);
     }
 }

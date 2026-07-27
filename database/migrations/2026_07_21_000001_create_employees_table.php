@@ -21,7 +21,7 @@ return new class extends Migration
             $table->enum('gender', ['male', 'female', 'other'])->default('male');
             $table->string('national_id')->nullable();
             $table->string('position');
-            $table->enum('department', ['pharmacy', 'management', 'finance', 'operations', 'hr'])->default('pharmacy');
+            $table->string('department')->default('pharmacy');
             $table->enum('employment_type', ['full_time', 'part_time', 'contract', 'intern'])->default('full_time');
             $table->date('hire_date');
             $table->date('contract_end_date')->nullable();

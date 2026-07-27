@@ -43,7 +43,7 @@ export default function Footer() {
                 <a href="tel:+255625460081" className="hover:text-white transition-colors">+255 625 460 081</a>
               </li>
               <li>
-                <a href="mailto:info@pharmex.com" className="hover:text-white transition-colors">info@pharmex.com</a>
+                <a href="mailto:allosltd@gmail.com" className="hover:text-white transition-colors">allosltd@gmail.com</a>
               </li>
             </ul>
             <div className="flex gap-3 mt-5">

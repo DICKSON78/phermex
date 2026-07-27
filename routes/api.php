@@ -41,6 +41,8 @@ use App\Http\Controllers\Api\LicenseController;
 use App\Http\Controllers\Api\RegulatoryReportController;
 use App\Http\Controllers\Api\DrugRecallController;
 use App\Http\Controllers\Api\DemoRequestController;
+use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\AdminJobController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\SubscriptionController;
@@ -54,6 +56,27 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/demo-requests', [DemoRequestController::class, 'store']);
+
+Route::post('/contact', function (\Illuminate\Http\Request $request) {
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'subject' => 'required|string|max:255',
+        'message' => 'required|string|max:5000',
+    ]);
+    \App\Models\DemoRequest::create([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'phone' => '',
+        'service' => $validated['subject'],
+        'message' => $validated['message'],
+    ]);
+    return response()->json(['message' => 'Message sent successfully! We will get back to you within 24 hours.']);
+});
+
+Route::get('/jobs', [JobController::class, 'index']);
+Route::get('/jobs/{id}', [JobController::class, 'show']);
+Route::post('/jobs/{id}/apply', [JobController::class, 'apply']);
 
 Route::prefix('customer-app')->group(function () {
     Route::post('/register', [CustomerAppController::class, 'register']);
@@ -385,6 +408,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Admin Subscriptions
         Route::get('/subscriptions', [AdminSubscriptionController::class, 'index']);
+
+        // Admin Job Listings
+        Route::get('/jobs', [AdminJobController::class, 'index']);
+        Route::post('/jobs', [AdminJobController::class, 'store']);
+        Route::get('/jobs/{id}', [AdminJobController::class, 'show']);
+        Route::put('/jobs/{id}', [AdminJobController::class, 'update']);
+        Route::delete('/jobs/{id}', [AdminJobController::class, 'destroy']);
+        Route::patch('/jobs/{id}/toggle-status', [AdminJobController::class, 'toggleStatus']);
+        Route::get('/jobs/{id}/applications', [AdminJobController::class, 'applications']);
+        Route::patch('/job-applications/{id}', [AdminJobController::class, 'updateApplication']);
+        Route::get('/job-applications', [AdminJobController::class, 'allApplications']);
     });
 
     Route::prefix('notifications')->group(function () {

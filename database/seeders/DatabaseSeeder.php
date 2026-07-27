@@ -48,6 +48,7 @@ class DatabaseSeeder extends Seeder
             ChatSeeder::class,
             AdminModuleSeeder::class,
             DemoRequestsSeeder::class,
+            JobListingsSeeder::class,
         ]);
     }
 

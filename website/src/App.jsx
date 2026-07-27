@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import ProductsPage from './pages/ProductsPage'
 import CareersPage from './pages/CareersPage'
+import JobDetailPage from './pages/JobDetailPage'
 import NewsroomPage from './pages/NewsroomPage'
 import ArticlePage from './pages/ArticlePage'
 import FAQPage from './pages/FAQPage'
@@ -32,6 +33,7 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/careers" element={<CareersPage />} />
+          <Route path="/careers/:id" element={<JobDetailPage />} />
           <Route path="/newsroom" element={<NewsroomPage />} />
           <Route path="/newsroom/:slug" element={<ArticlePage />} />
           <Route path="/faq" element={<FAQPage />} />

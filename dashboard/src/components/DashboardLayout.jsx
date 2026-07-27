@@ -38,6 +38,7 @@ import {
   BadgeCheck,
   CreditCard,
   MessageCircle,
+  Briefcase,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -129,6 +130,9 @@ import AdminRevenueShowPage from '../pages/admin/AdminRevenueShowPage'
 import AdminDrugFormPage from '../pages/admin/AdminDrugFormPage'
 import AdminDrugShowPage from '../pages/admin/AdminDrugShowPage'
 import AdminPendingApprovalsPage from '../pages/admin/AdminPendingApprovalsPage'
+import AdminJobsPage from '../pages/admin/AdminJobsPage'
+import AdminJobFormPage from '../pages/admin/AdminJobFormPage'
+import AdminJobShowPage from '../pages/admin/AdminJobShowPage'
 
 const ownerNavGroups = [
   {
@@ -264,6 +268,12 @@ const adminNavGroups = [
       { path: '/admin/support', icon: FileText, label: 'Support Tickets' },
       { path: '/admin/content', icon: BookOpen, label: 'Content & Announcements' },
       { path: '/admin/marketing', icon: ClipboardList, label: 'Marketing' },
+    ],
+  },
+  {
+    label: 'CAREERS',
+    items: [
+      { path: '/admin/jobs', icon: Briefcase, label: 'Job Listings' },
     ],
   },
   {
@@ -657,6 +667,10 @@ export default function DashboardLayout({ role }) {
               <Route path="drug-database/new" element={<AdminDrugFormPage />} />
               <Route path="drug-database/:id" element={<AdminDrugShowPage />} />
               <Route path="drug-database/:id/edit" element={<AdminDrugFormPage />} />
+              <Route path="jobs" element={<AdminJobsPage />} />
+              <Route path="jobs/new" element={<AdminJobFormPage />} />
+              <Route path="jobs/:id" element={<AdminJobShowPage />} />
+              <Route path="jobs/:id/edit" element={<AdminJobFormPage />} />
               <Route path="*" element={<Navigate to="/admin" replace />} />
             </Routes>
           )}

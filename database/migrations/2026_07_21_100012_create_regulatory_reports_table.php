@@ -11,13 +11,7 @@ return new class extends Migration
         Schema::create('regulatory_reports', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pharmacy_id')->constrained('pharmacies')->cascadeOnDelete();
-            $table->enum('report_type', [
-                'monthly_sales',
-                'quarterly_tmda',
-                'annual_return',
-                'control_substance',
-                'expiry_report',
-            ]);
+            $table->string('report_type');
             $table->integer('report_period_month');
             $table->integer('report_period_year');
             $table->json('report_data');

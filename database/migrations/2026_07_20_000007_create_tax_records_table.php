@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('tax_records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pharmacy_id')->constrained('pharmacies')->cascadeOnDelete();
-            $table->enum('tax_type', ['VAT', 'PAYE', 'NSSF', 'NHIF', 'Housing']);
+            $table->enum('tax_type', ['VAT', 'PAYE', 'NSSF', 'NHIF', 'Housing', 'SDL', 'WHT']);
             $table->unsignedTinyInteger('period_month');
             $table->unsignedSmallInteger('period_year');
             $table->decimal('taxable_amount', 15, 2);

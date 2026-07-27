@@ -15,7 +15,7 @@ return new class extends Migration
             $table->decimal('amount', 12, 2);
             $table->string('payment_method')->nullable();
             $table->string('transaction_id')->nullable();
-            $table->enum('status', ['active', 'expired', 'suspended'])->default('active');
+            $table->enum('status', ['active', 'expired', 'suspended', 'cancelled'])->default('active');
             $table->date('start_date');
             $table->date('end_date');
             $table->timestamps();

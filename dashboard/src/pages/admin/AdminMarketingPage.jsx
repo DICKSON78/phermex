@@ -104,7 +104,7 @@ export default function AdminMarketingPage() {
     } catch (err) {
       console.warn('Failed to fetch marketing data:', err.message)
       setError(err.message)
-      setData({})
+      setData(null)
     } finally {
       setLoading(false)
     }
@@ -117,7 +117,7 @@ export default function AdminMarketingPage() {
     } catch {}
     setData((prev) => ({
       ...prev,
-      campaigns: prev.campaigns.map((c) => (c.id === campaign.id ? { ...c, status: newStatus } : c)),
+      campaigns: (prev.campaigns || []).map((c) => (c.id === campaign.id ? { ...c, status: newStatus } : c)),
     }))
   }
 
@@ -127,7 +127,7 @@ export default function AdminMarketingPage() {
     } catch {}
     setData((prev) => ({
       ...prev,
-      campaigns: prev.campaigns.filter((c) => c.id !== campaign.id),
+      campaigns: (prev.campaigns || []).filter((c) => c.id !== campaign.id),
     }))
   }
 

@@ -56,7 +56,7 @@ export default function AdminReportsPage() {
     try {
       setLoading(true)
       const response = await api.get('/admin/reports')
-      setData(response.data || {})
+      setData(response.data?.data || {})
     } catch (err) {
       console.warn('Failed to fetch reports:', err.message)
       setError(err.message)
@@ -111,10 +111,10 @@ export default function AdminReportsPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <StatCard label="Total Revenue" value={formatCurrency(data.stats.totalRevenue)} icon={<DollarSign className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix="All time" />
-        <StatCard label="Total Orders" value={data.stats.totalOrders.toLocaleString()} icon={<ShoppingCart className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix="All time" />
-        <StatCard label="Active Users" value={data.stats.activeUsers} icon={<Users className="w-5 h-5" />} iconColor="text-purple-600" bg="bg-purple-100" suffix="Platform-wide" />
-        <StatCard label="Growth Rate" value={`${data.stats.growthRate}%`} icon={<TrendingUp className="w-5 h-5" />} iconColor="text-amber-600" bg="bg-amber-100" suffix="Month over month" />
+        <StatCard label="Total Revenue" value={formatCurrency(data.stats?.totalRevenue || 0)} icon={<DollarSign className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix="All time" />
+        <StatCard label="Total Orders" value={(data.stats?.totalOrders || 0).toLocaleString()} icon={<ShoppingCart className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix="All time" />
+        <StatCard label="Active Users" value={data.stats?.activeUsers || 0} icon={<Users className="w-5 h-5" />} iconColor="text-purple-600" bg="bg-purple-100" suffix="Platform-wide" />
+        <StatCard label="Growth Rate" value={`${data.stats?.growthRate || 0}%`} icon={<TrendingUp className="w-5 h-5" />} iconColor="text-amber-600" bg="bg-amber-100" suffix="Month over month" />
       </div>
 
       {/* Quick Report Links */}
@@ -160,7 +160,7 @@ export default function AdminReportsPage() {
           <div className="p-6">
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.revenueChart}>
+                <AreaChart data={data.monthly_revenue || []}>
                   <defs>
                     <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0FD452" stopOpacity={0.3} />
@@ -169,7 +169,7 @@ export default function AdminReportsPage() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} tickFormatter={(v) => `${(v/1000000).toFixed(0)}M`} />
                   <Tooltip
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
                     formatter={(value) => [formatCurrency(value), 'Revenue']}
@@ -192,7 +192,7 @@ export default function AdminReportsPage() {
           <div className="p-6">
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.ordersByStatus}>
+                <BarChart data={data.orders_by_status || []}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="status" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} />
@@ -200,7 +200,7 @@ export default function AdminReportsPage() {
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
                   />
                   <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                    {data.ordersByStatus.map((entry, index) => (
+                    {(data.orders_by_status || []).map((entry, index) => (
                       <rect key={index} fill={entry.fill} />
                     ))}
                   </Bar>
@@ -250,8 +250,8 @@ export default function AdminReportsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {data.ordersByStatus.length > 0 ? data.ordersByStatus.map((item) => {
-                const pct = data.stats.totalOrders > 0 ? ((item.count / data.stats.totalOrders) * 100).toFixed(1) : 0
+              {(data.orders_by_status || []).length > 0 ? (data.orders_by_status || []).map((item) => {
+                const pct = (data.stats?.totalOrders || 0) > 0 ? ((item.count / data.stats.totalOrders) * 100).toFixed(1) : 0
                 return (
                   <tr key={item.status} className="transition-colors hover:bg-[#0FD452]/5">
                     <td className="px-6 py-4">
@@ -292,15 +292,15 @@ export default function AdminReportsPage() {
 
 function StatCard({ label, value, icon, iconColor, bg, suffix }) {
   return (
-    <div className="stat-card group">
+    <div className="stat-card group min-h-[120px] md:min-h-[140px]">
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 truncate">{label}</p>
-          <p className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">{value}</p>
+          <p className="text-3xl sm:text-4xl md:text-[2.25rem] lg:text-[2.5rem] font-extrabold tracking-tight text-gray-900 leading-tight break-all md:break-normal">{value}</p>
           {suffix && <p className="text-xs text-gray-500 mt-1.5">{suffix}</p>}
         </div>
         {icon && (
-          <div className={`stat-icon group-hover:scale-110 transition-transform duration-300 ${bg || 'bg-gray-100'}`}>
+          <div className={`stat-icon group-hover:scale-110 transition-transform duration-300 flex-shrink-0 ml-3 ${bg || 'bg-gray-100'}`}>
             <span className={iconColor || 'text-gray-600'}>{icon}</span>
           </div>
         )}

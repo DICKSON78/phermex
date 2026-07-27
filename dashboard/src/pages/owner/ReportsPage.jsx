@@ -230,6 +230,7 @@ export default function ReportsPage() {
 }
 
 function SalesReport({ data }) {
+  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><BarChart3 className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No sales data available</p></div>
   const stats = [
     { label: 'Total Revenue', value: formatCurrency(data.totalRevenue), icon: DollarSign, color: 'bg-[#0FD452]/10 text-[#0FD452]', trend: data.revenueTrend },
     { label: 'Total Orders', value: data.totalOrders.toLocaleString(), icon: ShoppingCart, color: 'bg-blue-500/10 text-blue-500', trend: 8.2 },
@@ -336,6 +337,7 @@ function SalesReport({ data }) {
 }
 
 function InventoryReport({ data }) {
+  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><Package className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No inventory data available</p></div>
   const stats = [
     { label: 'Total Drugs', value: data.totalDrugs.toLocaleString(), icon: Package, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
     { label: 'Stock Value', value: formatCurrency(data.totalStockValue), icon: DollarSign, color: 'bg-blue-500/10 text-blue-500' },
@@ -439,6 +441,7 @@ function InventoryReport({ data }) {
 }
 
 function FinancialReport({ data }) {
+  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><DollarSign className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No financial data available</p></div>
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -595,6 +598,7 @@ function FinancialReport({ data }) {
 }
 
 function CustomersReport({ data }) {
+  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><Users className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No customer data available</p></div>
   const stats = [
     { label: 'Total Customers', value: data.totalCustomers.toLocaleString(), icon: Users, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
     { label: 'New This Month', value: data.newCustomersThisMonth, icon: TrendingUp, color: 'bg-blue-500/10 text-blue-500' },

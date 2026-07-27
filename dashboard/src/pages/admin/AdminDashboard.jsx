@@ -99,7 +99,7 @@ export default function AdminDashboard() {
       } catch (err) {
         console.warn('Failed to fetch admin dashboard:', err.message)
         setError(err.message)
-        setData({})
+        setData(null)
       } finally {
         setLoading(false)
       }
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
               <ResponsiveContainer width={240} height={240}>
                 <PieChart>
                   <Pie
-                    data={data.revenueBreakdown}
+                    data={data.revenueBreakdown || []}
                     cx="50%"
                     cy="50%"
                     innerRadius={70}
@@ -214,7 +214,7 @@ export default function AdminDashboard() {
                     paddingAngle={4}
                     dataKey="value"
                   >
-                    {data.revenueBreakdown.map((entry, index) => (
+                    {(data.revenueBreakdown || []).map((entry, index) => (
                       <Cell key={index} fill={entry.color} />
                     ))}
                   </Pie>
@@ -231,11 +231,11 @@ export default function AdminDashboard() {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <p className="text-xs text-gray-500">Total</p>
-                <p className="text-lg font-bold text-gray-900">{formatCurrency(data.revenueBreakdown.reduce((s, w) => s + w.value, 0))}</p>
+                <p className="text-lg font-bold text-gray-900">{formatCurrency((data.revenueBreakdown || []).reduce((s, w) => s + w.value, 0))}</p>
               </div>
             </div>
             <div className="flex-1 grid grid-cols-2 gap-4">
-              {data.revenueBreakdown.map((week) => (
+              {(data.revenueBreakdown || []).map((week) => (
                 <div key={week.name} className="flex items-center gap-3 rounded-xl bg-gray-50 p-4">
                   <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: week.color + '15' }}>
                     <div className="h-3 w-3 rounded-full" style={{ backgroundColor: week.color }} />
@@ -264,7 +264,7 @@ export default function AdminDashboard() {
           <div className="p-6">
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.userGrowth}>
+                <BarChart data={data.userGrowth || []}>
                   <defs>
                     <linearGradient id="adminUserGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0FD452" stopOpacity={0.9} />

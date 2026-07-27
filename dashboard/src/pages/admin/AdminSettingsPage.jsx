@@ -38,10 +38,20 @@ export default function AdminSettingsPage() {
   const fetchSettings = async () => {
     try {
       const response = await api.get('/admin/settings')
-      const remote = response.data || {}
-      setSettings(remote)
+      const remote = response.data?.data || response.data || {}
+      setSettings({
+        platform: remote.platform || { name: 'Pharmex', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
+        plans: remote.plans || [],
+        notifications: remote.notifications || { email_enabled: true, sms_enabled: false },
+        data_retention: remote.retention || remote.data_retention || { period: '90' },
+      })
     } catch {
-      setSettings({})
+      setSettings({
+        platform: { name: 'Pharmex', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
+        plans: [],
+        notifications: { email_enabled: true, sms_enabled: false },
+        data_retention: { period: '90' },
+      })
     } finally {
       setLoading(false)
     }
@@ -50,7 +60,7 @@ export default function AdminSettingsPage() {
   const handleSavePlatform = async () => {
     setSaving('platform')
     try {
-      await api.put('/admin/settings/platform', settings.platform)
+      await api.put('/admin/settings/platform', settings.platform || {})
     } catch {}
     setTimeout(() => {
       setSaving(null)
@@ -62,7 +72,7 @@ export default function AdminSettingsPage() {
   const handleSaveNotifications = async () => {
     setSaving('notifications')
     try {
-      await api.put('/admin/settings/notifications', settings.notifications)
+      await api.put('/admin/settings/notifications', settings.notifications || {})
     } catch {}
     setTimeout(() => {
       setSaving(null)
@@ -74,7 +84,7 @@ export default function AdminSettingsPage() {
   const handleSaveRetention = async () => {
     setSaving('retention')
     try {
-      await api.put('/admin/settings/retention', settings.data_retention)
+      await api.put('/admin/settings/retention', settings.data_retention || {})
     } catch {}
     setTimeout(() => {
       setSaving(null)
@@ -138,7 +148,7 @@ export default function AdminSettingsPage() {
                 <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  value={settings.platform.name}
+                  value={(settings.platform || {}).name}
                   onChange={(e) =>
                     setSettings((prev) => ({
                       ...prev,
@@ -156,7 +166,7 @@ export default function AdminSettingsPage() {
                 <FileText className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  value={settings.platform.tagline}
+                  value={(settings.platform || {}).tagline}
                   onChange={(e) =>
                     setSettings((prev) => ({
                       ...prev,
@@ -174,7 +184,7 @@ export default function AdminSettingsPage() {
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                   type="email"
-                  value={settings.platform.support_email}
+                  value={(settings.platform || {}).support_email}
                   onChange={(e) =>
                     setSettings((prev) => ({
                       ...prev,
@@ -192,7 +202,7 @@ export default function AdminSettingsPage() {
                 <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                   type="tel"
-                  value={settings.platform.support_phone}
+                  value={(settings.platform || {}).support_phone}
                   onChange={(e) =>
                     setSettings((prev) => ({
                       ...prev,

@@ -84,7 +84,7 @@ export default function AdminDrugDatabasePage() {
     } catch (err) {
       console.warn('Failed to fetch drug database:', err.message)
       setError(err.message)
-      setData({})
+      setData(null)
     } finally {
       setLoading(false)
     }
@@ -93,7 +93,7 @@ export default function AdminDrugDatabasePage() {
   const handleArchive = async (drug) => {
     setData((prev) => ({
       ...prev,
-      drugs: prev.drugs.map((d) => (d.id === drug.id ? { ...d, status: 'Discontinued', usedBy: 0 } : d)),
+      drugs: (prev.drugs || []).map((d) => (d.id === drug.id ? { ...d, status: 'Discontinued', usedBy: 0 } : d)),
     }))
     try {
       await api.patch(`/admin/drug-database/${drug.id}`, { status: 'Discontinued' })
@@ -103,7 +103,7 @@ export default function AdminDrugDatabasePage() {
   const handleFlagRecall = async (drug) => {
     setData((prev) => ({
       ...prev,
-      drugs: prev.drugs.map((d) => (d.id === drug.id ? { ...d, status: 'Recalled', usedBy: 0 } : d)),
+      drugs: (prev.drugs || []).map((d) => (d.id === drug.id ? { ...d, status: 'Recalled', usedBy: 0 } : d)),
     }))
     try {
       await api.patch(`/admin/drug-database/${drug.id}`, { status: 'Recalled' })

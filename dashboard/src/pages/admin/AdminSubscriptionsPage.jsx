@@ -70,10 +70,12 @@ export default function AdminSubscriptionsPage() {
   const fetchSubscriptions = async () => {
     try {
       setLoading(true)
-      const response = await api.get('/subscriptions/plans')
-      const rawData = response.data.data || response.data || {}
-      const subscriptions = Array.isArray(rawData) ? rawData : (rawData.subscriptions || [])
-      setData({ ...(typeof rawData === 'object' && !Array.isArray(rawData) ? rawData : {}), subscriptions })
+      const response = await api.get('/admin/subscriptions')
+      const raw = response.data?.data || response.data || {}
+      const subs = raw.subscriptions || (Array.isArray(raw) ? raw : [])
+      const stats = raw.stats || { activeSubscriptions: 0, monthlyRevenue: 0, trialUsers: 0, churnRate: 0 }
+
+      setData({ subscriptions: subs, stats })
     } catch (err) {
       console.warn('Failed to fetch subscriptions:', err.message)
       setError(err.message)
@@ -161,10 +163,10 @@ export default function AdminSubscriptionsPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <StatCard label="Active Subscriptions" value={data.stats.activeSubscriptions} icon={<Users className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix="Currently active" />
-        <StatCard label="Monthly Revenue" value={formatCurrency(data.stats.monthlyRevenue)} icon={<TrendingUp className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix="Recurring revenue" />
-        <StatCard label="Trial Users" value={data.stats.trialUsers} icon={<BarChart3 className="w-5 h-5" />} iconColor="text-purple-600" bg="bg-purple-100" suffix="On free trial" />
-        <StatCard label="Churn Rate" value={`${data.stats.churnRate}%`} icon={<AlertTriangle className="w-5 h-5" />} iconColor="text-red-600" bg="bg-red-100" suffix="Monthly churn" />
+        <StatCard label="Active Subscriptions" value={data.stats?.activeSubscriptions || 0} icon={<Users className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix="Currently active" />
+        <StatCard label="Monthly Revenue" value={formatCurrency(data.stats?.monthlyRevenue || 0)} icon={<TrendingUp className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix="Recurring revenue" />
+        <StatCard label="Trial Users" value={data.stats?.trialUsers || 0} icon={<BarChart3 className="w-5 h-5" />} iconColor="text-purple-600" bg="bg-purple-100" suffix="On free trial" />
+        <StatCard label="Churn Rate" value={`${data.stats?.churnRate || 0}%`} icon={<AlertTriangle className="w-5 h-5" />} iconColor="text-red-600" bg="bg-red-100" suffix="Monthly churn" />
       </div>
 
       <div className="card">

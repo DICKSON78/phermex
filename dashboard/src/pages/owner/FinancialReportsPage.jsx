@@ -104,6 +104,7 @@ export default function FinancialReportsPage() {
 }
 
 function IncomeStatement({ data, dateFrom, dateTo }) {
+  if (!data) return <div className="card p-12 text-center text-gray-400"><FileText className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No income statement data available</p></div>
   return (
     <div className="space-y-6">
       <div className="bg-white backdrop-blur border border-gray-200 rounded-xl overflow-hidden">
@@ -176,6 +177,7 @@ function IncomeStatement({ data, dateFrom, dateTo }) {
 }
 
 function BalanceSheet({ data, asOf }) {
+  if (!data) return <div className="card p-12 text-center text-gray-400"><FileText className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No balance sheet data available</p></div>
   return (
     <div className="bg-white backdrop-blur border border-gray-200 rounded-xl overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200 text-center">
@@ -252,6 +254,7 @@ function BalanceSheet({ data, asOf }) {
 }
 
 function CashFlowStatement({ data, dateFrom, dateTo }) {
+  if (!data) return <div className="card p-12 text-center text-gray-400"><FileText className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No cash flow data available</p></div>
   const chartData = [
     { category: 'Operating', amount: data.netOperating },
     { category: 'Investing', amount: data.netInvesting },

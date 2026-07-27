@@ -94,8 +94,32 @@ class AdminReportController extends Controller
                 ->orderBy('month')
                 ->get();
 
+            $ordersByStatus = Order::select('order_status', DB::raw('count(*) as count'))
+                ->groupBy('order_status')
+                ->get()
+                ->map(function ($item) {
+                    $colors = [
+                        'pending' => '#F59E0B',
+                        'processing' => '#3B82F6',
+                        'completed' => '#10B981',
+                        'cancelled' => '#EF4444',
+                        'delivered' => '#0FD452',
+                    ];
+                    return [
+                        'status' => ucfirst($item->order_status),
+                        'count' => (int) $item->count,
+                        'fill' => $colors[$item->order_status] ?? '#6B7280',
+                    ];
+                });
+
             return response()->json([
                 'data' => [
+                    'stats' => [
+                        'totalRevenue' => $totalRevenue,
+                        'totalOrders' => $totalOrders,
+                        'activeUsers' => $totalUsers,
+                        'growthRate' => $calculateGrowth($revenueThisMonth, $revenueLastMonth),
+                    ],
                     'pharmacies' => [
                         'total' => $totalPharmacies,
                         'active' => $activePharmacies,
@@ -121,6 +145,7 @@ class AdminReportController extends Controller
                         'total_value' => $totalOrderValue,
                         'this_month' => $ordersThisMonth,
                     ],
+                    'orders_by_status' => $ordersByStatus,
                     'growth' => [
                         'pharmacies' => $calculateGrowth($pharmaciesThisMonth, $pharmaciesLastMonth),
                         'users' => $calculateGrowth($usersThisMonth, $usersLastMonth),

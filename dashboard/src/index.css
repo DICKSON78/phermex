@@ -50,7 +50,7 @@ body {
 .card:hover { @apply shadow-md; }
 
 .stat-card {
-  @apply bg-white rounded-2xl border border-gray-200 shadow-sm p-5 transition-all duration-300;
+  @apply bg-white rounded-2xl border border-gray-200 shadow-sm p-6 transition-all duration-300;
 }
 .stat-card:hover {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
@@ -58,7 +58,7 @@ body {
   transform: translateY(-2px);
 }
 .stat-icon {
-  @apply w-12 h-12 rounded-xl flex items-center justify-center;
+  @apply w-14 h-14 rounded-xl flex items-center justify-center;
 }
 
 .quick-action {

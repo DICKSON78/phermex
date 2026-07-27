@@ -43,8 +43,40 @@ function Field({ label, children }) {
 
 export default function AdminPlatformSettingsPage() {
   const [activeSection, setActiveSection] = useState('general')
-  const [settings, setSettings] = useState({})
+  const [settings, setSettings] = useState({
+    general: {
+      platform_name: 'Pharmex',
+      platform_url: 'https://pharmexdawa.online',
+      support_email: 'support@pharmexdawa.online',
+      support_phone: '+255 625 460 081',
+      default_currency: 'TZS',
+      secondary_currency: 'USD',
+      exchange_rate: 2500,
+      default_timezone: 'Africa/Dar_es_Salaam',
+      maintenance_mode: false,
+    },
+    security: {
+      two_factor_required: false,
+      session_timeout: 30,
+      max_login_attempts: 5,
+      lockout_duration: 15,
+      password_min_length: 8,
+      require_special_chars: true,
+      require_numbers: true,
+    },
+    payment: {
+      gateway: 'M-Pesa',
+      test_mode: false,
+      monthly_fee_basic: 50000,
+      monthly_fee_pro: 100000,
+      monthly_fee_enterprise: 200000,
+      trial_days: 7,
+      late_fee_percent: 5,
+    },
+  })
   const [saved, setSaved] = useState(false)
+
+  const { general: gen = {}, security: sec = {}, payment: pay = {} } = settings
 
   const updateGeneral = (key, value) => {
     setSettings(prev => ({ ...prev, general: { ...prev.general, [key]: value } }))
@@ -117,19 +149,19 @@ export default function AdminPlatformSettingsPage() {
               </div>
               <div className="p-6">
                 <Field label="Platform Name">
-                  <input type="text" value={settings.general.platform_name} onChange={(e) => updateGeneral('platform_name', e.target.value)} className="form-input" />
+                  <input type="text" value={gen.platform_name} onChange={(e) => updateGeneral('platform_name', e.target.value)} className="form-input" />
                 </Field>
                 <Field label="Platform URL">
-                  <input type="url" value={settings.general.platform_url} onChange={(e) => updateGeneral('platform_url', e.target.value)} className="form-input" />
+                  <input type="url" value={gen.platform_url} onChange={(e) => updateGeneral('platform_url', e.target.value)} className="form-input" />
                 </Field>
                 <Field label="Support Email">
-                  <input type="email" value={settings.general.support_email} onChange={(e) => updateGeneral('support_email', e.target.value)} className="form-input" />
+                  <input type="email" value={gen.support_email} onChange={(e) => updateGeneral('support_email', e.target.value)} className="form-input" />
                 </Field>
                 <Field label="Support Phone">
-                  <input type="tel" value={settings.general.support_phone} onChange={(e) => updateGeneral('support_phone', e.target.value)} className="form-input" />
+                  <input type="tel" value={gen.support_phone} onChange={(e) => updateGeneral('support_phone', e.target.value)} className="form-input" />
                 </Field>
                 <Field label="Primary Currency">
-                  <select value={settings.general.default_currency} onChange={(e) => updateGeneral('default_currency', e.target.value)} className="form-input">
+                  <select value={gen.default_currency} onChange={(e) => updateGeneral('default_currency', e.target.value)} className="form-input">
                     <option value="TZS">TZS — Tanzania Shilling</option>
                     <option value="USD">USD — US Dollar</option>
                     <option value="KES">KES — Kenyan Shilling</option>
@@ -137,7 +169,7 @@ export default function AdminPlatformSettingsPage() {
                   </select>
                 </Field>
                 <Field label="Secondary Currency">
-                  <select value={settings.general.secondary_currency || 'USD'} onChange={(e) => updateGeneral('secondary_currency', e.target.value)} className="form-input">
+                  <select value={gen.secondary_currency || 'USD'} onChange={(e) => updateGeneral('secondary_currency', e.target.value)} className="form-input">
                     <option value="USD">USD — US Dollar</option>
                     <option value="TZS">TZS — Tanzania Shilling</option>
                     <option value="KES">KES — Kenyan Shilling</option>
@@ -145,18 +177,18 @@ export default function AdminPlatformSettingsPage() {
                   </select>
                 </Field>
                 <Field label="Exchange Rate (Primary → Secondary)">
-                  <input type="number" step="0.01" value={settings.general.exchange_rate || 2500} onChange={(e) => updateGeneral('exchange_rate', parseFloat(e.target.value))} className="form-input" />
-                  <p className="text-xs text-gray-400 mt-1">1 {settings.general.default_currency} = {settings.general.exchange_rate || 2500} {settings.general.secondary_currency || 'USD'}</p>
+                  <input type="number" step="0.01" value={gen.exchange_rate || 2500} onChange={(e) => updateGeneral('exchange_rate', parseFloat(e.target.value))} className="form-input" />
+                  <p className="text-xs text-gray-400 mt-1">1 {gen.default_currency} = {gen.exchange_rate || 2500} {gen.secondary_currency || 'USD'}</p>
                 </Field>
                 <Field label="Timezone">
-                  <select value={settings.general.default_timezone} onChange={(e) => updateGeneral('default_timezone', e.target.value)} className="form-input">
+                  <select value={gen.default_timezone} onChange={(e) => updateGeneral('default_timezone', e.target.value)} className="form-input">
                     <option value="Africa/Dar_es_Salaam">East Africa Time (EAT)</option>
                     <option value="Africa/Lagos">West Africa Time (WAT)</option>
                     <option value="Africa/Nairobi">East Africa Time (EAT)</option>
                   </select>
                 </Field>
                 <Field label="Maintenance Mode">
-                  <Toggle checked={settings.general.maintenance_mode} onChange={(v) => updateGeneral('maintenance_mode', v)} />
+                  <Toggle checked={gen.maintenance_mode} onChange={(v) => updateGeneral('maintenance_mode', v)} />
                 </Field>
               </div>
             </div>
@@ -173,25 +205,25 @@ export default function AdminPlatformSettingsPage() {
               </div>
               <div className="p-6">
                 <Field label="Require 2FA">
-                  <Toggle checked={settings.security.two_factor_required} onChange={(v) => updateSecurity('two_factor_required', v)} />
+                  <Toggle checked={sec.two_factor_required} onChange={(v) => updateSecurity('two_factor_required', v)} />
                 </Field>
                 <Field label="Session Timeout (min)">
-                  <input type="number" value={settings.security.session_timeout} onChange={(e) => updateSecurity('session_timeout', parseInt(e.target.value))} className="form-input" />
+                  <input type="number" value={sec.session_timeout} onChange={(e) => updateSecurity('session_timeout', parseInt(e.target.value))} className="form-input" />
                 </Field>
                 <Field label="Max Login Attempts">
-                  <input type="number" value={settings.security.max_login_attempts} onChange={(e) => updateSecurity('max_login_attempts', parseInt(e.target.value))} className="form-input" />
+                  <input type="number" value={sec.max_login_attempts} onChange={(e) => updateSecurity('max_login_attempts', parseInt(e.target.value))} className="form-input" />
                 </Field>
                 <Field label="Lockout Duration (min)">
-                  <input type="number" value={settings.security.lockout_duration} onChange={(e) => updateSecurity('lockout_duration', parseInt(e.target.value))} className="form-input" />
+                  <input type="number" value={sec.lockout_duration} onChange={(e) => updateSecurity('lockout_duration', parseInt(e.target.value))} className="form-input" />
                 </Field>
                 <Field label="Min Password Length">
-                  <input type="number" value={settings.security.password_min_length} onChange={(e) => updateSecurity('password_min_length', parseInt(e.target.value))} className="form-input" />
+                  <input type="number" value={sec.password_min_length} onChange={(e) => updateSecurity('password_min_length', parseInt(e.target.value))} className="form-input" />
                 </Field>
                 <Field label="Require Special Characters">
-                  <Toggle checked={settings.security.require_special_chars} onChange={(v) => updateSecurity('require_special_chars', v)} />
+                  <Toggle checked={sec.require_special_chars} onChange={(v) => updateSecurity('require_special_chars', v)} />
                 </Field>
                 <Field label="Require Numbers">
-                  <Toggle checked={settings.security.require_numbers} onChange={(v) => updateSecurity('require_numbers', v)} />
+                  <Toggle checked={sec.require_numbers} onChange={(v) => updateSecurity('require_numbers', v)} />
                 </Field>
               </div>
             </div>
@@ -208,7 +240,7 @@ export default function AdminPlatformSettingsPage() {
               </div>
               <div className="p-6">
                 <Field label="Payment Gateway">
-                  <select value={settings.payment.gateway} onChange={(e) => updatePayment('gateway', e.target.value)} className="form-input">
+                  <select value={pay.gateway} onChange={(e) => updatePayment('gateway', e.target.value)} className="form-input">
                     <option value="Stripe">Stripe</option>
                     <option value="PayPal">PayPal</option>
                     <option value="Flutterwave">Flutterwave</option>
@@ -216,22 +248,22 @@ export default function AdminPlatformSettingsPage() {
                   </select>
                 </Field>
                 <Field label="Test Mode">
-                  <Toggle checked={settings.payment.test_mode} onChange={(v) => updatePayment('test_mode', v)} />
+                  <Toggle checked={pay.test_mode} onChange={(v) => updatePayment('test_mode', v)} />
                 </Field>
                 <Field label="Basic Plan ($/mo)">
-                  <input type="number" step="0.01" value={settings.payment.monthly_fee_basic} onChange={(e) => updatePayment('monthly_fee_basic', parseFloat(e.target.value))} className="form-input" />
+                  <input type="number" step="0.01" value={pay.monthly_fee_basic} onChange={(e) => updatePayment('monthly_fee_basic', parseFloat(e.target.value))} className="form-input" />
                 </Field>
                 <Field label="Pro Plan ($/mo)">
-                  <input type="number" step="0.01" value={settings.payment.monthly_fee_pro} onChange={(e) => updatePayment('monthly_fee_pro', parseFloat(e.target.value))} className="form-input" />
+                  <input type="number" step="0.01" value={pay.monthly_fee_pro} onChange={(e) => updatePayment('monthly_fee_pro', parseFloat(e.target.value))} className="form-input" />
                 </Field>
                 <Field label="Enterprise Plan ($/mo)">
-                  <input type="number" step="0.01" value={settings.payment.monthly_fee_enterprise} onChange={(e) => updatePayment('monthly_fee_enterprise', parseFloat(e.target.value))} className="form-input" />
+                  <input type="number" step="0.01" value={pay.monthly_fee_enterprise} onChange={(e) => updatePayment('monthly_fee_enterprise', parseFloat(e.target.value))} className="form-input" />
                 </Field>
                 <Field label="Trial Period (days)">
-                  <input type="number" value={settings.payment.trial_days} onChange={(e) => updatePayment('trial_days', parseInt(e.target.value))} className="form-input" />
+                  <input type="number" value={pay.trial_days} onChange={(e) => updatePayment('trial_days', parseInt(e.target.value))} className="form-input" />
                 </Field>
                 <Field label="Late Fee (%)">
-                  <input type="number" value={settings.payment.late_fee_percent} onChange={(e) => updatePayment('late_fee_percent', parseInt(e.target.value))} className="form-input" />
+                  <input type="number" value={pay.late_fee_percent} onChange={(e) => updatePayment('late_fee_percent', parseInt(e.target.value))} className="form-input" />
                 </Field>
               </div>
             </div>

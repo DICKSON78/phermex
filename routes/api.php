@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AdminDrugDatabaseController;
 use App\Http\Controllers\Api\AdminReportController;
 use App\Http\Controllers\Api\AdminRevenueController;
 use App\Http\Controllers\Api\AdminSettingController;
+use App\Http\Controllers\Api\AdminSubscriptionController;
 use App\Http\Controllers\Api\AdminSupportController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AttendanceController;
@@ -381,6 +382,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Admin Reports
         Route::get('/reports', [AdminReportController::class, 'index']);
+
+        // Admin Subscriptions
+        Route::get('/subscriptions', [AdminSubscriptionController::class, 'index']);
     });
 
     Route::prefix('notifications')->group(function () {

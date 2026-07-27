@@ -93,7 +93,7 @@ export default function AdminContentPage() {
     } catch (err) {
       console.warn('Failed to fetch content:', err.message)
       setError(err.message)
-      setData({})
+      setData(null)
     } finally {
       setLoading(false)
     }
@@ -106,7 +106,7 @@ export default function AdminContentPage() {
     } catch {}
     setData((prev) => ({
       ...prev,
-      posts: prev.posts.map((p) => (p.id === post.id ? { ...p, status: newStatus } : p)),
+      posts: (prev.posts || []).map((p) => (p.id === post.id ? { ...p, status: newStatus } : p)),
     }))
   }
 
@@ -116,7 +116,7 @@ export default function AdminContentPage() {
     } catch {}
     setData((prev) => ({
       ...prev,
-      posts: prev.posts.filter((p) => p.id !== post.id),
+      posts: (prev.posts || []).filter((p) => p.id !== post.id),
     }))
   }
 

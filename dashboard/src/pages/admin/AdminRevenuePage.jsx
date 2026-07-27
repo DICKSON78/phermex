@@ -96,7 +96,7 @@ export default function AdminRevenuePage() {
     } catch (err) {
       console.warn('Failed to fetch revenue:', err.message)
       setError(err.message)
-      setData({})
+      setData(null)
     } finally {
       setLoading(false)
     }
@@ -105,14 +105,14 @@ export default function AdminRevenuePage() {
   const handleMarkPaid = async (invoice) => {
     setData((prev) => ({
       ...prev,
-      invoices: prev.invoices.map((inv) =>
+      invoices: (prev.invoices || []).map((inv) =>
         inv.id === invoice.id ? { ...inv, status: 'Paid', paidDate: new Date().toISOString().slice(0, 10) } : inv
       ),
       stats: {
-        ...prev.stats,
-        pending: prev.stats.pending - (invoice.status === 'Pending' ? invoice.amount : 0),
-        overdue: prev.stats.overdue - (invoice.status === 'Overdue' ? invoice.amount : 0),
-        totalRevenue: prev.stats.totalRevenue + invoice.amount,
+        ...(prev.stats || {}),
+        pending: (prev.stats?.pending || 0) - (invoice.status === 'Pending' ? invoice.amount : 0),
+        overdue: (prev.stats?.overdue || 0) - (invoice.status === 'Overdue' ? invoice.amount : 0),
+        totalRevenue: (prev.stats?.totalRevenue || 0) + invoice.amount,
       },
     }))
     try {
@@ -123,7 +123,7 @@ export default function AdminRevenuePage() {
   const handleVoid = async (invoice) => {
     setData((prev) => ({
       ...prev,
-      invoices: prev.invoices.map((inv) =>
+      invoices: (prev.invoices || []).map((inv) =>
         inv.id === invoice.id ? { ...inv, status: 'Void' } : inv
       ),
     }))

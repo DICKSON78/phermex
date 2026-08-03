@@ -1,0 +1,9 @@
+# Serve Laravel application from public/ directory.
+# Required because hosting document root points to project root, not public/.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect everything to the public/ folder
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const offices = [
@@ -6,7 +7,45 @@ const offices = [
   { city: 'Mwanza', country: 'Tanzania', address: 'Station Road, Mwanza', phone: '+255 800 100 202' },
 ]
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8002/api'
+
 export default function ContactPage() {
+  const [form, setForm] = useState({ name: '', email: '', service: '', message: '' })
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+    if (error) setError('')
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!form.name.trim() || !form.email.trim()) {
+      setError('Please fill in your name and email.')
+      return
+    }
+    setSubmitting(true)
+    setError('')
+    try {
+      const res = await fetch(`${API_BASE}/demo-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Failed to send message')
+      }
+      setSubmitted(true)
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <>
       <section className="relative py-24 lg:py-32 overflow-hidden">
@@ -34,37 +73,45 @@ export default function ContactPage() {
             <div className="lg:col-span-3">
               <h2 className="text-2xl lg:text-3xl font-extrabold text-black mb-2">Send Us a Message</h2>
               <p className="text-gray-400 text-sm mb-8">We'll get back to you within 24 hours.</p>
-              <form>
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Full Name</label>
-                    <input type="text" className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="Your name" />
+              {submitted ? (
+                <div className="bg-[#0FD452]/10 border border-[#0FD452] rounded-2xl p-6">
+                  <h3 className="text-black font-bold mb-1">Message sent!</h3>
+                  <p className="text-sm text-gray-500">Thanks for reaching out — our team will get back to you within 24 hours.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit}>
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Full Name *</label>
+                      <input type="text" name="name" value={form.name} onChange={handleChange} required className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="Your name" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Email *</label>
+                      <input type="email" name="email" value={form.email} onChange={handleChange} required className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="your@email.com" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Email</label>
-                    <input type="email" className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="your@email.com" />
+                  <div className="mt-5">
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Subject</label>
+                    <select name="service" value={form.service} onChange={handleChange} className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors bg-white">
+                      <option value="">Select a subject</option>
+                      <option value="demo">Request a Demo</option>
+                      <option value="sales">Sales Inquiry</option>
+                      <option value="support">Customer Support</option>
+                      <option value="partnership">Partnership</option>
+                      <option value="other">Other</option>
+                    </select>
                   </div>
-                </div>
-                <div className="mt-5">
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Subject</label>
-                  <select className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors bg-white">
-                    <option value="">Select a subject</option>
-                    <option value="demo">Request a Demo</option>
-                    <option value="sales">Sales Inquiry</option>
-                    <option value="support">Customer Support</option>
-                    <option value="partnership">Partnership</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div className="mt-5">
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Message</label>
-                  <textarea rows="5" className="w-full px-4 py-3 rounded-2xl text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors resize-none" placeholder="Tell us how we can help..."></textarea>
-                </div>
-                <button type="submit" className="btn-asaak mt-6 hover:!bg-white hover:!text-black">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                  Send Message
-                </button>
-              </form>
+                  <div className="mt-5">
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Message</label>
+                    <textarea rows="5" name="message" value={form.message} onChange={handleChange} className="w-full px-4 py-3 rounded-2xl text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors resize-none" placeholder="Tell us how we can help..."></textarea>
+                  </div>
+                  {error && <p className="text-red-600 text-xs mt-4">{error}</p>}
+                  <button type="submit" disabled={submitting} className="btn-asaak mt-6 hover:!bg-white hover:!text-black disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    {submitting ? 'Sending...' : 'Send Message'}
+                  </button>
+                </form>
+              )}
             </div>
 
             <div className="lg:col-span-2 space-y-8">

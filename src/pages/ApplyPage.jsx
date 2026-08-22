@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { DASHBOARD_URL } from '../config'
 import deliveryVideo from '../Deliverymedication.mp4'
 
 const services = [
@@ -40,7 +42,52 @@ const services = [
   },
 ]
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8002/api'
+
 export default function ApplyPage() {
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    pharmacy_name: '',
+    service: '',
+    message: '',
+  })
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+    if (error) setError('')
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
+      setError('Please fill in your name, email, and phone number.')
+      return
+    }
+    setSubmitting(true)
+    setError('')
+    try {
+      const res = await fetch(`${API_BASE}/demo-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Failed to submit request')
+      }
+      setSubmitted(true)
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <>
       <section className="relative py-28 lg:py-36 overflow-hidden">
@@ -62,7 +109,7 @@ export default function ApplyPage() {
               <a href="#services" className="btn-asaak hover:!bg-white hover:!text-black">
                 Explore Services
               </a>
-              <a href="#steps" className="btn-asaak hover:!bg-white hover:!text-black">
+              <a href={DASHBOARD_URL + '/register'} className="btn-asaak hover:!bg-white hover:!text-black">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 Apply Now
               </a>
@@ -161,45 +208,75 @@ export default function ApplyPage() {
               </div>
             </div>
             <div className="lg:col-span-3">
-              <form className="bg-white p-8 lg:p-10 rounded-2xl shadow-sm border border-gray-100">
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Full Name</label>
-                    <input type="text" className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="Your name" />
+              {submitted ? (
+                <div className="bg-white p-10 lg:p-12 rounded-2xl shadow-sm border border-gray-100 text-center">
+                  <div className="w-16 h-16 bg-[#0FD452]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-[#0FD452]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Email</label>
-                    <input type="email" className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="your@email.com" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Phone</label>
-                    <input type="tel" className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="+255 7XX XXX XXX" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Pharmacy Name</label>
-                    <input type="text" className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="Your pharmacy" />
-                  </div>
+                  <h3 className="text-2xl font-extrabold text-black mb-2">Request Submitted!</h3>
+                  <p className="text-gray-500 text-sm mb-6">Thank you {form.name}! Our team will contact you within 24 hours with a personalized demo.</p>
+                  <a href={DASHBOARD_URL + '/register'} className="inline-flex items-center gap-2 bg-[#0FD452] text-[#000F14] px-6 py-3 rounded-full text-sm font-bold hover:bg-[#0cb843] transition-colors">
+                    Or Register Now
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  </a>
                 </div>
-                <div className="mt-5">
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">What service are you interested in?</label>
-                  <select className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors bg-white">
-                    <option value="">Select a service</option>
-                    <option value="all">Full Platform</option>
-                    <option value="inventory">Inventory Management</option>
-                    <option value="pos">Point of Sale</option>
-                    <option value="prescription">Prescription Management</option>
-                    <option value="analytics">Analytics & Reporting</option>
-                  </select>
-                </div>
-                <div className="mt-5">
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Message</label>
-                  <textarea rows="4" className="w-full px-4 py-3 rounded-2xl text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors resize-none" placeholder="Tell us about your pharmacy and what you need..."></textarea>
-                </div>
-                <button type="submit" className="btn-asaak mt-6 w-full hover:!bg-white hover:!text-black">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                  Request Demo
-                </button>
-              </form>
+              ) : (
+                <form onSubmit={handleSubmit} className="bg-white p-8 lg:p-10 rounded-2xl shadow-sm border border-gray-100">
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-5">
+                      <p className="text-red-600 text-sm font-medium">{error}</p>
+                    </div>
+                  )}
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Full Name *</label>
+                      <input type="text" name="name" value={form.name} onChange={handleChange} className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="Your name" required />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Email *</label>
+                      <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="your@email.com" required />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Phone *</label>
+                      <input type="tel" name="phone" value={form.phone} onChange={handleChange} className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="+255 7XX XXX XXX" required />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Pharmacy Name</label>
+                      <input type="text" name="pharmacy_name" value={form.pharmacy_name} onChange={handleChange} className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors" placeholder="Your pharmacy" />
+                    </div>
+                  </div>
+                  <div className="mt-5">
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">What service are you interested in?</label>
+                    <select name="service" value={form.service} onChange={handleChange} className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors bg-white">
+                      <option value="">Select a service</option>
+                      <option value="all">Full Platform</option>
+                      <option value="inventory">Inventory Management</option>
+                      <option value="pos">Point of Sale</option>
+                      <option value="prescription">Prescription Management</option>
+                      <option value="analytics">Analytics & Reporting</option>
+                    </select>
+                  </div>
+                  <div className="mt-5">
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Message</label>
+                    <textarea name="message" value={form.message} onChange={handleChange} rows="4" className="w-full px-4 py-3 rounded-2xl text-sm border border-gray-200 focus:outline-none focus:border-black transition-colors resize-none" placeholder="Tell us about your pharmacy and what you need..." />
+                  </div>
+                  <button type="submit" disabled={submitting} className="btn-asaak mt-6 w-full hover:!bg-white hover:!text-black disabled:opacity-50">
+                    {submitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        Submitting...
+                      </span>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        Request Demo
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>

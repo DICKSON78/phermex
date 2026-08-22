@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faTimes, faChevronUp } from '@fortawesome/free-solid-svg-icons'
+import { DASHBOARD_URL } from '../config'
 
 const navLinks = [
   { label: 'HOME', to: '/' },
@@ -56,12 +57,18 @@ export default function Navbar() {
                   </li>
                 ))}
               </ul>
-              <NavLink
-                to="/apply"
+              <a
+                href={DASHBOARD_URL + '/login'}
+                className="text-white/80 hover:text-white px-4 py-2.5 text-xs font-bold tracking-wider transition-all duration-300"
+              >
+                SIGN IN
+              </a>
+              <a
+                href={DASHBOARD_URL + '/register'}
                 className="bg-brand hover:bg-brand-dark text-white px-6 py-2.5 text-xs font-bold tracking-wider transition-all duration-300"
               >
                 APPLY NOW
-              </NavLink>
+              </a>
             </div>
 
             <button className="lg:hidden text-white text-xl p-2" onClick={() => setOpen(!open)}>
@@ -89,9 +96,12 @@ export default function Navbar() {
                 </li>
               ))}
             </ul>
-            <NavLink to="/apply" onClick={() => setOpen(false)} className="bg-brand text-white px-6 py-3 text-xs font-bold tracking-wider inline-block text-center w-full">
+            <a href={DASHBOARD_URL + '/login'} onClick={() => setOpen(false)} className="bg-white/10 text-white px-6 py-3 text-xs font-bold tracking-wider inline-block text-center w-full">
+              SIGN IN
+            </a>
+            <a href={DASHBOARD_URL + '/register'} onClick={() => setOpen(false)} className="bg-brand text-white px-6 py-3 text-xs font-bold tracking-wider inline-block text-center w-full mt-2">
               APPLY NOW
-            </NavLink>
+            </a>
           </div>
         )}
       </nav>

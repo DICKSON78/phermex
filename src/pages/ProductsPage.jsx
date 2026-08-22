@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { DASHBOARD_URL } from '../config'
 import HowItWorks from '../components/HowItWorks'
 import MainCta from '../components/MainCta'
 
@@ -57,10 +58,10 @@ export default function ProductsPage() {
               From inventory to prescriptions, Pharmex provides all the tools you need to manage your pharmacy efficiently and grow your business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <Link to="/apply" className="btn-asaak hover:!bg-white hover:!text-black">
+              <a href={DASHBOARD_URL + '/register'} className="btn-asaak hover:!bg-white hover:!text-black">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 Get Started Free
-              </Link>
+              </a>
             </div>
           </div>
         </div>

@@ -11,6 +11,7 @@ import ArticlePage from './pages/ArticlePage'
 import FAQPage from './pages/FAQPage'
 import ApplyPage from './pages/ApplyPage'
 import ContactPage from './pages/ContactPage'
+import NotFoundPage from './pages/NotFoundPage'
 import './App.css'
 
 function ScrollToTop() {
@@ -37,6 +38,7 @@ function App() {
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/apply" element={<ApplyPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
       <Footer />

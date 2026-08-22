@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { DASHBOARD_URL } from '../config'
 import deliveryVideo from '../Deliverymedication.mp4'
 
 export default function Testimonial() {
@@ -15,12 +15,12 @@ export default function Testimonial() {
               &ldquo;Pharmex transformed how I deliver medications to my patients. From order to doorstep, everything is seamless and tracked in real-time.&rdquo;
             </p>
             <div className="mt-8">
-              <Link to="/apply" className="btn-asaak">
+              <a href={DASHBOARD_URL + '/register'} className="btn-asaak">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
                 GET STARTED
-              </Link>
+              </a>
             </div>
           </div>
           <div className="flex justify-center lg:justify-end">

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { DASHBOARD_URL } from '../config'
 
 export default function HowItWorks() {
   const steps = [
@@ -46,12 +46,12 @@ export default function HowItWorks() {
         </div>
 
         <div className="mt-12">
-          <Link to="/apply" className="btn-asaak">
+          <a href={DASHBOARD_URL + '/register'} className="btn-asaak">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M8 5v14l11-7z"/>
             </svg>
             GET STARTED
-          </Link>
+          </a>
         </div>
       </div>
     </section>

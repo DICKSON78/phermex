@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { DASHBOARD_URL } from '../config'
 
 export default function Hero() {
   return (
@@ -27,15 +27,15 @@ export default function Hero() {
               The all-in-one pharmacy management platform built for African pharmacies. Streamline operations, serve patients better, and grow your business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <Link to="/apply" className="btn-asaak hover:!bg-white hover:!text-black">
+              <a href={DASHBOARD_URL + '/register'} className="btn-asaak hover:!bg-white hover:!text-black">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
                 Get Started
-              </Link>
-              <Link to="/apply" className="btn-asaak hover:!bg-white hover:!text-black">
+              </a>
+              <a href={DASHBOARD_URL + '/register'} className="btn-asaak hover:!bg-white hover:!text-black">
                 Apply Here
-              </Link>
+              </a>
             </div>
           </div>
 

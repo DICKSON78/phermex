@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { DASHBOARD_URL } from '../config'
 
 const faqs = [
   {
@@ -140,10 +140,10 @@ export default function FAQPage() {
           <div className="text-center mt-14 bg-gray-50 p-8 lg:p-10 rounded-2xl">
             <h3 className="text-black font-bold text-xl mb-2">Still Have Questions?</h3>
             <p className="text-gray-400 text-sm mb-6">Our team is here to help you.</p>
-            <Link to="/apply" className="btn-asaak hover:!bg-white hover:!text-black">
+            <a href="/contact" className="btn-asaak hover:!bg-white hover:!text-black">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
               Contact Us
-            </Link>
+            </a>
           </div>
         </div>
       </section>

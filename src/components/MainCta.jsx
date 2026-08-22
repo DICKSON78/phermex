@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { DASHBOARD_URL } from '../config'
 
 export default function MainCta() {
   return (
@@ -15,12 +16,12 @@ export default function MainCta() {
           </p>
 
           <div className="mt-10 flex flex-wrap gap-4 justify-center">
-            <Link to="/apply" className="btn-asaak hover:!bg-white hover:!text-black">
+            <a href={DASHBOARD_URL + '/register'} className="btn-asaak hover:!bg-white hover:!text-black">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z"/>
               </svg>
               APPLY NOW
-            </Link>
+            </a>
             <Link to="/contact" className="btn-asaak hover:!bg-white hover:!text-black">
               Contact Us
             </Link>

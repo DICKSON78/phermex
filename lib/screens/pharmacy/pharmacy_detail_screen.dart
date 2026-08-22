@@ -1,0 +1,388 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../models/models.dart';
+import '../../services/customer_repository.dart';
+import '../../state/cart_state.dart';
+import '../../theme.dart';
+import '../../utils/helpers.dart';
+import '../cart/cart_screen.dart';
+
+class PharmacyDetailScreen extends StatefulWidget {
+  final Pharmacy pharmacy;
+  const PharmacyDetailScreen({super.key, required this.pharmacy});
+
+  @override
+  State<PharmacyDetailScreen> createState() => _PharmacyDetailScreenState();
+}
+
+class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
+  List<Drug> _drugs = [];
+  List<DrugCategory> _categories = [];
+  bool _loading = true;
+  String? _error;
+  String? _search;
+  int? _selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final drugsFuture = CustomerRepository.pharmacyDrugs(widget.pharmacy.id, search: _search, categoryId: _selectedCategory);
+      final catsFuture = CustomerRepository.pharmacyCategories(widget.pharmacy.id);
+      final results = await Future.wait<Object>([drugsFuture, catsFuture]);
+      if (!mounted) return;
+      setState(() {
+        _drugs = (results[0] as List).cast<Drug>();
+        _categories = (results[1] as List).cast<DrugCategory>();
+        _error = null;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _addToCart(Drug drug) {
+    context.read<CartState>().add(
+          drug,
+          pharmacyId: widget.pharmacy.id,
+          pharmacyName: widget.pharmacy.name ?? 'Pharmacy',
+        );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${drug.name ?? 'Item'} added to cart'),
+        backgroundColor: AppTheme.dark,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(milliseconds: 1200),
+        action: SnackBarAction(
+          label: 'View Cart',
+          textColor: AppTheme.primary,
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CartScreen()),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final distance = widget.pharmacy.distance;
+    return Scaffold(
+      backgroundColor: AppTheme.bgLight,
+      appBar: AppBar(
+        title: Text(widget.pharmacy.name ?? 'Pharmacy'),
+      ),
+      body: Column(
+        children: [
+          // Info bar
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.local_pharmacy, size: 20, color: AppTheme.primary),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.pharmacy.locationLabel.isEmpty ? 'Location on request' : widget.pharmacy.locationLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                      ),
+                      if (distance != null)
+                        Text('${distance.toStringAsFixed(1)} km away',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primary)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECFDF5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text('OPEN',
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF059669))),
+                ),
+              ],
+            ),
+          ),
+
+          // Search + category chips
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFEEF1F0)),
+              ),
+              child: TextField(
+                onSubmitted: (v) {
+                  setState(() => _search = v.isEmpty ? null : v);
+                  _load();
+                },
+                style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+                decoration: InputDecoration(
+                  hintText: 'Search drugs...',
+                  hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+                  prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF9CA3AF)),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                ),
+              ),
+            ),
+          ),
+
+          if (_categories.isNotEmpty)
+            SizedBox(
+              height: 38,
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _CategoryChip(
+                    label: 'All',
+                    active: _selectedCategory == null,
+                    onTap: () {
+                      setState(() => _selectedCategory = null);
+                      _load();
+                    },
+                  ),
+                  ..._categories.map((c) => Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: _CategoryChip(
+                          label: c.name ?? 'Category',
+                          active: _selectedCategory == c.id,
+                          onTap: () {
+                            setState(() => _selectedCategory = c.id);
+                            _load();
+                          },
+                        ),
+                      )),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 4),
+
+          // Drugs list
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(_error!, textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
+                              const SizedBox(height: 12),
+                              OutlinedButton(onPressed: _load, child: const Text('Retry')),
+                            ],
+                          ),
+                        ),
+                      )
+                    : _drugs.isEmpty
+                        ? const Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.medication_outlined, size: 40, color: Color(0xFFD1D5DB)),
+                                SizedBox(height: 8),
+                                Text('No drugs found',
+                                    style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _load,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                              itemCount: _drugs.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 10),
+                              itemBuilder: (context, i) {
+                                final drug = _drugs[i];
+                                return _DrugCard(drug: drug, onAdd: () => _addToCart(drug));
+                              },
+                            ),
+                          ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Consumer<CartState>(
+        builder: (context, cart, _) {
+          if (cart.isEmpty || cart.pharmacyId != widget.pharmacy.id) {
+            return const SizedBox.shrink();
+          }
+          return Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            child: SafeArea(
+              top: false,
+              child: SizedBox(
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CartScreen()),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('View Cart', style: TextStyle(color: AppTheme.dark, fontSize: 14, fontWeight: FontWeight.w700)),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.dark,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text('${cart.count}',
+                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(AppHelpers.formatTZS(cart.subtotal),
+                          style: const TextStyle(color: AppTheme.dark, fontSize: 13, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+  const _CategoryChip({required this.label, required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active ? AppTheme.primary : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: active ? AppTheme.primary : const Color(0xFFE5E7EB)),
+        ),
+        child: Text(label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: active ? AppTheme.dark : const Color(0xFF6B7280),
+            )),
+      ),
+    );
+  }
+}
+
+class _DrugCard extends StatelessWidget {
+  final Drug drug;
+  final VoidCallback onAdd;
+  const _DrugCard({required this.drug, required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    final stock = drug.quantity ?? 0;
+    final outOfStock = stock <= 0;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEEF1F0)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: drug.image != null && drug.image!.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.network(drug.image!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _pillIcon()),
+                  )
+                : _pillIcon(),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(drug.name ?? 'Drug',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                if (drug.genericName != null && drug.genericName!.isNotEmpty)
+                  Text(drug.genericName!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(AppHelpers.formatTZS(drug.price),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                    if (outOfStock)
+                      const Text('Out of stock',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFDC2626)))
+                    else
+                      GestureDetector(
+                        onTap: onAdd,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.add, size: 16, color: AppTheme.dark),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _pillIcon() {
+    return const Icon(Icons.medication, size: 24, color: AppTheme.primary);
+  }
+}

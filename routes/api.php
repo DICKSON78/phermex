@@ -21,7 +21,9 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DrugController;
 use App\Http\Controllers\Api\DrugMovementController;
 use App\Http\Middleware\AutoScopePharmacy;
+use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\PharmacistController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LeaveController;
 use App\Http\Controllers\Api\OrderController;
@@ -43,7 +45,9 @@ use App\Http\Controllers\Api\DrugRecallController;
 use App\Http\Controllers\Api\DemoRequestController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\AdminJobController;
+use App\Http\Controllers\Api\AdminMarketingController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\ExpenseController;
@@ -55,6 +59,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [PasswordResetController::class, 'sendCode']);
+Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 Route::post('/demo-requests', [DemoRequestController::class, 'store']);
 
 Route::post('/contact', function (\Illuminate\Http\Request $request) {
@@ -81,6 +87,8 @@ Route::post('/jobs/{id}/apply', [JobController::class, 'apply']);
 Route::prefix('customer-app')->group(function () {
     Route::post('/register', [CustomerAppController::class, 'register']);
     Route::post('/login', [CustomerAppController::class, 'login']);
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendCode']);
+    Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -114,11 +122,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/chats/{pharmacyId}', [ChatController::class, 'customerMessages']);
         Route::post('/chats/{pharmacyId}', [ChatController::class, 'customerSend']);
         Route::put('/chats/{pharmacyId}/read', [ChatController::class, 'customerMarkRead']);
+
+        Route::get('/support', [CustomerAppController::class, 'mySupportTickets']);
+        Route::post('/support', [CustomerAppController::class, 'createSupportTicket']);
+        Route::post('/support/{id}/reply', [CustomerAppController::class, 'replySupportTicket']);
     });
 
-    Route::middleware([PharmacyScopeMiddleware::class, AutoScopePharmacy::class])->group(function () {
-        Route::get('/pharmacies', [PharmacyController::class, 'index'])
-            ->middleware(RoleMiddleware::class . ':admin');
+    Route::middleware([EnsureSubscriptionActive::class, PharmacyScopeMiddleware::class, AutoScopePharmacy::class])->group(function () {
+        Route::get('/pharmacies', [PharmacyController::class, 'index']);
+        Route::post('/pharmacies', [PharmacyController::class, 'store']);
         Route::post('/pharmacies/{id}/switch', [PharmacyController::class, 'switchPharmacy']);
         Route::get('/pharmacies/current', [PharmacyController::class, 'current']);
         Route::get('/pharmacies/{pharmacy}', [PharmacyController::class, 'show']);
@@ -128,12 +140,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/drugs/search', [DrugController::class, 'search']);
         Route::get('/drug-categories', [DrugController::class, 'categories']);
         Route::get('/drugs', [DrugController::class, 'index']);
-        Route::post('/drugs', [DrugController::class, 'store']);
         Route::get('/drugs/{pharmacyId}/low-stock', [DrugController::class, 'lowStock']);
         Route::get('/drugs/{pharmacyId}/expiring-soon', [DrugController::class, 'expiringSoon']);
         Route::get('/drugs/{id}', [DrugController::class, 'show']);
-        Route::put('/drugs/{id}', [DrugController::class, 'update']);
-        Route::delete('/drugs/{id}', [DrugController::class, 'destroy']);
+
+        // Inventory writes are limited to owners and pharmacists —
+        // cashiers/delivery staff keep read + POS access only.
+        Route::middleware('role:owner,pharmacist')->group(function () {
+            Route::post('/drugs', [DrugController::class, 'store']);
+            Route::put('/drugs/{id}', [DrugController::class, 'update']);
+            Route::delete('/drugs/{id}', [DrugController::class, 'destroy']);
+            Route::post('/drug-categories', [DrugController::class, 'storeCategory']);
+            Route::put('/drug-categories/{id}', [DrugController::class, 'updateCategory']);
+            Route::delete('/drug-categories/{id}', [DrugController::class, 'destroyCategory']);
+        });
 
         Route::get('/drug-movements', [DrugMovementController::class, 'index']);
         Route::post('/drug-movements', [DrugMovementController::class, 'store']);
@@ -167,6 +187,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/employees/{id}', [EmployeeController::class, 'show']);
         Route::put('/employees/{id}', [EmployeeController::class, 'update']);
         Route::delete('/employees/{id}', [EmployeeController::class, 'destroy']);
+
+        Route::get('/pharmacists', [PharmacistController::class, 'index']);
+        Route::post('/pharmacists', [PharmacistController::class, 'store']);
+        Route::get('/pharmacists/{id}', [PharmacistController::class, 'show']);
+        Route::put('/pharmacists/{id}', [PharmacistController::class, 'update']);
+        Route::delete('/pharmacists/{id}', [PharmacistController::class, 'destroy']);
+        Route::patch('/pharmacists/{id}/toggle-active', [PharmacistController::class, 'toggleActive']);
 
         Route::get('/attendance/report', [AttendanceController::class, 'getReport']);
         Route::post('/attendance/clock-in', [AttendanceController::class, 'clockIn']);
@@ -317,6 +344,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/expenses/{id}', [ExpenseController::class, 'destroy']);
 
         Route::get('/deliveries', [DeliveryController::class, 'index']);
+        Route::get('/deliveries/drivers', [DeliveryController::class, 'drivers']);
         Route::post('/deliveries', [DeliveryController::class, 'store']);
         Route::get('/deliveries/{id}', [DeliveryController::class, 'show']);
         Route::patch('/deliveries/{id}', [DeliveryController::class, 'update']);
@@ -332,6 +360,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/chats/{customerId}', [ChatController::class, 'pharmacyMessages']);
         Route::post('/chats/{customerId}', [ChatController::class, 'pharmacySend']);
         Route::put('/chats/{customerId}/read', [ChatController::class, 'pharmacyMarkRead']);
+
+        // Owner support tickets
+        Route::get('/support/tickets', [AdminSupportController::class, 'ownerIndex'])
+            ->middleware(RoleMiddleware::class . ':owner');
+        Route::post('/support/tickets', [AdminSupportController::class, 'ownerStore'])
+            ->middleware(RoleMiddleware::class . ':owner');
+        Route::post('/support/tickets/{id}/reply', [AdminSupportController::class, 'ownerReply'])
+            ->middleware(RoleMiddleware::class . ':owner');
     });
 
     Route::get('/dashboard/owner', [DashboardController::class, 'ownerDashboard'])
@@ -340,12 +376,17 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware(RoleMiddleware::class . ':admin');
     Route::get('/dashboard/pharmacist', [DashboardController::class, 'pharmacistDashboard'])
         ->middleware(RoleMiddleware::class . ':pharmacist');
+    Route::get('/dashboard/staff', [DashboardController::class, 'staffDashboard'])
+        ->middleware(RoleMiddleware::class . ':pharmacist,cashier,delivery');
 
     Route::middleware(RoleMiddleware::class . ':admin')->prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard']);
         Route::get('/pharmacies', [AdminController::class, 'listPharmacies']);
+        Route::post('/pharmacies', [AdminController::class, 'storePharmacy']);
         Route::get('/pharmacies/{id}', [AdminController::class, 'pharmacyDetail']);
         Route::put('/pharmacies/{id}', [PharmacyController::class, 'update']);
+        Route::patch('/pharmacies/{id}', [AdminController::class, 'updatePharmacyStatus']);
+        Route::delete('/pharmacies/{id}', [AdminController::class, 'destroyPharmacy']);
         Route::patch('/pharmacies/{id}/status', [AdminController::class, 'updatePharmacyStatus']);
         Route::get('/users', [AdminController::class, 'listUsers']);
         Route::patch('/users/{id}/toggle-active', [AdminController::class, 'toggleUserActive']);
@@ -357,9 +398,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Admin User Management
         Route::get('/users/all', [AdminUserController::class, 'index']);
+        Route::get('/users/{id}', [AdminUserController::class, 'show']);
         Route::post('/users', [AdminUserController::class, 'store']);
         Route::get('/users/{id}/stats', [AdminUserController::class, 'show']);
         Route::put('/users/{id}', [AdminUserController::class, 'update']);
+        Route::patch('/users/{id}', [AdminUserController::class, 'updateStatus']);
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
         Route::patch('/users/{id}/toggle-status', [AdminUserController::class, 'toggleActive']);
 
@@ -408,6 +451,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Admin Subscriptions
         Route::get('/subscriptions', [AdminSubscriptionController::class, 'index']);
+        Route::post('/subscriptions', [AdminSubscriptionController::class, 'store']);
+        Route::get('/subscriptions/{id}', [AdminSubscriptionController::class, 'show']);
+        Route::put('/subscriptions/{id}', [AdminSubscriptionController::class, 'update']);
+        Route::delete('/subscriptions/{id}', [AdminSubscriptionController::class, 'destroy']);
+        Route::post('/subscriptions/{id}/{action}', [AdminSubscriptionController::class, 'action']);
+
+        // Admin Marketing Campaigns
+        Route::get('/marketing', [AdminMarketingController::class, 'index']);
+        Route::post('/marketing', [AdminMarketingController::class, 'store']);
+        Route::get('/marketing/{id}', [AdminMarketingController::class, 'show']);
+        Route::put('/marketing/{id}', [AdminMarketingController::class, 'update']);
+        Route::patch('/marketing/{id}', [AdminMarketingController::class, 'toggleStatus']);
+        Route::delete('/marketing/{id}', [AdminMarketingController::class, 'destroy']);
+        Route::post('/marketing/{id}/duplicate', [AdminMarketingController::class, 'duplicate']);
 
         // Admin Job Listings
         Route::get('/jobs', [AdminJobController::class, 'index']);

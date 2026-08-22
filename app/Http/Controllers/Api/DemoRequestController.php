@@ -14,7 +14,7 @@ class DemoRequestController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => 'sometimes|nullable|string|max:20',
             'pharmacy_name' => 'sometimes|nullable|string|max:255',
             'service' => 'sometimes|nullable|string|max:100',
             'message' => 'sometimes|nullable|string|max:2000',

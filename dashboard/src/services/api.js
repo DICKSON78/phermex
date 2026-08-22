@@ -27,7 +27,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('pharmex_token')
       localStorage.removeItem('pharmex_user')
-      window.location.href = '/dashboard/login'
+      window.location.href = '/login'
+    }
+    if (error.response?.status === 402 && error.response?.data?.subscription?.expired) {
+      if (!window.location.pathname.startsWith('/subscribe')) {
+        window.location.href = '/subscribe'
+      }
     }
     return Promise.reject(error)
   }
@@ -38,7 +43,7 @@ export const auth = {
   register: (data) => api.post('/register', data),
   logout: () => api.post('/logout'),
   getMe: () => api.get('/user'),
-  updateProfile: (data) => api.put('/user/profile', data),
+  updateProfile: (data) => api.put('/profile', data),
 }
 
 export const pharmacies = {
@@ -55,8 +60,8 @@ export const drugs = {
   create: (data) => api.post('/drugs', data),
   update: (id, data) => api.put(`/drugs/${id}`, data),
   delete: (id) => api.delete(`/drugs/${id}`),
-  lowStock: (params) => api.get('/drugs/low-stock', { params }),
-  expiringSoon: (params) => api.get('/drugs/expiring-soon', { params }),
+  lowStock: (pharmacyId, params) => api.get(`/drugs/${pharmacyId}/low-stock`, { params }),
+  expiringSoon: (pharmacyId, params) => api.get(`/drugs/${pharmacyId}/expiring-soon`, { params }),
   search: (query) => api.get('/drugs/search', { params: { q: query } }),
 }
 
@@ -78,7 +83,7 @@ export const customers = {
   create: (data) => api.post('/customers', data),
   update: (id, data) => api.put(`/customers/${id}`, data),
   delete: (id) => api.delete(`/customers/${id}`),
-  purchaseHistory: (id) => api.get(`/customers/${id}/purchases`),
+  purchaseHistory: (id) => api.get(`/customers/${id}/purchase-history`),
 }
 
 export const pharmacists = {
@@ -102,7 +107,7 @@ export const orders = {
   getById: (id) => api.get(`/orders/${id}`),
   create: (data) => api.post('/orders', data),
   updateStatus: (id, data) => api.put(`/orders/${id}/status`, data),
-  dailyReport: (params) => api.get('/orders/daily-report', { params }),
+  dailyReport: (pharmacyId, params) => api.get(`/orders/daily-report/${pharmacyId}`, { params }),
 }
 
 export const expenses = {
@@ -122,8 +127,8 @@ export const deliveries = {
 
 export const notifications = {
   getAll: (params) => api.get('/notifications', { params }),
-  markAsRead: (id) => api.patch(`/notifications/${id}/read`),
-  markAllRead: () => api.patch('/notifications/read-all'),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllRead: () => api.put('/notifications/read-all'),
   delete: (id) => api.delete(`/notifications/${id}`),
 }
 

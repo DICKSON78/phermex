@@ -11,6 +11,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Pharmacy;
 use App\Models\Prescription;
+use App\Models\SupportTicket;
+use App\Models\TicketReply;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -328,6 +330,10 @@ class CustomerAppController extends Controller
                 'items.*.drug_id' => 'required|exists:drugs,id',
                 'items.*.quantity' => 'required|integer|min:1',
                 'notes' => 'sometimes|nullable|string|max:1000',
+                'delivery_address' => 'required|string|max:500',
+                'delivery_phone' => 'sometimes|nullable|string|max:20',
+                'delivery_latitude' => 'sometimes|nullable|numeric|between:-90,90',
+                'delivery_longitude' => 'sometimes|nullable|numeric|between:-180,180',
             ]);
 
             $user = $request->user();
@@ -397,6 +403,10 @@ class CustomerAppController extends Controller
                 'payment_status' => 'unpaid',
                 'order_status' => 'pending',
                 'notes' => $validated['notes'] ?? null,
+                'delivery_address' => $validated['delivery_address'],
+                'delivery_phone' => $validated['delivery_phone'] ?? $user->phone,
+                'delivery_latitude' => $validated['delivery_latitude'] ?? null,
+                'delivery_longitude' => $validated['delivery_longitude'] ?? null,
                 'processed_by' => $pharmacy->owner_id,
             ]);
 
@@ -408,10 +418,10 @@ class CustomerAppController extends Controller
                 'pharmacy_id' => $pharmacy->id,
                 'user_id' => $pharmacy->owner_id,
                 'title' => 'New Online Order',
-                'message' => "Order #{$orderCode} received from {$user->name}. Total: " . number_format($subtotal, 2) . " TZS",
+                'message' => "Order #{$orderCode} received from {$user->name} (deliver to: {$validated['delivery_address']}). Total: " . number_format($subtotal, 2) . " TZS",
                 'type' => 'info',
                 'is_read' => false,
-                'link' => "/owner/orders/{$order->id}",
+                'link' => "/dashboard/orders/{$order->id}",
             ]);
 
             $order->load('items.drug', 'pharmacy', 'user');
@@ -615,6 +625,97 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function mySupportTickets(Request $request): JsonResponse
+    {
+        try {
+            $tickets = SupportTicket::with(['pharmacy:id,pharmacy_name', 'replies.user:id,name,role'])
+                ->where('user_id', $request->user()->id)
+                ->latest()
+                ->paginate($request->input('per_page', 20));
+
+            return response()->json($tickets);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch support tickets.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function createSupportTicket(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'pharmacy_id' => 'nullable|exists:pharmacies,id',
+                'subject' => 'required|string|max:255',
+                'description' => 'required|string',
+                'priority' => 'sometimes|in:low,medium,high,urgent',
+                'category' => 'nullable|string|max:100',
+            ]);
+
+            $validated['user_id'] = $request->user()->id;
+            $validated['priority'] = $validated['priority'] ?? 'medium';
+            $validated['status'] = 'open';
+
+            $ticket = SupportTicket::create($validated);
+
+            return response()->json([
+                'message' => 'Support ticket submitted. We will get back to you.',
+                'data' => $ticket->load('pharmacy'),
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create support ticket.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function replySupportTicket(Request $request, string $id): JsonResponse
+    {
+        try {
+            $ticket = SupportTicket::where('id', $id)
+                ->where('user_id', $request->user()->id)
+                ->firstOrFail();
+
+            $validated = $request->validate([
+                'message' => 'required|string',
+            ]);
+
+            $reply = TicketReply::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $request->user()->id,
+                'message' => $validated['message'],
+            ]);
+
+            if ($ticket->status === 'closed') {
+                $ticket->update(['status' => 'open']);
+            }
+
+            return response()->json([
+                'message' => 'Reply added.',
+                'data' => $reply->load('user'),
+            ], 201);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Ticket not found.'], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to add reply.',
                 'error' => $e->getMessage(),
             ], 500);
         }

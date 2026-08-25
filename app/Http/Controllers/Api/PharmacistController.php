@@ -25,7 +25,7 @@ class PharmacistController extends Controller
                 $query->where('position', $request->input('position'));
             }
 
-            if ($request->filled('is_active') !== null) {
+            if ($request->filled('is_active')) {
                 $query->where('is_active', $request->boolean('is_active'));
             }
 
@@ -104,10 +104,12 @@ class PharmacistController extends Controller
         }
     }
 
-    public function show($id): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
         try {
-            $pharmacist = Pharmacist::with(['user', 'pharmacy'])->findOrFail($id);
+            $pharmacist = Pharmacist::with(['user', 'pharmacy'])
+                ->where('pharmacy_id', $request->input('pharmacy_id'))
+                ->findOrFail($id);
 
             return response()->json([
                 'pharmacist' => $pharmacist,
@@ -125,7 +127,7 @@ class PharmacistController extends Controller
     public function update(Request $request, $id): JsonResponse
     {
         try {
-            $pharmacist = Pharmacist::findOrFail($id);
+            $pharmacist = Pharmacist::where('pharmacy_id', $request->input('pharmacy_id'))->findOrFail($id);
 
             $validated = $request->validate([
                 'name' => 'sometimes|string|max:255',
@@ -161,10 +163,10 @@ class PharmacistController extends Controller
         }
     }
 
-    public function destroy($id): JsonResponse
+    public function destroy(Request $request, $id): JsonResponse
     {
         try {
-            $pharmacist = Pharmacist::findOrFail($id);
+            $pharmacist = Pharmacist::where('pharmacy_id', $request->input('pharmacy_id'))->findOrFail($id);
 
             if ($pharmacist->user) {
                 $pharmacist->user->update(['is_active' => false]);
@@ -185,10 +187,10 @@ class PharmacistController extends Controller
         }
     }
 
-    public function toggleActive($id): JsonResponse
+    public function toggleActive(Request $request, $id): JsonResponse
     {
         try {
-            $pharmacist = Pharmacist::findOrFail($id);
+            $pharmacist = Pharmacist::where('pharmacy_id', $request->input('pharmacy_id'))->findOrFail($id);
             $pharmacist->update(['is_active' => !$pharmacist->is_active]);
 
             if ($pharmacist->user) {

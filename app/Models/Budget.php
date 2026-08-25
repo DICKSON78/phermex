@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Budget extends Model
 {
-    use HasFactory;
+    use TenantScoped, HasFactory;
 
     protected $fillable = [
         'pharmacy_id',

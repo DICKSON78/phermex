@@ -61,7 +61,7 @@ export default function AdminJobShowPage() {
 
   const handleDelete = async () => {
     try { await api.delete(`/admin/jobs/${id}`) } catch {}
-    navigate('/admin/jobs')
+    navigate('/dashboard/jobs')
   }
 
   const handleToggleStatus = async () => {
@@ -105,7 +105,7 @@ export default function AdminJobShowPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Link to="/admin/jobs" className="btn-ghost">
+          <Link to="/dashboard/jobs" className="btn-ghost">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
@@ -123,7 +123,7 @@ export default function AdminJobShowPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link to={`/admin/jobs/${id}/edit`} className="btn-secondary">
+          <Link to={`/dashboard/jobs/${id}/edit`} className="btn-secondary">
             <Edit className="w-4 h-4" /> Edit
           </Link>
           <button onClick={handleToggleStatus} className="btn-secondary">

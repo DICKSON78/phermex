@@ -65,6 +65,7 @@ const STATUS_CONFIG = {
 const PAY_STATUS = {
   unpaid: { label: 'Unpaid', color: 'bg-red-100 text-red-600' },
   pending: { label: 'Pending Payment', color: 'bg-amber-100 text-amber-700' },
+  paid: { label: 'Paid', color: 'bg-green-100 text-green-700' },
   confirmed: { label: 'Paid', color: 'bg-green-100 text-green-700' },
 }
 
@@ -230,7 +231,7 @@ export default function AdminPharmacyShowPage() {
     try {
       await api.delete(`/admin/pharmacies/${id}`)
       showToast('Pharmacy deleted')
-      setTimeout(() => navigate('/admin/pharmacies'), 1000)
+      setTimeout(() => navigate('/dashboard/pharmacies'), 1000)
     } catch {} finally { setConfirmOpen(false) }
   }
 
@@ -257,7 +258,7 @@ export default function AdminPharmacyShowPage() {
         <div className="text-center">
           <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">Pharmacy not found</p>
-          <button onClick={() => navigate('/admin/pharmacies')} className="text-[#0FD452] mt-2 text-sm font-medium hover:underline">Go back</button>
+          <button onClick={() => navigate('/dashboard/pharmacies')} className="text-[#0FD452] mt-2 text-sm font-medium hover:underline">Go back</button>
         </div>
       </div>
     )
@@ -273,7 +274,7 @@ export default function AdminPharmacyShowPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/admin/pharmacies" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+          <Link to="/dashboard/pharmacies" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-500" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
@@ -307,12 +308,12 @@ export default function AdminPharmacyShowPage() {
               </button>
             </>
           )}
-          {pharmacy.application_status === 'approved' && pharmacy.payment_status !== 'confirmed' && (
+          {pharmacy.application_status === 'approved' && pharmacy.payment_status !== 'confirmed' && pharmacy.payment_status !== 'paid' && (
             <button onClick={() => setShowPaymentModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all disabled:opacity-50">
               <CreditCard className="w-4 h-4" /> Confirm Payment
             </button>
           )}
-          <Link to={`/admin/pharmacies/${id}/edit`} className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
+          <Link to={`/dashboard/pharmacies/${id}/edit`} className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
             <Edit className="w-4 h-4" /> Edit
           </Link>
           <button onClick={() => setConfirmOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-2 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all">

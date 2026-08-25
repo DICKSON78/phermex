@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Eye, ShoppingCart, Package, Clock, CheckCircle, XCircle, DollarSign, Hash, Building, Calendar, Activity, CreditCard } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
 
 const STATUS_TABS = ['all', 'draft', 'pending_approval', 'ordered', 'partially_received', 'received', 'cancelled']
 
@@ -15,6 +16,7 @@ const STATUS_COLORS = {
 
 export default function PurchaseOrderListPage() {
   const navigate = useNavigate()
+  const { pharmacyId } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [statusTab, setStatusTab] = useState('all')
@@ -61,7 +63,7 @@ export default function PurchaseOrderListPage() {
     setSaving(true)
     try {
       const items = form.items.map(item => ({ ...item, unit_cost: parseFloat(item.unit_cost), quantity_ordered: parseInt(item.quantity_ordered) }))
-      await api.post('/purchase-orders', { ...form, pharmacy_id: 1, items, tax_amount: parseFloat(form.tax_amount), discount_amount: parseFloat(form.discount_amount) })
+      await api.post('/purchase-orders', { ...form, pharmacy_id: pharmacyId, items, tax_amount: parseFloat(form.tax_amount), discount_amount: parseFloat(form.discount_amount) })
       toast.success('Purchase order created')
       setShowForm(false)
       fetchOrders()
@@ -162,7 +164,7 @@ export default function PurchaseOrderListPage() {
               </tr></thead>
               <tbody className="divide-y divide-gray-100">
                 {orders.map(o => (
-                  <tr key={o.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`/owner/purchase-orders/${o.id}`)}>
+                  <tr key={o.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`/dashboard/purchase-orders/${o.id}`)}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">
@@ -176,7 +178,7 @@ export default function PurchaseOrderListPage() {
                     <td className="px-6 py-4"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[o.status] || 'bg-gray-100 text-gray-600'}`}>{o.status?.replace(/_/g, ' ')}</span></td>
                     <td className="px-6 py-4"><span className={`text-xs font-medium ${o.payment_status === 'paid' ? 'text-green-600' : o.payment_status === 'partial' ? 'text-yellow-600' : 'text-red-500'}`}>{o.payment_status}</span></td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900 text-right">TZS {parseFloat(o.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}><button onClick={() => navigate(`/owner/purchase-orders/${o.id}`)} className="btn-icon-primary"><Eye className="w-4 h-4" /></button></td>
+                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}><button onClick={() => navigate(`/dashboard/purchase-orders/${o.id}`)} className="btn-icon-primary"><Eye className="w-4 h-4" /></button></td>
                   </tr>
                 ))}
               </tbody>

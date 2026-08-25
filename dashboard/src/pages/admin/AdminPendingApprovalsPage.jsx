@@ -22,6 +22,7 @@ const STATUS_CONFIG = {
 const PAY_STATUS = {
   unpaid: { label: 'Unpaid', color: 'bg-red-100 text-red-600' },
   pending: { label: 'Pending Payment', color: 'bg-amber-100 text-amber-700' },
+  paid: { label: 'Paid', color: 'bg-green-100 text-green-700' },
   confirmed: { label: 'Paid', color: 'bg-green-100 text-green-700' },
 }
 
@@ -149,7 +150,7 @@ export default function AdminPendingApprovalsPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/admin" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+          <Link to="/dashboard" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-500" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
@@ -265,7 +266,7 @@ export default function AdminPendingApprovalsPage() {
 
               {/* Action buttons */}
               <div className="mt-4 flex items-center gap-3 flex-wrap">
-                <Link to={`/admin/pharmacies/${selectedPharmacy.id}`} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
+                <Link to={`/dashboard/pharmacies/${selectedPharmacy.id}`} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
                   <Eye className="w-4 h-4" /> View Full Profile
                 </Link>
                 {selectedPharmacy.latitude && selectedPharmacy.longitude && (
@@ -285,7 +286,7 @@ export default function AdminPendingApprovalsPage() {
                     </button>
                   </>
                 )}
-                {selectedPharmacy.application_status === 'approved' && selectedPharmacy.payment_status !== 'confirmed' && (
+                {selectedPharmacy.application_status === 'approved' && selectedPharmacy.payment_status !== 'confirmed' && selectedPharmacy.payment_status !== 'paid' && (
                   <button onClick={() => { setPaymentPharmacy(selectedPharmacy); setShowPaymentModal(true) }} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl text-sm font-bold transition-all">
                     <CreditCard className="w-4 h-4" /> Confirm Payment
                   </button>
@@ -418,7 +419,7 @@ export default function AdminPendingApprovalsPage() {
                               </button>
                             </>
                           )}
-                          {p.application_status === 'approved' && p.payment_status !== 'confirmed' && (
+                          {p.application_status === 'approved' && p.payment_status !== 'confirmed' && p.payment_status !== 'paid' && (
                             <button onClick={(e) => { e.stopPropagation(); setPaymentPharmacy(p); setShowPaymentModal(true) }}
                               className="btn-icon-green" title="Confirm payment">
                               <CreditCard className="h-4 w-4" />

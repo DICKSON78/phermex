@@ -175,7 +175,7 @@ export default function AdminSupportPage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/admin/support/new')}
+          onClick={() => navigate('/dashboard/support/new')}
           className="btn-primary"
         >
           <Plus className="h-4 w-4" />
@@ -306,7 +306,7 @@ export default function AdminSupportPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => navigate('/admin/support/' + ticket.id)}
+                          onClick={() => navigate('/dashboard/support/' + ticket.id)}
                           className="btn-icon-primary"
                           title="View"
                         >

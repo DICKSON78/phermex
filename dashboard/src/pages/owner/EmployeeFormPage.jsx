@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, Loader2, Save, User, Briefcase, DollarSign, AlertCircle, Users, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { employees } from '../../services/api'
+import { useAuth } from '../../contexts/AuthContext'
 
 const STEPS = [
   { id: 1, label: 'Personal Info', icon: User },
@@ -13,6 +14,7 @@ const STEPS = [
 export default function EmployeeFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { pharmacyId } = useAuth()
   const isEdit = Boolean(id)
 
   const [step, setStep] = useState(1)
@@ -27,7 +29,7 @@ export default function EmployeeFormPage() {
     basic_salary: '', allowances: '', tax_id: '', bank_name: '',
     bank_account_number: '', emergency_contact_name: '', emergency_contact_phone: '',
     emergency_contact_relationship: '',
-    pharmacy_id: 1,
+    pharmacy_id: pharmacyId,
   })
 
   useEffect(() => {
@@ -105,7 +107,7 @@ export default function EmployeeFormPage() {
         await employees.create(data)
         toast.success('Employee created')
       }
-      navigate('/owner/employees')
+      navigate('/dashboard/employees')
     } catch (err) {
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors)
@@ -130,7 +132,7 @@ export default function EmployeeFormPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Link to="/owner/employees" className="btn-ghost">
+            <Link to="/dashboard/employees" className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Employee' : 'Create New Employee'}</h1>
@@ -469,7 +471,7 @@ export default function EmployeeFormPage() {
 
           {/* Sticky Bottom Bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-between">
-            <button type="button" onClick={() => navigate('/owner/employees')} className="btn-secondary">
+            <button type="button" onClick={() => navigate('/dashboard/employees')} className="btn-secondary">
               <X className="w-4 h-4" />
               <span>Cancel</span>
             </button>

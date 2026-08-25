@@ -38,9 +38,13 @@ export default function LoginPage() {
         return
       }
 
-      if (userData.role === 'owner') navigate('/owner')
-      else if (userData.role === 'admin') navigate('/admin')
-      else navigate('/')
+      if (result.email_verified === false) {
+        navigate('/verify-email')
+        return
+      }
+
+      if (userData.role === 'customer') navigate('/app')
+      else navigate('/dashboard')
     } catch (err) {
       const data = err.response?.data
       if (data?.application_status === 'rejected') {

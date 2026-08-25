@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pharmacy;
+use App\Models\RevenueRecord;
+use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,7 +24,8 @@ class SubscriptionController extends Controller
     public function status(Request $request): JsonResponse
     {
         $user = $request->user();
-        $pharmacy = $user->pharmacy()->first();
+        $pharmacyId = $user->resolveCurrentPharmacyId();
+        $pharmacy = $pharmacyId ? \App\Models\Pharmacy::find($pharmacyId) : null;
 
         if (!$pharmacy) {
             return response()->json([
@@ -50,7 +53,8 @@ class SubscriptionController extends Controller
         ]);
 
         $user = $request->user();
-        $pharmacy = $user->pharmacy()->first();
+        $pharmacyId = $user->resolveCurrentPharmacyId();
+        $pharmacy = $pharmacyId ? \App\Models\Pharmacy::find($pharmacyId) : null;
 
         if (!$pharmacy) {
             return response()->json(['message' => 'No pharmacy found.'], 404);
@@ -64,6 +68,31 @@ class SubscriptionController extends Controller
 
         $startDate = now();
         $endDate = $startDate->copy()->addMonths($plan->duration_months);
+
+        $planSlug = in_array($plan->slug, ['trial', 'basic', 'pro', 'enterprise'], true)
+            ? $plan->slug
+            : strtolower($plan->name);
+
+        Subscription::create([
+            'pharmacy_id' => $pharmacy->id,
+            'plan' => $planSlug,
+            'amount' => $plan->price,
+            'status' => 'active',
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ]);
+
+        RevenueRecord::create([
+            'pharmacy_id' => $pharmacy->id,
+            'pharmacy_name' => $pharmacy->pharmacy_name,
+            'type' => 'subscription',
+            'amount' => $plan->price,
+            'description' => 'Subscription: ' . $plan->name,
+            'invoice_number' => RevenueRecord::generateInvoiceNumber(),
+            'status' => 'pending',
+            'due_date' => $startDate->copy()->addDays(7),
+            'payment_method' => $validated['payment_method'] ?? null,
+        ]);
 
         $pharmacy->update([
             'subscription_plan_id' => $plan->id,
@@ -90,6 +119,7 @@ class SubscriptionController extends Controller
         $validated = $request->validate([
             'pharmacy_id' => 'required|exists:pharmacies,id',
             'payment_ref' => 'sometimes|string|max:255',
+            'payment_method' => 'sometimes|string|max:50',
         ]);
 
         $pharmacy = Pharmacy::findOrFail($validated['pharmacy_id']);
@@ -98,11 +128,34 @@ class SubscriptionController extends Controller
             return response()->json(['message' => 'No subscription plan selected.'], 400);
         }
 
+        $subscription = Subscription::where('pharmacy_id', $pharmacy->id)
+            ->where('status', 'active')
+            ->latest('id')
+            ->first();
+
         $pharmacy->update([
             'payment_status' => 'paid',
             'status' => 'active',
             'is_published' => true,
         ]);
+
+        if ($subscription) {
+            $subscription->update([
+                'transaction_id' => $validated['payment_ref'] ?? null,
+                'payment_method' => $validated['payment_method'] ?? $subscription->payment_method,
+            ]);
+        }
+
+        RevenueRecord::where('pharmacy_id', $pharmacy->id)
+            ->where('type', 'subscription')
+            ->where('status', 'pending')
+            ->latest('id')
+            ->first()
+            ?->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+                'payment_method' => $validated['payment_method'] ?? null,
+            ]);
 
         return response()->json([
             'message' => 'Payment confirmed. Subscription activated.',

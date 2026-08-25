@@ -104,7 +104,7 @@ export default function EmployeeListPage() {
             <button onClick={exportCSV} className="btn-secondary">
               <Download className="w-4 h-4" /> Export
             </button>
-            <button onClick={() => navigate('/owner/employees/new')} className="btn-primary">
+            <button onClick={() => navigate('/dashboard/employees/new')} className="btn-primary">
               <UserPlus className="w-4 h-4" /> Add Employee
             </button>
           </div>
@@ -178,7 +178,7 @@ export default function EmployeeListPage() {
                   </td></tr>
                 ) : (
                   employeeList.map(emp => (
-                    <tr key={emp.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`/owner/employees/${emp.id}`)}>
+                    <tr key={emp.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`/dashboard/employees/${emp.id}`)}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10 flex-shrink-0">
@@ -204,7 +204,7 @@ export default function EmployeeListPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button onClick={(e) => { e.stopPropagation(); navigate(`/owner/employees/${emp.id}`) }} className="text-[#0FD452] hover:text-[#0DC048] text-sm font-medium">
+                        <button onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/employees/${emp.id}`) }} className="text-[#0FD452] hover:text-[#0DC048] text-sm font-medium">
                           View
                         </button>
                       </td>

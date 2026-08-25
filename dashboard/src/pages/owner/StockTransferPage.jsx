@@ -3,10 +3,12 @@ import { toArray } from '../../utils/safeData';
 import { Plus, ArrowRightLeft, CheckCircle, Truck as TruckIcon, Package, XCircle, Hash, CalendarDays } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
 
 const STATUS_COLORS = { pending: 'bg-yellow-100 text-yellow-700', approved: 'bg-blue-100 text-blue-700', in_transit: 'bg-indigo-100 text-indigo-700', completed: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600' }
 
 export default function StockTransferPage() {
+  const { pharmacyId } = useAuth()
   const [transfers, setTransfers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -29,7 +31,7 @@ export default function StockTransferPage() {
     e.preventDefault()
     setSaving(true)
     try {
-      await api.post('/stock-transfers', { ...form, pharmacy_id: 1, items: form.items.map(i => ({ ...i, quantity_sent: parseInt(i.quantity_sent) })) })
+      await api.post('/stock-transfers', { ...form, pharmacy_id: pharmacyId, items: form.items.map(i => ({ ...i, quantity_sent: parseInt(i.quantity_sent) })) })
       toast.success('Transfer created'); setShowForm(false); fetchTransfers()
     } catch { toast.success('Transfer created'); setShowForm(false) } finally { setSaving(false) }
   }

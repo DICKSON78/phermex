@@ -3,11 +3,13 @@ import { toArray } from '../../utils/safeData';
 import { Plus, FileCheck, Send, Eye, Clock, CheckCircle, FileText, Hash, Calendar, ShieldCheck, MapPin, Zap, Send as SendIcon } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
 
 
 const STATUS_STYLES = { draft: 'bg-gray-100 text-gray-600', submitted: 'bg-blue-100 text-blue-700', approved: 'bg-green-100 text-green-700' }
 
 export default function RegulatoryReportsPage() {
+  const { pharmacyId } = useAuth()
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [showGenerate, setShowGenerate] = useState(false)
@@ -29,7 +31,7 @@ export default function RegulatoryReportsPage() {
   const handleGenerate = async () => {
     setGenerating(true)
     try {
-      const res = await api.post('/regulatory-reports', { ...form, pharmacy_id: 1 })
+      const res = await api.post('/regulatory-reports', { ...form, pharmacy_id: pharmacyId })
       toast.success('Report generated')
       setShowGenerate(false)
       setShowPreview(res.data.report)

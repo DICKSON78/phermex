@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { toArray } from '../../utils/safeData';
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 import {
   ArrowLeft,
   Plus,
@@ -44,7 +45,7 @@ function createEmptyItem() {
 
 export default function PrescriptionFormPage() {
   const navigate = useNavigate()
-
+  const base = currentBase()
   const [drugs, setDrugs] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -140,9 +141,9 @@ export default function PrescriptionFormPage() {
           })),
       }
       await api.post('/prescriptions', payload)
-      navigate('/owner/prescriptions')
+      navigate(`${base}/prescriptions`)
     } catch {
-      navigate('/owner/prescriptions')
+      navigate(`${base}/prescriptions`)
     } finally {
       setSubmitting(false)
     }
@@ -154,7 +155,7 @@ export default function PrescriptionFormPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Link to="/owner/prescriptions" className="btn-ghost">
+            <Link to={`${base}/prescriptions`} className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">Create New Prescription</h1>
@@ -437,7 +438,7 @@ export default function PrescriptionFormPage() {
 
         {/* Sticky Bottom Bar */}
         <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
-          <Link to="/owner/prescriptions" className="btn-secondary">
+          <Link to={`${base}/prescriptions`} className="btn-secondary">
             <X className="w-4 h-4" />
             <span>Cancel</span>
           </Link>

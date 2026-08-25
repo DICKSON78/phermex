@@ -19,6 +19,7 @@ import {
   Calendar,
 } from 'lucide-react'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 
 function LoadingSkeleton() {
   return (
@@ -69,7 +70,7 @@ function EmptyState() {
         Your drug inventory is empty. Add your first drug to get started with inventory management.
       </p>
       <button
-        onClick={() => window.location.href = '/owner/drugs/new'}
+        onClick={() => window.location.href = `${base}/drugs/new`}
         className="btn-primary"
       >
         <Plus className="w-5 h-5" />
@@ -81,6 +82,7 @@ function EmptyState() {
 
 export default function DrugListPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const [drugs, setDrugs] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -213,7 +215,7 @@ export default function DrugListPage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/owner/drugs/new')}
+          onClick={() => navigate(`${base}/drugs/new`)}
           className="btn-primary"
         >
           <Plus className="w-5 h-5" />
@@ -327,6 +329,11 @@ export default function DrugListPage() {
                 <tr className="bg-gray-50">
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
+                      <span></span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <div className="flex items-center gap-1.5">
                       <Pill className="w-3.5 h-3.5 text-[#0FD452]" />
                       <span>Drug Name</span>
                     </div>
@@ -372,16 +379,24 @@ export default function DrugListPage() {
                 {paginatedDrugs.map((drug) => (
                   <tr key={drug.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer">
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">
-                          <Pill className="h-4 w-4 text-[#0FD452]" />
+                      {drug.image_url ? (
+                        <img
+                          src={`/storage/${drug.image_url}`}
+                          alt={drug.name}
+                          className="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-[#0FD452]/10 flex items-center justify-center">
+                          <Pill className="h-5 w-5 text-[#0FD452]" />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{drug.name}</p>
-                          {drug.generic_name && (
-                            <p className="text-xs text-gray-500">{drug.generic_name}</p>
-                          )}
-                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{drug.name}</p>
+                        {drug.generic_name && (
+                          <p className="text-xs text-gray-500">{drug.generic_name}</p>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">{typeof drug.category === 'object' ? drug.category?.name : (drug.category || '—')}</td>
@@ -392,14 +407,14 @@ export default function DrugListPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => navigate(`/owner/drugs/${drug.id}`)}
+                          onClick={() => navigate(`${base}/drugs/${drug.id}`)}
                           className="btn-icon-primary"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => navigate(`/owner/drugs/${drug.id}/edit`)}
+                          onClick={() => navigate(`${base}/drugs/${drug.id}/edit`)}
                           className="btn-icon-blue"
                           title="Edit"
                         >

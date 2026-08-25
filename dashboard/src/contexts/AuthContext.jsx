@@ -85,8 +85,30 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const pharmacyId =
+    user?.current_pharmacy_id ??
+    user?.currentPharmacy?.id ??
+    user?.pharmacy?.[0]?.id ??
+    user?.pharmacy_id ??
+    null
+
+  const switchPharmacy = async (id) => {
+    const response = await api.post(`/pharmacies/${id}/switch`)
+    const respData = response.data.data || response.data
+    if (respData.user) {
+      setUser(respData.user)
+    }
+    try {
+      const subRes = await api.get('/subscriptions/status')
+      setSubscription(subRes.data)
+    } catch {
+      // Subscription status not available
+    }
+    return respData
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, subscription, setSubscription, login, register, logout, loading, setUser }}>
+    <AuthContext.Provider value={{ user, token, subscription, pharmacyId, setSubscription, login, register, logout, loading, setUser, switchPharmacy }}>
       {children}
     </AuthContext.Provider>
   )

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Star, Eye, Trash2, Phone, Mail, ChevronLeft, ChevronRight, Users, TrendingUp, Package, Building, MapPin, CreditCard, BarChart, Activity } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
 
 function LoadingSkeleton() {
   return (
@@ -28,6 +29,7 @@ function LoadingSkeleton() {
 
 export default function SupplierListPage() {
   const navigate = useNavigate()
+  const { pharmacyId } = useAuth()
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -61,7 +63,7 @@ export default function SupplierListPage() {
         await api.put(`/suppliers/${editSupplier.id}`, form)
         toast.success('Supplier updated')
       } else {
-        await api.post('/suppliers', { ...form, pharmacy_id: 1 })
+        await api.post('/suppliers', { ...form, pharmacy_id: pharmacyId })
         toast.success('Supplier created')
       }
       setShowForm(false)
@@ -250,7 +252,7 @@ export default function SupplierListPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => navigate(`/owner/suppliers/${s.id}`)} className="btn-icon-primary"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => navigate(`/dashboard/suppliers/${s.id}`)} className="btn-icon-primary"><Eye className="w-4 h-4" /></button>
                       <button onClick={() => openEdit(s)} className="btn-icon-blue"><Package className="w-4 h-4" /></button>
                       <button onClick={() => setDeleteModal({ open: true, supplier: s })} className="btn-icon-red"><Trash2 className="w-4 h-4" /></button>
                     </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import Barcode from 'react-barcode'
 import {
   ArrowLeft,
   Edit,
@@ -11,13 +12,16 @@ import {
   Hash,
   Calendar,
   Building2,
-  Barcode,
+  Barcode as BarcodeIcon,
   AlertTriangle,
   Settings,
   FileText,
+  Image,
+  Printer,
 } from 'lucide-react'
 import api from '../../services/api'
 import { toObject, toArray } from '../../utils/safeData'
+import { currentBase } from '../../utils/roles'
 
 function LoadingSkeleton() {
   return (
@@ -47,6 +51,7 @@ function LoadingSkeleton() {
 
 export default function DrugDetailPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const { id } = useParams()
   const [drug, setDrug] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -106,7 +111,7 @@ export default function DrugDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
-          onClick={() => navigate('/owner/drugs')}
+          onClick={() => navigate(`${base}/drugs`)}
           className="btn-ghost"
         >
           <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -119,7 +124,7 @@ export default function DrugDetailPage() {
           <p className="text-sm text-gray-500">{categoryName || 'Uncategorized'} &middot; {drug.unit || 'Unit'}</p>
         </div>
         <button
-          onClick={() => navigate(`/owner/drugs/${id}/edit`)}
+          onClick={() => navigate(`${base}/drugs/${id}/edit`)}
           className="btn-primary shrink-0"
         >
           <Edit className="w-4 h-4" />
@@ -163,11 +168,26 @@ export default function DrugDetailPage() {
             <Pill className="w-5 h-5 text-[#0FD452]" />
             <h2 className="text-lg font-semibold text-gray-900">Drug Information</h2>
           </div>
+          {drug.image_url && (
+            <div className="mb-4">
+              <img
+                src={`/storage/${drug.image_url}`}
+                alt={drug.name}
+                className="w-full h-48 rounded-xl object-cover border border-gray-200"
+              />
+            </div>
+          )}
+          {!drug.image_url && (
+            <div className="mb-4 w-full h-48 rounded-xl bg-gray-50 border border-dashed border-gray-200 flex flex-col items-center justify-center">
+              <Image className="w-10 h-10 text-gray-300 mb-2" />
+              <p className="text-xs text-gray-400">No image uploaded</p>
+            </div>
+          )}
           <div className="space-y-1 divide-y divide-gray-50">
             <InfoRow label="Drug Name" value={drug.name} icon={Pill} />
             <InfoRow label="Generic Name" value={drug.generic_name} />
             <InfoRow label="Manufacturer" value={drug.manufacturer} icon={Building2} />
-            <InfoRow label="Barcode" value={drug.barcode} icon={Barcode} />
+            <InfoRow label="Barcode" value={drug.barcode} icon={BarcodeIcon} />
             <InfoRow label="NAFDAC Number" value={drug.nafdac_number} icon={Tag} />
             <InfoRow label="Category" value={categoryName} icon={Tag} />
             <InfoRow label="Batch Number" value={drug.batch_number} icon={Hash} />
@@ -327,6 +347,42 @@ export default function DrugDetailPage() {
         </div>
       </div>
 
+      {/* Barcode Card */}
+      {drug.barcode && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
+            <BarcodeIcon className="w-5 h-5 text-[#0FD452]" />
+            <h2 className="text-lg font-semibold text-gray-900">Barcode</h2>
+          </div>
+          <div className="flex flex-col items-center gap-4">
+            <div id="barcode-printable">
+              <Barcode value={drug.barcode} format="CODE128" width={1.5} height={60} displayValue={true} fontSize={12} />
+            </div>
+            <button
+              onClick={() => {
+                const printWindow = window.open('', '_blank')
+                printWindow.document.write(`
+                  <html><head><title>Barcode - ${drug.name}</title>
+                  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
+                  </head><body style="text-align:center;padding:40px;font-family:sans-serif">
+                  <h2>${drug.name}</h2>
+                  <p>${drug.barcode}</p>
+                  <svg id="bc"></svg>
+                  <script>JsBarcode("#bc","${drug.barcode}",{format:"CODE128",width:2,height:50,displayValue:true,fontSize:14});<\/script>
+                  </body></html>
+                `)
+                printWindow.document.close()
+                printWindow.onload = () => { printWindow.print() }
+              }}
+              className="btn-secondary"
+            >
+              <Printer className="w-4 h-4" />
+              Print Barcode
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -339,11 +395,11 @@ export default function DrugDetailPage() {
             Adjust Stock
           </button>
           <button className="btn-secondary">
-            <Barcode className="w-4 h-4" />
+            <BarcodeIcon className="w-4 h-4" />
             Print Barcode
           </button>
           <button
-            onClick={() => navigate(`/owner/drugs/${id}/edit`)}
+          onClick={() => navigate(`${base}/drugs/${id}/edit`)}
             className="btn-secondary"
           >
             <Edit className="w-4 h-4" />

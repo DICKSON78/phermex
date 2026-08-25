@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { toArray } from '../../utils/safeData';
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 import {
   FileText,
   Plus,
@@ -36,6 +37,7 @@ const STATUS_FILTERS = ['All', 'Pending', 'Dispensed', 'Cancelled']
 
 export default function PrescriptionListPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const [prescriptions, setPrescriptions] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -111,7 +113,7 @@ export default function PrescriptionListPage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/owner/prescriptions/new')}
+          onClick={() => navigate(`${base}/prescriptions/new`)}
           className="btn-primary"
         >
           <Plus className="w-4 h-4" />
@@ -238,7 +240,7 @@ export default function PrescriptionListPage() {
                 </tr>
               ) : (
                 paginatedData.map((rx) => (
-                  <tr key={rx.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`/owner/prescriptions/${rx.id}`)}>
+                  <tr key={rx.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`${base}/prescriptions/${rx.id}`)}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">
@@ -273,7 +275,7 @@ export default function PrescriptionListPage() {
                     <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => navigate(`/owner/prescriptions/${rx.id}`)}
+                          onClick={() => navigate(`${base}/prescriptions/${rx.id}`)}
                           className="btn-icon-primary"
                           title="View"
                         >
@@ -281,7 +283,7 @@ export default function PrescriptionListPage() {
                         </button>
                         {rx.status === 'pending' && (
                           <button
-                            onClick={() => navigate(`/owner/prescriptions/${rx.id}`)}
+                            onClick={() => navigate(`${base}/prescriptions/${rx.id}`)}
                             className="btn-icon-primary"
                             title="Dispense"
                           >

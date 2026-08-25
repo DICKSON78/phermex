@@ -13,19 +13,24 @@ const statusConfig = {
   assigned: { color: 'bg-blue-100 text-blue-700', icon: UserPlus, label: 'Assigned' },
   picked_up: { color: 'bg-indigo-100 text-indigo-700', icon: Package, label: 'Picked Up' },
   in_transit: { color: 'bg-purple-100 text-purple-700', icon: Truck, label: 'In Transit' },
+  out_for_delivery: { color: 'bg-orange-100 text-orange-700', icon: Navigation, label: 'Out for Delivery' },
   delivered: { color: 'bg-green-100 text-green-700', icon: CheckCircle, label: 'Delivered' },
   failed: { color: 'bg-red-100 text-red-600', icon: XCircle, label: 'Failed' },
 }
 
+const STATUS_ORDER = ['pending', 'assigned', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered']
+
 export default function DeliveryListPage() {
   const [deliveries, setDeliveries] = useState([])
+  const [drivers, setDrivers] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeMenu, setActiveMenu] = useState(null)
   const [showAssignModal, setShowAssignModal] = useState(null)
-  const [driverName, setDriverName] = useState('')
+  const [driverId, setDriverId] = useState('')
 
   useEffect(() => {
     fetchDeliveries()
+    fetchDrivers()
   }, [])
 
   const fetchDeliveries = async () => {
@@ -39,32 +44,42 @@ export default function DeliveryListPage() {
     }
   }
 
+  const fetchDrivers = async () => {
+    try {
+      const res = await api.get('/deliveries/drivers')
+      setDrivers(res.data?.drivers || [])
+    } catch {
+      setDrivers([])
+    }
+  }
+
   const stats = {
     pending: deliveries.filter((d) => d.status === 'pending').length,
-    in_transit: deliveries.filter((d) => d.status === 'in_transit' || d.status === 'picked_up').length,
+    in_transit: deliveries.filter((d) => d.status === 'in_transit' || d.status === 'picked_up' || d.status === 'out_for_delivery').length,
     delivered_today: deliveries.filter((d) => d.status === 'delivered').length,
     failed: deliveries.filter((d) => d.status === 'failed').length,
   }
 
   const handleAssignDriver = async () => {
-    if (!driverName.trim() || !showAssignModal) return
+    if (!driverId || !showAssignModal) return
+    const driver = drivers.find((d) => d.id === driverId)
     try {
-      await api.patch(`/deliveries/${showAssignModal}`, { assigned_to: driverName, status: 'assigned' })
+      await api.post(`/deliveries/${showAssignModal}/assign-driver`, { assigned_to: driverId })
     } catch {}
     setDeliveries((prev) =>
       prev.map((d) =>
         d.id === showAssignModal
-          ? { ...d, assigned_to: driverName, status: 'assigned' }
+          ? { ...d, assigned_to: driverId, status: 'assigned', driver }
           : d
       )
     )
     setShowAssignModal(null)
-    setDriverName('')
+    setDriverId('')
   }
 
   const handleUpdateStatus = async (delivery, newStatus) => {
     try {
-      await api.patch(`/deliveries/${delivery.id}`, { status: newStatus })
+      await api.put(`/deliveries/${delivery.id}/status`, { status: newStatus })
     } catch {}
     setDeliveries((prev) =>
       prev.map((d) => d.id === delivery.id ? { ...d, status: newStatus } : d)
@@ -73,7 +88,12 @@ export default function DeliveryListPage() {
   }
 
   const formatMoney = (amount) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 0 }).format(amount / 1000)
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 0 }).format(amount || 0)
+  }
+
+  const formatDate = (value) => {
+    if (!value) return '—'
+    return new Date(value).toLocaleString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
   }
 
   const statCards = [
@@ -205,21 +225,21 @@ export default function DeliveryListPage() {
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">
                             <Truck className="h-4 w-4 text-[#0FD452]" />
                           </div>
-                          <span className="text-sm font-mono font-medium text-gray-900">{delivery.code}</span>
+                          <span className="text-sm font-mono font-medium text-gray-900">{delivery.delivery_code}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-mono text-gray-600">{delivery.order_code}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{delivery.customer}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 max-w-[200px] truncate">{delivery.address}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatMoney(delivery.fee)}</td>
+                      <td className="px-6 py-4 text-sm font-mono text-gray-600">{delivery.order?.order_code}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{delivery.customer_name}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600 max-w-[200px] truncate">{delivery.delivery_address}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatMoney(delivery.delivery_fee)}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${st.color}`}>
                           <StatusIcon className="w-3 h-3" />
                           {st.label}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{delivery.assigned_to || '—'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{delivery.eta || '—'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{delivery.driver?.name || '—'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{formatDate(delivery.estimated_arrival)}</td>
                       <td className="px-6 py-4 text-right relative">
                         <button
                           onClick={() => setActiveMenu(activeMenu === index ? null : index)}
@@ -259,6 +279,15 @@ export default function DeliveryListPage() {
                                 </button>
                               )}
                               {delivery.status === 'in_transit' && (
+                                <button
+                                  onClick={() => handleUpdateStatus(delivery, 'out_for_delivery')}
+                                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-orange-600 hover:bg-orange-50"
+                                >
+                                  <Navigation className="w-4 h-4" />
+                                  Out for Delivery
+                                </button>
+                              )}
+                              {delivery.status === 'out_for_delivery' && (
                                 <button
                                   onClick={() => handleUpdateStatus(delivery, 'delivered')}
                                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-green-600 hover:bg-green-50"
@@ -304,25 +333,36 @@ export default function DeliveryListPage() {
             <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Assign Driver</h3>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Driver Name</label>
-                <input
-                  type="text"
-                  value={driverName}
-                  onChange={(e) => setDriverName(e.target.value)}
-                  placeholder="Enter driver name"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Driver</label>
+                {drivers.length === 0 ? (
+                  <p className="text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                    No active delivery drivers available. Add a user with the &quot;delivery&quot; role first.
+                  </p>
+                ) : (
+                  <select
+                    value={driverId}
+                    onChange={(e) => setDriverId(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                  >
+                    <option value="">Select a driver</option>
+                    {drivers.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}{d.phone ? ` — ${d.phone}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div className="flex items-center gap-3 mt-6 justify-end">
                 <button
-                  onClick={() => { setShowAssignModal(null); setDriverName('') }}
+                  onClick={() => { setShowAssignModal(null); setDriverId('') }}
                   className="btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAssignDriver}
-                  disabled={!driverName.trim()}
+                  disabled={!driverId}
                   className="px-4 py-2 text-sm font-semibold bg-primary hover:bg-primary-600 disabled:bg-primary/50 text-gray-900 rounded-xl transition-colors"
                 >
                   Assign

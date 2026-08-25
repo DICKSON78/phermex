@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { UserPlus, ArrowLeft, Save, User, Mail, Phone, Shield, Lock, Loader2, CheckCircle } from 'lucide-react'
+import { UserPlus, ArrowLeft, Save, User, Mail, Phone, Shield, Lock, Loader2, CheckCircle, Building2 } from 'lucide-react'
 import api from '../../services/api'
 import Modal from '../../components/Modal'
 
@@ -25,6 +25,20 @@ export default function AdminUserFormPage() {
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(isEdit)
   const [successModal, setSuccessModal] = useState(false)
+  const [pharmacies, setPharmacies] = useState([])
+
+  useEffect(() => {
+    fetchPharmacies()
+  }, [])
+
+  const fetchPharmacies = async () => {
+    try {
+      const res = await api.get('/admin/pharmacies')
+      setPharmacies(res.data.data || [])
+    } catch {
+      // Leave pharmacy list empty — field hidden
+    }
+  }
 
   useEffect(() => {
     if (isEdit) fetchUser()
@@ -81,7 +95,7 @@ export default function AdminUserFormPage() {
         await api.post('/admin/users', payload)
       }
       setSuccessModal(true)
-      setTimeout(() => navigate('/admin/users'), 1500)
+      setTimeout(() => navigate('/dashboard/users'), 1500)
     } catch (err) {
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors)
@@ -104,7 +118,7 @@ export default function AdminUserFormPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Link to="/admin/users" className="btn-ghost">
+            <Link to="/dashboard/users" className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -220,6 +234,29 @@ export default function AdminUserFormPage() {
                 </div>
                 {errors.role && <p className="text-xs text-red-500 mt-1">{errors.role}</p>}
               </div>
+              {['owner', 'pharmacist', 'cashier', 'delivery'].includes(form.role) && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Pharmacy <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Building2 className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <select
+                      value={form.pharmacy_id}
+                      onChange={(e) => handleChange('pharmacy_id', e.target.value)}
+                      className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.pharmacy_id ? '!border-red-400' : ''}`}
+                    >
+                      <option value="">Select pharmacy</option>
+                      {pharmacies.map((p) => (
+                        <option key={p.id} value={p.id}>{p.pharmacy_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {errors.pharmacy_id && <p className="text-xs text-red-500 mt-1">{errors.pharmacy_id}</p>}
+                </div>
+              )}
             </div>
           </div>
 
@@ -258,7 +295,7 @@ export default function AdminUserFormPage() {
 
           {/* Sticky bottom bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
-            <Link to="/admin/users" className="btn-secondary">
+            <Link to="/dashboard/users" className="btn-secondary">
               <span>Cancel</span>
             </Link>
             <button type="submit" disabled={submitting} className="btn-primary">

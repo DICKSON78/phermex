@@ -3,11 +3,13 @@ import { toArray } from '../../utils/safeData';
 import { Plus, RotateCcw, CheckCircle, Truck, CreditCard, Hash, CalendarDays, User, Package } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
 
 const STATUS_COLORS = { pending: 'bg-yellow-100 text-yellow-700', approved: 'bg-blue-100 text-blue-700', shipped: 'bg-indigo-100 text-indigo-700', refunded: 'bg-green-100 text-green-700' }
 const REASON_COLORS = { damaged: 'text-red-600', expired: 'text-orange-600', wrong_item: 'text-purple-600', quality_issue: 'text-yellow-600', overstock: 'text-blue-600' }
 
 export default function StockReturnsPage() {
+  const { pharmacyId } = useAuth()
   const [returns, setReturns] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -33,7 +35,7 @@ export default function StockReturnsPage() {
     e.preventDefault()
     setSaving(true)
     try {
-      await api.post('/stock-returns', { ...form, pharmacy_id: 1, items: form.items.map(i => ({ ...i, quantity: parseInt(i.quantity), unit_cost: parseFloat(i.unit_cost) })) })
+      await api.post('/stock-returns', { ...form, pharmacy_id: pharmacyId, items: form.items.map(i => ({ ...i, quantity: parseInt(i.quantity), unit_cost: parseFloat(i.unit_cost) })) })
       toast.success('Return created'); setShowForm(false); fetchReturns()
     } catch { toast.success('Return created'); setShowForm(false) } finally { setSaving(false) }
   }

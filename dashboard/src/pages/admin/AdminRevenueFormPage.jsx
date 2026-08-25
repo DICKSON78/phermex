@@ -83,7 +83,7 @@ export default function AdminRevenueFormPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Link to="/admin/revenue" className="btn-ghost">
+            <Link to="/dashboard/revenue" className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -200,7 +200,7 @@ export default function AdminRevenueFormPage() {
 
           {/* Sticky bottom bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
-            <Link to="/admin/revenue" className="btn-secondary">
+            <Link to="/dashboard/revenue" className="btn-secondary">
               <span>Cancel</span>
             </Link>
             <button type="submit" disabled={loading} className="btn-primary">
@@ -213,7 +213,7 @@ export default function AdminRevenueFormPage() {
 
       <Modal
         isOpen={showSuccess}
-        onClose={() => { setShowSuccess(false); navigate('/admin/revenue') }}
+        onClose={() => { setShowSuccess(false); navigate('/dashboard/revenue') }}
         title={isEdit ? 'Invoice Updated' : 'Invoice Created'}
         subtitle="The invoice has been saved successfully"
       >
@@ -225,7 +225,7 @@ export default function AdminRevenueFormPage() {
             {isEdit ? 'Invoice details have been updated.' : 'New invoice has been created and is pending payment.'}
           </p>
           <button
-            onClick={() => { setShowSuccess(false); navigate('/admin/revenue') }}
+            onClick={() => { setShowSuccess(false); navigate('/dashboard/revenue') }}
             className="btn-primary"
           >
             Back to Revenue

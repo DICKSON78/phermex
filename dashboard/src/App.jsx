@@ -6,26 +6,14 @@ import SessionTimeout from './components/SessionTimeout'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import RegisterOwnerPage from './pages/auth/RegisterOwnerPage'
-import RegisterCustomerPage from './pages/auth/RegisterCustomerPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import PendingApprovalPage from './pages/auth/PendingApprovalPage'
 import SubscriptionPlansPage from './pages/auth/SubscriptionPlansPage'
+import VerifyEmailPage from './pages/auth/VerifyEmailPage'
+import UseAppPage from './pages/UseAppPage'
 import NotFoundPage from './pages/NotFoundPage'
 import DashboardLayout from './components/DashboardLayout'
-
-import CustomerHomePage from './pages/customer/CustomerHomePage'
-import PharmacyDetailPage from './pages/customer/PharmacyDetailPage'
-import DrugCatalogPage from './pages/customer/DrugCatalogPage'
-import CartPage from './pages/customer/CartPage'
-import CheckoutPage from './pages/customer/CheckoutPage'
-import CustomerOrdersListPage from './pages/customer/CustomerOrdersListPage'
-import CustomerOrderDetailPage from './pages/customer/CustomerOrderDetailPage'
-import CustomerPrescriptionsPage from './pages/customer/CustomerPrescriptionsPage'
-import CustomerProfilePage from './pages/customer/CustomerProfilePage'
-import CustomerChatListPage from './pages/customer/CustomerChatListPage'
-import CustomerChatPage from './pages/customer/CustomerChatPage'
-import CustomerNotificationsPage from './pages/customer/CustomerNotificationsPage'
-import DeliveryTrackingPage from './pages/customer/DeliveryTrackingPage'
+import { SELLER_ROLES } from './utils/roles'
 
 function LoadingSpinner() {
   return (
@@ -47,18 +35,22 @@ function GuestRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return <LoadingSpinner />
   if (user) {
-    if (user.role === 'owner') return <Navigate to="/owner" replace />
-    if (user.role === 'admin') return <Navigate to="/admin" replace />
-    return <Navigate to="/" replace />
+    if (user.role === 'customer') return <Navigate to="/app" replace />
+    return <Navigate to="/dashboard" replace />
   }
   return children
 }
 
 function RoleRedirect() {
   const { user } = useAuth()
-  if (user?.role === 'owner') return <Navigate to="/owner" replace />
-  if (user?.role === 'admin') return <Navigate to="/admin" replace />
-  return <Navigate to="/" replace />
+  if (user?.role === 'customer') return <Navigate to="/app" replace />
+  return <Navigate to="/dashboard" replace />
+}
+
+function DashboardApp() {
+  const { user } = useAuth()
+  const role = user?.role === 'admin' ? 'admin' : SELLER_ROLES.includes(user?.role) ? 'seller' : 'owner'
+  return <DashboardLayout role={role} />
 }
 
 export default function App() {
@@ -67,11 +59,12 @@ export default function App() {
       <SessionTimeout />
       <Routes>
       {/* Public guest routes */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
       <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route path="/register/owner" element={<GuestRoute><RegisterOwnerPage /></GuestRoute>} />
-      <Route path="/register/customer" element={<GuestRoute><RegisterCustomerPage /></GuestRoute>} />
       <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
+      <Route path="/verify-email" element={<ProtectedRoute><VerifyEmailPage /></ProtectedRoute>} />
 
       {/* Owner-only routes (no role check — login handles redirect) */}
       <Route path="/pending-approval" element={<ProtectedRoute allowedRoles={['owner']}><PendingApprovalPage /></ProtectedRoute>} />
@@ -80,28 +73,12 @@ export default function App() {
       {/* Role redirect from root */}
       <Route path="/home" element={<ProtectedRoute><RoleRedirect /></ProtectedRoute>} />
 
-      {/* Customer PWA routes */}
-      <Route path="/" element={<ProtectedRoute allowedRoles={['customer']}><CustomerHomePage /></ProtectedRoute>} />
-      <Route path="/pharmacy/:id" element={<ProtectedRoute allowedRoles={['customer']}><PharmacyDetailPage /></ProtectedRoute>} />
-      <Route path="/pharmacy/:id/drugs" element={<ProtectedRoute allowedRoles={['customer']}><DrugCatalogPage /></ProtectedRoute>} />
-      <Route path="/cart" element={<ProtectedRoute allowedRoles={['customer']}><CartPage /></ProtectedRoute>} />
-      <Route path="/checkout" element={<ProtectedRoute allowedRoles={['customer']}><CheckoutPage /></ProtectedRoute>} />
-      <Route path="/orders" element={<ProtectedRoute allowedRoles={['customer']}><CustomerOrdersListPage /></ProtectedRoute>} />
-      <Route path="/orders/:id" element={<ProtectedRoute allowedRoles={['customer']}><CustomerOrderDetailPage /></ProtectedRoute>} />
-      <Route path="/prescriptions" element={<ProtectedRoute allowedRoles={['customer']}><CustomerPrescriptionsPage /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute allowedRoles={['customer']}><CustomerProfilePage /></ProtectedRoute>} />
-      <Route path="/chats" element={<ProtectedRoute allowedRoles={['customer']}><CustomerChatListPage /></ProtectedRoute>} />
-      <Route path="/chat/:pharmacyId" element={<ProtectedRoute allowedRoles={['customer']}><CustomerChatPage /></ProtectedRoute>} />
-      <Route path="/notifications" element={<ProtectedRoute allowedRoles={['customer']}><CustomerNotificationsPage /></ProtectedRoute>} />
-      <Route path="/orders/:id/track" element={<ProtectedRoute allowedRoles={['customer']}><DeliveryTrackingPage /></ProtectedRoute>} />
+      {/* Customer mobile-app redirect (customers use the native app) */}
+      <Route path="/app" element={<ProtectedRoute allowedRoles={['customer']}><UseAppPage /></ProtectedRoute>} />
 
-      {/* Owner dashboard routes */}
-      <Route path="/owner" element={<ProtectedRoute allowedRoles={['owner']}><DashboardLayout role="owner" /></ProtectedRoute>} />
-      <Route path="/owner/*" element={<ProtectedRoute allowedRoles={['owner']}><DashboardLayout role="owner" /></ProtectedRoute>} />
-
-      {/* Admin dashboard routes */}
-      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout role="admin" /></ProtectedRoute>} />
-      <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout role="admin" /></ProtectedRoute>} />
+      {/* Unified dashboard for all roles (owner / admin / seller) */}
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery']}><DashboardApp /></ProtectedRoute>} />
+      <Route path="/dashboard/*" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery']}><DashboardApp /></ProtectedRoute>} />
 
       {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />

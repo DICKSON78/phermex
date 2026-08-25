@@ -3,6 +3,7 @@ import { toArray } from '../../utils/safeData';
 import { Plus, Shield, ShieldAlert, Printer, BookOpen, AlertTriangle, Hash, Package, CalendarDays, User, FileText } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
 
 const SCHEDULE_TABS = [
   { key: 'all', label: 'All Schedules' },
@@ -12,6 +13,7 @@ const SCHEDULE_TABS = [
 ]
 
 export default function ControlledSubstancePage() {
+  const { pharmacyId } = useAuth()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [scheduleTab, setScheduleTab] = useState('all')
@@ -43,7 +45,7 @@ export default function ControlledSubstancePage() {
     e.preventDefault()
     setSaving(true)
     try {
-      await api.post('/controlled-substances', { ...form, pharmacy_id: 1, quantity_received: parseInt(form.quantity_received) })
+      await api.post('/controlled-substances', { ...form, pharmacy_id: pharmacyId, quantity_received: parseInt(form.quantity_received) })
       toast.success('Substance registered'); setShowForm(false); fetchRecords()
     } catch { toast.success('Substance registered'); setShowForm(false) } finally { setSaving(false) }
   }

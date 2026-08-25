@@ -13,12 +13,10 @@ class AutoScopePharmacy
     {
         $user = Auth::user();
 
-        if ($user && !$request->has('pharmacy_id')) {
-            $pharmacyIds = $user->pharmacy()->pluck('pharmacies.id');
-            if ($pharmacyIds->count() === 1) {
-                $request->merge(['pharmacy_id' => $pharmacyIds->first()]);
-            } elseif ($pharmacyIds->count() > 1) {
-                $request->merge(['pharmacy_id' => $pharmacyIds->first()]);
+        if ($user && !$request->has('pharmacy_id') && !$request->has('pharmacy')) {
+            $currentId = $user->resolveCurrentPharmacyId();
+            if ($currentId) {
+                $request->merge(['pharmacy_id' => $currentId]);
             }
         }
 

@@ -74,7 +74,7 @@ export default function AdminRevenueShowPage() {
     try {
       await api.delete(`/admin/revenue/${id}`)
     } catch {}
-    navigate('/admin/revenue')
+    navigate('/dashboard/revenue')
   }
 
   const handleMarkPaid = async () => {
@@ -127,7 +127,7 @@ export default function AdminRevenueShowPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Link to="/admin/revenue" className="btn-ghost">
+          <Link to="/dashboard/revenue" className="btn-ghost">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
@@ -139,7 +139,7 @@ export default function AdminRevenueShowPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link to={`/admin/revenue/${id}/edit`} className="btn-secondary">
+          <Link to={`/dashboard/revenue/${id}/edit`} className="btn-secondary">
             <Edit className="w-4 h-4" /> Edit
           </Link>
           <button onClick={() => setShowDelete(true)} className="btn-danger-outline">
@@ -425,7 +425,7 @@ export default function AdminRevenueShowPage() {
                 </button>
               )}
               <button
-                onClick={() => navigate(`/admin/revenue/${id}/edit`)}
+                onClick={() => navigate(`/dashboard/revenue/${id}/edit`)}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
               >
                 <Edit className="w-4 h-4 text-[#0FD452]" />

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toArray } from '../../utils/safeData';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Phone, AlertTriangle, Pill, FileText } from 'lucide-react';
+import { currentBase } from '../../utils/roles'
 import api from '../../services/api';
 
 const typeConfig = {
@@ -58,7 +59,7 @@ export default function PharmacyChatPage() {
     <div className="max-w-4xl mx-auto flex flex-col" style={{ height: 'calc(100vh - 4rem)' }}>
       {/* Header */}
       <div className="bg-white px-4 py-3 border-b border-gray-200 shrink-0 flex items-center gap-3">
-        <button onClick={() => navigate('/owner/chats')} className="w-10 h-10 flex items-center justify-center rounded-2xl bg-gray-50 active:scale-95 transition-transform">
+        <button onClick={() => navigate(`${currentBase()}/chats`)} className="w-10 h-10 flex items-center justify-center rounded-2xl bg-gray-50 active:scale-95 transition-transform">
           <ArrowLeft size={18} className="text-gray-700" />
         </button>
         <div className="flex-1 min-w-0">

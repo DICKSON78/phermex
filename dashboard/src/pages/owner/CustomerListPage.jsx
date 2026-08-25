@@ -7,6 +7,7 @@ import {
   Hash, Phone, Mail, Tag,
 } from 'lucide-react'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 
 function normalizeCustomer(c) {
   return {
@@ -19,6 +20,7 @@ function normalizeCustomer(c) {
 
 export default function CustomerListPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -95,7 +97,7 @@ export default function CustomerListPage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/owner/customers/new')}
+          onClick={() => navigate(`${base}/customers/new`)}
           className="btn-primary"
         >
           <UserPlus className="w-5 h-5" />
@@ -237,7 +239,7 @@ export default function CustomerListPage() {
                   <tr
                     key={customer.id}
                     className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer"
-                    onClick={() => navigate(`/owner/customers/${customer.id}`)}
+                    onClick={() => navigate(`${base}/customers/${customer.id}`)}
                   >
                     <td className="px-6 py-4 text-sm font-mono text-gray-600">{customer.code}</td>
                     <td className="px-6 py-4">
@@ -267,14 +269,14 @@ export default function CustomerListPage() {
                           <div className="fixed inset-0 z-40" onClick={() => setActiveMenu(null)} />
                           <div className="absolute right-6 top-full mt-1 w-40 bg-white rounded-xl shadow-xl border border-gray-200 py-1 z-50">
                             <button
-                              onClick={() => { navigate(`/owner/customers/${customer.id}`); setActiveMenu(null) }}
+                              onClick={() => { navigate(`${base}/customers/${customer.id}`); setActiveMenu(null) }}
                               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                             >
                               <Eye className="w-4 h-4" />
                               View Profile
                             </button>
                             <button
-                              onClick={() => { navigate(`/owner/customers/${customer.id}/edit`); setActiveMenu(null) }}
+                              onClick={() => { navigate(`${base}/customers/${customer.id}/edit`); setActiveMenu(null) }}
                               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                             >
                               <Edit className="w-4 h-4" />

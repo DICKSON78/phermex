@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { currentBase } from '../../utils/roles'
 
 const STATUS_STYLES = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -29,6 +30,7 @@ const STATUS_STEPS = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_del
 
 export default function OrderDetailPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const { id } = useParams()
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -100,7 +102,7 @@ export default function OrderDetailPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={() => navigate('/owner/orders')}
+          onClick={() => navigate(`${base}/orders`)}
           className="btn-ghost"
         >
           <ArrowLeft className="w-5 h-5 text-gray-600" />

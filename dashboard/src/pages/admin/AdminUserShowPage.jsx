@@ -98,7 +98,7 @@ export default function AdminUserShowPage() {
     setConfirmOpen(false)
     setSuccessMsg('User deleted successfully')
     setSuccessModal(true)
-    setTimeout(() => navigate('/admin/users'), 1500)
+    setTimeout(() => navigate('/dashboard/users'), 1500)
   }
 
   if (loading) {
@@ -130,7 +130,7 @@ export default function AdminUserShowPage() {
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">User not found</p>
           <button
-            onClick={() => navigate('/admin/users')}
+            onClick={() => navigate('/dashboard/users')}
             className="text-[#0FD452] mt-2 text-sm font-medium hover:underline"
           >
             Go back
@@ -164,7 +164,7 @@ export default function AdminUserShowPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Link to="/admin/users" className="btn-ghost">
+          <Link to="/dashboard/users" className="btn-ghost">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
@@ -176,7 +176,7 @@ export default function AdminUserShowPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link to={`/admin/users/${id}/edit`} className="btn-secondary">
+          <Link to={`/dashboard/users/${id}/edit`} className="btn-secondary">
             <Edit className="w-4 h-4" /> Edit
           </Link>
           <button onClick={() => setConfirmOpen(true)} className="btn-danger-outline">
@@ -451,7 +451,7 @@ export default function AdminUserShowPage() {
               </div>
               <div className="p-4 space-y-2">
                 <Link
-                  to={`/admin/users/${id}/activity`}
+                  to={`/dashboard/users/${id}/activity`}
                   className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group"
                 >
                   <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">

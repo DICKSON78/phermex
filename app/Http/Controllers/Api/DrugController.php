@@ -7,6 +7,7 @@ use App\Models\Drug;
 use App\Models\DrugCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class DrugController extends Controller
@@ -82,6 +83,7 @@ class DrugController extends Controller
                 'batch_number' => 'nullable|string|max:255',
                 'requires_prescription' => 'sometimes|boolean',
                 'is_generic' => 'sometimes|boolean',
+                'image' => 'nullable|image|max:2048',
             ]);
 
             $slug = Str::slug($validated['name']) . '-' . Str::random(5);
@@ -89,6 +91,12 @@ class DrugController extends Controller
 
             $validated['slug'] = $slug;
             $validated['barcode'] = $barcode;
+
+            if ($request->hasFile('image')) {
+                $validated['image_url'] = $request->file('image')->store('drugs', 'public');
+            }
+
+            unset($validated['image']);
 
             $drug = Drug::create($validated);
 
@@ -153,11 +161,21 @@ class DrugController extends Controller
                 'requires_prescription' => 'sometimes|boolean',
                 'is_generic' => 'sometimes|boolean',
                 'is_published' => 'sometimes|boolean',
+                'image' => 'nullable|image|max:2048',
             ]);
 
             if (isset($validated['name']) && $validated['name'] !== $drug->name) {
                 $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(5);
             }
+
+            if ($request->hasFile('image')) {
+                if ($drug->image_url) {
+                    Storage::disk('public')->delete($drug->image_url);
+                }
+                $validated['image_url'] = $request->file('image')->store('drugs', 'public');
+            }
+
+            unset($validated['image']);
 
             $drug->update($validated);
 
@@ -184,6 +202,11 @@ class DrugController extends Controller
     {
         try {
             $drug = Drug::findOrFail($id);
+
+            if ($drug->image_url) {
+                Storage::disk('public')->delete($drug->image_url);
+            }
+
             $drug->delete();
 
             return response()->json([
@@ -294,6 +317,92 @@ class DrugController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve categories.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function storeCategory(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string|max:1000',
+            ]);
+
+            $category = DrugCategory::create([
+                'pharmacy_id' => $request->input('pharmacy_id'),
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+            ]);
+
+            $category->loadCount('drugs');
+
+            return response()->json([
+                'message' => 'Category created successfully.',
+                'data' => $category,
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create category.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateCategory(Request $request, $id): JsonResponse
+    {
+        try {
+            $category = DrugCategory::where('pharmacy_id', $request->input('pharmacy_id'))->findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'description' => 'nullable|string|max:1000',
+            ]);
+
+            $category->update($validated);
+
+            $category->loadCount('drugs');
+
+            return response()->json([
+                'message' => 'Category updated successfully.',
+                'data' => $category,
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Category not found.'], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update category.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function destroyCategory(Request $request, $id): JsonResponse
+    {
+        try {
+            $category = DrugCategory::where('pharmacy_id', $request->input('pharmacy_id'))->findOrFail($id);
+
+            $category->delete();
+
+            return response()->json([
+                'message' => 'Category deleted successfully.',
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Category not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete category.',
                 'error' => $e->getMessage(),
             ], 500);
         }

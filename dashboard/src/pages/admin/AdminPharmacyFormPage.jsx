@@ -7,6 +7,7 @@ import {
   MapPin,
   Phone,
   Mail,
+  Lock,
   ArrowLeft,
   Save,
   Loader2,
@@ -65,6 +66,9 @@ export default function AdminPharmacyFormPage() {
   const [form, setForm] = useState({
     pharmacy_name: '',
     owner_name: '',
+    owner_email: '',
+    owner_phone: '',
+    password: '',
     country: 'Tanzania',
     region: '',
     district: '',
@@ -91,6 +95,9 @@ export default function AdminPharmacyFormPage() {
       setForm({
         pharmacy_name: d.pharmacy_name || '',
         owner_name: owner?.name || '',
+        owner_email: owner?.email || '',
+        owner_phone: owner?.phone || '',
+        password: '',
         country: d.country || 'Tanzania',
         region: d.region || '',
         district: d.district || '',
@@ -116,6 +123,10 @@ export default function AdminPharmacyFormPage() {
     const errs = {}
     if (!form.pharmacy_name.trim()) errs.pharmacy_name = 'Pharmacy name is required'
     if (!form.owner_name.trim()) errs.owner_name = 'Owner name is required'
+    if (!isEdit && !form.owner_email.trim()) errs.owner_email = 'Owner email is required (login)'
+    else if (!isEdit && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.owner_email)) errs.owner_email = 'Invalid email'
+    if (!isEdit && !form.password) errs.password = 'Login password is required'
+    else if (!isEdit && form.password.length < 8) errs.password = 'Min 8 characters'
     if (!form.country) errs.country = 'Country is required'
     if (!form.phone.trim()) errs.phone = 'Phone is required'
     setErrors(errs)
@@ -128,12 +139,13 @@ export default function AdminPharmacyFormPage() {
     setSubmitting(true)
     try {
       if (isEdit) {
-        await api.put(`/admin/pharmacies/${id}`, form)
+        const { owner_email, owner_phone, password, ...rest } = form
+        await api.put(`/admin/pharmacies/${id}`, rest)
       } else {
         await api.post('/admin/pharmacies', form)
       }
-      setSuccessToast(isEdit ? 'Pharmacy updated successfully' : 'Pharmacy created successfully')
-      setTimeout(() => navigate('/admin/pharmacies'), 1500)
+      setSuccessToast(isEdit ? 'Pharmacy updated successfully' : 'Pharmacy and owner account created')
+      setTimeout(() => navigate('/dashboard/pharmacies'), 1500)
     } catch (err) {
       if (err.response?.data?.errors) setErrors(err.response.data.errors)
     } finally { setSubmitting(false) }
@@ -156,7 +168,7 @@ export default function AdminPharmacyFormPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/admin/pharmacies" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+          <Link to="/dashboard/pharmacies" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-500" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
@@ -164,7 +176,7 @@ export default function AdminPharmacyFormPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Pharmacy' : 'Create New Pharmacy'}</h1>
-            <p className="text-sm text-gray-500">{isEdit ? 'Update existing pharmacy details' : 'Add a new pharmacy to the platform'}</p>
+            <p className="text-sm text-gray-500">{isEdit ? 'Update existing pharmacy details' : 'Add a pharmacy and create its owner login account'}</p>
           </div>
         </div>
       </div>
@@ -183,6 +195,22 @@ export default function AdminPharmacyFormPage() {
               <input type="text" value={form.owner_name} onChange={(e) => handleChange('owner_name', e.target.value)}
                 className={inputClass('owner_name')} placeholder="Enter owner name" />
             </FormField>
+            {!isEdit && (
+              <>
+                <FormField icon={Mail} label="Owner Email (login)" required error={errors.owner_email}>
+                  <input type="email" value={form.owner_email} onChange={(e) => handleChange('owner_email', e.target.value)}
+                    className={inputClass('owner_email')} placeholder="owner@example.com" />
+                </FormField>
+                <FormField icon={Phone} label="Owner Phone" error={errors.owner_phone}>
+                  <input type="tel" value={form.owner_phone} onChange={(e) => handleChange('owner_phone', e.target.value)}
+                    className={inputClass('owner_phone')} placeholder="+255..." />
+                </FormField>
+                <FormField icon={Lock} label="Login Password" required error={errors.password}>
+                  <input type="password" value={form.password} onChange={(e) => handleChange('password', e.target.value)}
+                    className={inputClass('password')} placeholder="Min 8 characters" />
+                </FormField>
+              </>
+            )}
             <FormField icon={Globe} label="Country" required error={errors.country}>
               <select value={form.country} onChange={(e) => handleChange('country', e.target.value)} className={inputClass('country')}>
                 <option value="">Select country</option>
@@ -249,14 +277,14 @@ export default function AdminPharmacyFormPage() {
 
         {/* Sticky bottom bar */}
         <div className="sticky bottom-0 bg-white px-5 py-4 border-t border-gray-100 rounded-b-xl flex justify-end gap-3 -mb-5">
-          <Link to="/admin/pharmacies"
+          <Link to="/dashboard/pharmacies"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
             <X className="w-4 h-4" /> Cancel
           </Link>
           <button type="submit" disabled={submitting}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all disabled:opacity-50">
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {isEdit ? 'Update Pharmacy' : 'Create Pharmacy'}
+            {isEdit ? 'Update Pharmacy' : 'Create Pharmacy & Owner Account'}
           </button>
         </div>
       </form>

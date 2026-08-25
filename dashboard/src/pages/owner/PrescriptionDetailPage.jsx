@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { toArray } from '../../utils/safeData';
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 import {
   ArrowLeft,
   FileText,
@@ -28,6 +29,7 @@ const STATUS_CONFIG = {
 
 export default function PrescriptionDetailPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const { id } = useParams()
   const [rx, setRx] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -89,7 +91,7 @@ export default function PrescriptionDetailPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/owner/prescriptions')}
+            onClick={() => navigate(`${base}/prescriptions`)}
             className="btn-ghost"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />

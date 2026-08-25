@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class AuditLog extends Model
 {
-    use HasFactory;
+    use TenantScoped, HasFactory;
 
     protected $fillable = [
         'pharmacy_id',

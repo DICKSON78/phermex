@@ -6,6 +6,7 @@ import {
   Hash, Tag, User, Package, CreditCard, Activity, Calendar,
 } from 'lucide-react'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 
 const PAYMENT_STYLES = {
   unpaid: 'bg-red-100 text-red-700',
@@ -31,6 +32,7 @@ const STATUS_TABS = ['All', 'Pending', 'Confirmed', 'Dispensed', 'Delivered', 'C
 
 export default function OrderListPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -234,7 +236,7 @@ export default function OrderListPage() {
                 </tr>
               ) : (
                 filtered.map((order) => (
-                  <tr key={order.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`/owner/orders/${order.id}`)}>
+                  <tr key={order.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`${base}/orders/${order.id}`)}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">
@@ -264,7 +266,7 @@ export default function OrderListPage() {
                     <td className="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell">{formatDate(order.created_at)}</td>
                     <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={() => navigate(`/owner/orders/${order.id}`)}
+                        onClick={() => navigate(`${base}/orders/${order.id}`)}
                         className="btn-icon-primary"
                         title="View"
                       >

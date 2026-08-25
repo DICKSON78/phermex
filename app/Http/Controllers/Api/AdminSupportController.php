@@ -206,4 +206,103 @@ class AdminSupportController extends Controller
             ], 500);
         }
     }
+
+    public function ownerIndex(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $pharmacyIds = $user->pharmacy()->pluck('pharmacies.id');
+
+            $query = SupportTicket::with(['pharmacy', 'user', 'assignee', 'replies.user'])
+                ->where(function ($q) use ($user, $pharmacyIds) {
+                    $q->where('user_id', $user->id)
+                        ->orWhereIn('pharmacy_id', $pharmacyIds);
+                });
+
+            $tickets = $query->latest()->paginate($request->input('per_page', 20));
+
+            return response()->json($tickets);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch tickets.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function ownerStore(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'pharmacy_id' => 'required|exists:pharmacies,id',
+                'subject' => 'required|string|max:255',
+                'description' => 'required|string',
+                'priority' => 'sometimes|in:low,medium,high,urgent',
+                'category' => 'nullable|string|max:100',
+            ]);
+
+            $validated['user_id'] = $request->user()->id;
+            $validated['priority'] = $validated['priority'] ?? 'medium';
+            $validated['status'] = 'open';
+
+            $ticket = SupportTicket::create($validated);
+
+            return response()->json([
+                'message' => 'Support ticket created. The admin team will respond shortly.',
+                'data' => $ticket->load(['pharmacy', 'user', 'assignee']),
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create ticket.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function ownerReply(Request $request, $id): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $pharmacyIds = $user->pharmacy()->pluck('pharmacies.id');
+
+            $ticket = SupportTicket::where('id', $id)
+                ->where(function ($q) use ($user, $pharmacyIds) {
+                    $q->where('user_id', $user->id)
+                        ->orWhereIn('pharmacy_id', $pharmacyIds);
+                })
+                ->firstOrFail();
+
+            $validated = $request->validate([
+                'message' => 'required|string',
+            ]);
+
+            $reply = TicketReply::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $user->id,
+                'message' => $validated['message'],
+            ]);
+
+            return response()->json([
+                'message' => 'Reply added.',
+                'data' => $reply->load('user'),
+            ], 201);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Ticket not found.'], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to add reply.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

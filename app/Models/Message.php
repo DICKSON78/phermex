@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Message extends Model
 {
+    use TenantScoped;
     protected $fillable = [
         'pharmacy_id',
         'sender_id',

@@ -20,8 +20,11 @@ import {
   Hash,
   Receipt,
   ShieldCheck,
+  Plus,
 } from 'lucide-react'
 import api from '../../services/api'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 
 const WORKING_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -73,6 +76,8 @@ function formatCurrency(amount) {
 }
 
 export default function SettingsPage() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const [pharmacy, setPharmacy] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -230,10 +235,19 @@ export default function SettingsPage() {
         <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
           <Settings className="w-5 h-5 text-[#0FD452]" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
           <p className="text-sm text-gray-500">Configure your pharmacy profile and preferences.</p>
         </div>
+        {user?.isOwner?.() || user?.role === 'owner' ? (
+          <button
+            onClick={() => navigate('/dashboard/settings/pharmacies/new')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl text-sm font-bold transition-all duration-200 shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Add Pharmacy
+          </button>
+        ) : null}
       </div>
 
       {error && (

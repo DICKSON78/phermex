@@ -35,9 +35,12 @@ const DEFAULT_DATA = {
   pendingPrescriptions: 0,
   lowStockAlerts: 0,
   expiringDrugs: 0,
+  salesTrend: 0,
   revenueChart: [],
   revenueBreakdown: [],
   topSellingDrugs: [],
+  recentOrders: [],
+  lowStockDrugs: [],
 }
 
 function getGreeting() {
@@ -55,8 +58,13 @@ function formatCurrency(amount) {
 const STATUS_MAP = {
   pending: { label: 'Pending', className: 'badge badge-yellow' },
   confirmed: { label: 'Confirmed', className: 'badge badge-blue' },
+  preparing: { label: 'Preparing', className: 'badge badge-blue' },
+  ready: { label: 'Ready', className: 'badge badge-indigo' },
+  out_for_delivery: { label: 'Out for Delivery', className: 'badge badge-orange' },
+  delivered: { label: 'Delivered', className: 'badge badge-green' },
   dispensed: { label: 'Dispensed', className: 'badge badge-green' },
   cancelled: { label: 'Cancelled', className: 'badge badge-red' },
+  failed: { label: 'Failed', className: 'badge badge-red' },
 }
 
 function OwnerDashboard() {
@@ -92,6 +100,21 @@ function OwnerDashboard() {
           revenue: item.revenue ?? 0,
         }))
 
+        const recentOrders = (apiData.recent_orders || []).map((order) => ({
+          id: order.id,
+          code: order.order_code || order.code,
+          customer: order.customer || 'Walk-in',
+          total: order.total ?? 0,
+          status: order.status || order.order_status || 'pending',
+          time: order.time || '',
+        }))
+
+        const lowStockDrugs = (apiData.low_stock_drugs || []).map((drug) => ({
+          name: drug.name || 'Unknown',
+          reorderLevel: drug.reorder_level,
+          currentStock: drug.quantity ?? drug.current_stock ?? 0,
+        }))
+
         setData({
           todaySales: apiData.today_sales ?? 0,
           monthlyRevenue: apiData.monthly_revenue ?? 0,
@@ -99,9 +122,12 @@ function OwnerDashboard() {
           pendingPrescriptions: apiData.active_prescriptions ?? 0,
           lowStockAlerts: apiData.low_stock_alerts ?? 0,
           expiringDrugs: apiData.expiring_drugs ?? 0,
+          salesTrend: apiData.sales_trend ?? 0,
           revenueChart,
           revenueBreakdown,
           topSellingDrugs,
+          recentOrders,
+          lowStockDrugs,
         })
       } catch (err) {
         console.warn('Failed to fetch dashboard data:', err.message)
@@ -333,7 +359,7 @@ function OwnerDashboard() {
               Recent Orders
             </h3>
             <Link
-              to="/owner/orders"
+              to="/dashboard/orders"
               className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
             >
               View All <ArrowRight className="h-4 w-4" />

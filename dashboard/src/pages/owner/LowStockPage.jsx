@@ -5,10 +5,12 @@ import {
   AlertTriangle, Search, Eye, ShoppingCart, Package, DollarSign,
   ChevronLeft, ChevronRight, X, Tag, FolderOpen, RefreshCw,
 } from 'lucide-react'
+import { currentBase } from '../../utils/roles'
 import api from '../../services/api'
 
 export default function LowStockPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const [drugs, setDrugs] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -178,7 +180,7 @@ export default function LowStockPage() {
                             <ShoppingCart className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => navigate(`/owner/drugs/${drug.id}`)}
+                            onClick={() => navigate(`${base}/drugs/${drug.id}`)}
                             className="btn-icon-blue"
                             title="View Drug"
                           >

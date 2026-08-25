@@ -170,7 +170,7 @@ export default function AdminContentPage() {
             <p className="text-sm text-gray-500">Create and manage platform content and announcements.</p>
           </div>
         </div>
-        <button onClick={() => navigate('/admin/content/new')} className="btn-primary">
+        <button onClick={() => navigate('/dashboard/content/new')} className="btn-primary">
           <Plus className="h-4 w-4" />
           New Post
         </button>
@@ -294,14 +294,14 @@ export default function AdminContentPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
-                            onClick={() => navigate('/admin/content/' + post.id)}
+                            onClick={() => navigate('/dashboard/content/' + post.id)}
                             className="btn-icon-primary"
                             title="View"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => navigate('/admin/content/' + post.id + '/edit')}
+                            onClick={() => navigate('/dashboard/content/' + post.id + '/edit')}
                             className="btn-icon-blue"
                             title="Edit"
                           >

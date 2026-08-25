@@ -89,12 +89,20 @@ export default function AdminDashboard() {
           totalUsers: raw.total_users ?? 0,
           activeSubscriptions: raw.active_subscriptions ?? 0,
           newPharmaciesThisMonth: raw.new_registrations_this_month ?? 0,
-          platformRevenue: raw.monthly_revenue ?? 0,
+          platformRevenue: raw.total_revenue ?? raw.platform_revenue ?? 0,
+          monthlyRevenue: raw.monthly_revenue ?? 0,
           monthlyGrowth: raw.monthly_growth ?? 0,
+          supportTicketsOpen: raw.support_tickets_open ?? 0,
           revenueChart,
           revenueBreakdown,
           pharmaciesByStatus: raw.pharmacies_by_status ?? [],
           subscriptionBreakdown: raw.subscription_breakdown ?? [],
+          userGrowth: raw.user_growth ?? [],
+          regionalDistribution: raw.regional_distribution ?? [],
+          recentPharmacies: raw.recent_pharmacies ?? [],
+          topPharmaciesByRevenue: raw.top_pharmacies_by_revenue ?? [],
+          recentActivity: raw.recent_activity ?? [],
+          systemHealth: raw.system_health ?? {},
         })
       } catch (err) {
         console.warn('Failed to fetch admin dashboard:', err.message)
@@ -346,7 +354,7 @@ export default function AdminDashboard() {
               Recent Pharmacy Registrations
             </h3>
             <Link
-              to="/admin/pharmacies"
+              to="/dashboard/pharmacies"
               className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
             >
               View All <ArrowRight className="h-4 w-4" />
@@ -486,7 +494,7 @@ export default function AdminDashboard() {
             </div>
             <div className="p-6 space-y-3 max-h-80 overflow-y-auto">
               {data.recentActivity?.length > 0 ? data.recentActivity.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon || Activity
                 return (
                   <div key={item.id} className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">

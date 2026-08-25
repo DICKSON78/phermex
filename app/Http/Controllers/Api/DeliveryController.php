@@ -5,12 +5,33 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class DeliveryController extends Controller
 {
+    public function drivers(Request $request): JsonResponse
+    {
+        try {
+            $pharmacyId = $request->input('pharmacy_id');
+
+            $drivers = \App\Models\User::where('role', 'delivery')
+                ->where('is_active', true)
+                ->when($pharmacyId, fn ($q) => $q->whereHas('pharmacy', fn ($p) => $p->where('pharmacies.id', $pharmacyId)))
+                ->orderBy('name')
+                ->get(['id', 'name', 'phone', 'email']);
+
+            return response()->json(['drivers' => $drivers]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch drivers.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {

@@ -100,6 +100,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/user/password', [AuthController::class, 'changePassword']);
 
+    Route::post('/email/verify/send', [App\Http\Controllers\Api\VerifyEmailController::class, 'send']);
+    Route::post('/email/verify', [App\Http\Controllers\Api\VerifyEmailController::class, 'verify']);
+
     Route::prefix('customer-app')->group(function () {
         Route::get('/me', [CustomerAppController::class, 'me']);
         Route::put('/me', [CustomerAppController::class, 'updateProfile']);
@@ -110,6 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/orders', [CustomerAppController::class, 'placeOrder']);
         Route::get('/orders', [CustomerAppController::class, 'myOrders']);
         Route::get('/orders/{id}', [CustomerAppController::class, 'orderDetail']);
+        Route::post('/orders/{id}/cancel', [CustomerAppController::class, 'cancelOrder']);
         Route::post('/prescriptions', [CustomerAppController::class, 'uploadPrescription']);
         Route::get('/prescriptions', [CustomerAppController::class, 'myPrescriptions']);
 

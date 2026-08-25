@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Pill, Building2, User, ArrowRight } from 'lucide-react'
+import { Pill, Building2, ArrowRight } from 'lucide-react'
 
 export default function RegisterPage() {
   return (
@@ -13,8 +13,8 @@ export default function RegisterPage() {
             <span className="text-gray-600 font-black text-3xl">PHARMEX</span>
           </div>
           <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">Choose Type</p>
-          <h1 className="text-4xl font-black text-gray-600 mb-3">What Would You Like To Be?</h1>
-          <p className="text-gray-500 text-lg">Select the platform that best suits your needs</p>
+          <h1 className="text-4xl font-black text-gray-600 mb-3">How Many Pharmacies?</h1>
+          <p className="text-gray-500 text-lg">Register one pharmacy or multiple branches at once</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -26,7 +26,7 @@ export default function RegisterPage() {
               <Building2 className="w-8 h-8 text-[#0FD452]" />
             </div>
             <h3 className="text-xl font-bold text-gray-600 mb-2">Pharmacy Owner</h3>
-            <p className="text-gray-500 text-sm mb-6">Register your pharmacy and manage inventory, sales, and staff all in one place.</p>
+            <p className="text-gray-500 text-sm mb-6">Register a single pharmacy and manage inventory, sales, and staff all in one place.</p>
             <div className="flex items-center gap-2 text-[#0FD452] font-semibold text-sm">
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -34,16 +34,16 @@ export default function RegisterPage() {
           </Link>
 
           <Link
-            to="/register/customer"
+            to="/register/owner?mode=multiple"
             className="group relative bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#0FD452] hover:shadow-lg hover:shadow-[#0FD452]/10 transition-all duration-500"
           >
             <div className="w-16 h-16 bg-[#0FD452]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[#0FD452]/20 transition-all duration-300">
-              <User className="w-8 h-8 text-[#0FD452]" />
+              <Building2 className="w-8 h-8 text-[#0FD452]" />
             </div>
-            <h3 className="text-xl font-bold text-gray-600 mb-2">Customer</h3>
-            <p className="text-gray-500 text-sm mb-6">Order medicines and manage your prescriptions with ease.</p>
+            <h3 className="text-xl font-bold text-gray-600 mb-2">Multiple Pharmacies</h3>
+            <p className="text-gray-500 text-sm mb-6">Register several pharmacy branches at once — each with its own address, location, and working hours.</p>
             <div className="flex items-center gap-2 text-[#0FD452] font-semibold text-sm">
-              <span>Sign Up</span>
+              <span>Get Started</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>

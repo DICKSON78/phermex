@@ -111,7 +111,7 @@ export default function ExpenseListPage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/owner/expenses/new')}
+          onClick={() => navigate('/dashboard/expenses/new')}
           className="btn-primary"
         >
           <Plus className="w-5 h-5" />
@@ -313,7 +313,7 @@ export default function ExpenseListPage() {
                             <div className="fixed inset-0 z-40" onClick={() => setActiveMenu(null)} />
                             <div className="absolute right-6 top-full mt-1 w-36 bg-white rounded-xl shadow-xl border border-gray-200 py-1 z-50">
                               <button
-                                onClick={() => { navigate(`/owner/expenses/${expense.id}/edit`); setActiveMenu(null) }}
+                                onClick={() => { navigate(`/dashboard/expenses/${expense.id}/edit`); setActiveMenu(null) }}
                                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                               >
                                 <Edit className="w-4 h-4" />

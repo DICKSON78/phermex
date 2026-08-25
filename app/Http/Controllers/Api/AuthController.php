@@ -27,13 +27,13 @@ class AuthController extends Controller
             ];
 
             if ($request->role === 'owner' || $request->input('role', 'owner') === 'owner') {
-                $rules['pharmacy_name'] = 'required|string|max:255';
+                $rules['pharmacy_name'] = 'sometimes|required_without:pharmacies|string|max:255';
                 $rules['pharmacy_type'] = 'sometimes|string|max:50';
                 $rules['license_number'] = 'sometimes|string|max:100';
                 $rules['license_expiry'] = 'sometimes|nullable|date';
                 $rules['country'] = 'required|string|max:100';
-                $rules['region'] = 'required|string|max:255';
-                $rules['district'] = 'required|string|max:255';
+                $rules['region'] = 'sometimes|required_without:pharmacies|string|max:255';
+                $rules['district'] = 'sometimes|required_without:pharmacies|string|max:255';
                 $rules['ward'] = 'sometimes|nullable|string|max:255';
                 $rules['street'] = 'sometimes|nullable|string|max:255';
                 $rules['latitude'] = 'sometimes|nullable|numeric|between:-90,90';
@@ -43,6 +43,23 @@ class AuthController extends Controller
                 $rules['working_hours'] = 'sometimes|nullable|array';
                 $rules['description'] = 'sometimes|nullable|string|max:1000';
                 $rules['subscription_plan_id'] = 'required|exists:subscription_plans,id';
+
+                $rules['pharmacies'] = 'sometimes|array|min:1';
+                $rules['pharmacies.*.pharmacy_name'] = 'required|string|max:255';
+                $rules['pharmacies.*.pharmacy_type'] = 'sometimes|string|max:50';
+                $rules['pharmacies.*.license_number'] = 'sometimes|nullable|string|max:100';
+                $rules['pharmacies.*.license_expiry'] = 'sometimes|nullable|date';
+                $rules['pharmacies.*.country'] = 'sometimes|nullable|string|max:100';
+                $rules['pharmacies.*.region'] = 'required|string|max:255';
+                $rules['pharmacies.*.district'] = 'required|string|max:255';
+                $rules['pharmacies.*.ward'] = 'sometimes|nullable|string|max:255';
+                $rules['pharmacies.*.street'] = 'sometimes|nullable|string|max:255';
+                $rules['pharmacies.*.latitude'] = 'sometimes|nullable|numeric|between:-90,90';
+                $rules['pharmacies.*.longitude'] = 'sometimes|nullable|numeric|between:-180,180';
+                $rules['pharmacies.*.opening_capital'] = 'sometimes|nullable|numeric|min:0';
+                $rules['pharmacies.*.working_days'] = 'sometimes|nullable|array';
+                $rules['pharmacies.*.working_hours'] = 'sometimes|nullable|array';
+                $rules['pharmacies.*.description'] = 'sometimes|nullable|string|max:1000';
             }
 
             $validated = $request->validate($rules);
@@ -62,52 +79,90 @@ class AuthController extends Controller
             ]);
 
             $pharmacy = null;
+            $pharmacies = [];
 
             if ($user->isOwner()) {
-                $pharmacyCode = 'PHM-' . strtoupper(Str::random(6));
+                $pharmacyInputs = [];
 
-                $pharmacyData = [
-                    'owner_id' => $user->id,
-                    'pharmacy_name' => $validated['pharmacy_name'],
-                    'pharmacy_code' => $pharmacyCode,
-                    'pharmacy_type' => $validated['pharmacy_type'] ?? 'independent',
-                    'license_number' => $validated['license_number'] ?? null,
-                    'license_expiry' => $validated['license_expiry'] ?? null,
-                    'country' => $validated['country'],
-                    'region' => $validated['region'],
-                    'district' => $validated['district'],
-                    'ward' => $validated['ward'] ?? null,
-                    'street' => $validated['street'] ?? null,
-                    'latitude' => $validated['latitude'] ?? null,
-                    'longitude' => $validated['longitude'] ?? null,
-                    'phone' => $validated['phone'],
-                    'email' => $validated['email'],
-                    'description' => $validated['description'] ?? null,
-                    'working_days' => $validated['working_days'] ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                    'working_hours' => $validated['working_hours'] ?? ['open' => '08:00', 'close' => '18:00'],
-                    'opening_capital' => $validated['opening_capital'] ?? 0,
-                    'status' => 'pending',
-                    'application_status' => 'pending',
-                    'is_published' => false,
-                    'subscription_plan_id' => $validated['subscription_plan_id'],
-                    'subscription_amount' => \App\Models\SubscriptionPlan::find($validated['subscription_plan_id'])?->price,
-                    'payment_status' => 'unpaid',
-                    'trial_ends_at' => now()->addDays(7),
-                ];
+                if (!empty($validated['pharmacies'])) {
+                    $pharmacyInputs = $validated['pharmacies'];
+                } else {
+                    $pharmacyInputs[] = [
+                        'pharmacy_name' => $validated['pharmacy_name'],
+                        'pharmacy_type' => $validated['pharmacy_type'] ?? 'independent',
+                        'license_number' => $validated['license_number'] ?? null,
+                        'license_expiry' => $validated['license_expiry'] ?? null,
+                        'country' => $validated['country'] ?? null,
+                        'region' => $validated['region'] ?? null,
+                        'district' => $validated['district'] ?? null,
+                        'ward' => $validated['ward'] ?? null,
+                        'street' => $validated['street'] ?? null,
+                        'latitude' => $validated['latitude'] ?? null,
+                        'longitude' => $validated['longitude'] ?? null,
+                        'opening_capital' => $validated['opening_capital'] ?? 0,
+                        'working_days' => $validated['working_days'] ?? null,
+                        'working_hours' => $validated['working_hours'] ?? null,
+                        'description' => $validated['description'] ?? null,
+                    ];
+                }
 
-                $pharmacy = Pharmacy::create($pharmacyData);
+                foreach ($pharmacyInputs as $input) {
+                    $pharmacyData = [
+                        'owner_id' => $user->id,
+                        'pharmacy_name' => $input['pharmacy_name'],
+                        'pharmacy_code' => 'PHM-' . strtoupper(Str::random(6)),
+                        'pharmacy_type' => $input['pharmacy_type'] ?? 'independent',
+                        'license_number' => $input['license_number'] ?? null,
+                        'license_expiry' => $input['license_expiry'] ?? null,
+                        'country' => $input['country'] ?? $validated['country'],
+                        'region' => $input['region'],
+                        'district' => $input['district'],
+                        'ward' => $input['ward'] ?? null,
+                        'street' => $input['street'] ?? null,
+                        'latitude' => $input['latitude'] ?? null,
+                        'longitude' => $input['longitude'] ?? null,
+                        'phone' => $validated['phone'],
+                        'email' => $validated['email'],
+                        'description' => $input['description'] ?? null,
+                        'working_days' => $input['working_days'] ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                        'working_hours' => $input['working_hours'] ?? ['open' => '08:00', 'close' => '18:00'],
+                        'opening_capital' => $input['opening_capital'] ?? 0,
+                        'status' => 'pending',
+                        'application_status' => 'pending',
+                        'is_published' => false,
+                        'subscription_plan_id' => $validated['subscription_plan_id'],
+                        'subscription_amount' => \App\Models\SubscriptionPlan::find($validated['subscription_plan_id'])?->price,
+                        'payment_status' => 'unpaid',
+                    ];
 
-                $user->pharmacy()->attach($pharmacy->id);
+                    $created = Pharmacy::create($pharmacyData);
+
+                    $user->pharmacy()->attach($created->id);
+
+                    if ($pharmacy === null) {
+                        $pharmacy = $created;
+                    }
+
+                    $pharmacies[] = $created;
+                }
+
+                if ($pharmacies) {
+                    $user->update(['current_pharmacy_id' => $pharmacies[0]->id]);
+                    $user->refresh();
+                }
             }
 
             $token = $user->createToken('auth-token')->plainTextToken;
 
             DB::commit();
 
+            $user->accessible_pharmacies = $user->accessiblePharmacies();
+
             return response()->json([
                 'message' => 'Registration successful.',
                 'user' => $user->load('pharmacy'),
                 'pharmacy' => $pharmacy,
+                'pharmacies' => $pharmacies,
                 'token' => $token,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -153,7 +208,13 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            $pharmacy = $user->pharmacy()->first();
+            if (!$user->current_pharmacy_id) {
+                $user->update(['current_pharmacy_id' => $user->resolveCurrentPharmacyId()]);
+                $user->refresh();
+            }
+
+            $pharmacyId = $user->resolveCurrentPharmacyId();
+            $pharmacy = $pharmacyId ? \App\Models\Pharmacy::find($pharmacyId) : null;
             $appStatus = null;
             $subscriptionInfo = null;
 
@@ -191,9 +252,10 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'Login successful.',
-                'user' => $user->load('pharmacy'),
+                'user' => $user->load('pharmacy', 'currentPharmacy'),
                 'token' => $token,
                 'subscription' => $subscriptionInfo,
+                'email_verified' => $user->email_verified_at !== null,
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -227,7 +289,15 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         try {
-            $user = $request->user()->load('pharmacy');
+            $user = $request->user();
+
+            if (!$user->current_pharmacy_id) {
+                $user->update(['current_pharmacy_id' => $user->resolveCurrentPharmacyId()]);
+                $user->refresh();
+            }
+
+            $user->load('pharmacy', 'currentPharmacy');
+            $user->accessible_pharmacies = $user->accessiblePharmacies();
 
             return response()->json($user);
         } catch (\Exception $e) {

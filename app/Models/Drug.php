@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Drug extends Model
 {
-    use HasFactory, SoftDeletes;
+    use TenantScoped, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'pharmacy_id',
@@ -33,6 +34,7 @@ class Drug extends Model
         'requires_prescription',
         'is_generic',
         'is_published',
+        'image_url',
     ];
 
     protected $casts = [

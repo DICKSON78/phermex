@@ -24,8 +24,9 @@ import {
   Info,
   Check,
   CreditCard,
-  Zap,
-  Star,
+  Plus,
+  Trash2,
+  Pencil,
 } from 'lucide-react'
 
 const COUNTRIES = [
@@ -148,36 +149,13 @@ function LocationMap({ latitude, longitude, onChange }) {
   )
 }
 
-export default function RegisterOwnerPage() {
-  const [step, setStep] = useState(1)
-  const [stepDir, setStepDir] = useState('left')
-  const [animKey, setAnimKey] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [plans, setPlans] = useState([])
-  const { register } = useAuth()
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    api.get('/subscriptions/plans').then((res) => {
-      setPlans(res.data?.data || res.data || [])
-    }).catch(() => {})
-  }, [])
-
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    countryCode: '+255',
-    password: '',
-    password_confirmation: '',
+function blankPharmacy(country) {
+  return {
     pharmacy_name: '',
     pharmacy_type: 'independent',
     license_number: '',
     license_expiry: '',
-    country: 'Tanzania',
+    country,
     region: '',
     district: '',
     ward: '',
@@ -189,14 +167,71 @@ export default function RegisterOwnerPage() {
     working_days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
     opening_time: '08:00',
     closing_time: '18:00',
+  }
+}
+
+export default function RegisterOwnerPage() {
+  const navigate = useNavigate()
+  const { register } = useAuth()
+
+  const multiple = new URLSearchParams(window.location.search).get('mode') === 'multiple'
+
+  const [step, setStep] = useState(1)
+  const [stepDir, setStepDir] = useState('left')
+  const [animKey, setAnimKey] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [plans, setPlans] = useState([])
+
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    countryCode: '+255',
+    password: '',
+    password_confirmation: '',
+    country: 'Tanzania',
     subscription_plan_id: null,
   })
 
+  const [pharmacies, setPharmacies] = useState(() => [blankPharmacy('Tanzania')])
   const [errors, setErrors] = useState({})
+
+  const totalSteps = 3 * pharmacies.length + 2
+
+  useEffect(() => {
+    api.get('/subscriptions/plans').then((res) => {
+      setPlans(res.data?.data || res.data || [])
+    }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    setErrors({})
+  }, [step])
 
   const updateForm = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }))
+  }
+
+  const updatePharmacy = (index, field, value) => {
+    setPharmacies((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)))
+    const key = `p${index}_${field}`
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: '' }))
+  }
+
+  const addPharmacy = () => {
+    setPharmacies((prev) => [...prev, blankPharmacy(form.country)])
+  }
+
+  const removePharmacy = (index) => {
+    const nextCount = pharmacies.length - 1
+    setPharmacies((prev) => prev.filter((_, i) => i !== index))
+    if (step > 3 * nextCount + 2) {
+      goStep(3 * nextCount + 2, 'left')
+    }
   }
 
   const goStep = (s, dir) => {
@@ -205,14 +240,23 @@ export default function RegisterOwnerPage() {
     setAnimKey((k) => k + 1)
   }
 
-  const toggleWorkingDay = (day) => {
-    const days = form.working_days.includes(day)
-      ? form.working_days.filter((d) => d !== day)
-      : [...form.working_days, day]
-    updateForm('working_days', days)
+  const toggleWorkingDay = (index, day) => {
+    const days = pharmacies[index].working_days.includes(day)
+      ? pharmacies[index].working_days.filter((d) => d !== day)
+      : [...pharmacies[index].working_days, day]
+    updatePharmacy(index, 'working_days', days)
   }
 
-  const validateStep1 = () => {
+  const stepType = (s) => {
+    if (s === 1) return 'personal'
+    if (s === totalSteps) return 'plan'
+    const rem = (s - 2) % 3
+    return rem === 0 ? 'details' : rem === 1 ? 'location' : 'hours'
+  }
+
+  const pharmacyIndex = (s) => Math.floor((s - 2) / 3)
+
+  const validatePersonal = () => {
     const errs = {}
     if (!form.name.trim()) errs.name = 'Full name is required'
     if (!form.email.trim()) errs.email = 'Email is required'
@@ -225,30 +269,33 @@ export default function RegisterOwnerPage() {
     return Object.keys(errs).length === 0
   }
 
-  const validateStep2 = () => {
+  const validateDetails = (i) => {
     const errs = {}
-    if (!form.pharmacy_name.trim()) errs.pharmacy_name = 'Pharmacy name is required'
-    if (!form.region.trim()) errs.region = 'Region is required'
-    if (!form.district.trim()) errs.district = 'District is required'
+    const p = pharmacies[i]
+    if (!p.pharmacy_name.trim()) errs[`p${i}_pharmacy_name`] = 'Pharmacy name is required'
+    if (!p.region.trim()) errs[`p${i}_region`] = 'Region is required'
+    if (!p.district.trim()) errs[`p${i}_district`] = 'District is required'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
 
-  const validateStep3 = () => {
+  const validateLocation = (i) => {
     const errs = {}
-    if (form.latitude === null || form.longitude === null) errs.location = 'Please pick your pharmacy location on the map'
+    const p = pharmacies[i]
+    if (p.latitude === null || p.longitude === null) errs[`p${i}_location`] = 'Please pick this pharmacy\'s location on the map'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
 
-  const validateStep4 = () => {
+  const validateHours = (i) => {
     const errs = {}
-    if (form.working_days.length === 0) errs.working_days = 'Select at least one working day'
+    const p = pharmacies[i]
+    if (p.working_days.length === 0) errs[`p${i}_working_days`] = 'Select at least one working day'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
 
-  const validateStep5 = () => {
+  const validatePlan = () => {
     const errs = {}
     if (!form.subscription_plan_id) errs.subscription_plan_id = 'Please select a subscription plan'
     setErrors(errs)
@@ -256,28 +303,70 @@ export default function RegisterOwnerPage() {
   }
 
   const handleNext = () => {
-    if (step === 1 && validateStep1()) goStep(2, 'left')
-    else if (step === 2 && validateStep2()) goStep(3, 'left')
-    else if (step === 3 && validateStep3()) goStep(4, 'left')
-    else if (step === 4 && validateStep4()) goStep(5, 'left')
+    const type = stepType(step)
+
+    if (type === 'personal' && validatePersonal()) {
+      goStep(2, 'left')
+      return
+    }
+
+    if (type === 'details') {
+      const i = pharmacyIndex(step)
+      if (validateDetails(i)) goStep(step + 1, 'left')
+      return
+    }
+
+    if (type === 'location') {
+      const i = pharmacyIndex(step)
+      if (validateLocation(i)) goStep(step + 1, 'left')
+      return
+    }
+
+    if (type === 'hours') {
+      const i = pharmacyIndex(step)
+      if (validateHours(i)) goStep(step + 1, 'left')
+    }
   }
 
   const handleBack = () => goStep(step - 1, 'right')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!validateStep5()) return
+    if (!validatePlan()) return
 
     setLoading(true)
     setError('')
 
+    const payload = {
+      name: form.name,
+      email: form.email,
+      phone: `${form.countryCode}${form.phone}`,
+      password: form.password,
+      password_confirmation: form.password_confirmation,
+      role: 'owner',
+      country: form.country,
+      subscription_plan_id: form.subscription_plan_id,
+      pharmacies: pharmacies.map((p) => ({
+        pharmacy_name: p.pharmacy_name,
+        pharmacy_type: p.pharmacy_type,
+        license_number: p.license_number || null,
+        license_expiry: p.license_expiry || null,
+        country: p.country || form.country,
+        region: p.region,
+        district: p.district,
+        ward: p.ward || null,
+        street: p.street || null,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        opening_capital: p.opening_capital || 0,
+        working_days: p.working_days,
+        working_hours: { open: p.opening_time, close: p.closing_time },
+        description: p.description || null,
+      })),
+    }
+
     try {
-      await register({
-        ...form,
-        phone: `${form.countryCode}${form.phone}`,
-        working_hours: { open: form.opening_time, close: form.closing_time },
-        role: 'owner',
-      })
+      await register(payload)
       navigate('/pending-approval')
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.')
@@ -288,6 +377,18 @@ export default function RegisterOwnerPage() {
   }
 
   const inputClasses = "w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
+
+  const stepLabel = () => {
+    if (step === 1) return 'Tell us about yourself'
+    if (step === totalSteps) return 'Choose your subscription plan'
+    const i = pharmacyIndex(step)
+    const type = stepType(step)
+    if (type === 'details') return multiple ? `Branch ${i + 1} — pharmacy details & address` : 'Pharmacy information & address'
+    if (type === 'location') return multiple ? `Branch ${i + 1} — pin it on the map` : 'Pin your pharmacy on the map'
+    return multiple ? `Branch ${i + 1} — working hours` : 'Working hours'
+  }
+
+  const pharm = (i) => pharmacies[i] || blankPharmacy(form.country)
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12 auth-page">
@@ -304,24 +405,31 @@ export default function RegisterOwnerPage() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">Pharmacy Registration</p>
+          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">
+            {multiple ? `Pharmacy Registration — ${pharmacies.length} Branches` : 'Pharmacy Registration'}
+          </p>
           <h1 className="text-4xl font-black text-gray-600 mb-3">Set Up Your Pharmacy</h1>
-          {step === 1 && <p className="text-gray-500 text-lg">Tell us about yourself</p>}
-          {step === 2 && <p className="text-gray-500 text-lg">Pharmacy information & address</p>}
-          {step === 3 && <p className="text-gray-500 text-lg">Pin your pharmacy on the map</p>}
-          {step === 4 && <p className="text-gray-500 text-lg">Working hours</p>}
-          {step === 5 && <p className="text-gray-500 text-lg">Choose your subscription plan</p>}
+          <p className="text-gray-500 text-lg">{stepLabel()}</p>
 
           {/* Step Indicator */}
           <div className="flex items-center justify-center gap-2 mt-4">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <React.Fragment key={s}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${step >= s ? 'bg-[#0FD452] text-[#000F14]' : 'bg-gray-200 text-gray-400'}`}>
-                  {step > s ? '✓' : s}
-                </div>
-                {s < 5 && <div className={`w-4 h-0.5 ${step > s ? 'bg-[#0FD452]' : 'bg-gray-200'}`}></div>}
-              </React.Fragment>
-            ))}
+            {multiple ? (
+              <>
+                {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
+                  <div key={s} className={`h-1.5 rounded-full transition-all ${step >= s ? 'bg-[#0FD452] w-5' : 'bg-gray-200 w-3'}`} />
+                ))}
+                <span className="text-xs font-bold text-gray-400 ml-1">{step}/{totalSteps}</span>
+              </>
+            ) : (
+              Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
+                <React.Fragment key={s}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${step >= s ? 'bg-[#0FD452] text-[#000F14]' : 'bg-gray-200 text-gray-400'}`}>
+                    {step > s ? '✓' : s}
+                  </div>
+                  {s < totalSteps && <div className={`w-4 h-0.5 ${step > s ? 'bg-[#0FD452]' : 'bg-gray-200'}`}></div>}
+                </React.Fragment>
+              ))
+            )}
           </div>
         </div>
 
@@ -331,7 +439,7 @@ export default function RegisterOwnerPage() {
           </div>
         )}
 
-        <form onSubmit={step === 5 ? handleSubmit : (e) => { e.preventDefault(); handleNext() }}>
+        <form onSubmit={step === totalSteps ? handleSubmit : (e) => { e.preventDefault(); handleNext() }}>
           {/* Step 1 - Personal Information */}
           {step === 1 && (
             <div key={`step1-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
@@ -399,223 +507,255 @@ export default function RegisterOwnerPage() {
             </div>
           )}
 
-          {/* Step 2 - Pharmacy Details + Address */}
-          {step === 2 && (
-            <div key={`step2-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Name</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Store className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <input type="text" value={form.pharmacy_name} onChange={(e) => updateForm('pharmacy_name', e.target.value)} className={`${inputClasses} ${errors.pharmacy_name ? 'border-red-400' : ''}`} placeholder="e.g. Pharmex Central Pharmacy" />
-                </div>
-                {errors.pharmacy_name && <p className="text-red-500 text-xs mt-1">{errors.pharmacy_name}</p>}
-              </div>
+          {/* Pharmacy detail steps (repeated per branch) */}
+          {step > 1 && step < totalSteps && (() => {
+            const i = pharmacyIndex(step)
+            const type = stepType(step)
+            const p = pharm(i)
 
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Type</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <Building2 className="w-5 h-5 text-gray-400" />
+            if (type === 'details') {
+              return (
+                <div key={`step-details-${i}-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
+                  {multiple && (
+                    <div className="flex items-center justify-between bg-[#0FD452]/5 border border-[#0FD452]/20 rounded-xl px-4 py-2.5">
+                      <p className="text-sm font-bold text-gray-700">Branch {i + 1} of {pharmacies.length}</p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => { addPharmacy(); goStep(3 * pharmacies.length + 2, 'left') }}
+                          className="flex items-center gap-1.5 text-xs font-semibold text-[#0FD452] hover:text-[#0cb843]"
+                        >
+                          <Plus className="w-4 h-4" /> Add Branch
+                        </button>
+                        {pharmacies.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removePharmacy(i)}
+                            className="flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" /> Remove
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <select value={form.pharmacy_type} onChange={(e) => updateForm('pharmacy_type', e.target.value)} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none">
-                      {pharmacyTypes.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Country</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <MapPin className="w-5 h-5 text-gray-400" />
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Name</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Store className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <input type="text" value={p.pharmacy_name} onChange={(e) => updatePharmacy(i, 'pharmacy_name', e.target.value)} className={`${inputClasses} ${errors[`p${i}_pharmacy_name`] ? 'border-red-400' : ''}`} placeholder="e.g. Pharmex Central Pharmacy" />
                     </div>
-                    <select value={form.country} onChange={(e) => updateForm('country', e.target.value)} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none">
-                      {COUNTRIES.map((c) => (
-                        <option key={c.code} value={c.name}>{c.flag} {c.name}</option>
-                      ))}
-                    </select>
+                    {errors[`p${i}_pharmacy_name`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_pharmacy_name`]}</p>}
                   </div>
-                </div>
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Region / State</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <MapPin className="w-5 h-5 text-gray-400" />
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Type</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <Building2 className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <select value={p.pharmacy_type} onChange={(e) => updatePharmacy(i, 'pharmacy_type', e.target.value)} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none">
+                          {pharmacyTypes.map((t) => (
+                            <option key={t.value} value={t.value}>{t.label}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                    <input type="text" value={form.region} onChange={(e) => updateForm('region', e.target.value)} className={`${inputClasses} ${errors.region ? 'border-red-400' : ''}`} placeholder="e.g. Dar es Salaam" />
-                  </div>
-                  {errors.region && <p className="text-red-500 text-xs mt-1">{errors.region}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">District / City</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <MapPin className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Country</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <MapPin className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <select value={p.country} onChange={(e) => updatePharmacy(i, 'country', e.target.value)} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none">
+                          {COUNTRIES.map((c) => (
+                            <option key={c.code} value={c.name}>{c.flag} {c.name}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                    <input type="text" value={form.district} onChange={(e) => updateForm('district', e.target.value)} className={`${inputClasses} ${errors.district ? 'border-red-400' : ''}`} placeholder="e.g. Kinondoni" />
                   </div>
-                  {errors.district && <p className="text-red-500 text-xs mt-1">{errors.district}</p>}
-                </div>
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Ward</label>
-                  <input type="text" value={form.ward} onChange={(e) => updateForm('ward', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="e.g. Mikocheni" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Street</label>
-                  <input type="text" value={form.street} onChange={(e) => updateForm('street', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="e.g. Bagamoyo Road" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1.5">License Number</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <FileText className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <input type="text" value={form.license_number} onChange={(e) => updateForm('license_number', e.target.value)} className={inputClasses} placeholder="e.g. TMD-12345" />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">License Expiry</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <Calendar className="w-5 h-5 text-gray-400" />
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Region / State</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <MapPin className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <input type="text" value={p.region} onChange={(e) => updatePharmacy(i, 'region', e.target.value)} className={`${inputClasses} ${errors[`p${i}_region`] ? 'border-red-400' : ''}`} placeholder="e.g. Dar es Salaam" />
+                      </div>
+                      {errors[`p${i}_region`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_region`]}</p>}
                     </div>
-                    <input type="date" value={form.license_expiry} onChange={(e) => updateForm('license_expiry', e.target.value)} className={inputClasses} />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Opening Capital (TZS)</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <DollarSign className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">District / City</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <MapPin className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <input type="text" value={p.district} onChange={(e) => updatePharmacy(i, 'district', e.target.value)} className={`${inputClasses} ${errors[`p${i}_district`] ? 'border-red-400' : ''}`} placeholder="e.g. Kinondoni" />
+                      </div>
+                      {errors[`p${i}_district`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_district`]}</p>}
                     </div>
-                    <input type="number" value={form.opening_capital} onChange={(e) => updateForm('opening_capital', e.target.value)} className={inputClasses} placeholder="e.g. 5000000" />
                   </div>
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Description</label>
-                <div className="relative">
-                  <div className="absolute top-3 left-3.5 pointer-events-none">
-                    <Info className="w-5 h-5 text-gray-400" />
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Ward</label>
+                      <input type="text" value={p.ward} onChange={(e) => updatePharmacy(i, 'ward', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="e.g. Mikocheni" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Street</label>
+                      <input type="text" value={p.street} onChange={(e) => updatePharmacy(i, 'street', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="e.g. Bagamoyo Road" />
+                    </div>
                   </div>
-                  <textarea value={form.description} onChange={(e) => updateForm('description', e.target.value)} rows={3} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] resize-none" placeholder="Brief description of your pharmacy..." />
-                </div>
-              </div>
 
-              <div className="flex gap-3">
-                <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
-                  <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
-                </button>
-                <button type="submit" className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
-                  Continue →
-                </button>
-              </div>
-            </div>
-          )}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">License Number</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <FileText className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <input type="text" value={p.license_number} onChange={(e) => updatePharmacy(i, 'license_number', e.target.value)} className={inputClasses} placeholder="e.g. TMD-12345" />
+                    </div>
+                  </div>
 
-          {/* Step 3 - Location on Map */}
-          {step === 3 && (
-            <div key={`step3-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-2">
-                <p className="text-blue-700 text-sm font-medium">Why is location important?</p>
-                <p className="text-blue-600 text-xs mt-1">Customers discover pharmacies near them on the Pharmex app. Accurate location helps patients find your pharmacy quickly.</p>
-              </div>
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">License Expiry</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <Calendar className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <input type="date" value={p.license_expiry} onChange={(e) => updatePharmacy(i, 'license_expiry', e.target.value)} className={inputClasses} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Opening Capital (TZS)</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <DollarSign className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <input type="number" value={p.opening_capital} onChange={(e) => updatePharmacy(i, 'opening_capital', e.target.value)} className={inputClasses} placeholder="e.g. 5000000" />
+                      </div>
+                    </div>
+                  </div>
 
-              <LocationMap
-                latitude={form.latitude}
-                longitude={form.longitude}
-                onChange={(lat, lng) => {
-                  updateForm('latitude', lat)
-                  updateForm('longitude', lng)
-                }}
-              />
-              {errors.location && <p className="text-red-500 text-xs">{errors.location}</p>}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Description</label>
+                    <div className="relative">
+                      <div className="absolute top-3 left-3.5 pointer-events-none">
+                        <Info className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <textarea value={p.description} onChange={(e) => updatePharmacy(i, 'description', e.target.value)} rows={3} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] resize-none" placeholder="Brief description of this pharmacy..." />
+                    </div>
+                  </div>
 
-              <div className="flex gap-3">
-                <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
-                  <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
-                </button>
-                <button type="submit" className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
-                  Continue →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4 - Schedule */}
-          {step === 4 && (
-            <div key={`step4-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">Working Days</label>
-                <div className="flex flex-wrap gap-2">
-                  {workingDays.map((day) => (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => toggleWorkingDay(day)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                        form.working_days.includes(day)
-                          ? 'bg-[#0FD452] text-[#000F14]'
-                          : 'bg-gray-100 text-gray-400 border border-gray-200 hover:border-[#0FD452]/50'
-                      }`}
-                    >
-                      {day}
+                  <div className="flex gap-3">
+                    <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
+                      <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
                     </button>
-                  ))}
-                </div>
-                {errors.working_days && <p className="text-red-500 text-xs mt-1">{errors.working_days}</p>}
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Opening Time</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <Clock className="w-5 h-5 text-gray-400" />
-                    </div>
-                    <input type="time" value={form.opening_time} onChange={(e) => updateForm('opening_time', e.target.value)} className={inputClasses} />
+                    <button type="submit" className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
+                      Continue →
+                    </button>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Closing Time</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <Clock className="w-5 h-5 text-gray-400" />
-                    </div>
-                    <input type="time" value={form.closing_time} onChange={(e) => updateForm('closing_time', e.target.value)} className={inputClasses} />
+              )
+            }
+
+            if (type === 'location') {
+              return (
+                <div key={`step-location-${i}-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-2">
+                    <p className="text-blue-700 text-sm font-medium">{multiple ? `Set the location for ${p.pharmacy_name || `Branch ${i + 1}`}` : 'Why is location important?'}</p>
+                    <p className="text-blue-600 text-xs mt-1">Customers discover pharmacies near them on the Pharmex app. Accurate location helps patients find your pharmacy quickly.</p>
+                  </div>
+
+                  <LocationMap
+                    latitude={p.latitude}
+                    longitude={p.longitude}
+                    onChange={(lat, lng) => {
+                      updatePharmacy(i, 'latitude', lat)
+                      updatePharmacy(i, 'longitude', lng)
+                    }}
+                  />
+                  {errors[`p${i}_location`] && <p className="text-red-500 text-xs">{errors[`p${i}_location`]}</p>}
+
+                  <div className="flex gap-3">
+                    <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
+                      <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
+                    </button>
+                    <button type="submit" className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
+                      Continue →
+                    </button>
                   </div>
                 </div>
-              </div>
+              )
+            }
 
-              <div className="flex gap-3">
-                <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
-                  <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
-                </button>
-                <button type="submit" className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
-                  Continue →
-                </button>
-              </div>
-            </div>
-          )}
+            return (
+              <div key={`step-hours-${i}-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-2">Working Days</label>
+                  <div className="flex flex-wrap gap-2">
+                    {workingDays.map((day) => (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => toggleWorkingDay(i, day)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          p.working_days.includes(day)
+                            ? 'bg-[#0FD452] text-[#000F14]'
+                            : 'bg-gray-100 text-gray-400 border border-gray-200 hover:border-[#0FD452]/50'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                  {errors[`p${i}_working_days`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_working_days`]}</p>}
+                </div>
 
-          {/* Step 5 - Subscription Plan */}
-          {step === 5 && (
-            <div key={`step5-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Opening Time</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Clock className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <input type="time" value={p.opening_time} onChange={(e) => updatePharmacy(i, 'opening_time', e.target.value)} className={inputClasses} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Closing Time</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Clock className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <input type="time" value={p.closing_time} onChange={(e) => updatePharmacy(i, 'closing_time', e.target.value)} className={inputClasses} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
+                    <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
+                  </button>
+                  <button type="submit" className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
+                    Continue →
+                  </button>
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Step 5 - Subscription Plan + Summary */}
+          {step === totalSteps && (
+            <div key={`step-plan-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <p className="text-blue-700 text-sm font-medium">Choose Your Plan</p>
                 <p className="text-blue-600 text-xs mt-1">Select a subscription plan. You'll get a 7-day free trial while your application is reviewed. After approval and payment confirmation, your subscription begins.</p>
@@ -667,11 +807,53 @@ export default function RegisterOwnerPage() {
               {errors.subscription_plan_id && <p className="text-red-500 text-xs">{errors.subscription_plan_id}</p>}
 
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Registration Summary</h4>
-                <div className="space-y-1 text-sm text-gray-500">
-                  <p><span className="font-medium text-gray-600">Pharmacy:</span> {form.pharmacy_name || '—'}</p>
-                  <p><span className="font-medium text-gray-600">Address:</span> {[form.ward, form.district, form.region].filter(Boolean).join(', ') || '—'}</p>
-                  <p><span className="font-medium text-gray-600">Hours:</span> {form.opening_time} — {form.closing_time} ({form.working_days.length} days)</p>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-gray-700">Registration Summary</h4>
+                  <button
+                    type="button"
+                    onClick={() => { addPharmacy(); goStep(3 * pharmacies.length + 2, 'left') }}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-[#0FD452] hover:text-[#0cb843]"
+                  >
+                    <Plus className="w-4 h-4" /> Add Another Pharmacy
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {pharmacies.map((p, i) => (
+                    <div key={`summary-${i}`} className="flex items-start justify-between bg-white border border-gray-200 rounded-xl p-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          {multiple && <span className="text-[10px] font-bold bg-[#0FD452]/10 text-[#0FD452] px-2 py-0.5 rounded-full shrink-0">Branch {i + 1}</span>}
+                          <p className="font-semibold text-gray-800 text-sm truncate">{p.pharmacy_name || 'Unnamed pharmacy'}</p>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {[p.ward, p.district, p.region].filter(Boolean).join(', ') || '—'} · {p.opening_time} — {p.closing_time} ({p.working_days.length} days)
+                        </p>
+                      </div>
+                      <div className="flex gap-1 shrink-0 ml-2">
+                        <button
+                          type="button"
+                          onClick={() => goStep(3 * i + 2, 'left')}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-[#0FD452] hover:bg-[#0FD452]/5 transition-colors"
+                          title="Edit branch"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        {pharmacies.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removePharmacy(i)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            title="Remove branch"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 space-y-1 text-sm text-gray-500">
+                  <p><span className="font-medium text-gray-600">Owner:</span> {form.name || '—'}</p>
                   {form.subscription_plan_id && (
                     <p><span className="font-medium text-gray-600">Plan:</span> {plans.find(p => p.id === form.subscription_plan_id)?.name} — TZS {Number(plans.find(p => p.id === form.subscription_plan_id)?.price || 0).toLocaleString()}</p>
                   )}

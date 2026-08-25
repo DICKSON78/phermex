@@ -1,7 +1,0 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-@import "tailwindcss";
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Poppins', sans-serif; background: #f5f7f5; color: #000F14; -webkit-font-smoothing: antialiased; }
-
-.leaflet-container { width: 100%; height: 100%; z-index: 1; }

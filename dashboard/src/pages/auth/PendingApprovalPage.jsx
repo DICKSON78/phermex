@@ -39,7 +39,7 @@ export default function PendingApprovalPage() {
 
   useEffect(() => {
     if (status?.application_status === 'approved' && status?.payment_status === 'paid') {
-      navigate('/owner')
+      navigate('/dashboard')
     }
   }, [status, navigate])
 

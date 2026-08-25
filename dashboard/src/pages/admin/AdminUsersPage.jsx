@@ -166,7 +166,7 @@ export default function AdminUsersPage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/admin/users/new')}
+          onClick={() => navigate('/dashboard/users/new')}
           className="btn-primary"
         >
           <Plus className="h-4 w-4" />
@@ -320,14 +320,14 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 text-right relative">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => navigate('/admin/users/' + user.id)}
+                          onClick={() => navigate('/dashboard/users/' + user.id)}
                           className="btn-icon-primary"
                           title="View"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => navigate('/admin/users/' + user.id + '/edit')}
+                          onClick={() => navigate('/dashboard/users/' + user.id + '/edit')}
                           className="btn-icon-blue"
                           title="Edit"
                         >
@@ -356,7 +356,7 @@ export default function AdminUsersPage() {
                                   {user.status === 'active' ? 'Deactivate' : 'Activate'}
                                 </button>
                                 <button
-                                  onClick={() => { setActiveMenu(null); navigate('/admin/users/' + user.id) }}
+                                  onClick={() => { setActiveMenu(null); navigate('/dashboard/users/' + user.id) }}
                                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                                 >
                                   <Trash2 className="h-4 w-4" />

@@ -91,7 +91,7 @@ export default function ProfilePage() {
       formData.append('phone', form.phone)
       if (form.photo) formData.append('photo', form.photo)
 
-      const response = await api.put('/user/profile', formData, {
+      const response = await api.put('/profile', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       setUser(response.data.user || response.data)
@@ -115,7 +115,7 @@ export default function ProfilePage() {
 
     try {
       setSavingPassword(true)
-      await api.put('/user/password', {
+      await api.post('/user/password', {
         current_password: passwordForm.current_password,
         new_password: passwordForm.new_password,
         password_confirmation: passwordForm.confirm_password,

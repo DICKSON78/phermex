@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, Navigate, useLocation, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import api from '../services/api'
 
 import {
   LayoutDashboard,
@@ -26,7 +27,6 @@ import {
   Search,
   Stethoscope,
   ClipboardList,
-  UserCog,
   Building2,
   QrCode,
   Download,
@@ -39,6 +39,9 @@ import {
   CreditCard,
   MessageCircle,
   Briefcase,
+  LifeBuoy,
+  Check,
+  Plus,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -61,8 +64,6 @@ import CustomerDetailPage from '../pages/owner/CustomerDetailPage'
 import ExpenseListPage from '../pages/owner/ExpenseListPage'
 import ExpenseFormPage from '../pages/owner/ExpenseFormPage'
 import ReportsPage from '../pages/owner/ReportsPage'
-import StaffListPage from '../pages/owner/StaffListPage'
-import StaffFormPage from '../pages/owner/StaffFormPage'
 import DeliveryListPage from '../pages/owner/DeliveryListPage'
 import BarcodePage from '../pages/owner/BarcodePage'
 import ExportPage from '../pages/owner/ExportPage'
@@ -97,6 +98,8 @@ import PayrollPage from '../pages/owner/PayrollPage'
 import PerformancePage from '../pages/owner/PerformancePage'
 import PharmacyChatListPage from '../pages/owner/PharmacyChatListPage'
 import PharmacyChatPage from '../pages/owner/PharmacyChatPage'
+import OwnerSupportPage from '../pages/owner/SupportPage'
+import AddPharmacyPage from '../pages/owner/AddPharmacyPage'
 
 import AdminDashboard from '../pages/admin/AdminDashboard'
 import AdminPharmaciesPage from '../pages/admin/AdminPharmaciesPage'
@@ -134,101 +137,108 @@ import AdminJobsPage from '../pages/admin/AdminJobsPage'
 import AdminJobFormPage from '../pages/admin/AdminJobFormPage'
 import AdminJobShowPage from '../pages/admin/AdminJobShowPage'
 
+import SellerDashboard from '../pages/seller/SellerDashboard'
+
 const ownerNavGroups = [
   {
     label: 'MAIN',
     items: [
-      { path: '/owner', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-      { path: '/owner/pos', icon: ShoppingCart, label: 'Point of Sale' },
+      { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+      { path: '/dashboard/pos', icon: ShoppingCart, label: 'Point of Sale' },
     ],
   },
   {
     label: 'INVENTORY',
     items: [
-      { path: '/owner/drugs', icon: Pill, label: 'Drugs' },
-      { path: '/owner/categories', icon: Tags, label: 'Categories' },
-      { path: '/owner/stock-movements', icon: Package, label: 'Stock Movements' },
-      { path: '/owner/low-stock', icon: AlertTriangle, label: 'Low Stock Alerts' },
-      { path: '/owner/expiring-soon', icon: Clock, label: 'Expiring Soon' },
+      { path: '/dashboard/drugs', icon: Pill, label: 'Drugs' },
+      { path: '/dashboard/categories', icon: Tags, label: 'Categories' },
+      { path: '/dashboard/stock-movements', icon: Package, label: 'Stock Movements' },
+      { path: '/dashboard/low-stock', icon: AlertTriangle, label: 'Low Stock Alerts' },
+      { path: '/dashboard/expiring-soon', icon: Clock, label: 'Expiring Soon' },
     ],
   },
   {
     label: 'SALES',
     items: [
-      { path: '/owner/orders', icon: ClipboardList, label: 'Orders' },
-      { path: '/owner/prescriptions', icon: FileText, label: 'Prescriptions' },
-      { path: '/owner/customers', icon: Users, label: 'Customers' },
-      { path: '/owner/chats', icon: MessageCircle, label: 'Messages' },
+      { path: '/dashboard/orders', icon: ClipboardList, label: 'Orders' },
+      { path: '/dashboard/prescriptions', icon: FileText, label: 'Prescriptions' },
+      { path: '/dashboard/customers', icon: Users, label: 'Customers' },
+      { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages' },
     ],
   },
   {
     label: 'FINANCE',
     items: [
-      { path: '/owner/expenses', icon: Receipt, label: 'Expenses' },
-      { path: '/owner/reports', icon: BarChart3, label: 'Reports' },
+      { path: '/dashboard/expenses', icon: Receipt, label: 'Expenses' },
+      { path: '/dashboard/reports', icon: BarChart3, label: 'Reports' },
     ],
   },
   {
     label: 'ACCOUNTING',
     items: [
-      { path: '/owner/chart-of-accounts', icon: BookOpen, label: 'Chart of Accounts' },
-      { path: '/owner/journal-entries', icon: FileText, label: 'Journal Entries' },
-      { path: '/owner/bank-management', icon: Building2, label: 'Bank Management' },
-      { path: '/owner/budgets', icon: DollarSign, label: 'Budgets' },
-      { path: '/owner/tax-management', icon: Receipt, label: 'Tax Management' },
-      { path: '/owner/financial-reports', icon: BarChart3, label: 'Financial Reports' },
+      { path: '/dashboard/chart-of-accounts', icon: BookOpen, label: 'Chart of Accounts' },
+      { path: '/dashboard/journal-entries', icon: FileText, label: 'Journal Entries' },
+      { path: '/dashboard/bank-management', icon: Building2, label: 'Bank Management' },
+      { path: '/dashboard/budgets', icon: DollarSign, label: 'Budgets' },
+      { path: '/dashboard/tax-management', icon: Receipt, label: 'Tax Management' },
+      { path: '/dashboard/financial-reports', icon: BarChart3, label: 'Financial Reports' },
     ],
   },
   {
     label: 'HR / TEAM',
     items: [
-      { path: '/owner/employees', icon: Users, label: 'Employees' },
-      { path: '/owner/attendance', icon: Clock, label: 'Attendance' },
-      { path: '/owner/leaves', icon: FileText, label: 'Leaves' },
-      { path: '/owner/payroll', icon: DollarSign, label: 'Payroll' },
-      { path: '/owner/performance', icon: BarChart3, label: 'Performance' },
-      { path: '/owner/staff', icon: UserCog, label: 'Staff' },
+      { path: '/dashboard/employees', icon: Users, label: 'Employees' },
+      { path: '/dashboard/attendance', icon: Clock, label: 'Attendance' },
+      { path: '/dashboard/leaves', icon: FileText, label: 'Leaves' },
+      { path: '/dashboard/payroll', icon: DollarSign, label: 'Payroll' },
+      { path: '/dashboard/performance', icon: BarChart3, label: 'Performance' },
     ],
   },
   {
     label: 'DELIVERIES',
     items: [
-      { path: '/owner/deliveries', icon: Truck, label: 'Deliveries' },
+      { path: '/dashboard/deliveries', icon: Truck, label: 'Deliveries' },
     ],
   },
   {
     label: 'SUPPLY CHAIN',
     items: [
-      { path: '/owner/suppliers', icon: Users, label: 'Suppliers' },
-      { path: '/owner/purchase-orders', icon: ShoppingCart, label: 'Purchase Orders' },
-      { path: '/owner/goods-received', icon: Package, label: 'Goods Received' },
-      { path: '/owner/stock-transfers', icon: Truck, label: 'Stock Transfers' },
-      { path: '/owner/stock-returns', icon: RotateCcw, label: 'Stock Returns' },
-      { path: '/owner/damaged-goods', icon: AlertTriangle, label: 'Damaged Goods' },
+      { path: '/dashboard/suppliers', icon: Users, label: 'Suppliers' },
+      { path: '/dashboard/purchase-orders', icon: ShoppingCart, label: 'Purchase Orders' },
+      { path: '/dashboard/goods-received', icon: Package, label: 'Goods Received' },
+      { path: '/dashboard/stock-transfers', icon: Truck, label: 'Stock Transfers' },
+      { path: '/dashboard/stock-returns', icon: RotateCcw, label: 'Stock Returns' },
+      { path: '/dashboard/damaged-goods', icon: AlertTriangle, label: 'Damaged Goods' },
     ],
   },
   {
     label: 'COMPLIANCE',
     items: [
-      { path: '/owner/controlled-substances', icon: ShieldAlert, label: 'Controlled Substances' },
-      { path: '/owner/licenses', icon: BadgeCheck, label: 'Licenses' },
-      { path: '/owner/drug-recalls', icon: BadgeAlert, label: 'Drug Recalls' },
-      { path: '/owner/regulatory-reports', icon: FileCheck, label: 'Regulatory Reports' },
+      { path: '/dashboard/controlled-substances', icon: ShieldAlert, label: 'Controlled Substances' },
+      { path: '/dashboard/licenses', icon: BadgeCheck, label: 'Licenses' },
+      { path: '/dashboard/drug-recalls', icon: BadgeAlert, label: 'Drug Recalls' },
+      { path: '/dashboard/regulatory-reports', icon: FileCheck, label: 'Regulatory Reports' },
     ],
   },
   {
     label: 'TOOLS',
     items: [
-      { path: '/owner/barcode', icon: QrCode, label: 'Barcode' },
-      { path: '/owner/export', icon: Download, label: 'Export' },
+      { path: '/dashboard/barcode', icon: QrCode, label: 'Barcode' },
+      { path: '/dashboard/export', icon: Download, label: 'Export' },
+    ],
+  },
+  {
+    label: 'SUPPORT',
+    items: [
+      { path: '/dashboard/support', icon: LifeBuoy, label: 'Support Tickets' },
     ],
   },
   {
     label: 'SETTINGS',
     items: [
-      { path: '/owner/notifications', icon: Bell, label: 'Notifications' },
-      { path: '/owner/profile', icon: User, label: 'Profile' },
-      { path: '/owner/settings', icon: Settings, label: 'Pharmacy Settings' },
+      { path: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
+      { path: '/dashboard/profile', icon: User, label: 'Profile' },
+      { path: '/dashboard/settings', icon: Settings, label: 'Pharmacy Settings' },
     ],
   },
 ]
@@ -237,50 +247,86 @@ const adminNavGroups = [
   {
     label: 'MAIN',
     items: [
-      { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-      { path: '/admin/pending-approvals', icon: Clock, label: 'Pending Approvals' },
+      { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+      { path: '/dashboard/pending-approvals', icon: Clock, label: 'Pending Approvals' },
     ],
   },
   {
     label: 'MANAGEMENT',
     items: [
-      { path: '/admin/pharmacies', icon: Building2, label: 'Pharmacies' },
-      { path: '/admin/users', icon: Users, label: 'Users' },
-      { path: '/admin/drug-database', icon: Pill, label: 'Drug Database' },
+      { path: '/dashboard/pharmacies', icon: Building2, label: 'Pharmacies' },
+      { path: '/dashboard/users', icon: Users, label: 'Users' },
+      { path: '/dashboard/drug-database', icon: Pill, label: 'Drug Database' },
     ],
   },
   {
     label: 'FINANCE & BILLING',
     items: [
-      { path: '/admin/revenue', icon: DollarSign, label: 'Revenue & Billing' },
-      { path: '/admin/subscriptions', icon: CreditCard, label: 'Subscriptions' },
+      { path: '/dashboard/revenue', icon: DollarSign, label: 'Revenue & Billing' },
+      { path: '/dashboard/subscriptions', icon: CreditCard, label: 'Subscriptions' },
     ],
   },
   {
     label: 'ANALYTICS',
     items: [
-      { path: '/admin/reports', icon: BarChart3, label: 'Reports & Analytics' },
+      { path: '/dashboard/reports', icon: BarChart3, label: 'Reports & Analytics' },
     ],
   },
   {
     label: 'ENGAGEMENT',
     items: [
-      { path: '/admin/support', icon: FileText, label: 'Support Tickets' },
-      { path: '/admin/content', icon: BookOpen, label: 'Content & Announcements' },
-      { path: '/admin/marketing', icon: ClipboardList, label: 'Marketing' },
+      { path: '/dashboard/support', icon: FileText, label: 'Support Tickets' },
+      { path: '/dashboard/content', icon: BookOpen, label: 'Content & Announcements' },
+      { path: '/dashboard/marketing', icon: ClipboardList, label: 'Marketing' },
     ],
   },
   {
     label: 'CAREERS',
     items: [
-      { path: '/admin/jobs', icon: Briefcase, label: 'Job Listings' },
+      { path: '/dashboard/jobs', icon: Briefcase, label: 'Job Listings' },
     ],
   },
   {
     label: 'SYSTEM',
     items: [
-      { path: '/admin/audit-logs', icon: ShieldAlert, label: 'Audit Logs' },
-      { path: '/admin/platform-settings', icon: Settings, label: 'Platform Settings' },
+      { path: '/dashboard/audit-logs', icon: ShieldAlert, label: 'Audit Logs' },
+      { path: '/dashboard/platform-settings', icon: Settings, label: 'Platform Settings' },
+    ],
+  },
+]
+
+const sellerNavGroups = [
+  {
+    label: 'MAIN',
+    items: [
+      { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+      { path: '/dashboard/pos', icon: ShoppingCart, label: 'Point of Sale' },
+    ],
+  },
+  {
+    label: 'INVENTORY',
+    items: [
+      { path: '/dashboard/drugs', icon: Pill, label: 'Drugs' },
+      { path: '/dashboard/categories', icon: Tags, label: 'Categories' },
+      { path: '/dashboard/stock-movements', icon: Package, label: 'Stock Movements' },
+      { path: '/dashboard/low-stock', icon: AlertTriangle, label: 'Low Stock Alerts' },
+      { path: '/dashboard/expiring-soon', icon: Clock, label: 'Expiring Soon' },
+    ],
+  },
+  {
+    label: 'SALES',
+    items: [
+      { path: '/dashboard/orders', icon: ClipboardList, label: 'Orders' },
+      { path: '/dashboard/prescriptions', icon: FileText, label: 'Prescriptions' },
+      { path: '/dashboard/customers', icon: Users, label: 'Customers' },
+      { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages' },
+    ],
+  },
+  {
+    label: 'SETTINGS',
+    items: [
+      { path: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
+      { path: '/dashboard/profile', icon: User, label: 'Profile' },
     ],
   },
 ]
@@ -292,14 +338,23 @@ export default function DashboardLayout({ role }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [collapsedGroups, setCollapsedGroups] = useState({})
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [pharmacyDropdownOpen, setPharmacyDropdownOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [notifications] = useState(5)
+  const [notifications, setNotifications] = useState(0)
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user, logout, pharmacyId, switchPharmacy } = useAuth()
 
-  const navGroups = role === 'owner' ? ownerNavGroups : adminNavGroups
-  const basePath = role === 'owner' ? '/owner' : '/admin'
+  const accessiblePharmacies = user?.accessible_pharmacies && user.accessible_pharmacies.length > 0
+    ? user.accessible_pharmacies
+    : (user?.pharmacy || [])
+  const currentPharmacy = user?.current_pharmacy ?? user?.currentPharmacy
+    ?? accessiblePharmacies.find(p => p.id === pharmacyId)
+    ?? accessiblePharmacies[0]
+  const showPharmacySwitcher = role === 'owner'
+
+  const navGroups = role === 'owner' ? ownerNavGroups : role === 'admin' ? adminNavGroups : sellerNavGroups
+  const basePath = '/dashboard'
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
@@ -308,6 +363,20 @@ export default function DashboardLayout({ role }) {
 
   useEffect(() => {
     setSidebarOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    let active = true
+    const loadUnread = async () => {
+      try {
+        const { data } = await api.get('/notifications/unread-count')
+        if (active) setNotifications(data.unread_count || 0)
+      } catch {
+        if (active) setNotifications(0)
+      }
+    }
+    loadUnread()
+    return () => { active = false }
   }, [location.pathname])
 
   // Auto-expand group that contains active item
@@ -362,6 +431,66 @@ export default function DashboardLayout({ role }) {
         </button>
       </div>
 
+      {/* Pharmacy Switcher (owners with multiple pharmacies) */}
+      {showPharmacySwitcher && (
+        <div className="px-3 pb-2 relative">
+          <button
+            onClick={() => setPharmacyDropdownOpen(prev => !prev)}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition-colors text-left"
+          >
+            <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+              <Stethoscope className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-green-200/70 font-semibold">Current Pharmacy</p>
+              <p className="text-sm font-semibold text-white truncate">{currentPharmacy?.pharmacy_name || 'Select Pharmacy'}</p>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-200 ${pharmacyDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {pharmacyDropdownOpen && (
+            <div className="absolute z-20 left-3 right-3 mt-1 rounded-xl bg-dark border border-white/10 shadow-xl overflow-hidden max-h-72 overflow-y-auto">
+              {accessiblePharmacies.map((p) => {
+                const isCurrent = p.id === pharmacyId
+                return (
+                  <button
+                    key={p.id}
+                    onClick={async () => {
+                      if (!isCurrent) {
+                        try {
+                          await switchPharmacy(p.id)
+                        } catch (e) {
+                          // Show error handled by interceptor
+                        }
+                      }
+                      setPharmacyDropdownOpen(false)
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
+                      isCurrent ? 'bg-primary/20 text-white font-semibold' : 'text-white/70 hover:bg-white/10'
+                    }`}
+                  >
+                  <span className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: isCurrent ? '#0FD452' : '#ffffff30' }} />
+                  <span className="truncate">{p.pharmacy_name}</span>
+                  {isCurrent && <Check className="w-4 h-4 text-primary ml-auto shrink-0" />}
+                </button>
+              )})}
+              <div className="border-t border-white/10 mt-1 pt-1">
+                <button
+                  onClick={() => {
+                    setPharmacyDropdownOpen(false)
+                    navigate('/dashboard/settings/pharmacies/new')
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-primary hover:bg-white/10 transition-colors font-semibold"
+                >
+                  <Plus className="w-4 h-4 shrink-0" />
+                  Add Pharmacy
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-2 sidebar-scroll">
         <div className="space-y-1">
@@ -410,14 +539,16 @@ export default function DashboardLayout({ role }) {
 
       {/* Settings + User */}
       <div className="px-3 pb-4 space-y-1 border-t border-white/10 pt-3">
-        <NavLink
-          to={`${basePath}/settings`}
-          onClick={() => setSidebarOpen(false)}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 transition-all duration-200"
-        >
-          <Settings className="w-5 h-5" />
-          <span>Settings</span>
-        </NavLink>
+        {role !== 'seller' && (
+          <NavLink
+            to={`${basePath}/settings`}
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 transition-all duration-200"
+          >
+            <Settings className="w-5 h-5" />
+            <span>Settings</span>
+          </NavLink>
+        )}
         <div className="h-px bg-white/10 my-2" />
         <div className="flex items-center gap-3 px-3 py-2.5">
           <div className="h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white/20 shrink-0"
@@ -536,14 +667,16 @@ export default function DashboardLayout({ role }) {
                         <User className="w-4 h-4" />
                         My Profile
                       </NavLink>
-                      <NavLink
-                        to={`${basePath}/settings`}
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Settings
-                      </NavLink>
+                      {role !== 'seller' && (
+                        <NavLink
+                          to={`${basePath}/settings`}
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <Settings className="w-4 h-4" />
+                          Settings
+                        </NavLink>
+                      )}
                     </div>
                     <div className="h-px bg-gray-100 my-1" />
                     <button
@@ -593,9 +726,6 @@ export default function DashboardLayout({ role }) {
               <Route path="budgets" element={<BudgetPage />} />
               <Route path="tax-management" element={<TaxManagementPage />} />
               <Route path="financial-reports" element={<FinancialReportsPage />} />
-              <Route path="staff" element={<StaffListPage />} />
-              <Route path="staff/new" element={<StaffFormPage />} />
-              <Route path="staff/:id/edit" element={<StaffFormPage />} />
               <Route path="employees" element={<EmployeeListPage />} />
               <Route path="employees/new" element={<EmployeeFormPage />} />
               <Route path="employees/:id" element={<EmployeeDetailPage />} />
@@ -622,9 +752,38 @@ export default function DashboardLayout({ role }) {
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="settings/pharmacies/new" element={<AddPharmacyPage />} />
               <Route path="chats" element={<PharmacyChatListPage />} />
               <Route path="chats/:customerId" element={<PharmacyChatPage />} />
-              <Route path="*" element={<Navigate to="/owner" replace />} />
+              <Route path="support" element={<OwnerSupportPage />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          ) : role === 'seller' ? (
+            <Routes>
+              <Route index element={<SellerDashboard />} />
+              <Route path="pos" element={<POSPage />} />
+              <Route path="drugs" element={<DrugListPage />} />
+              <Route path="drugs/new" element={<DrugFormPage />} />
+              <Route path="drugs/:id" element={<DrugDetailPage />} />
+              <Route path="drugs/:id/edit" element={<DrugFormPage />} />
+              <Route path="categories" element={<CategoryListPage />} />
+              <Route path="stock-movements" element={<StockMovementsPage />} />
+              <Route path="low-stock" element={<LowStockPage />} />
+              <Route path="expiring-soon" element={<ExpiringSoonPage />} />
+              <Route path="orders" element={<OrderListPage />} />
+              <Route path="orders/:id" element={<OrderDetailPage />} />
+              <Route path="prescriptions" element={<PrescriptionListPage />} />
+              <Route path="prescriptions/new" element={<PrescriptionFormPage />} />
+              <Route path="prescriptions/:id" element={<PrescriptionDetailPage />} />
+              <Route path="customers" element={<CustomerListPage />} />
+              <Route path="customers/new" element={<CustomerFormPage />} />
+              <Route path="customers/:id" element={<CustomerDetailPage />} />
+              <Route path="customers/:id/edit" element={<CustomerFormPage />} />
+              <Route path="chats" element={<PharmacyChatListPage />} />
+              <Route path="chats/:customerId" element={<PharmacyChatPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           ) : (
             <Routes>
@@ -671,7 +830,7 @@ export default function DashboardLayout({ role }) {
               <Route path="jobs/new" element={<AdminJobFormPage />} />
               <Route path="jobs/:id" element={<AdminJobShowPage />} />
               <Route path="jobs/:id/edit" element={<AdminJobFormPage />} />
-              <Route path="*" element={<Navigate to="/admin" replace />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           )}
         </main>

@@ -47,7 +47,7 @@ export default function AdminDrugShowPage() {
     try {
       await api.delete(`/admin/drug-database/${id}`)
     } catch {}
-    navigate('/admin/drug-database')
+    navigate('/dashboard/drug-database')
   }
 
   const handleArchive = async () => {
@@ -82,7 +82,7 @@ export default function AdminDrugShowPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Link to="/admin/drug-database" className="btn-ghost">
+          <Link to="/dashboard/drug-database" className="btn-ghost">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
@@ -94,7 +94,7 @@ export default function AdminDrugShowPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link to={`/admin/drug-database/${id}/edit`} className="btn-secondary">
+          <Link to={`/dashboard/drug-database/${id}/edit`} className="btn-secondary">
             <Edit className="w-4 h-4" /> Edit
           </Link>
           <button onClick={() => setShowDelete(true)} className="btn-danger-outline">
@@ -340,7 +340,7 @@ export default function AdminDrugShowPage() {
             </div>
             <div className="space-y-3">
               <button
-                onClick={() => navigate(`/admin/drug-database/${id}/edit`)}
+                onClick={() => navigate(`/dashboard/drug-database/${id}/edit`)}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
               >
                 <Edit className="w-4 h-4 text-[#0FD452]" />
@@ -363,7 +363,7 @@ export default function AdminDrugShowPage() {
                 </button>
               )}
               <button
-                onClick={() => navigate(`/admin/drug-database/${id}/pharmacies`)}
+                onClick={() => navigate(`/dashboard/drug-database/${id}/pharmacies`)}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
               >
                 <Users className="w-4 h-4 text-blue-500" />

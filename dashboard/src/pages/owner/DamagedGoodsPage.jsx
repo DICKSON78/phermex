@@ -4,12 +4,14 @@ import { Plus, AlertTriangle, PieChart, Hash, Package, CalendarDays, FileText, U
 import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
 
 const REASON_COLORS = { expired: '#ef4444', damaged: '#f59e0b', contaminated: '#8b5cf6', stolen: '#6b7280', recalled: '#3b82f6' }
 const REASON_LABELS = { expired: 'Expired', damaged: 'Damaged', contaminated: 'Contaminated', stolen: 'Stolen', recalled: 'Recalled' }
 const DISPOSAL_LABELS = { returned_to_supplier: 'Returned to Supplier', documented_disposal: 'Documented Disposal', donated: 'Donated' }
 
 export default function DamagedGoodsPage() {
+  const { pharmacyId } = useAuth()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -30,7 +32,7 @@ export default function DamagedGoodsPage() {
     e.preventDefault()
     setSaving(true)
     try {
-      await api.post('/damaged-goods', { ...form, pharmacy_id: 1, quantity: parseInt(form.quantity), unit_cost: parseFloat(form.unit_cost) })
+      await api.post('/damaged-goods', { ...form, pharmacy_id: pharmacyId, quantity: parseInt(form.quantity), unit_cost: parseFloat(form.unit_cost) })
       toast.success('Damage recorded'); setShowForm(false); fetchRecords()
     } catch { toast.success('Damage recorded'); setShowForm(false) } finally { setSaving(false) }
   }

@@ -3,10 +3,12 @@ import { toArray } from '../../utils/safeData';
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Save, Loader2, Users, User, MapPin, HeartPulse, X } from 'lucide-react'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 
 export default function CustomerFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const base = currentBase()
   const isEdit = Boolean(id)
 
   const [form, setForm] = useState({})
@@ -64,9 +66,9 @@ export default function CustomerFormPage() {
       } else {
         await api.post('/customers', form)
       }
-      navigate('/owner/customers')
+      navigate(`${base}/customers`)
     } catch {
-      navigate('/owner/customers')
+      navigate(`${base}/customers`)
     } finally {
       setLoading(false)
     }
@@ -86,7 +88,7 @@ export default function CustomerFormPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Link to="/owner/customers" className="btn-ghost">
+            <Link to={`${base}/customers`} className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Customer' : 'Create New Customer'}</h1>
@@ -288,7 +290,7 @@ export default function CustomerFormPage() {
 
           {/* Sticky Bottom Bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
-            <Link to="/owner/customers" className="btn-secondary">
+            <Link to={`${base}/customers`} className="btn-secondary">
               <X className="w-4 h-4" />
               <span>Cancel</span>
             </Link>

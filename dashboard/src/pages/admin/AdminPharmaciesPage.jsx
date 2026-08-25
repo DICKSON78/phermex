@@ -158,7 +158,7 @@ export default function AdminPharmaciesPage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/admin/pharmacies/new')}
+          onClick={() => navigate('/dashboard/pharmacies/new')}
           className="btn-primary"
         >
           <Plus className="h-4 w-4" />
@@ -331,14 +331,14 @@ export default function AdminPharmaciesPage() {
                       <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1">
                           <button
-                            onClick={() => navigate('/admin/pharmacies/' + pharmacy.id)}
+                            onClick={() => navigate('/dashboard/pharmacies/' + pharmacy.id)}
                             className="btn-icon-primary"
                             title="View"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => navigate('/admin/pharmacies/' + pharmacy.id + '/edit')}
+                            onClick={() => navigate('/dashboard/pharmacies/' + pharmacy.id + '/edit')}
                             className="btn-icon-blue"
                             title="Edit"
                           >
@@ -356,7 +356,7 @@ export default function AdminPharmaciesPage() {
                             )}
                           </button>
                           <button
-                            onClick={() => navigate('/admin/pharmacies/' + pharmacy.id)}
+                            onClick={() => navigate('/dashboard/pharmacies/' + pharmacy.id)}
                             className="btn-icon-blue"
                             title="View Owner"
                           >

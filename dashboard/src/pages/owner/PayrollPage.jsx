@@ -8,6 +8,7 @@ import {
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import toast from 'react-hot-toast'
 import { payroll, employees } from '../../services/api'
+import { useAuth } from '../../contexts/AuthContext'
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount || 0)
@@ -19,6 +20,7 @@ const PIE_COLORS = ['#0FD452', '#EF4444', '#3B82F6', '#F59E0B', '#8B5CF6']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 export default function PayrollPage() {
+  const { pharmacyId } = useAuth()
   const [payrollList, setPayrollList] = useState([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
@@ -56,7 +58,7 @@ export default function PayrollPage() {
     if (!window.confirm(`Generate payroll for ${MONTHS[periodMonth - 1]} ${periodYear}?`)) return
     setGenerating(true)
     try {
-      const res = await payroll.create({ pharmacy_id: 1, period_month: periodMonth, period_year: periodYear })
+      const res = await payroll.create({ pharmacy_id: pharmacyId, period_month: periodMonth, period_year: periodYear })
       toast.success(res.data.message)
       fetchPayroll()
       fetchSummary()

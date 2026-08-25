@@ -190,7 +190,7 @@ export default function AdminRevenuePage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/admin/revenue/new')}
+          onClick={() => navigate('/dashboard/revenue/new')}
           className="btn-primary"
         >
           <Plus className="h-4 w-4" />
@@ -340,7 +340,7 @@ export default function AdminRevenuePage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => navigate('/admin/revenue/' + invoice.id)}
+                          onClick={() => navigate('/dashboard/revenue/' + invoice.id)}
                           className="btn-icon-primary"
                           title="View Invoice"
                         >
@@ -348,7 +348,7 @@ export default function AdminRevenuePage() {
                         </button>
                         {invoice.status === 'Pending' && (
                           <button
-                            onClick={() => navigate('/admin/revenue/' + invoice.id + '/edit')}
+                            onClick={() => navigate('/dashboard/revenue/' + invoice.id + '/edit')}
                             className="btn-icon-blue"
                             title="Edit Invoice"
                           >

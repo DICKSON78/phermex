@@ -59,7 +59,7 @@ export default function AdminSupportFormPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Link to="/admin/support" className="btn-ghost">
+            <Link to="/dashboard/support" className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">Create New Support Ticket</h1>
@@ -176,7 +176,7 @@ export default function AdminSupportFormPage() {
 
           {/* Sticky bottom bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
-            <Link to="/admin/support" className="btn-secondary">
+            <Link to="/dashboard/support" className="btn-secondary">
               <span>Cancel</span>
             </Link>
             <button type="submit" disabled={loading} className="btn-primary">
@@ -191,7 +191,7 @@ export default function AdminSupportFormPage() {
         isOpen={showSuccess}
         onClose={() => {
           setShowSuccess(false)
-          navigate('/admin/support')
+          navigate('/dashboard/support')
         }}
         title="Ticket Created"
         subtitle="The support ticket has been created successfully"
@@ -206,7 +206,7 @@ export default function AdminSupportFormPage() {
           <button
             onClick={() => {
               setShowSuccess(false)
-              navigate('/admin/support')
+              navigate('/dashboard/support')
             }}
             className="btn-primary w-full"
           >

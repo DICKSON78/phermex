@@ -68,23 +68,23 @@ export default function NotificationsPage() {
   }, [fetchNotifications])
 
   const filteredNotifications = notifications.filter((n) => {
-    if (activeTab === 'Unread') return !n.read
+    if (activeTab === 'Unread') return !n.is_read
     if (activeTab === 'Alerts') return n.type === 'warning' || n.type === 'danger'
     if (activeTab === 'Info') return n.type === 'info' || n.type === 'success'
     return true
   })
 
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const unreadCount = notifications.filter((n) => !n.is_read).length
 
   const markAsRead = async (id) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)))
     try {
       await api.put(`/notifications/${id}/read`)
     } catch {}
   }
 
   const markAllRead = async () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
     try {
       await api.put('/notifications/read-all')
     } catch {}
@@ -195,7 +195,7 @@ export default function NotificationsPage() {
                   if (notification.link) window.location.href = notification.link
                 }}
                 className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer group ${
-                  notification.read
+                  notification.is_read
                     ? 'bg-white border-gray-200 hover:border-gray-300'
                     : 'bg-[#0FD452]/[0.03] border-[#0FD452]/20 hover:border-[#0FD452]/40'
                 }`}
@@ -205,15 +205,15 @@ export default function NotificationsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className={`text-sm ${notification.read ? 'font-medium text-gray-700' : 'font-bold text-[#000F14]'}`}>
+                    <h4 className={`text-sm ${notification.is_read ? 'font-medium text-gray-700' : 'font-bold text-[#000F14]'}`}>
                       {notification.title}
                     </h4>
-                    {!notification.read && (
+                    {!notification.is_read && (
                       <div className="w-2 h-2 rounded-full bg-[#0FD452] shrink-0" />
                     )}
                   </div>
                   <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{notification.message}</p>
-                  <span className="text-xs text-gray-400 mt-1 block">{timeAgo(notification.time)}</span>
+                  <span className="text-xs text-gray-400 mt-1 block">{timeAgo(notification.created_at)}</span>
                 </div>
                 <button
                   onClick={(e) => {

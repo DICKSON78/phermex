@@ -467,6 +467,71 @@ class CustomerAppController extends Controller
         }
     }
 
+    public function cancelOrder(Request $request, string $id): JsonResponse
+    {
+        try {
+            $order = Order::where('id', $id)
+                ->where('user_id', $request->user()->id)
+                ->with('items.drug')
+                ->firstOrFail();
+
+            if ($order->order_status !== 'pending') {
+                return response()->json([
+                    'message' => 'This order can no longer be cancelled. It is already being processed.',
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            foreach ($order->items as $item) {
+                if (!$item->drug) {
+                    continue;
+                }
+                $item->drug->increment('quantity', $item->quantity);
+
+                DrugMovement::create([
+                    'pharmacy_id' => $order->pharmacy_id,
+                    'drug_id' => $item->drug_id,
+                    'movement_type' => 'return',
+                    'quantity' => $item->quantity,
+                    'unit_cost' => $item->drug->buying_price,
+                    'reference_number' => $order->order_code,
+                    'performed_by' => $request->user()->id,
+                ]);
+            }
+
+            $order->update(['order_status' => 'cancelled']);
+
+            Notification::create([
+                'pharmacy_id' => $order->pharmacy_id,
+                'user_id' => $order->pharmacy->owner_id,
+                'title' => 'Order Cancelled',
+                'message' => "Order #{$order->order_code} was cancelled by the customer. Stock has been restored.",
+                'type' => 'warning',
+                'is_read' => false,
+                'link' => "/dashboard/orders/{$order->id}",
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Order cancelled successfully.',
+                'data' => $order->fresh(['items.drug', 'pharmacy']),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json([
+                'message' => 'Order not found.',
+            ], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Failed to cancel order.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function orderDetail(Request $request, string $id): JsonResponse
     {
         try {

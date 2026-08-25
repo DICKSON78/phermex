@@ -14,11 +14,17 @@ class NotificationController extends Controller
         try {
             $user = $request->user();
 
+            $perPage = (int) $request->input('per_page', $request->input('limit', 20));
+
             $notifications = Notification::where('user_id', $user->id)
                 ->latest()
-                ->paginate($request->input('per_page', 20));
+                ->paginate($perPage);
 
-            return response()->json($notifications);
+            return response()->json([
+                'notifications' => $notifications->items(),
+                'has_more' => $notifications->hasMorePages(),
+                'total' => $notifications->total(),
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch notifications.',
@@ -34,8 +40,8 @@ class NotificationController extends Controller
             $notification = Notification::where('user_id', $user->id)
                 ->findOrFail($id);
 
-            if (!$notification->read_at) {
-                $notification->update(['read_at' => now()]);
+            if (!$notification->is_read) {
+                $notification->update(['is_read' => true]);
             }
 
             return response()->json($notification);
@@ -56,7 +62,7 @@ class NotificationController extends Controller
             $notification = Notification::where('user_id', $user->id)
                 ->findOrFail($id);
 
-            $notification->update(['read_at' => now()]);
+            $notification->update(['is_read' => true]);
 
             return response()->json([
                 'message' => 'Notification marked as read.',
@@ -78,8 +84,8 @@ class NotificationController extends Controller
             $user = $request->user();
 
             Notification::where('user_id', $user->id)
-                ->whereNull('read_at')
-                ->update(['read_at' => now()]);
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
 
             return response()->json([
                 'message' => 'All notifications marked as read.',
@@ -120,7 +126,7 @@ class NotificationController extends Controller
             $user = $request->user();
 
             $count = Notification::where('user_id', $user->id)
-                ->whereNull('read_at')
+                ->where('is_read', false)
                 ->count();
 
             return response()->json(['unread_count' => $count]);

@@ -141,7 +141,7 @@ export default function SubscriptionPlansPage() {
                   Back to Plans
                 </button>
                 <button
-                  onClick={() => navigate('/owner')}
+                  onClick={() => navigate('/dashboard')}
                   className="flex-1 py-3 bg-[#0FD452] text-[#000F14] rounded-xl font-bold text-sm hover:bg-[#0cb843] transition-all"
                 >
                   Go to Dashboard

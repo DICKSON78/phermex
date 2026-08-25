@@ -76,6 +76,38 @@ class DashboardController extends Controller
                 ->limit(10)
                 ->get();
 
+            $lastWeekSales = (float) Order::whereIn('pharmacy_id', $pharmacyIds)
+                ->where('payment_status', 'paid')
+                ->whereBetween('created_at', [now()->subDays(14), now()->subDays(7)])
+                ->sum('total');
+            $prevWeekSales = (float) Order::whereIn('pharmacy_id', $pharmacyIds)
+                ->where('payment_status', 'paid')
+                ->whereBetween('created_at', [now()->subDays(21), now()->subDays(14)])
+                ->sum('total');
+            $salesTrend = $prevWeekSales > 0
+                ? round((($lastWeekSales - $prevWeekSales) / $prevWeekSales) * 100, 1)
+                : 0;
+
+            $recentOrders = Order::whereIn('pharmacy_id', $pharmacyIds)
+                ->with('customer')
+                ->latest()
+                ->limit(5)
+                ->get()
+                ->map(fn ($o) => [
+                    'id' => $o->id,
+                    'order_code' => $o->order_code,
+                    'customer' => $o->customer?->name ?? 'Walk-in',
+                    'total' => (float) $o->total,
+                    'status' => $o->order_status,
+                    'time' => $o->created_at->format('h:i A'),
+                ]);
+
+            $lowStockDrugs = Drug::whereIn('pharmacy_id', $pharmacyIds)
+                ->whereColumn('quantity', '<=', 'reorder_level')
+                ->orderBy('quantity')
+                ->limit(8)
+                ->get(['name', 'quantity', 'reorder_level']);
+
             return response()->json([
                 'today_sales' => (float) $todaySales,
                 'monthly_revenue' => (float) $monthlyRevenue,
@@ -83,8 +115,11 @@ class DashboardController extends Controller
                 'active_prescriptions' => $activePrescriptions,
                 'low_stock_alerts' => $lowStockAlerts,
                 'expiring_drugs' => $expiringDrugs,
+                'sales_trend' => $salesTrend,
                 'revenue_chart' => $revenueChart,
                 'top_selling_drugs' => $topSellingDrugs,
+                'recent_orders' => $recentOrders,
+                'low_stock_drugs' => $lowStockDrugs,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -164,6 +199,74 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch admin dashboard.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function staffDashboard(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $pharmacyIds = $user->isOwner()
+                ? Pharmacy::where('owner_id', $user->id)->pluck('id')
+                : $user->pharmacy()->pluck('pharmacies.id');
+
+            $today = now()->toDateString();
+
+            $todaySales = Order::whereIn('pharmacy_id', $pharmacyIds)
+                ->whereDate('created_at', $today)
+                ->where('payment_status', 'paid')
+                ->sum('total');
+
+            $ordersToday = Order::whereIn('pharmacy_id', $pharmacyIds)
+                ->whereDate('created_at', $today)
+                ->count();
+
+            $pendingPrescriptions = Prescription::whereIn('pharmacy_id', $pharmacyIds)
+                ->where('status', 'pending')
+                ->count();
+
+            $lowStockAlerts = Drug::whereIn('pharmacy_id', $pharmacyIds)
+                ->whereColumn('quantity', '<=', 'reorder_level')
+                ->count();
+
+            $expiringDrugs = Drug::whereIn('pharmacy_id', $pharmacyIds)
+                ->whereBetween('expiry_date', [now(), now()->addDays(30)])
+                ->count();
+
+            $recentOrders = Order::whereIn('pharmacy_id', $pharmacyIds)
+                ->with('customer')
+                ->latest()
+                ->limit(5)
+                ->get()
+                ->map(fn ($o) => [
+                    'id' => $o->id,
+                    'order_code' => $o->order_code,
+                    'customer' => $o->customer?->name ?? 'Walk-in',
+                    'total' => (float) $o->total,
+                    'status' => $o->order_status,
+                    'time' => $o->created_at->format('h:i A'),
+                ]);
+
+            $lowStockDrugs = Drug::whereIn('pharmacy_id', $pharmacyIds)
+                ->whereColumn('quantity', '<=', 'reorder_level')
+                ->orderBy('quantity')
+                ->limit(8)
+                ->get(['name', 'quantity', 'reorder_level']);
+
+            return response()->json([
+                'today_sales' => (float) $todaySales,
+                'orders_today' => $ordersToday,
+                'active_prescriptions' => $pendingPrescriptions,
+                'low_stock_alerts' => $lowStockAlerts,
+                'expiring_drugs' => $expiringDrugs,
+                'recent_orders' => $recentOrders,
+                'low_stock_drugs' => $lowStockDrugs,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch staff dashboard.',
                 'error' => $e->getMessage(),
             ], 500);
         }

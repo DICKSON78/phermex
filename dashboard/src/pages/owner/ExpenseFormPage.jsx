@@ -64,9 +64,9 @@ export default function ExpenseFormPage() {
       } else {
         await api.post('/expenses', form)
       }
-      navigate('/owner/expenses')
+      navigate('/dashboard/expenses')
     } catch {
-      navigate('/owner/expenses')
+      navigate('/dashboard/expenses')
     } finally {
       setLoading(false)
     }
@@ -86,7 +86,7 @@ export default function ExpenseFormPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Link to="/owner/expenses" className="btn-ghost">
+            <Link to="/dashboard/expenses" className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Expense' : 'Create New Expense'}</h1>
@@ -239,7 +239,7 @@ export default function ExpenseFormPage() {
 
           {/* Sticky Bottom Bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
-            <Link to="/owner/expenses" className="btn-secondary">
+            <Link to="/dashboard/expenses" className="btn-secondary">
               <X className="w-4 h-4" />
               <span>Cancel</span>
             </Link>

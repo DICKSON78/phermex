@@ -182,7 +182,7 @@ export default function AdminMarketingPage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/admin/marketing/new')}
+          onClick={() => navigate('/dashboard/marketing/new')}
           className="btn-primary"
         >
           <Plus className="h-4 w-4" />
@@ -322,14 +322,14 @@ export default function AdminMarketingPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
-                            onClick={() => navigate('/admin/marketing/' + campaign.id)}
+                            onClick={() => navigate('/dashboard/marketing/' + campaign.id)}
                             className="btn-icon-primary"
                             title="View"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => navigate('/admin/marketing/' + campaign.id + '/edit')}
+                            onClick={() => navigate('/dashboard/marketing/' + campaign.id + '/edit')}
                             className="btn-icon-blue"
                             title="Edit"
                           >
@@ -345,7 +345,7 @@ export default function AdminMarketingPage() {
                             </button>
                           )}
                           <button
-                            onClick={() => navigate('/admin/marketing/' + campaign.id)}
+                            onClick={() => navigate('/dashboard/marketing/' + campaign.id)}
                             className="btn-icon-blue"
                             title="View Results"
                           >

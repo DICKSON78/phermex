@@ -167,17 +167,15 @@ export default function POSPage() {
         items: cart.map((item) => ({
           drug_id: item.id,
           quantity: item.quantity,
-          unit_price: item.price,
         })),
         customer_id: customer.id,
         payment_method: paymentMethod,
         discount: discountAmount,
-        tax_rate: parseFloat(tax) / 100,
-        amount_tendered: paymentMethod === 'cash' ? tenderedAmount : grandTotal,
-        total: grandTotal,
+        tax: taxAmount,
+        payment_status: 'paid',
       }
       const res = await api.post('/orders', orderData)
-      const orderCode = res.data?.order?.code || res.data?.code || `ORD-${Date.now().toString().slice(-4)}`
+      const orderCode = res.data?.order?.order_code || res.data?.order?.code || res.data?.code || `ORD-${Date.now().toString().slice(-4)}`
       setSaleComplete({ code: orderCode, total: grandTotal, items: cart.length })
       resetCart()
     } catch {

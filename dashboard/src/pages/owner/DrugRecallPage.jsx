@@ -3,6 +3,7 @@ import { toArray } from '../../utils/safeData';
 import { Plus, BadgeAlert, AlertTriangle, CheckCircle, Clock, Shield, Hash, Package, Tag, FileText } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
 
 const REASON_LABELS = { defective: 'Defective Product', contamination: 'Contamination', labeling: 'Labeling Error', efficacy: 'Efficacy Issue', safety: 'Safety Concern' }
 const SEVERITY_STYLES = { class_i: 'bg-red-100 text-red-700 border-red-300', class_ii: 'bg-orange-100 text-orange-700 border-orange-300', class_iii: 'bg-blue-100 text-blue-700 border-blue-300' }
@@ -10,6 +11,7 @@ const SEVERITY_LABELS = { class_i: 'Class I (Most Serious)', class_ii: 'Class II
 const STATUS_STYLES = { pending: 'bg-yellow-100 text-yellow-700', acknowledged: 'bg-blue-100 text-blue-700', in_progress: 'bg-indigo-100 text-indigo-700', completed: 'bg-green-100 text-green-700' }
 
 export default function DrugRecallPage() {
+  const { pharmacyId } = useAuth()
   const [recalls, setRecalls] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -31,7 +33,7 @@ export default function DrugRecallPage() {
     e.preventDefault()
     setSaving(true)
     try {
-      const data = { ...form, pharmacy_id: 1, batch_numbers: form.batch_numbers.filter(b => b), affected_quantity: parseInt(form.affected_quantity) }
+      const data = { ...form, pharmacy_id: pharmacyId, batch_numbers: form.batch_numbers.filter(b => b), affected_quantity: parseInt(form.affected_quantity) }
       await api.post('/drug-recalls', data)
       toast.success('Recall recorded'); setShowForm(false); fetchRecalls()
     } catch { toast.success('Recall recorded'); setShowForm(false) } finally { setSaving(false) }

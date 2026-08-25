@@ -154,7 +154,7 @@ export default function AdminSubscriptionsPage() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/admin/subscriptions/new')}
+          onClick={() => navigate('/dashboard/subscriptions/new')}
           className="btn-primary"
         >
           <Plus className="h-4 w-4" />
@@ -285,14 +285,14 @@ export default function AdminSubscriptionsPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => navigate('/admin/subscriptions/' + sub.id)}
+                          onClick={() => navigate('/dashboard/subscriptions/' + sub.id)}
                           className="btn-icon-primary"
                           title="View Details"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => navigate('/admin/subscriptions/' + sub.id + '/edit')}
+                          onClick={() => navigate('/dashboard/subscriptions/' + sub.id + '/edit')}
                           className="btn-icon-blue"
                           title="Edit Subscription"
                         >

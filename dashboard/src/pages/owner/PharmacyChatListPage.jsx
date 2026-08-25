@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toArray } from '../../utils/safeData';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Phone, AlertTriangle, Pill, FileText } from 'lucide-react';
+import { currentBase } from '../../utils/roles'
 import api from '../../services/api';
 
 const typeIcons = {
@@ -60,7 +61,7 @@ export default function PharmacyChatListPage() {
           {conversations.map((conv) => (
             <button
               key={conv.customer_id}
-              onClick={() => navigate(`/owner/chats/${conv.customer_id}`)}
+              onClick={() => navigate(`${currentBase()}/chats/${conv.customer_id}`)}
               className="w-full bg-white rounded-2xl border border-gray-100 p-4 text-left active:scale-[0.98] transition-all hover:shadow-sm"
             >
               <div className="flex items-center gap-3">

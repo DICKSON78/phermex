@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class AdminSettingController extends Controller
 {
@@ -46,14 +46,40 @@ class AdminSettingController extends Controller
         ];
     }
 
+    private function allSettings(): array
+    {
+        $defaults = $this->getDefaults();
+        $stored = Setting::pluck('value', 'key')->toArray();
+
+        foreach ($stored as $key => $value) {
+            $parts = explode('.', $key, 2);
+            $group = $parts[0];
+            $field = $parts[1] ?? null;
+
+            if ($field && isset($defaults[$group])) {
+                $defaults[$group][$field] = $value;
+            } elseif (isset($defaults[$group])) {
+                $defaults[$group] = $value;
+            }
+        }
+
+        return $defaults;
+    }
+
+    private function saveGroup(string $group, array $values): void
+    {
+        foreach ($values as $field => $value) {
+            Setting::updateOrCreate(
+                ['key' => $group . '.' . $field],
+                ['value' => $value]
+            );
+        }
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
-            $settings = Cache::remember('pharmex_settings', now()->addHours(1), function () {
-                return $this->getDefaults();
-            });
-
-            return response()->json(['data' => $settings]);
+            return response()->json(['data' => $this->allSettings()]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch settings.',
@@ -80,9 +106,9 @@ class AdminSettingController extends Controller
                 'default_language' => 'sometimes|string|max:10',
             ]);
 
-            $settings = Cache::get('pharmex_settings', $this->getDefaults());
-            $settings['platform'] = array_merge($settings['platform'], $validated);
-            Cache::put('pharmex_settings', $settings, now()->addHours(24));
+            $this->saveGroup('platform', $validated);
+
+            $settings = $this->allSettings();
 
             return response()->json([
                 'message' => 'Platform settings updated.',
@@ -115,9 +141,9 @@ class AdminSettingController extends Controller
                 'reminder_days_before_expiry' => 'integer|min:1|max:90',
             ]);
 
-            $settings = Cache::get('pharmex_settings', $this->getDefaults());
-            $settings['notifications'] = array_merge($settings['notifications'], $validated);
-            Cache::put('pharmex_settings', $settings, now()->addHours(24));
+            $this->saveGroup('notifications', $validated);
+
+            $settings = $this->allSettings();
 
             return response()->json([
                 'message' => 'Notification settings updated.',
@@ -147,9 +173,9 @@ class AdminSettingController extends Controller
                 'backup_frequency' => 'sometimes|in:hourly,daily,weekly,monthly',
             ]);
 
-            $settings = Cache::get('pharmex_settings', $this->getDefaults());
-            $settings['retention'] = array_merge($settings['retention'], $validated);
-            Cache::put('pharmex_settings', $settings, now()->addHours(24));
+            $this->saveGroup('retention', $validated);
+
+            $settings = $this->allSettings();
 
             return response()->json([
                 'message' => 'Retention settings updated.',

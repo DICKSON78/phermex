@@ -9,8 +9,10 @@ import {
   Package,
   FileText,
   Loader2,
+  Image,
 } from 'lucide-react'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 
 const UNITS = ['Tablets', 'Capsules', 'Bottles', 'Tubes', 'Vials', 'Sachets', 'Syrup']
 
@@ -44,6 +46,7 @@ function generateBarcode() {
 
 export default function DrugFormPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const { id } = useParams()
   const isEdit = Boolean(id)
 
@@ -53,6 +56,8 @@ export default function DrugFormPage() {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
   const [submitting, setSubmitting] = useState(false)
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -89,6 +94,7 @@ export default function DrugFormPage() {
         is_generic: drug.is_generic || false,
         is_published: drug.is_published !== false,
       })
+      if (drug.image_url) setImagePreview(`/storage/${drug.image_url}`)
     } catch {
       // Drug fetch failed — form stays at initial empty state
     } finally {
@@ -104,6 +110,23 @@ export default function DrugFormPage() {
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }))
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }))
+  }
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, image: 'Image must be under 2MB' }))
+      return
+    }
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+    setErrors(prev => ({ ...prev, image: '' }))
+  }
+
+  const removeImage = () => {
+    setImageFile(null)
+    setImagePreview(null)
   }
 
   const validate = () => {
@@ -122,25 +145,36 @@ export default function DrugFormPage() {
     if (!validate()) return
 
     setSubmitting(true)
-    const payload = {
-      ...form,
-      buying_price: Number(form.buying_price),
-      selling_price: Number(form.selling_price),
-      wholesale_price: form.wholesale_price ? Number(form.wholesale_price) : null,
-      quantity: Number(form.quantity),
-      reorder_level: Number(form.reorder_level),
-      category_id: form.category_id ? Number(form.category_id) : null,
-    }
+    const payload = new FormData()
+    payload.append('name', form.name)
+    payload.append('buying_price', Number(form.buying_price))
+    payload.append('selling_price', Number(form.selling_price))
+    payload.append('quantity', Number(form.quantity))
+    payload.append('expiry_date', form.expiry_date)
+    if (form.generic_name) payload.append('generic_name', form.generic_name)
+    if (form.category_id) payload.append('category_id', Number(form.category_id))
+    if (form.description) payload.append('description', form.description)
+    if (form.manufacturer) payload.append('manufacturer', form.manufacturer)
+    if (form.nafdac_number) payload.append('nafdac_number', form.nafdac_number)
+    if (form.wholesale_price) payload.append('wholesale_price', Number(form.wholesale_price))
+    if (form.unit) payload.append('unit', form.unit)
+    if (form.reorder_level) payload.append('reorder_level', Number(form.reorder_level))
+    if (form.batch_number) payload.append('batch_number', form.batch_number)
+    payload.append('requires_prescription', form.requires_prescription ? '1' : '0')
+    payload.append('is_generic', form.is_generic ? '1' : '0')
+    payload.append('is_published', form.is_published ? '1' : '0')
+    if (imageFile) payload.append('image', imageFile)
 
     try {
       if (isEdit) {
-        await api.put(`/drugs/${id}`, payload)
+        payload.append('_method', 'PUT')
+        await api.post(`/drugs/${id}`, payload, { headers: { 'Content-Type': 'multipart/form-data' } })
       } else {
-        await api.post('/drugs', payload)
+        await api.post('/drugs', payload, { headers: { 'Content-Type': 'multipart/form-data' } })
       }
-      navigate('/owner/drugs')
+      navigate(`${base}/drugs`)
     } catch {
-      navigate('/owner/drugs')
+      // error handled silently
     } finally {
       setSubmitting(false)
     }
@@ -160,7 +194,7 @@ export default function DrugFormPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Link to="/owner/drugs" className="btn-ghost">
+            <Link to={`${base}/drugs`} className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Drug' : 'Create New Drug'}</h1>
@@ -248,6 +282,43 @@ export default function DrugFormPage() {
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Drug Image</label>
+                <div className="flex items-start gap-4">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-24 h-24 rounded-xl object-cover border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-[#0FD452] transition-colors">
+                      <Image className="w-6 h-6 text-gray-400 mb-1" />
+                      <span className="text-[10px] text-gray-400">Upload</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                  <div className="text-xs text-gray-400 pt-2">
+                    <p>Optional. Max 2MB.</p>
+                    <p>JPG, PNG, WebP.</p>
+                  </div>
+                </div>
+                {errors.image && <p className="text-xs text-red-500 mt-1">{errors.image}</p>}
               </div>
             </div>
           </div>
@@ -539,7 +610,7 @@ export default function DrugFormPage() {
 
           {/* Sticky Bottom Bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
-            <Link to="/owner/drugs" className="btn-secondary">
+            <Link to={`${base}/drugs`} className="btn-secondary">
               <X className="w-4 h-4" />
               <span>Cancel</span>
             </Link>

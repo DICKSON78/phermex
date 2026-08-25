@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { toArray } from '../../utils/safeData'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 
 const statusColors = {
   completed: 'bg-green-100 text-green-700',
@@ -65,6 +66,7 @@ function normalizeRx(raw) {
 export default function CustomerDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const base = currentBase()
   const [customer, setCustomer] = useState(null)
   const [orders, setOrders] = useState([])
   const [prescriptions, setPrescriptions] = useState([])
@@ -117,7 +119,7 @@ export default function CustomerDetailPage() {
     return (
       <div className="p-6 text-center text-gray-500">
         <p>Customer not found</p>
-        <button onClick={() => navigate('/owner/customers')} className="text-primary mt-2">Go back</button>
+        <button onClick={() => navigate(`${base}/customers`)} className="text-primary mt-2">Go back</button>
       </div>
     )
   }
@@ -129,7 +131,7 @@ export default function CustomerDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={() => navigate('/owner/customers')}
+          onClick={() => navigate(`${base}/customers`)}
           className="btn-ghost"
         >
           <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -143,14 +145,14 @@ export default function CustomerDetailPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate(`/owner/customers/${id}/edit`)}
+            onClick={() => navigate(`${base}/customers/${id}/edit`)}
             className="flex items-center gap-2 bg-white border border-gray-200 text-dark font-medium px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
           >
             <Edit className="w-4 h-4" />
             Edit Customer
           </button>
           <button
-            onClick={() => navigate('/owner/pos', { state: { customerId: customer.id, customerName: customer.name } })}
+            onClick={() => navigate(`${base}/pos`, { state: { customerId: customer.id, customerName: customer.name } })}
             className="btn-primary"
           >
             <ShoppingCart className="w-4 h-4" />
@@ -319,7 +321,7 @@ export default function CustomerDetailPage() {
                   </tr>
                 ) : (
                   orders.map((order) => (
-                    <tr key={order.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`/owner/orders/${order.id}`)}>
+                    <tr key={order.id} className="transition-colors hover:bg-[#0FD452]/5 cursor-pointer" onClick={() => navigate(`${base}/orders/${order.id}`)}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">

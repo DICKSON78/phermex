@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, BadgeCheck, Clock, AlertTriangle, XCircle, Calendar, Upload, FileText } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
 
 
 const TYPE_LABELS = { pharmacy_license: 'Pharmacy License', drug_dealer_license: 'Drug Dealer License', tmda_registration: 'TMDA Registration', business_license: 'Business License', fire_safety: 'Fire Safety Certificate', health_certificate: 'Health Certificate' }
@@ -9,6 +10,7 @@ const STATUS_STYLES = { active: 'bg-green-100 text-green-700 border-green-300', 
 const STATUS_ICONS = { active: BadgeCheck, expiring: Clock, expired: XCircle, suspended: XCircle }
 
 export default function LicenseManagementPage() {
+  const { pharmacyId } = useAuth()
   const [licenses, setLicenses] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -28,7 +30,7 @@ export default function LicenseManagementPage() {
     e.preventDefault()
     setSaving(true)
     try {
-      await api.post('/licenses', { ...form, pharmacy_id: 1 })
+      await api.post('/licenses', { ...form, pharmacy_id: pharmacyId })
       toast.success('License added'); setShowForm(false); fetchLicenses()
     } catch { toast.success('License added'); setShowForm(false) } finally { setSaving(false) }
   }

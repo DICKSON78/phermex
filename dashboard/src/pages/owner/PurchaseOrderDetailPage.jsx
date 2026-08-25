@@ -62,7 +62,7 @@ export default function PurchaseOrderDetailPage() {
   return (
     <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate('/owner/purchase-orders')} className="btn-ghost">
+        <button onClick={() => navigate('/dashboard/purchase-orders')} className="btn-ghost">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </button>
         <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">

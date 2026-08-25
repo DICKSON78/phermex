@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Pharmacy;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -56,13 +58,29 @@ class AdminUserController extends Controller
                 'role' => 'required|in:admin,owner,pharmacist,cashier,delivery,customer',
                 'is_active' => 'boolean',
                 'password' => 'required|string|min:8',
+                'pharmacy_id' => 'nullable|exists:pharmacies,id',
             ]);
 
             $validated['user_code'] = User::generateUserCode();
             $validated['password'] = Hash::make($validated['password']);
             $validated['is_active'] = $validated['is_active'] ?? true;
 
+            DB::beginTransaction();
+
             $user = User::create($validated);
+
+            $pharmacy = null;
+            if (!empty($validated['pharmacy_id'])) {
+                $pharmacy = Pharmacy::find($validated['pharmacy_id']);
+                if ($pharmacy) {
+                    $user->pharmacy()->syncWithoutDetaching([$pharmacy->id]);
+                    if ($user->role === 'owner' && !$pharmacy->owner_id) {
+                        $pharmacy->update(['owner_id' => $user->id]);
+                    }
+                }
+            }
+
+            DB::commit();
 
             AuditLog::create([
                 'user_id' => $request->user()->id,
@@ -122,6 +140,7 @@ class AdminUserController extends Controller
                 'role' => 'sometimes|in:admin,owner,pharmacist,cashier,delivery,customer',
                 'is_active' => 'boolean',
                 'password' => 'nullable|string|min:8',
+                'pharmacy_id' => 'nullable|exists:pharmacies,id',
             ]);
 
             if (!empty($validated['password'])) {
@@ -131,7 +150,24 @@ class AdminUserController extends Controller
             }
 
             $oldValues = $user->only(array_keys($validated));
+
+            DB::beginTransaction();
+
             $user->update($validated);
+
+            if (array_key_exists('pharmacy_id', $validated)) {
+                if (!empty($validated['pharmacy_id'])) {
+                    $pharmacy = Pharmacy::find($validated['pharmacy_id']);
+                    if ($pharmacy) {
+                        $user->pharmacy()->syncWithoutDetaching([$pharmacy->id]);
+                        if ($user->role === 'owner') {
+                            $pharmacy->update(['owner_id' => $user->id]);
+                        }
+                    }
+                }
+            }
+
+            DB::commit();
 
             AuditLog::create([
                 'user_id' => $request->user()->id,
@@ -187,6 +223,44 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete user.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateStatus(Request $request, $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'status' => 'required|in:active,inactive',
+            ]);
+
+            $user = User::findOrFail($id);
+            $user->update(['is_active' => $validated['status'] === 'active']);
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'user_status_updated',
+                'model_type' => User::class,
+                'model_id' => $user->id,
+                'new_values' => ['is_active' => $user->is_active],
+                'ip_address' => $request->ip(),
+            ]);
+
+            return response()->json([
+                'message' => 'User status updated.',
+                'user' => $user->fresh()->load('pharmacy'),
+            ]);
+        } catch (\Illuminate\Database\ModelNotFoundException) {
+            return response()->json(['message' => 'User not found.'], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update user status.',
                 'error' => $e->getMessage(),
             ], 500);
         }

@@ -6,6 +6,7 @@ import {
   FolderOpen, Tag, Package,
 } from 'lucide-react'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 
 const TODAY = new Date()
 
@@ -25,6 +26,7 @@ const FILTER_TABS = [
 
 export default function ExpiringSoonPage() {
   const navigate = useNavigate()
+  const base = currentBase()
   const [drugs, setDrugs] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterTab, setFilterTab] = useState('30')
@@ -213,7 +215,7 @@ export default function ExpiringSoonPage() {
                             <AlertTriangle className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => navigate(`/owner/drugs/${drug.id}`)}
+                            onClick={() => navigate(`${base}/drugs/${drug.id}`)}
                             className="btn-icon-primary"
                             title="View Drug"
                           >

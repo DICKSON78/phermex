@@ -97,7 +97,7 @@ export default function AdminPharmacyApprovalPage() {
       setActionLoading(true)
       await api.patch(`/admin/pharmacies/${id}/confirm-payment`)
       showToast('Payment confirmed. Subscription activated!')
-      setTimeout(() => navigate('/admin/pending-approvals'), 1200)
+      setTimeout(() => navigate('/dashboard/pending-approvals'), 1200)
     } catch {
       showToast('Failed to confirm payment', 'error')
     } finally {
@@ -111,7 +111,7 @@ export default function AdminPharmacyApprovalPage() {
       setActionLoading(true)
       await api.patch(`/admin/pharmacies/${id}/reject`, { rejection_reason: rejectReason })
       showToast('Application rejected')
-      setTimeout(() => navigate('/admin/pending-approvals'), 1200)
+      setTimeout(() => navigate('/dashboard/pending-approvals'), 1200)
     } catch {
       showToast('Failed to reject', 'error')
     } finally {
@@ -131,7 +131,7 @@ export default function AdminPharmacyApprovalPage() {
     return (
       <div className="text-center py-32">
         <p className="text-gray-500 mb-4">Pharmacy not found</p>
-        <Link to="/admin/pending-approvals" className="text-[#0FD452] font-semibold text-sm hover:underline">Back to list</Link>
+        <Link to="/dashboard/pending-approvals" className="text-[#0FD452] font-semibold text-sm hover:underline">Back to list</Link>
       </div>
     )
   }
@@ -144,6 +144,7 @@ export default function AdminPharmacyApprovalPage() {
 
   const payCfg = {
     unpaid: { color: 'bg-red-50 text-red-600 border border-red-200', label: 'Unpaid' },
+    paid: { color: 'bg-[#0FD452]/10 text-[#0FD452] border border-[#0FD452]/30', label: 'Paid' },
     confirmed: { color: 'bg-[#0FD452]/10 text-[#0FD452] border border-[#0FD452]/30', label: 'Paid' },
     pending: { color: 'bg-amber-50 text-amber-700 border border-amber-200', label: 'Pending' },
   }[pharmacy.payment_status] || { color: 'bg-gray-100 text-gray-500', label: pharmacy.payment_status }
@@ -155,14 +156,14 @@ export default function AdminPharmacyApprovalPage() {
     } catch { return d }
   }
 
-  const showPaymentAction = pharmacy.application_status === 'approved' && pharmacy.payment_status !== 'confirmed'
+  const showPaymentAction = pharmacy.application_status === 'approved' && pharmacy.payment_status !== 'confirmed' && pharmacy.payment_status !== 'paid'
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <Link to="/admin/pending-approvals" className="mt-1 w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-all shrink-0">
+          <Link to="/dashboard/pending-approvals" className="mt-1 w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-all shrink-0">
             <ArrowLeft className="w-4 h-4 text-gray-600" />
           </Link>
           <div className="w-12 h-12 rounded-2xl bg-[#0FD452]/10 flex items-center justify-center">
@@ -176,7 +177,7 @@ export default function AdminPharmacyApprovalPage() {
             </div>
           </div>
         </div>
-        <Link to={`/admin/pharmacies/${id}`} className="text-xs text-[#0FD452] font-semibold hover:underline flex items-center gap-1 shrink-0 mt-2">
+        <Link to={`/dashboard/pharmacies/${id}`} className="text-xs text-[#0FD452] font-semibold hover:underline flex items-center gap-1 shrink-0 mt-2">
           View Full Profile <ChevronRight className="w-3 h-3" />
         </Link>
       </div>

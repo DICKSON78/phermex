@@ -82,7 +82,7 @@ export default function AdminSupportShowPage() {
       setTicket(res.data.data || res.data)
     } catch {
       toast.error('Failed to load ticket')
-      navigate('/admin/support')
+      navigate('/dashboard/support')
     } finally {
       setLoading(false)
     }
@@ -121,7 +121,7 @@ export default function AdminSupportShowPage() {
     try {
       await api.delete(`/admin/support/tickets/${id}`)
       toast.success('Ticket deleted')
-      navigate('/admin/support')
+      navigate('/dashboard/support')
     } catch {
       toast.error('Failed to delete ticket')
     } finally {
@@ -174,7 +174,7 @@ export default function AdminSupportShowPage() {
           <LifeBuoy className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">Ticket not found</p>
           <button
-            onClick={() => navigate('/admin/support')}
+            onClick={() => navigate('/dashboard/support')}
             className="text-[#0FD452] mt-2 text-sm font-medium hover:underline"
           >
             Go back
@@ -189,7 +189,7 @@ export default function AdminSupportShowPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Link to="/admin/support" className="btn-ghost">
+          <Link to="/dashboard/support" className="btn-ghost">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">

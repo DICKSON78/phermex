@@ -86,7 +86,7 @@ export default function AdminMarketingShowPage() {
     try {
       await api.delete(`/admin/marketing/${id}`)
     } catch {}
-    navigate('/admin/marketing')
+    navigate('/dashboard/marketing')
   }
 
   const handleToggleStatus = async () => {
@@ -106,7 +106,7 @@ export default function AdminMarketingShowPage() {
   const handleDuplicate = async () => {
     try {
       await api.post(`/admin/marketing/${id}/duplicate`)
-      navigate('/admin/marketing')
+      navigate('/dashboard/marketing')
     } catch {}
   }
 
@@ -143,7 +143,7 @@ export default function AdminMarketingShowPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Link to="/admin/marketing" className="btn-ghost">
+          <Link to="/dashboard/marketing" className="btn-ghost">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
@@ -155,7 +155,7 @@ export default function AdminMarketingShowPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link to={`/admin/marketing/${id}/edit`} className="btn-secondary">
+          <Link to={`/dashboard/marketing/${id}/edit`} className="btn-secondary">
             <Edit className="w-4 h-4" /> Edit
           </Link>
           <button onClick={() => setDeleteDialog(true)} className="btn-danger-outline">
@@ -425,7 +425,7 @@ export default function AdminMarketingShowPage() {
             </div>
             <div className="space-y-3">
               <button
-                onClick={() => navigate(`/admin/marketing/${id}/edit`)}
+                onClick={() => navigate(`/dashboard/marketing/${id}/edit`)}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
               >
                 <Edit className="w-4 h-4 text-[#0FD452]" />

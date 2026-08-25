@@ -12,7 +12,6 @@ import {
   Users,
   DollarSign,
   BarChart3,
-  UserCog,
   Truck,
   Settings,
 } from 'lucide-react'
@@ -49,12 +48,6 @@ const ownerNavGroups = [
     items: [
       { icon: DollarSign, label: 'Expenses', path: '/owner/expenses' },
       { icon: BarChart3, label: 'Reports', path: '/owner/reports' },
-    ],
-  },
-  {
-    label: 'TEAM',
-    items: [
-      { icon: UserCog, label: 'Staff', path: '/owner/staff' },
     ],
   },
   {

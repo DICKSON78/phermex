@@ -41,6 +41,8 @@ class Pharmacy {
   final String? phone;
   final String? licenseNumber;
   final String? status;
+  final double? rating;
+  final int? totalReviews;
 
   Pharmacy({
     required this.id,
@@ -56,12 +58,17 @@ class Pharmacy {
     this.phone,
     this.licenseNumber,
     this.status,
+    this.rating,
+    this.totalReviews,
   });
 
   String get locationLabel {
     final parts = [ward, district, region].where((p) => p != null && p.isNotEmpty).toList();
     return parts.isNotEmpty ? parts.join(', ') : (address ?? '');
   }
+
+  /// True only when the pharmacy has real customer reviews on the platform.
+  bool get hasRating => (totalReviews ?? 0) > 0 && (rating ?? 0) > 0;
 
   factory Pharmacy.fromJson(Map<String, dynamic> json) {
     return Pharmacy(
@@ -78,6 +85,8 @@ class Pharmacy {
       phone: json['phone'],
       licenseNumber: json['license_number'],
       status: json['status'],
+      rating: (json['rating'] as num?)?.toDouble(),
+      totalReviews: json['total_reviews'],
     );
   }
 }
@@ -141,6 +150,20 @@ class Drug {
       unit: json['unit'],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'generic_name': genericName,
+        'manufacturer': manufacturer,
+        'selling_price': price,
+        'buying_price': buyingPrice,
+        'quantity': quantity,
+        'description': description,
+        if (categoryName != null) 'category': {'name': categoryName},
+        'image': image,
+        'unit': unit,
+      };
 }
 
 class CartItem {

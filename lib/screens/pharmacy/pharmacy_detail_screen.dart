@@ -113,15 +113,23 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
-                    borderRadius: BorderRadius.circular(20),
+                if (widget.pharmacy.hasRating)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star, size: 10, color: Color(0xFFFBBF24)),
+                        const SizedBox(width: 3),
+                        Text(widget.pharmacy.rating!.toStringAsFixed(1),
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFD97706))),
+                      ],
+                    ),
                   ),
-                  child: const Text('OPEN',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF059669))),
-                ),
               ],
             ),
           ),

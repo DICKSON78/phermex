@@ -43,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
+    var usedFallbackLocation = false;
     try {
       Position? pos;
       try {
@@ -57,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         }
       } catch (_) {}
+      usedFallbackLocation = pos == null;
       final lat = pos?.latitude ?? -6.7924;
       final lng = pos?.longitude ?? 39.2083;
       final results = await Future.wait<Object>([
@@ -69,6 +71,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _recentOrders = (results[1] as List).cast<Order>().take(3).toList();
         _error = null;
       });
+      if (usedFallbackLocation) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Location unavailable — showing pharmacies in Dar es Salaam. Enable location for results near you.'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 4),
+        ));
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {
@@ -510,15 +519,23 @@ class _NearbyPharmacyCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFECFDF5),
-                              borderRadius: BorderRadius.circular(20),
+                          if (pharmacy.hasRating)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.star, size: 8, color: Color(0xFFFBBF24)),
+                                  const SizedBox(width: 3),
+                                  Text(pharmacy.rating!.toStringAsFixed(1),
+                                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFD97706))),
+                                ],
+                              ),
                             ),
-                            child: const Text('OPEN',
-                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF059669))),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -550,22 +567,9 @@ class _NearbyPharmacyCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 6),
                           ],
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF3C7),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.star, size: 8, color: Color(0xFFFBBF24)),
-                                SizedBox(width: 3),
-                                Text('4.5',
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFD97706))),
-                              ],
-                            ),
-                          ),
+                          if (pharmacy.hasRating)
+                            Text('${pharmacy.totalReviews} review${pharmacy.totalReviews == 1 ? '' : 's'}',
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF9CA3AF))),
                         ],
                       ),
                     ],

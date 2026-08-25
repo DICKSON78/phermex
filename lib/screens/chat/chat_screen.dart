@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/customer_repository.dart';
@@ -20,18 +22,41 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _loading = true;
   String? _error;
   bool _sending = false;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _pollTimer = Timer.periodic(const Duration(seconds: 4), (_) => _refresh());
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Silent background refresh for the polling timer — no spinners,
+  /// no error flicker; only updates state when messages actually changed.
+  Future<void> _refresh() async {
+    if (_sending || _loading || !mounted) return;
+    try {
+      final list = await CustomerRepository.chatMessages(widget.pharmacyId);
+      if (!mounted) return;
+      final changed = list.length != _messages.length ||
+          (list.isNotEmpty &&
+              _messages.isNotEmpty &&
+              list.last.id != _messages.last.id);
+      if (!changed) return;
+      setState(() => _messages = list);
+      _scrollToBottom();
+      CustomerRepository.markChatRead(widget.pharmacyId);
+    } catch (_) {
+      // Transient poll failures are ignored; the next tick retries.
+    }
   }
 
   Future<void> _load() async {
@@ -44,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _error = null;
       });
       _scrollToBottom();
+      CustomerRepository.markChatRead(widget.pharmacyId);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {

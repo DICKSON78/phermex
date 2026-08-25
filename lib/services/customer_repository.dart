@@ -148,6 +148,12 @@ class CustomerRepository {
     return Order.fromJson(data is Map ? Map<String, dynamic>.from(data) : {});
   }
 
+  static Future<Order> cancelOrder(int id) async {
+    final res = await ApiService.post('/orders/$id/cancel');
+    final data = _data(res);
+    return Order.fromJson(data is Map ? Map<String, dynamic>.from(data) : {});
+  }
+
   static Future<void> uploadPrescription({
     required int pharmacyId,
     required String doctorName,

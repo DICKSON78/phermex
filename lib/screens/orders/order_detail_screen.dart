@@ -17,6 +17,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Order? _order;
   bool _loading = true;
   String? _error;
+  bool _cancelling = false;
 
   @override
   void initState() {
@@ -43,6 +44,54 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool get _isActive {
     final s = _order?.orderStatus ?? '';
     return s.isNotEmpty && s != 'delivered' && s != 'completed' && s != 'cancelled';
+  }
+
+  bool get _canCancel => _order?.orderStatus == 'pending';
+
+  Future<void> _cancelOrder() async {
+    final order = _order;
+    if (order == null || _cancelling) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancel order?'),
+        content: Text(
+            'Order #${order.orderCode ?? order.id} will be cancelled and the pharmacy will be notified.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Keep Order')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFDC2626)),
+            child: const Text('Cancel Order'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _cancelling = true);
+    try {
+      final updated = await CustomerRepository.cancelOrder(order.id);
+      if (!mounted) return;
+      setState(() {
+        _order = updated;
+        _cancelling = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Order cancelled'),
+        backgroundColor: AppTheme.primary,
+        behavior: SnackBarBehavior.floating,
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _cancelling = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.toString()),
+        backgroundColor: const Color(0xFFDC2626),
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
   }
 
   @override
@@ -177,6 +226,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 label: const Text('Track Delivery', style: TextStyle(color: AppTheme.dark)),
               ),
             ),
+
+          // Cancel button
+          if (_canCancel) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: _cancelling ? null : _cancelOrder,
+                icon: _cancelling
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFDC2626)))
+                    : const Icon(Icons.cancel_outlined, size: 16, color: Color(0xFFDC2626)),
+                label: const Text('Cancel Order',
+                    style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w600)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFDC2626)),
+                  backgroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
 
           const SizedBox(height: 18),
 

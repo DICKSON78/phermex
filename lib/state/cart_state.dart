@@ -1,11 +1,20 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 
 class CartState extends ChangeNotifier {
+  static const _prefsKey = 'pharmex_customer_cart';
+
   final Map<int, CartItem> _items = {};
 
   int? _pharmacyId;
   String? _pharmacyName;
+
+  CartState() {
+    _restore();
+  }
 
   List<CartItem> get items => _items.values.toList();
 
@@ -36,6 +45,7 @@ class CartState extends ChangeNotifier {
     } else {
       _items[drug.id] = CartItem(drug: drug, quantity: qty);
     }
+    _persist();
     notifyListeners();
   }
 
@@ -45,6 +55,7 @@ class CartState extends ChangeNotifier {
       _pharmacyId = null;
       _pharmacyName = null;
     }
+    _persist();
     notifyListeners();
   }
 
@@ -60,6 +71,7 @@ class CartState extends ChangeNotifier {
     } else {
       item.quantity = qty;
     }
+    _persist();
     notifyListeners();
   }
 
@@ -67,8 +79,57 @@ class CartState extends ChangeNotifier {
     _items.clear();
     _pharmacyId = null;
     _pharmacyName = null;
+    _persist();
     notifyListeners();
   }
 
   int quantityFor(int drugId) => _items[drugId]?.quantity ?? 0;
+
+  Future<void> _persist() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_items.isEmpty) {
+        await prefs.remove(_prefsKey);
+        return;
+      }
+      final data = {
+        'pharmacy_id': _pharmacyId,
+        'pharmacy_name': _pharmacyName,
+        'items': items
+            .map((i) => {'quantity': i.quantity, 'drug': i.drug.toJson()})
+            .toList(),
+      };
+      await prefs.setString(_prefsKey, jsonEncode(data));
+    } catch (_) {
+      // Persistence failures must never break cart usage.
+    }
+  }
+
+  Future<void> _restore() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_prefsKey);
+      if (raw == null || raw.isEmpty || _items.isNotEmpty) return;
+      final data = jsonDecode(raw);
+      if (data is! Map) return;
+      final restored = <int, CartItem>{};
+      for (final entry in (data['items'] as List? ?? [])) {
+        if (entry is Map && entry['drug'] is Map && entry['quantity'] is int) {
+          final drug = Drug.fromJson(Map<String, dynamic>.from(entry['drug'] as Map));
+          if ((drug.quantity ?? 0) > 0) {
+            restored[drug.id] = CartItem(drug: drug, quantity: entry['quantity'] as int);
+          }
+        }
+      }
+      if (restored.isEmpty) return;
+      _items
+        ..clear()
+        ..addAll(restored);
+      _pharmacyId = data['pharmacy_id'] is int ? data['pharmacy_id'] as int : null;
+      _pharmacyName = data['pharmacy_name'] is String ? data['pharmacy_name'] as String : null;
+      notifyListeners();
+    } catch (_) {
+      // Corrupt persisted carts are simply dropped.
+    }
+  }
 }

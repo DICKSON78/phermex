@@ -70,6 +70,6 @@ class AppHelpers {
 }
 
 class AppStrings {
-  static const String appName = 'Pharmex';
+  static const String appName = 'Helix';
   static const String tagline = 'Order medicines from trusted pharmacies near you';
 }

@@ -13,18 +13,18 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => CartState()),
       ],
-      child: const PharmexApp(),
+      child: const HelixApp(),
     ),
   );
 }
 
-class PharmexApp extends StatelessWidget {
-  const PharmexApp({super.key});
+class HelixApp extends StatelessWidget {
+  const HelixApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pharmex',
+      title: 'Helix',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       navigatorKey: ApiService.navigatorKey,

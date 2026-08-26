@@ -123,7 +123,7 @@ class _SupportScreenState extends State<SupportScreen> {
             Center(child: Text('No support tickets yet',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827)))),
             SizedBox(height: 6),
-            Center(child: Text('Tap + to contact the Pharmex team',
+            Center(child: Text('Tap + to contact the Helix team',
                 style: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)))),
           ],
         ),
@@ -336,7 +336,7 @@ class _ReplyBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(reply.fromAdmin ? 'Pharmex Team' : 'You',
+            Text(reply.fromAdmin ? 'Helix Team' : 'You',
                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF374151))),
             const SizedBox(height: 4),
             Text(reply.message ?? '',
@@ -508,7 +508,7 @@ class _CreateTicketSheetState extends State<_CreateTicketSheet> {
             const Text('New Support Ticket',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
             const SizedBox(height: 4),
-            const Text('Describe your issue and the Pharmex team will help.',
+            const Text('Describe your issue and the Helix team will help.',
                 style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
             const SizedBox(height: 16),
             TextField(

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Cold-start splash: dark background + centered circular Pharmex logo -->
+<!-- Cold-start splash: dark background + centered circular Helix logo -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/ic_launcher_background" />
     <item>

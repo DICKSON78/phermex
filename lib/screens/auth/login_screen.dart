@@ -378,7 +378,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const _BrandHeader(
-                    title: 'Pharmex',
+                    title: 'Helix',
                     subtitle: 'Sign in to your account',
                   ),
                   const SizedBox(height: 30),

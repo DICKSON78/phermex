@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/models.dart';
+import '../../state/cart_state.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
+import '../cart/cart_screen.dart';
 
 class DrugDetailScreen extends StatelessWidget {
   final Drug drug;
@@ -10,13 +13,13 @@ class DrugDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final outOfStock = (drug.quantity ?? 0) <= 0;
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(title: Text(drug.name ?? 'Drug Details')),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         children: [
-          // Image
           if (drug.image != null)
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
@@ -29,12 +32,10 @@ class DrugDetailScreen extends StatelessWidget {
             Container(height: 200, decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(16)),
               child: const Icon(Icons.medication, size: 48, color: Color(0xFF9CA3AF))),
           const SizedBox(height: 20),
-          // Name + Generic
           Text(drug.name ?? '', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF111827))),
           if (drug.genericName != null && drug.genericName!.isNotEmpty)
             Padding(padding: const EdgeInsets.only(top: 4), child: Text(drug.genericName!, style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)))),
           const SizedBox(height: 16),
-          // Price + Stock card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFEEF1F0))),
@@ -53,7 +54,6 @@ class DrugDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Details
           _detail('Manufacturer', drug.manufacturer),
           _detail('Category', drug.categoryName),
           _detail('Unit', drug.unit),
@@ -65,6 +65,53 @@ class DrugDetailScreen extends StatelessWidget {
           ],
           const SizedBox(height: 24),
         ],
+      ),
+      bottomNavigationBar: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 52,
+            child: outOfStock
+                ? OutlinedButton(
+                    onPressed: null,
+                    child: const Text('Out of Stock', style: TextStyle(color: Color(0xFF9CA3AF))),
+                  )
+                : ElevatedButton(
+                    onPressed: () {
+                      context.read<CartState>().add(
+                            drug,
+                            pharmacyId: pharmacy.id,
+                            pharmacyName: pharmacy.name ?? 'Pharmacy',
+                          );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('${drug.name ?? 'Item'} added to cart'),
+                          backgroundColor: AppTheme.dark,
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(milliseconds: 1200),
+                          action: SnackBarAction(
+                            label: 'View Cart',
+                            textColor: AppTheme.primary,
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const CartScreen()),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.add_shopping_cart, size: 18, color: AppTheme.dark),
+                        const SizedBox(width: 8),
+                        const Text('Add to Cart', style: TextStyle(color: AppTheme.dark, fontSize: 14, fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                  ),
+          ),
+        ),
       ),
     );
   }

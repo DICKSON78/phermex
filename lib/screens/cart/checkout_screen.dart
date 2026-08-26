@@ -72,7 +72,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       setState(() => _placing = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: Text(ApiService.friendlyError(e)),
           backgroundColor: const Color(0xFFDC2626),
           behavior: SnackBarBehavior.floating,
         ),
@@ -114,7 +114,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(height: 10),
                       _InfoRow(icon: Icons.phone_outlined, label: 'Phone', value: userPhone),
                       const SizedBox(height: 10),
-                      _InfoRow(icon: Icons.payments_outlined, label: 'Payment', value: 'Cash on delivery'),
+                      _InfoRow(icon: Icons.payments_outlined, label: 'Payment', value: 'Cash on Delivery (default)'),
                     ],
                   ),
                 ),
@@ -189,7 +189,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         );
                       }),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -205,11 +205,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       children: [
                         const Text('Delivery',
                             style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
-                        const Text('To be agreed',
+                        const Text('Calculated at confirmation',
                             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF9CA3AF))),
                       ],
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

@@ -82,6 +82,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             child: Text('Start a conversation with a pharmacy',
                                 style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
                           ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: () => Navigator.of(context).pushNamed('/home'),
+                            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+                            child: const Text('Browse Pharmacies', style: TextStyle(color: AppTheme.dark)),
+                          ),
                         ],
                       ),
                     )

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
@@ -15,30 +16,74 @@ class OrdersListScreen extends StatefulWidget {
 class _OrdersListScreenState extends State<OrdersListScreen> {
   List<Order> _orders = [];
   bool _loading = true;
+  bool _loadingMore = false;
   String? _error;
   String _filter = 'All';
+  int _currentPage = 1;
+  int _lastPage = 1;
 
   static const _filters = ['All', 'Active', 'Completed', 'Cancelled'];
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _load();
   }
 
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  final ScrollController _scrollController = ScrollController();
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+        !_loadingMore &&
+        _currentPage < _lastPage) {
+      _loadMore();
+    }
+  }
+
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _currentPage = 1;
+    });
     try {
-      final orders = await CustomerRepository.myOrders();
+      final result = await CustomerRepository.myOrdersPaginated(page: 1);
       if (!mounted) return;
       setState(() {
-        _orders = orders;
+        _orders = (result['orders'] as List).cast<Order>();
+        _currentPage = result['currentPage'] as int;
+        _lastPage = result['lastPage'] as int;
         _error = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || _currentPage >= _lastPage) return;
+    setState(() => _loadingMore = true);
+    try {
+      final nextPage = _currentPage + 1;
+      final result = await CustomerRepository.myOrdersPaginated(page: nextPage);
+      if (!mounted) return;
+      setState(() {
+        _orders.addAll((result['orders'] as List).cast<Order>());
+        _currentPage = result['currentPage'] as int;
+        _lastPage = result['lastPage'] as int;
+      });
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _loadingMore = false);
     }
   }
 
@@ -121,10 +166,19 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
                         : RefreshIndicator(
                             onRefresh: _load,
                             child: ListView.separated(
+                              controller: _scrollController,
                               padding: const EdgeInsets.all(20),
-                              itemCount: filtered.length,
+                              itemCount: filtered.length + (_loadingMore ? 1 : 0),
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
-                              itemBuilder: (context, i) => _OrderCard(order: filtered[i]),
+                              itemBuilder: (context, i) {
+                                if (i == filtered.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16),
+                                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                                  );
+                                }
+                                return _OrderCard(order: filtered[i]);
+                              },
                             ),
                           ),
           ),

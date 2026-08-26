@@ -213,6 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: 30),
           const Center(
+            // TODO: Update version string with each release
             child: Text('Pharmex v1.0.0',
                 style: TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
           ),

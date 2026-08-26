@@ -12,7 +12,8 @@ import '../orders/order_detail_screen.dart';
 import '../prescriptions/prescriptions_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int unreadNotifications;
+  const HomeScreen({super.key, this.unreadNotifications = 0});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -79,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
       }
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -128,14 +129,32 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const NotificationsScreen()),
                         ),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF9FAFB),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(Icons.notifications_none, size: 18, color: Color(0xFF6B7280)),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF9FAFB),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Icon(Icons.notifications_none, size: 18, color: Color(0xFF6B7280)),
+                            ),
+                            if (widget.unreadNotifications > 0)
+                              Positioned(
+                                right: 2,
+                                top: 2,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFDC2626),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ],

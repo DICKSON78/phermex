@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
+import '../pharmacy/pharmacy_detail_screen.dart';
 import 'delivery_tracking_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -35,7 +37,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _error = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -87,7 +89,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (!mounted) return;
       setState(() => _cancelling = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(e.toString()),
+        content: Text(ApiService.friendlyError(e)),
         backgroundColor: const Color(0xFFDC2626),
         behavior: SnackBarBehavior.floating,
       ));
@@ -159,6 +161,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 const SizedBox(height: 8),
                 Text(order.pharmacyName ?? 'Pharmacy',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                if (order.deliveryAddress != null && order.deliveryAddress!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, size: 12, color: Color(0x99FFFFFF)),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(order.deliveryAddress!,
+                            style: const TextStyle(fontSize: 12, color: Color(0x99FFFFFF))),
+                      ),
+                    ],
+                  ),
+                ],
                 if (order.notes != null && order.notes!.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text('Notes: ${order.notes}',
@@ -246,6 +261,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   side: const BorderSide(color: Color(0xFFDC2626)),
                   backgroundColor: Colors.white,
                 ),
+              ),
+            ),
+          ],
+
+          // Reorder button
+          if (status == 'delivered' || status == 'completed') ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  final pharmacyId = order.pharmacyId;
+                  if (pharmacyId != null) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => PharmacyDetailScreen(
+                          pharmacy: Pharmacy(id: pharmacyId, name: order.pharmacyName),
+                        ),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.refresh, size: 16, color: AppTheme.dark),
+                label: const Text('Reorder', style: TextStyle(color: AppTheme.dark)),
               ),
             ),
           ],

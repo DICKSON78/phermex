@@ -142,6 +142,21 @@ class CustomerRepository {
     return [];
   }
 
+  static Future<Map<String, dynamic>> myOrdersPaginated({int page = 1, int perPage = 15}) async {
+    final res = await ApiService.get('/orders?page=$page&per_page=$perPage');
+    final data = _data(res);
+    if (data is Map && data['data'] is List) {
+      final orders = (data['data'] as List).map((o) => Order.fromJson(o)).toList();
+      final lastPage = data['last_page'] ?? 1;
+      final currentPage = data['current_page'] ?? page;
+      return {'orders': orders, 'lastPage': lastPage, 'currentPage': currentPage};
+    }
+    if (data is List) {
+      return {'orders': data.map((o) => Order.fromJson(o)).toList(), 'lastPage': 1, 'currentPage': 1};
+    }
+    return {'orders': <Order>[], 'lastPage': 1, 'currentPage': 1};
+  }
+
   static Future<Order> orderDetail(int id) async {
     final res = await ApiService.get('/orders/$id');
     final data = _data(res);

@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../screens/auth/login_screen.dart';
 
 class ApiException implements Exception {
   final String message;
@@ -16,6 +19,8 @@ class ApiService {
 
   static String? _token;
   static Map<String, dynamic>? _cachedUser;
+
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   static Future<void> saveSession(String token, Map<String, dynamic> user) async {
     _token = token;
@@ -55,6 +60,20 @@ class ApiService {
     await prefs.remove(_userKey);
   }
 
+  static Future<void> clearSession() async {
+    _token = null;
+    _cachedUser = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_userKey);
+    navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
+  static const Duration _timeout = Duration(seconds: 30);
+
   static Map<String, String> _headers({bool auth = true}) {
     return {
       'Content-Type': 'application/json',
@@ -66,6 +85,10 @@ class ApiService {
   static Uri _uri(String path) => Uri.parse('${ApiConfig.baseUrl}$path');
 
   static dynamic _decode(http.Response res) {
+    if (res.statusCode == 401) {
+      clearSession();
+      throw ApiException('Session expired. Please log in again.');
+    }
     dynamic body;
     try {
       body = jsonDecode(res.body);
@@ -83,25 +106,31 @@ class ApiService {
   }
 
   static Future<dynamic> get(String path) async {
-    final res = await http.get(_uri(path), headers: _headers());
+    final res = await http
+        .get(_uri(path), headers: _headers())
+        .timeout(_timeout, onTimeout: () => throw Exception('Request timed out. Please check your connection.'));
     return _decode(res);
   }
 
   static Future<dynamic> post(String path, [Map<String, dynamic>? body]) async {
-    final res = await http.post(
-      _uri(path),
-      headers: _headers(),
-      body: jsonEncode(body ?? {}),
-    );
+    final res = await http
+        .post(
+          _uri(path),
+          headers: _headers(),
+          body: jsonEncode(body ?? {}),
+        )
+        .timeout(_timeout, onTimeout: () => throw Exception('Request timed out. Please check your connection.'));
     return _decode(res);
   }
 
   static Future<dynamic> put(String path, [Map<String, dynamic>? body]) async {
-    final res = await http.put(
-      _uri(path),
-      headers: _headers(),
-      body: jsonEncode(body ?? {}),
-    );
+    final res = await http
+        .put(
+          _uri(path),
+          headers: _headers(),
+          body: jsonEncode(body ?? {}),
+        )
+        .timeout(_timeout, onTimeout: () => throw Exception('Request timed out. Please check your connection.'));
     return _decode(res);
   }
 
@@ -114,8 +143,20 @@ class ApiService {
       ..headers['Authorization'] = _token != null ? 'Bearer $_token' : ''
       ..fields['folder'] = folder
       ..files.add(await http.MultipartFile.fromPath('file', filePath));
-    final streamed = await req.send();
+    final streamed = await req.send().timeout(_timeout, onTimeout: () => throw Exception('Request timed out. Please check your connection.'));
     final res = await http.Response.fromStream(streamed);
     return _decode(res);
+  }
+
+  static String friendlyError(Object e) {
+    final msg = e.toString();
+    if (msg.contains('timed out')) return 'Connection timed out. Please try again.';
+    if (msg.contains('SocketException') || msg.contains('Connection refused')) return 'No internet connection.';
+    if (msg.contains('500')) return 'Server error. Please try again later.';
+    if (msg.contains('422')) return 'Invalid data. Please check your input.';
+    if (msg.contains('401')) return 'Session expired. Please log in again.';
+    if (msg.contains('403')) return "You don't have permission for this action.";
+    if (msg.contains('404')) return 'Not found.';
+    return 'Something went wrong. Please try again.';
   }
 }

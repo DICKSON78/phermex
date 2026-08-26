@@ -215,8 +215,13 @@ class Order {
   final double total;
   final String? notes;
   final String? createdAt;
+  final int? pharmacyId;
   final String? pharmacyName;
   final String? deliveryStatus;
+  final String? deliveryAddress;
+  final String? deliveryPhone;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
   final List<OrderItem> items;
 
   Order({
@@ -229,8 +234,13 @@ class Order {
     required this.total,
     this.notes,
     this.createdAt,
+    this.pharmacyId,
     this.pharmacyName,
     this.deliveryStatus,
+    this.deliveryAddress,
+    this.deliveryPhone,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
     this.items = const [],
   });
 
@@ -251,8 +261,13 @@ class Order {
       total: (json['total'] as num?)?.toDouble() ?? 0,
       notes: json['notes'],
       createdAt: json['created_at'],
+      pharmacyId: pharmacy is Map ? pharmacy['id'] : null,
       pharmacyName: pharmacy is Map ? pharmacy['pharmacy_name'] : null,
       deliveryStatus: json['delivery_status'],
+      deliveryAddress: json['delivery_address'],
+      deliveryPhone: json['delivery_phone'],
+      deliveryLatitude: (json['delivery_latitude'] as num?)?.toDouble(),
+      deliveryLongitude: (json['delivery_longitude'] as num?)?.toDouble(),
       items: items,
     );
   }

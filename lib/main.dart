@@ -27,6 +27,7 @@ class PharmexApp extends StatelessWidget {
       title: 'Pharmex',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
+      navigatorKey: ApiService.navigatorKey,
       home: const SessionGate(),
       routes: {
         '/login': (_) => const LoginScreen(),

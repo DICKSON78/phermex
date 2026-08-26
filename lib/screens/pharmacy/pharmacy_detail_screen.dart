@@ -1,11 +1,14 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
+import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../state/cart_state.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
 import '../cart/cart_screen.dart';
+import 'drug_detail_screen.dart';
 
 class PharmacyDetailScreen extends StatefulWidget {
   final Pharmacy pharmacy;
@@ -42,7 +45,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
         _error = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -231,7 +234,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
                               itemBuilder: (context, i) {
                                 final drug = _drugs[i];
-                                return _DrugCard(drug: drug, onAdd: () => _addToCart(drug));
+                                return _DrugCard(drug: drug, onAdd: () => _addToCart(drug), pharmacy: widget.pharmacy);
                               },
                             ),
                           ),
@@ -315,13 +318,18 @@ class _CategoryChip extends StatelessWidget {
 class _DrugCard extends StatelessWidget {
   final Drug drug;
   final VoidCallback onAdd;
-  const _DrugCard({required this.drug, required this.onAdd});
+  final Pharmacy pharmacy;
+  const _DrugCard({required this.drug, required this.onAdd, required this.pharmacy});
 
   @override
   Widget build(BuildContext context) {
     final stock = drug.quantity ?? 0;
     final outOfStock = stock <= 0;
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => DrugDetailScreen(drug: drug, pharmacy: pharmacy)),
+      ),
+      child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -340,7 +348,15 @@ class _DrugCard extends StatelessWidget {
             child: drug.image != null && drug.image!.isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(14),
-                    child: Image.network(drug.image!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _pillIcon()),
+                    child: CachedNetworkImage(
+                      imageUrl: drug.image!,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(color: const Color(0xFFF3F4F6)),
+                      errorWidget: (context, url, error) => Container(
+                        color: const Color(0xFFF3F4F6),
+                        child: const Icon(Icons.medication, color: Color(0xFF9CA3AF)),
+                      ),
+                    ),
                   )
                 : _pillIcon(),
           ),
@@ -387,6 +403,7 @@ class _DrugCard extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 

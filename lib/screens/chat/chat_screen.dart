@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
@@ -71,7 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _scrollToBottom();
       CustomerRepository.markChatRead(widget.pharmacyId);
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -103,7 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       setState(() => _messages.removeWhere((m) => m.id == optimistic.id));
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFDC2626), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(ApiService.friendlyError(e)), backgroundColor: const Color(0xFFDC2626), behavior: SnackBarBehavior.floating),
       );
     } finally {
       if (mounted) setState(() => _sending = false);

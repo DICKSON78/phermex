@@ -339,7 +339,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _googleSignIn() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google sign-in is coming soon. Please sign in with your email or phone.')),
+      const SnackBar(
+        content: Text('Google sign-in coming soon. Use email/password for now.'),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
@@ -475,7 +478,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _googleSignIn() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google sign-in is coming soon. Please create an account with your email.')),
+      const SnackBar(
+        content: Text('Google sign-in coming soon. Use email/password for now.'),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 

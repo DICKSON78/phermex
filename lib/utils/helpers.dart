@@ -29,6 +29,10 @@ class AppHelpers {
         return 'Delivered';
       case 'completed':
         return 'Completed';
+      case 'in_transit':
+        return 'In Transit';
+      case 'out_for_delivery':
+        return 'Out for Delivery';
       case 'cancelled':
         return 'Cancelled';
       case 'paid':
@@ -51,6 +55,10 @@ class AppHelpers {
       case 'processing':
       case 'shipped':
         return const Color(0xFFD97706);
+      case 'in_transit':
+        return const Color(0xFF3B82F6);
+      case 'out_for_delivery':
+        return const Color(0xFF8B5CF6);
       case 'cancelled':
       case 'rejected':
       case 'unpaid':

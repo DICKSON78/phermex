@@ -137,7 +137,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-400">Email</p>
-                      <a href="mailto:info@pharmex.com" className="text-black font-bold hover:text-[#0FD452] transition-colors">info@pharmex.com</a>
+                      <a href="mailto:info@helix.com" className="text-black font-bold hover:text-[#0FD452] transition-colors">info@helix.com</a>
                     </div>
                   </div>
                   <div className="flex gap-3">

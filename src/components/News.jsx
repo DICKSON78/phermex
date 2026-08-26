@@ -1,7 +1,7 @@
 export default function News() {
   const articles = [
     {
-      title: 'Pharmex Raises $5M to Expand Pharmacy Tech Across Africa',
+      title: 'Helix Raises $5M to Expand Pharmacy Tech Across Africa',
       source: 'TechCrunch',
       img: 'https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=600',
     },
@@ -11,7 +11,7 @@ export default function News() {
       img: 'https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=600',
     },
     {
-      title: 'Pharmex Partners with Major Pharma Distributors',
+      title: 'Helix Partners with Major Pharma Distributors',
       source: 'Bloomberg',
       img: 'https://images.pexels.com/photos/30689320/pexels-photo-30689320.jpeg?auto=compress&cs=tinysrgb&w=600',
     },

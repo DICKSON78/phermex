@@ -97,7 +97,7 @@ export default function ApplyPage() {
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">PHARMEX</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">HELIX</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
               Don't Wait,{' '}
               <span className="text-[#0FD452]">Apply Today</span>
@@ -191,7 +191,7 @@ export default function ApplyPage() {
               </p>
               <div className="mt-8 space-y-4">
                 {[
-                  { title: 'Free personalized demo', desc: 'See exactly how Pharmex works for your pharmacy.' },
+                  { title: 'Free personalized demo', desc: 'See exactly how Helix works for your pharmacy.' },
                   { title: 'Quick 48-hour setup', desc: 'From sign-up to live in under two days.' },
                   { title: '24/7 support', desc: 'We are always here when you need us.' },
                 ].map((item, i) => (

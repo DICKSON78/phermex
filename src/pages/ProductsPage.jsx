@@ -55,7 +55,7 @@ export default function ProductsPage() {
               <span className="text-[#0FD452]">Pharmacy</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              From inventory to prescriptions, Pharmex provides all the tools you need to manage your pharmacy efficiently and grow your business.
+              From inventory to prescriptions, Helix provides all the tools you need to manage your pharmacy efficiently and grow your business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <a href={DASHBOARD_URL + '/register'} className="btn-asaak hover:!bg-white hover:!text-black">
@@ -106,7 +106,7 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
             <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">BENEFITS</p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Why Choose Pharmex</h2>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Why Choose Helix</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {benefits.map((b, i) => (

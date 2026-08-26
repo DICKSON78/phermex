@@ -19,7 +19,7 @@ export default function NewsroomPage() {
               <span className="text-[#0FD452]">Stories</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              Stay up to date with the latest from Pharmex — company updates, industry insights, and customer success stories.
+              Stay up to date with the latest from Helix — company updates, industry insights, and customer success stories.
             </p>
           </div>
         </div>

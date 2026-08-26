@@ -67,7 +67,7 @@ export default function CareersPage() {
               <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">WHY JOIN US</p>
               <h2 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight">Build the Future of Healthcare</h2>
               <p className="text-gray-500 text-sm mt-6 leading-relaxed">
-                At Pharmex, you'll work on meaningful problems that directly impact healthcare delivery across Africa. We're a fast-growing startup where your work matters from day one.
+                At Helix, you'll work on meaningful problems that directly impact healthcare delivery across Africa. We're a fast-growing startup where your work matters from day one.
               </p>
               <div className="mt-8 space-y-4">
                 {['Competitive salary & equity', 'Flexible working hours', 'Health insurance', 'Annual learning budget', 'Team retreats & social events'].map((item, i) => (
@@ -141,7 +141,7 @@ export default function CareersPage() {
               We are not currently hiring, but we are always looking for talented people. Send us your CV and we will keep you in mind for future opportunities.
             </p>
             <div className="mt-8 flex flex-wrap gap-4 justify-center">
-              <a href="mailto:careers@pharmex.com" className="btn-asaak hover:!bg-white hover:!text-black">
+              <a href="mailto:careers@helix.com" className="btn-asaak hover:!bg-white hover:!text-black">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 Send Your CV
               </a>

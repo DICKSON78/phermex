@@ -43,7 +43,7 @@ export default function Footer() {
                 <a href="tel:+255625460081" className="hover:text-white transition-colors">+255 625 460 081</a>
               </li>
               <li>
-                <a href="mailto:info@pharmex.com" className="hover:text-white transition-colors">info@pharmex.com</a>
+                <a href="mailto:info@helix.com" className="hover:text-white transition-colors">info@helix.com</a>
               </li>
             </ul>
             <div className="flex gap-3 mt-5">
@@ -76,8 +76,8 @@ export default function Footer() {
 
           <div>
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.jpeg" alt="Pharmex" className="h-10 w-10 rounded-full object-cover" />
-              <span className="text-[#0FD452] font-bold text-lg tracking-wide">PHARMEX</span>
+              <img src="/logo.jpeg" alt="Helix" className="h-10 w-10 rounded-full object-cover" />
+              <span className="text-[#0FD452] font-bold text-lg tracking-wide">HELIX</span>
             </Link>
             <p className="text-gray-500 text-xs mt-4 leading-relaxed">
               Empowering pharmacies across Africa with modern digital tools for better health outcomes.
@@ -91,7 +91,7 @@ export default function Footer() {
             <span>|</span>
             <a href="#" className="hover:text-white transition-colors">Terms of Use</a>
           </div>
-          <p>&copy; {new Date().getFullYear()} Pharmex. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Helix. All rights reserved.</p>
         </div>
       </div>
     </footer>

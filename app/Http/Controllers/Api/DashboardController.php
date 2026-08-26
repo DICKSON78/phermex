@@ -124,7 +124,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch owner dashboard.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -199,7 +199,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch admin dashboard.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -267,7 +267,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch staff dashboard.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -309,7 +309,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch pharmacist dashboard.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

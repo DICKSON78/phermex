@@ -48,7 +48,7 @@ class JournalController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch journal entries.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -106,7 +106,7 @@ class JournalController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create journal entry.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -123,7 +123,7 @@ class JournalController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch journal entry.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -150,7 +150,7 @@ class JournalController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to post journal entry.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -188,7 +188,7 @@ class JournalController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to reverse journal entry.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -241,7 +241,7 @@ class JournalController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate trial balance.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -291,7 +291,7 @@ class JournalController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate general ledger.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

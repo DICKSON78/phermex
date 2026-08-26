@@ -60,7 +60,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Registration failed.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -109,7 +109,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Login failed.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -126,7 +126,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve profile.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -163,7 +163,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update profile.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -214,7 +214,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve nearby pharmacies.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -244,7 +244,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve pharmacy.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -287,7 +287,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve drugs.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -316,7 +316,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve categories.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -442,7 +442,7 @@ class CustomerAppController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to place order.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -462,7 +462,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve orders.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -527,7 +527,7 @@ class CustomerAppController extends Controller
 
             return response()->json([
                 'message' => 'Failed to cancel order.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -551,7 +551,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve order.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -596,7 +596,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to upload prescription.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -616,7 +616,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve prescriptions.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -635,7 +635,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve notifications.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -653,7 +653,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -671,7 +671,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -690,7 +690,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -707,7 +707,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch support tickets.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -741,7 +741,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create support ticket.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -781,7 +781,7 @@ class CustomerAppController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to add reply.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

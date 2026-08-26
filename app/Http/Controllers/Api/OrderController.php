@@ -43,7 +43,7 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch orders.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -144,7 +144,7 @@ class OrderController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to create order.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -163,7 +163,7 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch order.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -245,7 +245,7 @@ class OrderController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to update order status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -253,6 +253,11 @@ class OrderController extends Controller
     public function dailyReport($pharmacyId): JsonResponse
     {
         try {
+            $user = Auth::user();
+            if (!$user->pharmacies()->where('pharmacies.id', $pharmacyId)->exists()) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
             $today = now()->toDateString();
 
             $orders = Order::where('pharmacy_id', $pharmacyId)
@@ -302,7 +307,7 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate daily report.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

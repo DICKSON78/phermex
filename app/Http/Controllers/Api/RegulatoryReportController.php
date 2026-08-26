@@ -26,7 +26,7 @@ class RegulatoryReportController extends Controller
 
             return response()->json($reports);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch reports.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch reports.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -48,7 +48,7 @@ class RegulatoryReportController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to generate report.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to generate report.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -60,7 +60,7 @@ class RegulatoryReportController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Report not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch report.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch report.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -80,7 +80,7 @@ class RegulatoryReportController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to submit report.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to submit report.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 

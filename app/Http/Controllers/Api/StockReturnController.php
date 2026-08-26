@@ -29,7 +29,7 @@ class StockReturnController extends Controller
 
             return response()->json($returns);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch returns.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch returns.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -95,7 +95,7 @@ class StockReturnController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to create return.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to create return.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -109,7 +109,7 @@ class StockReturnController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Return not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch return.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch return.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -126,7 +126,7 @@ class StockReturnController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Return not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to approve return.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to approve return.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -143,7 +143,7 @@ class StockReturnController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Return not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to ship return.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to ship return.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -160,7 +160,7 @@ class StockReturnController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Return not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to refund return.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to refund return.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

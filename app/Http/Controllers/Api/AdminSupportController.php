@@ -49,7 +49,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch tickets.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -84,7 +84,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create ticket.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -101,7 +101,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch ticket.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -118,7 +118,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete ticket.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -141,7 +141,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to resolve ticket.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -164,7 +164,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to close ticket.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -202,7 +202,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to add reply.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -225,7 +225,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch tickets.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -259,7 +259,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create ticket.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -301,7 +301,7 @@ class AdminSupportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to add reply.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

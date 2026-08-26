@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Save, Loader2, LifeBuoy, FileText, Building2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -12,13 +12,27 @@ export default function AdminSupportFormPage() {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
   const [showSuccess, setShowSuccess] = useState(false)
+  const [pharmacies, setPharmacies] = useState([])
 
   const [form, setForm] = useState({
     subject: '',
-    pharmacy: '',
+    pharmacy_id: '',
     priority: 'Medium',
     description: '',
   })
+
+  useEffect(() => {
+    fetchPharmacies()
+  }, [])
+
+  const fetchPharmacies = async () => {
+    try {
+      const res = await api.get('/admin/pharmacies')
+      setPharmacies(res.data?.data || res.data || [])
+    } catch {
+      setPharmacies([])
+    }
+  }
 
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -28,7 +42,7 @@ export default function AdminSupportFormPage() {
   const validate = () => {
     const errs = {}
     if (!form.subject.trim()) errs.subject = 'Subject is required'
-    if (!form.pharmacy.trim()) errs.pharmacy = 'Pharmacy is required'
+    if (!form.pharmacy_id) errs.pharmacy_id = 'Pharmacy is required'
     if (!form.priority) errs.priority = 'Priority is required'
     if (!form.description.trim()) errs.description = 'Description is required'
     setErrors(errs)
@@ -108,15 +122,18 @@ export default function AdminSupportFormPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Building2 className="w-4 h-4 text-gray-400" />
                   </div>
-                  <input
-                    type="text"
-                    value={form.pharmacy}
-                    onChange={(e) => handleChange('pharmacy', e.target.value)}
-                    className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.pharmacy ? '!border-red-400' : ''}`}
-                    placeholder="Pharmacy name"
-                  />
+                  <select
+                    value={form.pharmacy_id}
+                    onChange={(e) => handleChange('pharmacy_id', e.target.value)}
+                    className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.pharmacy_id ? '!border-red-400' : ''}`}
+                  >
+                    <option value="">Select a pharmacy</option>
+                    {pharmacies.map((p) => (
+                      <option key={p.id} value={p.id}>{p.pharmacy_name || p.name}</option>
+                    ))}
+                  </select>
                 </div>
-                {errors.pharmacy && <p className="text-xs text-red-500 mt-1">{errors.pharmacy}</p>}
+                {errors.pharmacy_id && <p className="text-xs text-red-500 mt-1">{errors.pharmacy_id}</p>}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">

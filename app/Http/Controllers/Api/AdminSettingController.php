@@ -22,8 +22,8 @@ class AdminSettingController extends Controller
                 'website' => 'https://pharmex.com',
                 'support_email' => 'support@pharmex.com',
                 'address' => '',
-                'currency' => 'NGN',
-                'timezone' => 'Africa/Lagos',
+                'currency' => 'TZS',
+                'timezone' => 'Africa/Dar_es_Salaam',
                 'default_language' => 'en',
             ],
             'notifications' => [
@@ -83,7 +83,7 @@ class AdminSettingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch settings.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -122,7 +122,7 @@ class AdminSettingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update platform settings.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -157,7 +157,7 @@ class AdminSettingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update notification settings.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -189,7 +189,7 @@ class AdminSettingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update retention settings.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

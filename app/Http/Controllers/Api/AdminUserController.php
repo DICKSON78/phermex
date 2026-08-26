@@ -43,7 +43,7 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch users.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -103,7 +103,7 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create user.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -123,7 +123,7 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch user.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -193,7 +193,7 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update user.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -223,7 +223,7 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete user.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -261,7 +261,7 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update user status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -290,7 +290,7 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to toggle user status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

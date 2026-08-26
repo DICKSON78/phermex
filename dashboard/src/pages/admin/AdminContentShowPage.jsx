@@ -9,16 +9,16 @@ import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
 
 const TYPE_STYLES = {
-  Announcement: 'badge badge-blue',
-  Maintenance: 'badge badge-yellow',
-  Update: 'badge badge-green',
-  Alert: 'badge badge-red',
+  banner: 'badge badge-blue',
+  announcement: 'badge badge-yellow',
+  promotion: 'badge badge-green',
+  blog: 'badge badge-red',
 }
 
 const STATUS_STYLES = {
-  Draft: 'badge badge-gray',
-  Published: 'badge badge-green',
-  Archived: 'badge badge-red',
+  draft: 'badge badge-gray',
+  active: 'badge badge-green',
+  archived: 'badge badge-red',
 }
 
 function formatDate(dateStr) {
@@ -63,9 +63,9 @@ export default function AdminContentShowPage() {
       setPost({
         id: Number(id),
         title: 'Sample Content Post',
-        type: 'Announcement',
+        type: 'announcement',
         target: 'All',
-        status: 'Published',
+        status: 'active',
         date: '2026-07-15',
         updatedAt: '2026-07-18',
         author: 'Admin',
@@ -94,11 +94,11 @@ export default function AdminContentShowPage() {
     if (!post) return
     setToggling(true)
     try {
-      const newStatus = post.status === 'Published' ? 'Draft' : 'Published'
+      const newStatus = post.status === 'active' ? 'draft' : 'active'
       await api.patch(`/admin/content/${id}`, { status: newStatus })
       setPost({ ...post, status: newStatus })
     } catch {
-      setPost({ ...post, status: post.status === 'Published' ? 'Draft' : 'Published' })
+      setPost({ ...post, status: post.status === 'active' ? 'draft' : 'active' })
     } finally {
       setToggling(false)
     }
@@ -374,7 +374,7 @@ export default function AdminContentShowPage() {
                 disabled={toggling}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors disabled:opacity-50"
               >
-                {post.status === 'Published' ? (
+                {post.status === 'active' ? (
                   <>
                     <Archive className="w-4 h-4 text-amber-500" />
                     Unpublish

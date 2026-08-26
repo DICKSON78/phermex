@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import api from '../../services/api'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 
 const categoryColors = {
@@ -35,6 +36,7 @@ export default function ExpenseListPage() {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [activeMenu, setActiveMenu] = useState(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [confirmAction, setConfirmAction] = useState(null)
 
   useEffect(() => {
     fetchExpenses()
@@ -80,7 +82,6 @@ export default function ExpenseListPage() {
   ]
 
   const handleDelete = async (expense) => {
-    if (!window.confirm('Delete this expense?')) return
     try {
       await api.delete(`/expenses/${expense.id}`)
     } catch {}
@@ -320,7 +321,7 @@ export default function ExpenseListPage() {
                                 Edit
                               </button>
                               <button
-                                onClick={() => { handleDelete(expense); setActiveMenu(null) }}
+                                onClick={() => { setConfirmAction(() => () => { handleDelete(expense); setActiveMenu(null) }); setActiveMenu(null) }}
                                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -338,6 +339,17 @@ export default function ExpenseListPage() {
           </table>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!confirmAction}
+        title="Delete Expense"
+        message="Are you sure you want to delete this expense? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={() => { confirmAction?.(); setConfirmAction(null) }}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   )
 }

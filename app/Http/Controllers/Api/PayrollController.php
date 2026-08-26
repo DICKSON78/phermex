@@ -42,7 +42,7 @@ class PayrollController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch payroll records.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -104,7 +104,7 @@ class PayrollController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate payroll.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -120,7 +120,7 @@ class PayrollController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch payroll record.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -147,7 +147,7 @@ class PayrollController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to approve payroll.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -178,7 +178,7 @@ class PayrollController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to process payment.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -205,7 +205,7 @@ class PayrollController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to cancel payroll.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -245,7 +245,7 @@ class PayrollController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch summary.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -282,7 +282,7 @@ class PayrollController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch payslip.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

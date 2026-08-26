@@ -43,7 +43,7 @@ class SupplierController extends Controller
 
             return response()->json($suppliers);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch suppliers.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch suppliers.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -70,7 +70,7 @@ class SupplierController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to create supplier.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to create supplier.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -84,7 +84,7 @@ class SupplierController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Supplier not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch supplier.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch supplier.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -115,7 +115,7 @@ class SupplierController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to update supplier.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to update supplier.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -129,7 +129,7 @@ class SupplierController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Supplier not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to delete supplier.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to delete supplier.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -146,7 +146,7 @@ class SupplierController extends Controller
                 'total_purchased' => (clone $query)->sum('total_purchased'),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch stats.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch stats.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -161,7 +161,7 @@ class SupplierController extends Controller
 
             return response()->json(['suppliers' => $suppliers]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch top suppliers.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch top suppliers.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

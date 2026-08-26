@@ -24,7 +24,7 @@ class GoodsReceivedController extends Controller
 
             return response()->json($grns);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch GRNs.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch GRNs.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -61,7 +61,7 @@ class GoodsReceivedController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to create GRN.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to create GRN.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -75,7 +75,7 @@ class GoodsReceivedController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'GRN not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch GRN.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch GRN.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -99,7 +99,7 @@ class GoodsReceivedController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to update quality check.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to update quality check.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

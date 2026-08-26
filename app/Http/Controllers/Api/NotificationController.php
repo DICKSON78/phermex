@@ -28,7 +28,7 @@ class NotificationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch notifications.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -50,7 +50,7 @@ class NotificationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch notification.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -73,7 +73,7 @@ class NotificationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to mark notification as read.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -93,7 +93,7 @@ class NotificationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to mark notifications as read.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -115,7 +115,7 @@ class NotificationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete notification.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -133,7 +133,7 @@ class NotificationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to get unread count.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

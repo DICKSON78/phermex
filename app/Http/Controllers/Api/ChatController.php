@@ -51,7 +51,7 @@ class ChatController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve conversations.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -82,7 +82,7 @@ class ChatController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve messages.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -118,7 +118,7 @@ class ChatController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Pharmacy not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to send message.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to send message.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -136,7 +136,7 @@ class ChatController extends Controller
 
             return response()->json(['message' => 'Messages marked as read.']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -181,7 +181,7 @@ class ChatController extends Controller
                 'data' => $conversations,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -211,7 +211,7 @@ class ChatController extends Controller
                 'data' => $messages,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -247,7 +247,7 @@ class ChatController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'error' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -269,7 +269,7 @@ class ChatController extends Controller
 
             return response()->json(['message' => 'Messages marked as read.']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

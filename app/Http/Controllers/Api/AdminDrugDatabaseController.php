@@ -48,7 +48,7 @@ class AdminDrugDatabaseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch drugs.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -97,7 +97,7 @@ class AdminDrugDatabaseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create drug.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -113,7 +113,7 @@ class AdminDrugDatabaseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch drug.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -164,7 +164,7 @@ class AdminDrugDatabaseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update drug.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -181,7 +181,7 @@ class AdminDrugDatabaseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete drug.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -201,7 +201,7 @@ class AdminDrugDatabaseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to toggle drug status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

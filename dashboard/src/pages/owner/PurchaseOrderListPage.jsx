@@ -67,7 +67,7 @@ export default function PurchaseOrderListPage() {
       toast.success('Purchase order created')
       setShowForm(false)
       fetchOrders()
-    } catch { toast.success('Purchase order created'); setShowForm(false) } finally { setSaving(false) }
+    } catch { toast.error('Failed to create purchase order'); setShowForm(false) } finally { setSaving(false) }
   }
 
   const stats = {
@@ -208,7 +208,7 @@ export default function PurchaseOrderListPage() {
                     <div className="col-span-2"><input type="number" min="1" value={item.quantity_ordered} onChange={(e) => updateItem(i, 'quantity_ordered', e.target.value)} className="w-full px-2 py-2 bg-white border border-gray-200 rounded text-sm outline-none" placeholder="Qty" /></div>
                     <div className="col-span-2"><input type="number" step="0.01" min="0" value={item.unit_cost} onChange={(e) => updateItem(i, 'unit_cost', e.target.value)} className="w-full px-2 py-2 bg-white border border-gray-200 rounded text-sm outline-none" placeholder="Cost" /></div>
                     <div className="col-span-2"><input type="text" value={item.batch_number} onChange={(e) => updateItem(i, 'batch_number', e.target.value)} className="w-full px-2 py-2 bg-white border border-gray-200 rounded text-sm outline-none" placeholder="Batch" /></div>
-                    <div className="col-span-2 flex items-center"><span className="text-sm font-medium text-gray-900 flex-1">TZS ${(item.quantity_ordered * item.unit_cost).toFixed(2)}</span>{form.items.length > 1 && <button type="button" onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600 text-xs ml-1">Remove</button>}</div>
+                    <div className="col-span-2 flex items-center"><span className="text-sm font-medium text-gray-900 flex-1">TZS {(item.quantity_ordered * item.unit_cost).toFixed(2)}</span>{form.items.length > 1 && <button type="button" onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600 text-xs ml-1">Remove</button>}</div>
                   </div>
                 ))}
               </div>
@@ -216,7 +216,7 @@ export default function PurchaseOrderListPage() {
               <div className="grid grid-cols-3 gap-4">
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Tax</label><input type="number" step="0.01" min="0" value={form.tax_amount} onChange={(e) => setForm({...form, tax_amount: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Discount</label><input type="number" step="0.01" min="0" value={form.discount_amount} onChange={(e) => setForm({...form, discount_amount: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Total</label><div className="px-3 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm font-bold text-gray-900">TZS ${(form.items.reduce((s, i) => s + i.quantity_ordered * i.unit_cost, 0) + parseFloat(form.tax_amount || 0) - parseFloat(form.discount_amount || 0)).toFixed(2)}</div></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Total</label><div className="px-3 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm font-bold text-gray-900">TZS {(form.items.reduce((s, i) => s + i.quantity_ordered * i.unit_cost, 0) + parseFloat(form.tax_amount || 0) - parseFloat(form.discount_amount || 0)).toFixed(2)}</div></div>
               </div>
 
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Notes</label><textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={2} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>

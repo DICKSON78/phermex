@@ -35,7 +35,7 @@ class PharmacistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch staff.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -99,7 +99,7 @@ class PharmacistController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to create staff member.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -119,7 +119,7 @@ class PharmacistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch staff member.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -158,7 +158,7 @@ class PharmacistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update staff member.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -182,7 +182,7 @@ class PharmacistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to remove staff member.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -206,7 +206,7 @@ class PharmacistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to toggle staff status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

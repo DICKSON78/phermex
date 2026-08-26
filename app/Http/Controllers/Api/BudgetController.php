@@ -41,7 +41,7 @@ class BudgetController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch budgets.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -95,7 +95,7 @@ class BudgetController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create budget.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -119,7 +119,7 @@ class BudgetController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch budget.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -158,7 +158,7 @@ class BudgetController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate budget summary.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -222,7 +222,7 @@ class BudgetController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate variance report.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

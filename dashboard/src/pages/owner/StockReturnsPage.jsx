@@ -37,11 +37,11 @@ export default function StockReturnsPage() {
     try {
       await api.post('/stock-returns', { ...form, pharmacy_id: pharmacyId, items: form.items.map(i => ({ ...i, quantity: parseInt(i.quantity), unit_cost: parseFloat(i.unit_cost) })) })
       toast.success('Return created'); setShowForm(false); fetchReturns()
-    } catch { toast.success('Return created'); setShowForm(false) } finally { setSaving(false) }
+    } catch { toast.error('Failed to create return'); setShowForm(false) } finally { setSaving(false) }
   }
 
   const handleAction = async (id, action) => {
-    try { await api.post(`/stock-returns/${id}/${action}`); toast.success(`Return ${action}`) } catch { toast.success(`Return ${action}`) }
+    try { await api.post(`/stock-returns/${id}/${action}`); toast.success(`Return ${action}`) } catch { toast.error(`Failed to ${action} return`) }
     fetchReturns()
   }
 

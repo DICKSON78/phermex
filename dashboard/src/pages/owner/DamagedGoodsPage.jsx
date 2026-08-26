@@ -34,14 +34,18 @@ export default function DamagedGoodsPage() {
     try {
       await api.post('/damaged-goods', { ...form, pharmacy_id: pharmacyId, quantity: parseInt(form.quantity), unit_cost: parseFloat(form.unit_cost) })
       toast.success('Damage recorded'); setShowForm(false); fetchRecords()
-    } catch { toast.success('Damage recorded'); setShowForm(false) } finally { setSaving(false) }
+    } catch { toast.error('Failed to record damage'); setShowForm(false) } finally { setSaving(false) }
   }
 
   const handleProcess = async () => {
-    try { await api.post(`/damaged-goods/${showProcess.id}/process`, { disposal_method: showProcess.disposal_method || 'documented_disposal' }) } catch {}
-    setRecords(prev => prev.map(r => r.id === showProcess.id ? { ...r, disposal_method: showProcess.disposal_method } : r))
-    setShowProcess(null)
-    toast.success('Disposal recorded')
+    try {
+      await api.post(`/damaged-goods/${showProcess.id}/process`, { disposal_method: showProcess.disposal_method || 'documented_disposal' })
+      setRecords(prev => prev.map(r => r.id === showProcess.id ? { ...r, disposal_method: showProcess.disposal_method } : r))
+      setShowProcess(null)
+      toast.success('Disposal recorded')
+    } catch {
+      toast.error('Failed to record disposal')
+    }
   }
 
   const totalLoss = records.reduce((s, r) => s + parseFloat(r.total_loss || 0), 0)

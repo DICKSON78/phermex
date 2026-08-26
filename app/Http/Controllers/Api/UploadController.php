@@ -39,7 +39,7 @@ class UploadController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Upload failed.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

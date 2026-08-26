@@ -46,7 +46,7 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch employees.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -95,7 +95,7 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create employee.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -119,7 +119,7 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch employee.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -169,7 +169,7 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update employee.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -186,7 +186,7 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete employee.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -225,7 +225,7 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch stats.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -246,7 +246,7 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to toggle status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

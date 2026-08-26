@@ -42,15 +42,15 @@ export default function AdminSettingsPage() {
       setSettings({
         platform: remote.platform || { name: 'Pharmex', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
         plans: remote.plans || [],
-        notifications: remote.notifications || { email_enabled: true, sms_enabled: false },
-        data_retention: remote.retention || remote.data_retention || { period: '90' },
+        notifications: remote.notifications || { email_notifications: true, sms_notifications: false },
+        data_retention: remote.retention || remote.data_retention || { audit_log_retention_days: 365, order_history_retention_days: 730, notification_retention_days: 90 },
       })
     } catch {
       setSettings({
         platform: { name: 'Pharmex', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
         plans: [],
-        notifications: { email_enabled: true, sms_enabled: false },
-        data_retention: { period: '90' },
+        notifications: { email_notifications: true, sms_notifications: false },
+        data_retention: { audit_log_retention_days: 365, order_history_retention_days: 730, notification_retention_days: 90 },
       })
     } finally {
       setLoading(false)
@@ -258,7 +258,7 @@ export default function AdminSettingsPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Price (USD)</span>
+                      <span>Price (TZS)</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -334,17 +334,17 @@ export default function AdminSettingsPage() {
                     ...prev,
                     notifications: {
                       ...prev.notifications,
-                      email_enabled: !prev.notifications.email_enabled,
+                      email_notifications: !prev.notifications.email_notifications,
                     },
                   }))
                 }
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  settings.notifications.email_enabled ? 'bg-[#0FD452]' : 'bg-gray-300'
+                  settings.notifications.email_notifications ? 'bg-[#0FD452]' : 'bg-gray-300'
                 }`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
-                    settings.notifications.email_enabled ? 'translate-x-6' : 'translate-x-1'
+                    settings.notifications.email_notifications ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>
@@ -364,17 +364,17 @@ export default function AdminSettingsPage() {
                     ...prev,
                     notifications: {
                       ...prev.notifications,
-                      sms_enabled: !prev.notifications.sms_enabled,
+                      sms_notifications: !prev.notifications.sms_notifications,
                     },
                   }))
                 }
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  settings.notifications.sms_enabled ? 'bg-[#0FD452]' : 'bg-gray-300'
+                  settings.notifications.sms_notifications ? 'bg-[#0FD452]' : 'bg-gray-300'
                 }`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
-                    settings.notifications.sms_enabled ? 'translate-x-6' : 'translate-x-1'
+                    settings.notifications.sms_notifications ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>
@@ -413,29 +413,64 @@ export default function AdminSettingsPage() {
 
           <div className="max-w-sm">
             <label className="mb-1.5 block text-sm font-medium text-[#000F14]">
-              Retention Period
+              Audit Log Retention (days)
             </label>
-            <select
-              value={settings.data_retention.period}
+            <input
+              type="number"
+              min="30"
+              max="3650"
+              value={settings.data_retention.audit_log_retention_days || 365}
               onChange={(e) =>
                 setSettings((prev) => ({
                   ...prev,
-                  data_retention: { ...prev.data_retention, period: e.target.value },
+                  data_retention: { ...prev.data_retention, audit_log_retention_days: Number(e.target.value) },
                 }))
               }
               className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
-            >
-              <option value="6">6 months</option>
-              <option value="12">12 months</option>
-              <option value="24">24 months</option>
-              <option value="36">36 months</option>
-              <option value="60">60 months</option>
-              <option value="0">Forever</option>
-            </select>
-            <p className="mt-1 text-xs text-gray-500">
-              Transaction records, audit logs, and analytics data will be purged after this period.
-            </p>
+            />
           </div>
+
+          <div className="max-w-sm mt-4">
+            <label className="mb-1.5 block text-sm font-medium text-[#000F14]">
+              Order History Retention (days)
+            </label>
+            <input
+              type="number"
+              min="30"
+              max="3650"
+              value={settings.data_retention.order_history_retention_days || 730}
+              onChange={(e) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  data_retention: { ...prev.data_retention, order_history_retention_days: Number(e.target.value) },
+                }))
+              }
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
+            />
+          </div>
+
+          <div className="max-w-sm mt-4">
+            <label className="mb-1.5 block text-sm font-medium text-[#000F14]">
+              Notification Retention (days)
+            </label>
+            <input
+              type="number"
+              min="7"
+              max="365"
+              value={settings.data_retention.notification_retention_days || 90}
+              onChange={(e) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  data_retention: { ...prev.data_retention, notification_retention_days: Number(e.target.value) },
+                }))
+              }
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
+            />
+          </div>
+
+          <p className="mt-2 text-xs text-gray-500">
+            Transaction records, audit logs, and analytics data will be purged after these periods.
+          </p>
 
           <div className="mt-6 flex justify-end">
             <button

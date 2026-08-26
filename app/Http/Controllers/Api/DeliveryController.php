@@ -27,7 +27,7 @@ class DeliveryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch drivers.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -62,7 +62,7 @@ class DeliveryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch deliveries.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -104,7 +104,7 @@ class DeliveryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create delivery.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -122,7 +122,7 @@ class DeliveryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch delivery.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -156,7 +156,7 @@ class DeliveryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update delivery.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -200,7 +200,7 @@ class DeliveryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update delivery status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -233,7 +233,7 @@ class DeliveryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to assign driver.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

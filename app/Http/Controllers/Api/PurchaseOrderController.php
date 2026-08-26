@@ -37,7 +37,7 @@ class PurchaseOrderController extends Controller
 
             return response()->json($orders);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch purchase orders.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch purchase orders.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -109,7 +109,7 @@ class PurchaseOrderController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to create purchase order.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to create purchase order.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -123,7 +123,7 @@ class PurchaseOrderController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Purchase order not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch purchase order.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch purchase order.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -141,7 +141,7 @@ class PurchaseOrderController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Purchase order not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to approve order.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to approve order.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -203,7 +203,7 @@ class PurchaseOrderController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to receive goods.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to receive goods.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -220,7 +220,7 @@ class PurchaseOrderController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Purchase order not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to cancel order.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to cancel order.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -239,7 +239,7 @@ class PurchaseOrderController extends Controller
                 'received_value' => (clone $query)->where('status', 'received')->sum('total'),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch stats.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch stats.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

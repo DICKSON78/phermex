@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Save, Loader2, DollarSign, Building2, Calendar, FileText } from 'lucide-react'
+import toast from 'react-hot-toast'
 import api from '../../services/api'
 import Modal from '../../components/Modal'
 
-const INITIAL_FORM = { pharmacy: '', amount: '', dueDate: '', notes: '' }
+const INITIAL_FORM = { pharmacy_id: '', amount: '', dueDate: '', notes: '' }
 
 export default function AdminRevenueFormPage() {
   const { id } = useParams()
@@ -16,17 +17,28 @@ export default function AdminRevenueFormPage() {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [pharmacies, setPharmacies] = useState([])
 
   useEffect(() => {
+    fetchPharmacies()
     if (isEdit) fetchInvoice()
   }, [id])
+
+  const fetchPharmacies = async () => {
+    try {
+      const res = await api.get('/admin/pharmacies')
+      setPharmacies(res.data?.data || res.data || [])
+    } catch {
+      setPharmacies([])
+    }
+  }
 
   const fetchInvoice = async () => {
     try {
       const res = await api.get(`/admin/revenue/${id}`)
       const data = res.data.data || res.data
       setForm({
-        pharmacy: data.pharmacy || '',
+        pharmacy_id: data.pharmacy_id || '',
         amount: data.amount?.toString() || '',
         dueDate: data.dueDate || '',
         notes: data.notes || '',
@@ -40,7 +52,7 @@ export default function AdminRevenueFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.pharmacy.trim()) errs.pharmacy = 'Pharmacy name is required'
+    if (!form.pharmacy_id) errs.pharmacy_id = 'Pharmacy is required'
     if (!form.amount || Number(form.amount) <= 0) errs.amount = 'Valid amount is required'
     if (!form.dueDate) errs.dueDate = 'Due date is required'
     setErrors(errs)
@@ -63,8 +75,8 @@ export default function AdminRevenueFormPage() {
         await api.post('/admin/revenue', { ...form, amount: Number(form.amount) })
       }
       setShowSuccess(true)
-    } catch {
-      setShowSuccess(true)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -118,15 +130,18 @@ export default function AdminRevenueFormPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Building2 className="w-4 h-4 text-gray-400" />
                   </div>
-                  <input
-                    type="text"
-                    value={form.pharmacy}
-                    onChange={(e) => handleChange('pharmacy', e.target.value)}
-                    className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.pharmacy ? '!border-red-400' : ''}`}
-                    placeholder="Enter pharmacy name"
-                  />
+                  <select
+                    value={form.pharmacy_id}
+                    onChange={(e) => handleChange('pharmacy_id', e.target.value)}
+                    className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.pharmacy_id ? '!border-red-400' : ''}`}
+                  >
+                    <option value="">Select a pharmacy</option>
+                    {pharmacies.map((p) => (
+                      <option key={p.id} value={p.id}>{p.pharmacy_name || p.name}</option>
+                    ))}
+                  </select>
                 </div>
-                {errors.pharmacy && <p className="text-xs text-red-500 mt-1">{errors.pharmacy}</p>}
+                {errors.pharmacy_id && <p className="text-xs text-red-500 mt-1">{errors.pharmacy_id}</p>}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">

@@ -28,7 +28,7 @@ class DrugCategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch drug categories.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -56,7 +56,7 @@ class DrugCategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create category.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -74,7 +74,7 @@ class DrugCategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch category.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -105,7 +105,7 @@ class DrugCategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update category.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -131,7 +131,7 @@ class DrugCategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete category.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

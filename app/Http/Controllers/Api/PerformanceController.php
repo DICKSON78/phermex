@@ -36,7 +36,7 @@ class PerformanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch reviews.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -72,7 +72,7 @@ class PerformanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create review.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -88,7 +88,7 @@ class PerformanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch review.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -122,7 +122,7 @@ class PerformanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update review.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -149,7 +149,7 @@ class PerformanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to submit review.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -176,7 +176,7 @@ class PerformanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to acknowledge review.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -220,7 +220,7 @@ class PerformanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch summary.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

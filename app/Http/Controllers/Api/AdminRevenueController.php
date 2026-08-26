@@ -144,7 +144,7 @@ class AdminRevenueController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch revenue records.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -202,7 +202,7 @@ class AdminRevenueController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create revenue record.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -218,7 +218,7 @@ class AdminRevenueController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch revenue record.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -235,7 +235,7 @@ class AdminRevenueController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete revenue record.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -307,7 +307,7 @@ class AdminRevenueController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update revenue record.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -334,7 +334,7 @@ class AdminRevenueController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to send reminder.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Star, Mail, Phone, MapPin, Building, CreditCard, Package, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Star, Mail, Phone, MapPin, Building, CreditCard, Package, TrendingUp, Users } from 'lucide-react'
 import api from '../../services/api'
 
 export default function SupplierDetailPage() {
@@ -100,8 +100,8 @@ export default function SupplierDetailPage() {
             <h2 className="text-lg font-semibold text-dark mb-4">Purchase Stats</h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span className="text-sm text-gray-600">Total Orders<span className="text-lg font-bold text-dark">{s.total_orders}</span></span></div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span className="text-sm text-gray-600">Total Purchased<span className="text-lg font-bold text-dark">${parseFloat(s.total_purchased || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></span></div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span className="text-sm text-gray-600">Avg Order Value<span className="text-lg font-bold text-dark">${s.total_orders > 0 ? (parseFloat(s.total_purchased || 0) / s.total_orders).toFixed(2) : '0.00'}</span></span></div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span className="text-sm text-gray-600">Total Purchased<span className="text-lg font-bold text-dark">TZS {parseFloat(s.total_purchased || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></span></div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><span className="text-sm text-gray-600">Avg Order Value<span className="text-lg font-bold text-dark">TZS {s.total_orders > 0 ? (parseFloat(s.total_purchased || 0) / s.total_orders).toFixed(2) : '0.00'}</span></span></div>
             </div>
           </div>
         </div>

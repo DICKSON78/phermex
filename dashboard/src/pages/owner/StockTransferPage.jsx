@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toArray } from '../../utils/safeData';
-import { Plus, ArrowRightLeft, CheckCircle, Truck as TruckIcon, Package, XCircle, Hash, CalendarDays } from 'lucide-react'
+import { Plus, ArrowRightLeft, CheckCircle, Truck, Package, XCircle, Hash, CalendarDays } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
@@ -33,11 +33,11 @@ export default function StockTransferPage() {
     try {
       await api.post('/stock-transfers', { ...form, pharmacy_id: pharmacyId, items: form.items.map(i => ({ ...i, quantity_sent: parseInt(i.quantity_sent) })) })
       toast.success('Transfer created'); setShowForm(false); fetchTransfers()
-    } catch { toast.success('Transfer created'); setShowForm(false) } finally { setSaving(false) }
+    } catch { toast.error('Failed to create transfer'); setShowForm(false) } finally { setSaving(false) }
   }
 
   const handleAction = async (id, action) => {
-    try { await api.post(`/stock-transfers/${id}/${action}`); toast.success(`Transfer ${action}ed`) } catch { toast.success(`Transfer ${action}ed`) }
+    try { await api.post(`/stock-transfers/${id}/${action}`); toast.success(`Transfer ${action}ed`) } catch { toast.error(`Failed to ${action} transfer`) }
     fetchTransfers()
   }
 

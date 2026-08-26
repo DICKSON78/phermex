@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, BadgeCheck, Clock, AlertTriangle, XCircle, Calendar, Upload, FileText } from 'lucide-react'
+import { Plus, BadgeCheck, Clock, AlertTriangle, XCircle, Calendar, Upload, FileText, Shield } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
@@ -32,7 +32,7 @@ export default function LicenseManagementPage() {
     try {
       await api.post('/licenses', { ...form, pharmacy_id: pharmacyId })
       toast.success('License added'); setShowForm(false); fetchLicenses()
-    } catch { toast.success('License added'); setShowForm(false) } finally { setSaving(false) }
+    } catch { toast.error('Failed to save'); setShowForm(false) } finally { setSaving(false) }
   }
 
   const handleRenew = async () => {
@@ -40,7 +40,7 @@ export default function LicenseManagementPage() {
     try {
       await api.post(`/licenses/${showRenew.id}/renew`, renewForm)
       toast.success('License renewed'); setShowRenew(null); fetchLicenses()
-    } catch { toast.success('License renewed'); setShowRenew(null) } finally { setSaving(false) }
+    } catch { toast.error('Failed to save'); setShowRenew(null) } finally { setSaving(false) }
   }
 
   const getDaysUntilExpiry = (date) => {

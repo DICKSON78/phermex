@@ -165,7 +165,7 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch admin dashboard.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -231,7 +231,7 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch pharmacies.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -317,7 +317,7 @@ class AdminController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to create pharmacy.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -426,7 +426,7 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch pharmacy details.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -476,7 +476,7 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch users.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -517,7 +517,7 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update pharmacy status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -547,7 +547,7 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete pharmacy.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -578,7 +578,7 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to toggle user status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -610,7 +610,7 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch audit logs.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -630,7 +630,7 @@ class AdminController extends Controller
                 'pharmacy' => $pharmacy->fresh(),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to approve pharmacy.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to approve pharmacy.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -653,7 +653,7 @@ class AdminController extends Controller
                 'pharmacy' => $pharmacy->fresh(),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to reject pharmacy.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to reject pharmacy.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -677,7 +677,7 @@ class AdminController extends Controller
                 'pharmacy' => $pharmacy->fresh(),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to confirm payment.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to confirm payment.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -694,7 +694,7 @@ class AdminController extends Controller
 
             return response()->json($pharmacies);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch pharmacies.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch pharmacies.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

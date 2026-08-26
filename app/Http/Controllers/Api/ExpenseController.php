@@ -69,7 +69,7 @@ class ExpenseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch expenses.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -102,7 +102,7 @@ class ExpenseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to record expense.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -120,7 +120,7 @@ class ExpenseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch expense.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -154,7 +154,7 @@ class ExpenseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update expense.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -173,7 +173,7 @@ class ExpenseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete expense.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -234,7 +234,7 @@ class ExpenseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate monthly summary.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

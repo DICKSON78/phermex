@@ -3,6 +3,7 @@ import { toArray } from '../../utils/safeData';
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Save, X, Loader2, DollarSign, FileText, CreditCard, StickyNote } from 'lucide-react'
 import api from '../../services/api'
+import toast from 'react-hot-toast'
 
 const categories = ['Rent', 'Utilities', 'Supplies', 'Salaries', 'Transport', 'Other']
 
@@ -12,7 +13,7 @@ export default function ExpenseFormPage() {
   const navigate = useNavigate()
   const isEdit = Boolean(id)
 
-  const [form, setForm] = useState({ category: '', description: '', amount: '', date: new Date().toISOString().split('T')[0], receipt_number: '' })
+  const [form, setForm] = useState({ category: '', description: '', amount: '', date: new Date().toISOString().split('T')[0], receipt_number: '', notes: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
@@ -31,9 +32,10 @@ export default function ExpenseFormPage() {
         amount: data.amount || '',
         date: data.date || '',
         receipt_number: data.receipt_number || '',
+        notes: data.notes || '',
       })
     } catch {
-      setForm({ category: '', description: '', amount: '', date: new Date().toISOString().split('T')[0], receipt_number: '' })
+      setForm({ category: '', description: '', amount: '', date: new Date().toISOString().split('T')[0], receipt_number: '', notes: '' })
     } finally {
       setFetching(false)
     }
@@ -66,6 +68,7 @@ export default function ExpenseFormPage() {
       }
       navigate('/dashboard/expenses')
     } catch {
+      toast.error('Failed to save expense')
       navigate('/dashboard/expenses')
     } finally {
       setLoading(false)
@@ -228,6 +231,8 @@ export default function ExpenseFormPage() {
                     <StickyNote className="w-4 h-4 text-gray-400" />
                   </div>
                   <textarea
+                    value={form.notes || ''}
+                    onChange={(e) => handleChange('notes', e.target.value)}
                     placeholder="Additional notes about this expense..."
                     rows={3}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm resize-none"

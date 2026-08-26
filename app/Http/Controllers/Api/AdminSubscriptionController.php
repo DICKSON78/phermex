@@ -78,7 +78,7 @@ class AdminSubscriptionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch subscriptions.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -145,7 +145,7 @@ class AdminSubscriptionController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to create subscription.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -161,7 +161,7 @@ class AdminSubscriptionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch subscription.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -231,7 +231,7 @@ class AdminSubscriptionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update subscription.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -256,7 +256,7 @@ class AdminSubscriptionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete subscription.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -315,7 +315,7 @@ class AdminSubscriptionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to perform subscription action.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

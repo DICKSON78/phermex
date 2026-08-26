@@ -36,7 +36,7 @@ class AttendanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch attendance records.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -79,7 +79,7 @@ class AttendanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to record attendance.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -131,7 +131,7 @@ class AttendanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to clock in.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -177,7 +177,7 @@ class AttendanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to clock out.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -212,7 +212,7 @@ class AttendanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update attendance.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -229,7 +229,7 @@ class AttendanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete attendance.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -276,7 +276,7 @@ class AttendanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate report.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

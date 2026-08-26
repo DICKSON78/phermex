@@ -37,7 +37,7 @@ class LicenseController extends Controller
 
             return response()->json(['licenses' => $licenses]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch licenses.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch licenses.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -64,7 +64,7 @@ class LicenseController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to add license.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to add license.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -91,7 +91,7 @@ class LicenseController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to update license.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to update license.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -114,7 +114,7 @@ class LicenseController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to renew license.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to renew license.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -132,7 +132,7 @@ class LicenseController extends Controller
                 'count' => $licenses->count(),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch alerts.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch alerts.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

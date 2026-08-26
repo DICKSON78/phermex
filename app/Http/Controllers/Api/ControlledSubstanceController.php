@@ -23,7 +23,7 @@ class ControlledSubstanceController extends Controller
 
             return response()->json($substances);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch records.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch records.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -57,7 +57,7 @@ class ControlledSubstanceController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to register.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to register.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -95,7 +95,7 @@ class ControlledSubstanceController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to issue substance.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to issue substance.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -109,7 +109,7 @@ class ControlledSubstanceController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Record not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch record.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch record.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -145,7 +145,7 @@ class ControlledSubstanceController extends Controller
 
             return response()->json(['register' => $register]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch register.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch register.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -163,7 +163,7 @@ class ControlledSubstanceController extends Controller
 
             return response()->json(['audit_trail' => $records]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch audit trail.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch audit trail.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -193,7 +193,7 @@ class ControlledSubstanceController extends Controller
                 'by_schedule' => $bySchedule,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch balance report.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch balance report.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

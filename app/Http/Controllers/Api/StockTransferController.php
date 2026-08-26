@@ -25,7 +25,7 @@ class StockTransferController extends Controller
 
             return response()->json($transfers);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch transfers.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch transfers.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -91,7 +91,7 @@ class StockTransferController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to create transfer.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to create transfer.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -105,7 +105,7 @@ class StockTransferController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Transfer not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch transfer.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch transfer.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -122,7 +122,7 @@ class StockTransferController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Transfer not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to approve transfer.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to approve transfer.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -148,7 +148,7 @@ class StockTransferController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Transfer not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to ship transfer.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to ship transfer.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -184,7 +184,7 @@ class StockTransferController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to receive transfer.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to receive transfer.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -201,7 +201,7 @@ class StockTransferController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Transfer not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to cancel transfer.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to cancel transfer.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

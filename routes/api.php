@@ -59,8 +59,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/forgot-password', [PasswordResetController::class, 'sendCode']);
-Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+Route::post('/forgot-password', [PasswordResetController::class, 'sendCode'])->middleware('throttle:5,1');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:5,1');
 Route::post('/demo-requests', [DemoRequestController::class, 'store']);
 
 Route::post('/contact', function (\Illuminate\Http\Request $request) {
@@ -100,7 +100,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/user/password', [AuthController::class, 'changePassword']);
 
-    Route::post('/email/verify/send', [App\Http\Controllers\Api\VerifyEmailController::class, 'send']);
+        Route::post('/email/verify/send', [App\Http\Controllers\Api\VerifyEmailController::class, 'send'])->middleware('throttle:3,1');
     Route::post('/email/verify', [App\Http\Controllers\Api\VerifyEmailController::class, 'verify']);
 
     Route::prefix('customer-app')->group(function () {
@@ -132,7 +132,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/support/{id}/reply', [CustomerAppController::class, 'replySupportTicket']);
     });
 
-    Route::middleware([EnsureSubscriptionActive::class, PharmacyScopeMiddleware::class, AutoScopePharmacy::class])->group(function () {
+    Route::middleware([EnsureSubscriptionActive::class, AutoScopePharmacy::class, PharmacyScopeMiddleware::class])->group(function () {
         Route::get('/pharmacies', [PharmacyController::class, 'index']);
         Route::post('/pharmacies', [PharmacyController::class, 'store']);
         Route::post('/pharmacies/{id}/switch', [PharmacyController::class, 'switchPharmacy']);
@@ -160,14 +160,14 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
         Route::get('/drug-movements', [DrugMovementController::class, 'index']);
-        Route::post('/drug-movements', [DrugMovementController::class, 'store']);
+        Route::post('/drug-movements', [DrugMovementController::class, 'store'])->middleware('role:owner,pharmacist');
         Route::get('/drug-movements/{id}', [DrugMovementController::class, 'show']);
         Route::get('/drug-movements/monthly-summary', [DrugMovementController::class, 'monthlySummary']);
 
-        Route::get('/orders/daily-report/{pharmacyId}', [OrderController::class, 'dailyReport']);
+        Route::get('/orders/daily-report/{pharmacyId}', [OrderController::class, 'dailyReport'])->middleware('role:owner,pharmacist');
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
-        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->middleware('role:owner,pharmacist');
         Route::get('/orders/{id}', [OrderController::class, 'show']);
 
         Route::get('/prescriptions/search-by-doctor', [PrescriptionController::class, 'searchByDoctor']);
@@ -183,6 +183,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/customers/{id}/prescriptions', [CustomerController::class, 'prescriptions']);
         Route::get('/customers/{id}', [CustomerController::class, 'show']);
         Route::put('/customers/{id}', [CustomerController::class, 'update']);
+        Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
 
         Route::get('/employees/stats', [EmployeeController::class, 'getStats']);
         Route::patch('/employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);
@@ -374,14 +375,16 @@ Route::middleware('auth:sanctum')->group(function () {
             ->middleware(RoleMiddleware::class . ':owner');
     });
 
-    Route::get('/dashboard/owner', [DashboardController::class, 'ownerDashboard'])
-        ->middleware(RoleMiddleware::class . ':owner');
-    Route::get('/dashboard/admin', [DashboardController::class, 'adminDashboard'])
-        ->middleware(RoleMiddleware::class . ':admin');
-    Route::get('/dashboard/pharmacist', [DashboardController::class, 'pharmacistDashboard'])
-        ->middleware(RoleMiddleware::class . ':pharmacist');
-    Route::get('/dashboard/staff', [DashboardController::class, 'staffDashboard'])
-        ->middleware(RoleMiddleware::class . ':pharmacist,cashier,delivery');
+    Route::middleware('subscription.active')->group(function () {
+        Route::get('/dashboard/owner', [DashboardController::class, 'ownerDashboard'])
+            ->middleware(RoleMiddleware::class . ':owner');
+        Route::get('/dashboard/admin', [DashboardController::class, 'adminDashboard'])
+            ->middleware(RoleMiddleware::class . ':admin');
+        Route::get('/dashboard/pharmacist', [DashboardController::class, 'pharmacistDashboard'])
+            ->middleware(RoleMiddleware::class . ':pharmacist');
+        Route::get('/dashboard/staff', [DashboardController::class, 'staffDashboard'])
+            ->middleware(RoleMiddleware::class . ':pharmacist,cashier,delivery');
+    });
 
     Route::middleware(RoleMiddleware::class . ':admin')->prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard']);
@@ -389,7 +392,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pharmacies', [AdminController::class, 'storePharmacy']);
         Route::get('/pharmacies/{id}', [AdminController::class, 'pharmacyDetail']);
         Route::put('/pharmacies/{id}', [PharmacyController::class, 'update']);
-        Route::patch('/pharmacies/{id}', [AdminController::class, 'updatePharmacyStatus']);
         Route::delete('/pharmacies/{id}', [AdminController::class, 'destroyPharmacy']);
         Route::patch('/pharmacies/{id}/status', [AdminController::class, 'updatePharmacyStatus']);
         Route::get('/users', [AdminController::class, 'listUsers']);
@@ -401,14 +403,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/pending-pharmacies', [AdminController::class, 'listPendingPharmacies']);
 
         // Admin User Management
-        Route::get('/users/all', [AdminUserController::class, 'index']);
+        Route::get('/users/list', [AdminUserController::class, 'index']);
         Route::get('/users/{id}', [AdminUserController::class, 'show']);
         Route::post('/users', [AdminUserController::class, 'store']);
         Route::get('/users/{id}/stats', [AdminUserController::class, 'show']);
         Route::put('/users/{id}', [AdminUserController::class, 'update']);
         Route::patch('/users/{id}', [AdminUserController::class, 'updateStatus']);
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
-        Route::patch('/users/{id}/toggle-status', [AdminUserController::class, 'toggleActive']);
 
         // Admin Settings
         Route::get('/settings', [AdminSettingController::class, 'index']);
@@ -495,5 +496,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/plans', [SubscriptionController::class, 'plans']);
         Route::get('/status', [SubscriptionController::class, 'status']);
         Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
+        Route::post('/confirm-payment', [SubscriptionController::class, 'confirmPayment']);
     });
 });

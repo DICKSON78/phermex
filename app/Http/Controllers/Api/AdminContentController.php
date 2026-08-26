@@ -36,7 +36,7 @@ class AdminContentController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch content.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -72,7 +72,7 @@ class AdminContentController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create content.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -88,7 +88,7 @@ class AdminContentController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch content.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -125,7 +125,7 @@ class AdminContentController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update content.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -142,7 +142,7 @@ class AdminContentController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete content.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -163,7 +163,7 @@ class AdminContentController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to toggle content status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -194,7 +194,7 @@ class AdminContentController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to duplicate content.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

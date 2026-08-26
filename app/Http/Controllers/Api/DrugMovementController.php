@@ -42,7 +42,7 @@ class DrugMovementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch stock movements.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -99,7 +99,7 @@ class DrugMovementController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to record stock movement.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -117,7 +117,7 @@ class DrugMovementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch movement.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -155,7 +155,7 @@ class DrugMovementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate monthly summary.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

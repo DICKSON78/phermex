@@ -18,6 +18,7 @@ class ReportController extends Controller
     public function salesReport(Request $request): JsonResponse
     {
         try {
+            $request->validate(['pharmacy_id' => 'required|exists:pharmacies,id']);
             $pharmacyId = $request->input('pharmacy_id');
             $dateFrom = $request->input('date_from', now()->subDays(30)->startOfDay());
             $dateTo = $request->input('date_to', now()->endOfDay());
@@ -72,7 +73,7 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate sales report.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -80,6 +81,7 @@ class ReportController extends Controller
     public function inventoryReport(Request $request): JsonResponse
     {
         try {
+            $request->validate(['pharmacy_id' => 'required|exists:pharmacies,id']);
             $pharmacyId = $request->input('pharmacy_id');
 
             $drugs = Drug::where('pharmacy_id', $pharmacyId)->get();
@@ -130,7 +132,7 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate inventory report.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -138,6 +140,7 @@ class ReportController extends Controller
     public function financialReport(Request $request): JsonResponse
     {
         try {
+            $request->validate(['pharmacy_id' => 'required|exists:pharmacies,id']);
             $pharmacyId = $request->input('pharmacy_id');
             $dateFrom = $request->input('date_from', now()->subDays(30)->startOfDay());
             $dateTo = $request->input('date_to', now()->endOfDay());
@@ -198,7 +201,7 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate financial report.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -206,6 +209,7 @@ class ReportController extends Controller
     public function customerReport(Request $request): JsonResponse
     {
         try {
+            $request->validate(['pharmacy_id' => 'required|exists:pharmacies,id']);
             $pharmacyId = $request->input('pharmacy_id');
             $dateFrom = $request->input('date_from');
             $dateTo = $request->input('date_to');
@@ -266,7 +270,7 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate customer report.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

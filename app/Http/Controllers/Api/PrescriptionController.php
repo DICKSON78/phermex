@@ -32,7 +32,7 @@ class PrescriptionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch prescriptions.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -98,7 +98,7 @@ class PrescriptionController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to create prescription.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -117,7 +117,7 @@ class PrescriptionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch prescription.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -221,7 +221,7 @@ class PrescriptionController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to dispense prescription.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -244,7 +244,7 @@ class PrescriptionController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Prescription not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to cancel prescription.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to cancel prescription.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -271,7 +271,7 @@ class PrescriptionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to search prescriptions.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

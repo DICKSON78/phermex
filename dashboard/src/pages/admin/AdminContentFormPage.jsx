@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Save, FileText, Loader2, Tag, Globe, Eye } from 'lucide-react'
+import toast from 'react-hot-toast'
 import api from '../../services/api'
 import Modal from '../../components/Modal'
 
-const TYPES = ['Announcement', 'Maintenance', 'Update', 'Alert']
+const TYPES = ['banner', 'announcement', 'promotion', 'blog']
 const TARGETS = ['All', 'Pharmacists', 'Owners', 'Admins']
-const STATUSES = ['Draft', 'Published', 'Archived']
+const STATUSES = ['draft', 'active', 'archived']
 
-const EMPTY_FORM = { title: '', type: 'Announcement', target: 'All', content: '', status: 'Draft' }
+const EMPTY_FORM = { title: '', type: 'announcement', target: 'All', content: '', status: 'draft' }
 
 export default function AdminContentFormPage() {
   const navigate = useNavigate()
@@ -29,10 +30,10 @@ export default function AdminContentFormPage() {
       const post = response.data.data || response.data
       setForm({
         title: post.title || '',
-        type: post.type || 'Announcement',
+        type: post.type || 'announcement',
         target: post.target || 'All',
         content: post.content || '',
-        status: post.status || 'Draft',
+        status: post.status || 'draft',
       })
     } catch {
       // Failed to fetch post data — leave form with empty values
@@ -70,8 +71,8 @@ export default function AdminContentFormPage() {
         await api.post('/admin/content', form)
       }
       setShowSuccess(true)
-    } catch {
-      setShowSuccess(true)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save. Please try again.')
     } finally {
       setLoading(false)
     }

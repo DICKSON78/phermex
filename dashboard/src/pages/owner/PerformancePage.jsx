@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart as RechartsBar,
+  Cell,
 } from 'recharts'
 import toast from 'react-hot-toast'
 import { performance, employees } from '../../services/api'
@@ -236,7 +236,7 @@ export default function PerformancePage() {
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Rating Distribution</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <RechartsBar data={ratingDist} layout="vertical" margin={{ left: 10 }}>
+                <BarChart data={ratingDist} layout="vertical" margin={{ left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
                   <XAxis type="number" tick={{ fill: '#6B7280', fontSize: 12 }} />
                   <YAxis type="category" dataKey="name" tick={{ fill: '#6B7280', fontSize: 12 }} width={70} />
@@ -246,7 +246,7 @@ export default function PerformancePage() {
                       <Cell key={index} fill={entry.fill} />
                     ))}
                   </Bar>
-                </RechartsBar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -255,13 +255,13 @@ export default function PerformancePage() {
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Department Comparison</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <RechartsBar data={deptRatings} margin={{ left: 0 }}>
+                <BarChart data={deptRatings} margin={{ left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="department" tick={{ fill: '#6B7280', fontSize: 11 }} />
                   <YAxis domain={[0, 5]} tick={{ fill: '#6B7280', fontSize: 12 }} />
                   <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', color: '#111827' }} />
                   <Bar dataKey="rating" fill="#0FD452" radius={[4, 4, 0, 0]} />
-                </RechartsBar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>

@@ -29,7 +29,7 @@ import api from '../../services/api'
 
 const REPORT_LINKS = [
   { label: 'Revenue Report', desc: 'Detailed revenue breakdown', to: '/admin/revenue', bg: 'bg-primary-light', color: 'text-primary', icon: DollarSign },
-  { label: 'Order Analytics', desc: 'Orders and transactions', to: '/admin/orders', bg: 'bg-blue-100', color: 'text-blue-600', icon: ShoppingCart },
+  { label: 'Order Analytics', desc: 'Orders and transactions', to: '/dashboard/orders', bg: 'bg-blue-100', color: 'text-blue-600', icon: ShoppingCart },
   { label: 'User Analytics', desc: 'User engagement metrics', to: '/admin/users', bg: 'bg-purple-100', color: 'text-purple-600', icon: Users },
   { label: 'Pharmacy Analytics', desc: 'Pharmacy performance data', to: '/admin/pharmacies', bg: 'bg-amber-100', color: 'text-amber-600', icon: Building2 },
 ]

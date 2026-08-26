@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Phone, AlertTriangle, Pill, FileText } from 'lucide-react';
 import { currentBase } from '../../utils/roles'
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 const typeConfig = {
   text: { label: 'Text', color: 'bg-gray-100 text-gray-600' },
@@ -49,7 +50,7 @@ export default function PharmacyChatPage() {
       setMessages((prev) => [...prev, res.data.data]);
       setInput('');
     } catch (err) {
-      alert('Failed to send message');
+      toast.error('Failed to send message');
     } finally {
       setSending(false);
     }

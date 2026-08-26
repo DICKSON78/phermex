@@ -8,6 +8,14 @@ import { useAuth } from '../../contexts/AuthContext'
 
 const STATUS_STYLES = { draft: 'bg-gray-100 text-gray-600', submitted: 'bg-blue-100 text-blue-700', approved: 'bg-green-100 text-green-700' }
 
+const TEMPLATE_INFO = {
+  monthly_sales: { icon: '📊', label: 'Monthly Sales Report', description: 'Monthly sales summary for regulatory compliance.' },
+  inventory_status: { icon: '📦', label: 'Inventory Status Report', description: 'Current stock levels and inventory summary.' },
+  controlled_substances: { icon: '💊', label: 'Controlled Substances Report', description: 'Tracking report for controlled substance sales.' },
+  drug_expiry: { icon: '⏰', label: 'Drug Expiry Report', description: 'Report on medications approaching or past expiry.' },
+  supplier_activity: { icon: '🚚', label: 'Supplier Activity Report', description: 'Summary of supplier orders and deliveries.' },
+}
+
 export default function RegulatoryReportsPage() {
   const { pharmacyId } = useAuth()
   const [reports, setReports] = useState([])
@@ -36,7 +44,7 @@ export default function RegulatoryReportsPage() {
       setShowGenerate(false)
       setShowPreview(res.data.report)
       fetchReports()
-    } catch { toast.success('Report generated'); setShowGenerate(false) } finally { setGenerating(false) }
+    } catch { toast.error('Failed to save'); setShowGenerate(false) } finally { setGenerating(false) }
   }
 
   const handleSubmit = async (id) => {
@@ -44,7 +52,7 @@ export default function RegulatoryReportsPage() {
       await api.post(`/regulatory-reports/${id}/submit`, { submitted_to: 'TMDA' })
       toast.success('Report submitted to TMDA')
       setReports(prev => prev.map(r => r.id === id ? { ...r, status: 'submitted', submitted_to: 'TMDA', submitted_at: new Date().toISOString() } : r))
-    } catch { toast.success('Report submitted') }
+    } catch { toast.error('Failed to save') }
   }
 
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']

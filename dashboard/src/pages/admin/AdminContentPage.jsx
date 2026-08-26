@@ -24,27 +24,27 @@ import {
 import api from '../../services/api'
 
 const TYPE_STYLES = {
-  Announcement: 'badge badge-blue',
-  Maintenance: 'badge badge-yellow',
-  Update: 'badge badge-green',
-  Alert: 'badge badge-red',
+  banner: 'badge badge-blue',
+  announcement: 'badge badge-yellow',
+  promotion: 'badge badge-green',
+  blog: 'badge badge-red',
 }
 
 const STATUS_STYLES = {
-  Draft: 'badge badge-gray',
-  Published: 'badge badge-green',
-  Archived: 'badge badge-red',
+  draft: 'badge badge-gray',
+  active: 'badge badge-green',
+  archived: 'badge badge-red',
 }
 
 const TYPE_ICONS = {
-  Announcement: Megaphone,
-  Maintenance: Wrench,
-  Update: Info,
-  Alert: AlertTriangle,
+  banner: Megaphone,
+  announcement: Wrench,
+  promotion: Info,
+  blog: AlertTriangle,
 }
 
-const TYPES = ['Announcement', 'Maintenance', 'Update', 'Alert']
-const STATUSES = ['Draft', 'Published', 'Archived']
+const TYPES = ['banner', 'announcement', 'promotion', 'blog']
+const STATUSES = ['draft', 'active', 'archived']
 const TARGETS = ['All', 'Pharmacists', 'Owners', 'Admins']
 
 function StatCard({ label, value, icon, iconColor, bg, suffix }) {
@@ -100,7 +100,7 @@ export default function AdminContentPage() {
   }
 
   const handlePublish = async (post) => {
-    const newStatus = post.status === 'Published' ? 'Draft' : 'Published'
+    const newStatus = post.status === 'active' ? 'draft' : 'active'
     try {
       await api.patch(`/admin/content/${post.id}`, { status: newStatus })
     } catch {}
@@ -310,9 +310,9 @@ export default function AdminContentPage() {
                           <button
                             onClick={() => handlePublish(post)}
                             className="btn-ghost"
-                            title={post.status === 'Published' ? 'Unpublish' : 'Publish'}
+                            title={post.status === 'active' ? 'Unpublish' : 'Publish'}
                           >
-                            {post.status === 'Published' ? <SendHorizontal className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+                            {post.status === 'active' ? <SendHorizontal className="h-4 w-4" /> : <Send className="h-4 w-4" />}
                           </button>
                           <button
                             onClick={() => handleDelete(post)}

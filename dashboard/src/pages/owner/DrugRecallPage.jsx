@@ -36,19 +36,23 @@ export default function DrugRecallPage() {
       const data = { ...form, pharmacy_id: pharmacyId, batch_numbers: form.batch_numbers.filter(b => b), affected_quantity: parseInt(form.affected_quantity) }
       await api.post('/drug-recalls', data)
       toast.success('Recall recorded'); setShowForm(false); fetchRecalls()
-    } catch { toast.success('Recall recorded'); setShowForm(false) } finally { setSaving(false) }
+    } catch { toast.error('Failed to save'); setShowForm(false) } finally { setSaving(false) }
   }
 
   const handleAcknowledge = async (id) => {
-    try { await api.post(`/drug-recalls/${id}/acknowledge`) } catch {}
-    setRecalls(prev => prev.map(r => r.id === id ? { ...r, status: 'acknowledged', date_acknowledged: new Date().toISOString().split('T')[0] } : r))
-    toast.success('Recall acknowledged')
+    try {
+      await api.post(`/drug-recalls/${id}/acknowledge`)
+      setRecalls(prev => prev.map(r => r.id === id ? { ...r, status: 'acknowledged', date_acknowledged: new Date().toISOString().split('T')[0] } : r))
+      toast.success('Recall acknowledged')
+    } catch { toast.error('Failed to acknowledge recall') }
   }
 
   const handleProcess = async (id) => {
-    try { await api.post(`/drug-recalls/${id}/process`) } catch {}
-    setRecalls(prev => prev.map(r => r.id === id ? { ...r, status: 'in_progress' } : r))
-    toast.success('Recall processing started')
+    try {
+      await api.post(`/drug-recalls/${id}/process`)
+      setRecalls(prev => prev.map(r => r.id === id ? { ...r, status: 'in_progress' } : r))
+      toast.success('Recall processing started')
+    } catch { toast.error('Failed to start processing') }
   }
 
   return (

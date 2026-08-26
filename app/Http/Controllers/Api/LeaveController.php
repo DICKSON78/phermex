@@ -32,7 +32,7 @@ class LeaveController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch leaves.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -65,7 +65,7 @@ class LeaveController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to submit leave request.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -81,7 +81,7 @@ class LeaveController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch leave.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -108,7 +108,7 @@ class LeaveController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to approve leave.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -138,7 +138,7 @@ class LeaveController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to reject leave.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -165,7 +165,7 @@ class LeaveController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to cancel leave.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -191,7 +191,7 @@ class LeaveController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch leave balance.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -218,7 +218,7 @@ class LeaveController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch calendar.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

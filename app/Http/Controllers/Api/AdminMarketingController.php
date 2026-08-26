@@ -96,7 +96,7 @@ class AdminMarketingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch campaigns.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -137,7 +137,7 @@ class AdminMarketingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create campaign.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -153,7 +153,7 @@ class AdminMarketingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch campaign.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -198,7 +198,7 @@ class AdminMarketingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update campaign.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -221,7 +221,7 @@ class AdminMarketingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update campaign status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -246,7 +246,7 @@ class AdminMarketingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete campaign.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -270,7 +270,7 @@ class AdminMarketingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to duplicate campaign.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

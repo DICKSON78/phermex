@@ -6,7 +6,7 @@ import Modal from '../../components/Modal'
 import api from '../../services/api'
 
 const PLANS = ['Trial', 'Basic', 'Pro', 'Enterprise']
-const PLAN_AMOUNTS = { Trial: 0, Basic: 49, Pro: 149, Enterprise: 299 }
+const PLAN_AMOUNTS = { Trial: 0, Basic: 50000, Pro: 100000, Enterprise: 200000 }
 
 export default function AdminSubscriptionFormPage() {
   const { id } = useParams()
@@ -17,27 +17,38 @@ export default function AdminSubscriptionFormPage() {
   const [fetching, setFetching] = useState(isEdit)
   const [errors, setErrors] = useState({})
   const [showSuccess, setShowSuccess] = useState(false)
+  const [pharmacies, setPharmacies] = useState([])
 
   const [form, setForm] = useState({
-    pharmacy: '',
+    pharmacy_id: '',
     plan: 'Basic',
-    amount: 49,
+    amount: 50000,
     startDate: '',
     expiryDate: '',
   })
 
   useEffect(() => {
+    fetchPharmacies()
     if (isEdit) fetchSubscription()
   }, [id])
+
+  const fetchPharmacies = async () => {
+    try {
+      const res = await api.get('/admin/pharmacies')
+      setPharmacies(res.data?.data || res.data || [])
+    } catch {
+      setPharmacies([])
+    }
+  }
 
   const fetchSubscription = async () => {
     try {
       const res = await api.get(`/admin/subscriptions/${id}`)
       const data = res.data.data || res.data
       setForm({
-        pharmacy: data.pharmacy || '',
+        pharmacy_id: data.pharmacy_id || '',
         plan: data.plan || 'Basic',
-        amount: data.amount || 49,
+        amount: data.amount || 50000,
         startDate: data.startDate ? data.startDate.split('T')[0] : '',
         expiryDate: data.expiryDate ? data.expiryDate.split('T')[0] : '',
       })
@@ -59,7 +70,7 @@ export default function AdminSubscriptionFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.pharmacy.trim()) errs.pharmacy = 'Pharmacy is required'
+    if (!form.pharmacy_id) errs.pharmacy_id = 'Pharmacy is required'
     if (!form.plan) errs.plan = 'Plan is required'
     if (!form.startDate) errs.startDate = 'Start date is required'
     if (!form.expiryDate) errs.expiryDate = 'Expiry date is required'
@@ -136,21 +147,24 @@ export default function AdminSubscriptionFormPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Pharmacy Name <span className="text-red-500">*</span>
+                  Pharmacy <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Building2 className="w-4 h-4 text-gray-400" />
                   </div>
-                  <input
-                    type="text"
-                    value={form.pharmacy}
-                    onChange={(e) => handleChange('pharmacy', e.target.value)}
-                    className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.pharmacy ? '!border-red-400' : ''}`}
-                    placeholder="Enter pharmacy name"
-                  />
+                  <select
+                    value={form.pharmacy_id}
+                    onChange={(e) => handleChange('pharmacy_id', e.target.value)}
+                    className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.pharmacy_id ? '!border-red-400' : ''}`}
+                  >
+                    <option value="">Select a pharmacy</option>
+                    {pharmacies.map((p) => (
+                      <option key={p.id} value={p.id}>{p.pharmacy_name || p.name}</option>
+                    ))}
+                  </select>
                 </div>
-                {errors.pharmacy && <p className="text-xs text-red-500 mt-1">{errors.pharmacy}</p>}
+                {errors.pharmacy_id && <p className="text-xs text-red-500 mt-1">{errors.pharmacy_id}</p>}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">

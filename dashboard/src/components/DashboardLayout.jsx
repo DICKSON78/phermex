@@ -290,7 +290,7 @@ const adminNavGroups = [
     label: 'SYSTEM',
     items: [
       { path: '/dashboard/audit-logs', icon: ShieldAlert, label: 'Audit Logs' },
-      { path: '/dashboard/platform-settings', icon: Settings, label: 'Platform Settings' },
+      { path: '/dashboard/settings', icon: Settings, label: 'Platform Settings' },
     ],
   },
 ]

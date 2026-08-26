@@ -32,7 +32,7 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch customers.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -72,7 +72,7 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create customer.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -97,7 +97,7 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch customer.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -135,7 +135,7 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update customer.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -152,7 +152,7 @@ class CustomerController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Customer not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch prescriptions.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch prescriptions.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -189,7 +189,31 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch purchase history.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function destroy($id): JsonResponse
+    {
+        try {
+            $customer = Customer::findOrFail($id);
+
+            if ($customer->orders()->exists()) {
+                $customer->delete();
+            } else {
+                $customer->delete();
+            }
+
+            return response()->json([
+                'message' => 'Customer deleted successfully.',
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Customer not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete customer.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

@@ -71,7 +71,7 @@ export default function SupplierListPage() {
       setForm({ name: '', contact_person: '', email: '', phone: '', address: '', city: '', country: 'Tanzania', tax_id: '', payment_terms: 'net_30', notes: '' })
       fetchSuppliers()
     } catch {
-      toast.success(editSupplier ? 'Supplier updated' : 'Supplier created')
+      toast.error('Failed to save supplier')
       setShowForm(false)
       setEditSupplier(null)
     } finally {
@@ -82,10 +82,13 @@ export default function SupplierListPage() {
   const handleDelete = async (supplier) => {
     try {
       await api.delete(`/suppliers/${supplier.id}`)
-    } catch {}
-    setSuppliers(prev => prev.filter(s => s.id !== supplier.id))
-    setDeleteModal({ open: false, supplier: null })
-    toast.success('Supplier deleted')
+      setSuppliers(prev => prev.filter(s => s.id !== supplier.id))
+      setDeleteModal({ open: false, supplier: null })
+      toast.success('Supplier deleted')
+    } catch {
+      setDeleteModal({ open: false, supplier: null })
+      toast.error('Failed to delete supplier')
+    }
   }
 
   const openEdit = (s) => {

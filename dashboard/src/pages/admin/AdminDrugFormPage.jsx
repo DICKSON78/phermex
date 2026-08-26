@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Save, Loader2, Pill, Building2, Tag, CheckCircle } from 'lucide-react'
+import toast from 'react-hot-toast'
 import api from '../../services/api'
 import Modal from '../../components/Modal'
 
@@ -11,7 +12,7 @@ const CATEGORIES = [
   'Antiprotozoals', 'Opioid Analgesics', 'Antitussives', 'Electrolytes',
 ]
 
-const STATUSES = ['Active', 'Discontinued']
+const STATUSES = ['Active', 'Discontinued', 'Recalled']
 
 const INITIAL_FORM = { name: '', generic: '', category: 'Antibiotics', manufacturer: '', status: 'Active' }
 
@@ -73,8 +74,8 @@ export default function AdminDrugFormPage() {
         await api.post('/admin/drug-database', form)
       }
       setShowSuccess(true)
-    } catch {
-      setShowSuccess(true)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save. Please try again.')
     } finally {
       setLoading(false)
     }

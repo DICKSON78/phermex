@@ -23,7 +23,7 @@ class JobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch job listings.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -43,7 +43,7 @@ class JobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch job listing.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -88,7 +88,7 @@ class JobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to submit application.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

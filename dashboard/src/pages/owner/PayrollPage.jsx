@@ -9,6 +9,7 @@ import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip } from
 import toast from 'react-hot-toast'
 import { payroll, employees } from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount || 0)
@@ -30,6 +31,8 @@ export default function PayrollPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [showPayslip, setShowPayslip] = useState(null)
   const [payslipData, setPayslipData] = useState(null)
+  const [confirmAction, setConfirmAction] = useState(null)
+  const [confirmInfo, setConfirmInfo] = useState({ title: '', message: '' })
 
   useEffect(() => { fetchPayroll(); fetchSummary() }, [periodMonth, periodYear, statusFilter])
 
@@ -55,7 +58,6 @@ export default function PayrollPage() {
   }
 
   const handleGenerate = async () => {
-    if (!window.confirm(`Generate payroll for ${MONTHS[periodMonth - 1]} ${periodYear}?`)) return
     setGenerating(true)
     try {
       const res = await payroll.create({ pharmacy_id: pharmacyId, period_month: periodMonth, period_year: periodYear })
@@ -76,7 +78,6 @@ export default function PayrollPage() {
   }
 
   const handlePay = async (id) => {
-    if (!window.confirm('Mark this as paid?')) return
     try {
       await payroll.pay(id, { payment_method: 'bank' })
       toast.success('Marked as paid')
@@ -85,7 +86,6 @@ export default function PayrollPage() {
   }
 
   const handleCancel = async (id) => {
-    if (!window.confirm('Cancel this payroll record?')) return
     try {
       await payroll.cancel(id)
       toast.success('Payroll cancelled')
@@ -130,7 +130,7 @@ export default function PayrollPage() {
               <p className="text-sm text-gray-500">Process and manage employee payroll.</p>
             </div>
           </div>
-          <button onClick={handleGenerate} disabled={generating} className="btn-primary">
+          <button onClick={() => { setConfirmInfo({ title: 'Generate Payroll', message: `Generate payroll for ${MONTHS[periodMonth - 1]} ${periodYear}?` }); setConfirmAction(() => handleGenerate) }} disabled={generating} className="btn-primary">
             {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4" />}
             Generate Payroll
           </button>
@@ -309,12 +309,12 @@ export default function PayrollPage() {
                             </button>
                           )}
                           {(p.status === 'draft' || p.status === 'approved') && (
-                            <button onClick={() => handlePay(p.id)} className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors" title="Mark Paid">
+                            <button onClick={() => { setConfirmInfo({ title: 'Mark as Paid', message: 'Mark this payroll as paid?' }); setConfirmAction(() => () => handlePay(p.id)) }} className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors" title="Mark Paid">
                               <CreditCard className="w-4 h-4" />
                             </button>
                           )}
                           {p.status !== 'paid' && p.status !== 'cancelled' && (
-                            <button onClick={() => handleCancel(p.id)} className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors" title="Cancel">
+                            <button onClick={() => { setConfirmInfo({ title: 'Cancel Payroll', message: 'Cancel this payroll record?' }); setConfirmAction(() => () => handleCancel(p.id)) }} className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors" title="Cancel">
                               <X className="w-4 h-4" />
                             </button>
                           )}
@@ -396,6 +396,17 @@ export default function PayrollPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={!!confirmAction}
+        title={confirmInfo.title}
+        message={confirmInfo.message}
+        confirmText="Confirm"
+        cancelText="Cancel"
+        variant="warning"
+        onConfirm={() => { confirmAction?.(); setConfirmAction(null); setConfirmInfo({ title: '', message: '' }) }}
+        onCancel={() => { setConfirmAction(null); setConfirmInfo({ title: '', message: '' }) }}
+      />
     </div>
   )
 }

@@ -27,7 +27,7 @@ class DrugRecallController extends Controller
 
             return response()->json($recalls);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch recalls.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch recalls.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -53,7 +53,7 @@ class DrugRecallController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to record recall.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to record recall.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -65,7 +65,7 @@ class DrugRecallController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Recall not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch recall.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch recall.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -79,7 +79,7 @@ class DrugRecallController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Recall not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to acknowledge recall.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to acknowledge recall.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -93,7 +93,7 @@ class DrugRecallController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Recall not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to process recall.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to process recall.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -108,7 +108,7 @@ class DrugRecallController extends Controller
 
             return response()->json(['recalls' => $recalls]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch active recalls.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch active recalls.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

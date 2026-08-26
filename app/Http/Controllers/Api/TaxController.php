@@ -41,7 +41,7 @@ class TaxController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch tax records.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -92,7 +92,7 @@ class TaxController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create tax record.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -129,7 +129,7 @@ class TaxController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to calculate tax.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -156,7 +156,7 @@ class TaxController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to file tax record.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -194,7 +194,7 @@ class TaxController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update tax record.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -246,7 +246,7 @@ class TaxController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate tax calendar.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -288,7 +288,7 @@ class TaxController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate tax summary.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

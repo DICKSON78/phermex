@@ -30,7 +30,7 @@ class BankController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch bank accounts.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -71,7 +71,7 @@ class BankController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create bank account.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -88,7 +88,7 @@ class BankController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch bank account.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -126,7 +126,7 @@ class BankController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch transactions.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -164,7 +164,7 @@ class BankController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to reconcile transactions.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -198,7 +198,7 @@ class BankController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate bank summary.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -287,7 +287,7 @@ class BankController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to complete transfer.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

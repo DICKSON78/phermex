@@ -19,7 +19,7 @@ class AdminJobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch job listings.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -56,7 +56,7 @@ class AdminJobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create job listing.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -74,7 +74,7 @@ class AdminJobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch job listing.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -115,7 +115,7 @@ class AdminJobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update job listing.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -132,7 +132,7 @@ class AdminJobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete job listing.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -153,7 +153,7 @@ class AdminJobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to toggle job status.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -170,7 +170,7 @@ class AdminJobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch applications.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -201,7 +201,7 @@ class AdminJobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update application.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -221,7 +221,7 @@ class AdminJobController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch applications.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

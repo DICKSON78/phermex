@@ -46,7 +46,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch accounts.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -90,7 +90,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create account.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -112,7 +112,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch account.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -148,7 +148,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update account.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -180,7 +180,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete account.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -201,7 +201,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to build account tree.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -237,7 +237,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to calculate balances.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

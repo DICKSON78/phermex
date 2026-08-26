@@ -43,7 +43,7 @@ class VerifyEmailController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to send verification code.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }
@@ -82,7 +82,7 @@ class VerifyEmailController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Verification failed.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
     }

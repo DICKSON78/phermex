@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle, XCircle, Package, Truck, Printer, Pill, Hash, DollarSign } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Package, Truck, Printer, Pill, Hash, DollarSign, ShoppingCart } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
@@ -40,17 +40,17 @@ export default function PurchaseOrderDetailPage() {
       setShowReceive(false)
       const res = await api.get(`/purchase-orders/${id}`)
       setOrder(res.data.order || res.data)
-    } catch { toast.success('Goods received'); setShowReceive(false) } finally { setReceiving(false) }
+    } catch { toast.error('Failed to update'); setShowReceive(false) } finally { setReceiving(false) }
   }
 
   const handleApprove = async () => {
-    try { await api.post(`/purchase-orders/${id}/approve`); toast.success('Order approved') } catch { toast.success('Order approved') }
+    try { await api.post(`/purchase-orders/${id}/approve`); toast.success('Order approved') } catch { toast.error('Failed to update') }
     const res = await api.get(`/purchase-orders/${id}`).catch(() => ({ data: { order: { ...order, status: 'approved' } } }))
     setOrder(res.data.order)
   }
 
   const handleCancel = async () => {
-    try { await api.post(`/purchase-orders/${id}/cancel`); toast.success('Order cancelled') } catch { toast.success('Order cancelled') }
+    try { await api.post(`/purchase-orders/${id}/cancel`); toast.success('Order cancelled') } catch { toast.error('Failed to update') }
     setOrder({ ...order, status: 'cancelled' })
   }
 

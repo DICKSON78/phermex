@@ -47,7 +47,7 @@ export default function ControlledSubstancePage() {
     try {
       await api.post('/controlled-substances', { ...form, pharmacy_id: pharmacyId, quantity_received: parseInt(form.quantity_received) })
       toast.success('Substance registered'); setShowForm(false); fetchRecords()
-    } catch { toast.success('Substance registered'); setShowForm(false) } finally { setSaving(false) }
+    } catch { toast.error('Failed to save'); setShowForm(false) } finally { setSaving(false) }
   }
 
   const handleIssue = async () => {
@@ -56,7 +56,7 @@ export default function ControlledSubstancePage() {
     try {
       await api.post(`/controlled-substances/${showIssue.id}/issue`, { ...issueForm, quantity_issued: parseInt(issueForm.quantity_issued) })
       toast.success('Substance issued'); setShowIssue(null); fetchRecords()
-    } catch { toast.success('Substance issued'); setShowIssue(null) } finally { setSaving(false) }
+    } catch { toast.error('Failed to save'); setShowIssue(null) } finally { setSaving(false) }
   }
 
   const printRegister = () => {

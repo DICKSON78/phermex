@@ -31,7 +31,7 @@ class DamagedGoodsController extends Controller
 
             return response()->json($damaged);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch damaged goods.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch damaged goods.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -70,7 +70,7 @@ class DamagedGoodsController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to record damage.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to record damage.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -84,7 +84,7 @@ class DamagedGoodsController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Record not found.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch record.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch record.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -107,7 +107,7 @@ class DamagedGoodsController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to process.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to process.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 
@@ -139,7 +139,7 @@ class DamagedGoodsController extends Controller
                     ->map(fn ($items) => ['count' => $items->count(), 'total_loss' => $items->sum('total_loss')]),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to generate report.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to generate report.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
 }

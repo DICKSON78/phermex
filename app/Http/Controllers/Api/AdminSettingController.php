@@ -13,7 +13,7 @@ class AdminSettingController extends Controller
     {
         return [
             'platform' => [
-                'name' => 'Pharmex',
+                'name' => 'Helix',
                 'tagline' => 'Smart Pharmacy Management',
                 'logo' => null,
                 'favicon' => null,

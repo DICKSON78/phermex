@@ -154,7 +154,7 @@ export default function AdminDashboard() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-sm text-gray-500">Pharmex Platform — Overview of all pharmacies, users, and subscriptions.</p>
+          <p className="text-sm text-gray-500">Helix Platform — Overview of all pharmacies, users, and subscriptions.</p>
         </div>
       </div>
 

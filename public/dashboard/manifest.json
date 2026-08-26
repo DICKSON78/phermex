@@ -1,6 +1,6 @@
 {
-  "name": "Pharmex - Find & Order Medicine",
-  "short_name": "Pharmex",
+  "name": "Helix - Find & Order Medicine",
+  "short_name": "Helix",
   "description": "Find pharmacies, order medicines, and manage prescriptions near you",
   "start_url": "/",
   "scope": "/",

@@ -272,7 +272,7 @@ export default function AddPharmacyPage() {
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <Store className="w-5 h-5 text-gray-400" />
               </div>
-              <input type="text" value={form.pharmacy_name} onChange={(e) => updateForm('pharmacy_name', e.target.value)} className={`${inputClasses} ${errors.pharmacy_name ? 'border-red-400' : ''}`} placeholder="e.g. Pharmex Branch - Mikocheni" />
+              <input type="text" value={form.pharmacy_name} onChange={(e) => updateForm('pharmacy_name', e.target.value)} className={`${inputClasses} ${errors.pharmacy_name ? 'border-red-400' : ''}`} placeholder="e.g. Helix Branch - Mikocheni" />
             </div>
             {errors.pharmacy_name && <p className="text-red-500 text-xs mt-1">{errors.pharmacy_name}</p>}
           </div>
@@ -384,7 +384,7 @@ export default function AddPharmacyPage() {
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <p className="text-blue-700 text-sm font-medium">Set the location</p>
-            <p className="text-blue-600 text-xs mt-1 mb-3">Customers discover pharmacies near them on the Pharmex app. Accurate location helps patients find your pharmacy quickly.</p>
+            <p className="text-blue-600 text-xs mt-1 mb-3">Customers discover pharmacies near them on the Helix app. Accurate location helps patients find your pharmacy quickly.</p>
             <LocationMap
               latitude={form.latitude}
               longitude={form.longitude}

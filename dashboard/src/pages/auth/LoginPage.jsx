@@ -65,7 +65,7 @@ export default function LoginPage() {
             <div className="w-12 h-12 bg-[#0FD452] rounded-xl flex items-center justify-center">
               <Pill className="w-7 h-7 text-[#000F14]" />
             </div>
-            <span className="text-gray-600 font-black text-3xl">PHARMEX</span>
+            <span className="text-gray-600 font-black text-3xl">HELIX</span>
           </div>
           <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">Login</p>
           <h1 className="text-4xl font-black text-gray-600 mb-3">Welcome Back</h1>

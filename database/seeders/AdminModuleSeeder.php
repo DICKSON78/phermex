@@ -26,9 +26,9 @@ class AdminModuleSeeder extends Seeder
     {
         $posts = [
             [
-                'title' => 'Welcome to Pharmex Platform',
+                'title' => 'Welcome to Helix Platform',
                 'type' => 'banner',
-                'content' => 'Welcome to Pharmex - your all-in-one pharmacy management platform. Streamline your operations, manage inventory, and grow your pharmacy business with our comprehensive tools and analytics.',
+                'content' => 'Welcome to Helix - your all-in-one pharmacy management platform. Streamline your operations, manage inventory, and grow your pharmacy business with our comprehensive tools and analytics.',
                 'image_url' => '/images/banners/welcome-banner.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(30),
@@ -39,7 +39,7 @@ class AdminModuleSeeder extends Seeder
             [
                 'title' => 'New Feature: Online Ordering Now Available',
                 'type' => 'announcement',
-                'content' => 'We are excited to announce that online ordering is now live! Customers can now browse your catalog, place orders, and schedule deliveries directly through the Pharmex platform. Enable this feature in your pharmacy settings to start accepting online orders today.',
+                'content' => 'We are excited to announce that online ordering is now live! Customers can now browse your catalog, place orders, and schedule deliveries directly through the Helix platform. Enable this feature in your pharmacy settings to start accepting online orders today.',
                 'image_url' => '/images/announcements/online-ordering.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(7),
@@ -61,7 +61,7 @@ class AdminModuleSeeder extends Seeder
             [
                 'title' => 'Holiday Operating Hours Update',
                 'type' => 'announcement',
-                'content' => 'Please note that Pharmex support services will operate on reduced hours during the upcoming holiday period. Emergency support will remain available 24/7. For non-urgent inquiries, please submit a ticket and we will respond within 24 hours.',
+                'content' => 'Please note that Helix support services will operate on reduced hours during the upcoming holiday period. Emergency support will remain available 24/7. For non-urgent inquiries, please submit a ticket and we will respond within 24 hours.',
                 'image_url' => null,
                 'status' => 'draft',
                 'starts_at' => now()->addDays(14),
@@ -70,9 +70,9 @@ class AdminModuleSeeder extends Seeder
                 'created_by' => 1,
             ],
             [
-                'title' => 'Pharmex Partner Pharmacy Program',
+                'title' => 'Helix Partner Pharmacy Program',
                 'type' => 'promotion',
-                'content' => 'Introducing the Pharmex Partner Pharmacy Program! Earn exclusive benefits including priority support, discounted subscription rates, and co-marketing opportunities. Apply now through your admin dashboard to become a certified Pharmex partner.',
+                'content' => 'Introducing the Helix Partner Pharmacy Program! Earn exclusive benefits including priority support, discounted subscription rates, and co-marketing opportunities. Apply now through your admin dashboard to become a certified Helix partner.',
                 'image_url' => '/images/promotions/partner-program.jpg',
                 'status' => 'draft',
                 'starts_at' => null,
@@ -94,7 +94,7 @@ class AdminModuleSeeder extends Seeder
             [
                 'title' => 'New Supplier Partnership: Pharma Distributors Ltd',
                 'type' => 'announcement',
-                'content' => 'We are pleased to announce a new partnership with Pharma Distributors Ltd, one of Tanzanias leading pharmaceutical wholesalers. Pharmex users now get exclusive 8% discount on all orders.',
+                'content' => 'We are pleased to announce a new partnership with Pharma Distributors Ltd, one of Tanzanias leading pharmaceutical wholesalers. Helix users now get exclusive 8% discount on all orders.',
                 'image_url' => '/images/announcements/pharma-distributors.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(10),
@@ -105,7 +105,7 @@ class AdminModuleSeeder extends Seeder
             [
                 'title' => 'Customer Appreciation Week - Special Offers',
                 'type' => 'promotion',
-                'content' => 'Celebrate Customer Appreciation Week with Pharmex! Enjoy 20% off on subscription upgrades, free SMS credits, and bonus loyalty points. Valid August 1-7, 2026.',
+                'content' => 'Celebrate Customer Appreciation Week with Helix! Enjoy 20% off on subscription upgrades, free SMS credits, and bonus loyalty points. Valid August 1-7, 2026.',
                 'image_url' => '/images/promotions/appreciation-week.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(5),
@@ -125,9 +125,9 @@ class AdminModuleSeeder extends Seeder
                 'created_by' => 1,
             ],
             [
-                'title' => 'Pharmex Mobile App v2.0 Release',
+                'title' => 'Helix Mobile App v2.0 Release',
                 'type' => 'announcement',
-                'content' => 'Pharmex Mobile App version 2.0 is now available! New features include offline mode, push notifications for low stock alerts, barcode scanning, and improved performance.',
+                'content' => 'Helix Mobile App version 2.0 is now available! New features include offline mode, push notifications for low stock alerts, barcode scanning, and improved performance.',
                 'image_url' => '/images/announcements/mobile-v2.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(8),
@@ -149,7 +149,7 @@ class AdminModuleSeeder extends Seeder
             [
                 'title' => 'Compliance Update: TMDA New Reporting Requirements',
                 'type' => 'announcement',
-                'content' => 'TMDA has introduced new monthly reporting requirements effective September 2026. Pharmex has updated its reporting module to comply. Please review the updated templates.',
+                'content' => 'TMDA has introduced new monthly reporting requirements effective September 2026. Helix has updated its reporting module to comply. Please review the updated templates.',
                 'image_url' => null,
                 'status' => 'active',
                 'starts_at' => now()->subDays(12),
@@ -160,7 +160,7 @@ class AdminModuleSeeder extends Seeder
             [
                 'title' => 'End of Year Tax Filing Reminder',
                 'type' => 'banner',
-                'content' => 'The deadline for annual tax filing with TRA is approaching. Use Pharmex accounting module to generate your annual reports, VAT summaries, and PAYE statements.',
+                'content' => 'The deadline for annual tax filing with TRA is approaching. Use Helix accounting module to generate your annual reports, VAT summaries, and PAYE statements.',
                 'image_url' => '/images/banners/tax-reminder.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(1),
@@ -169,9 +169,9 @@ class AdminModuleSeeder extends Seeder
                 'created_by' => 1,
             ],
             [
-                'title' => 'Pharmex Annual Conference 2026',
+                'title' => 'Helix Annual Conference 2026',
                 'type' => 'promotion',
-                'content' => 'Save the date! Pharmex Annual Conference 2026 on October 15-16 at JNICC. Network with pharmacy owners, attend expert panels, and preview upcoming features.',
+                'content' => 'Save the date! Helix Annual Conference 2026 on October 15-16 at JNICC. Network with pharmacy owners, attend expert panels, and preview upcoming features.',
                 'image_url' => '/images/promotions/annual-conference.jpg',
                 'status' => 'draft',
                 'starts_at' => now()->addDays(5),
@@ -204,7 +204,7 @@ class AdminModuleSeeder extends Seeder
             [
                 'title' => 'Insurance Integration: NHIF Claims Portal',
                 'type' => 'announcement',
-                'content' => 'Pharmex now supports direct NHIF claims submission! Process patient insurance claims directly from the POS and track claim status in real-time.',
+                'content' => 'Helix now supports direct NHIF claims submission! Process patient insurance claims directly from the POS and track claim status in real-time.',
                 'image_url' => '/images/announcements/nhif-integration.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(9),
@@ -226,7 +226,7 @@ class AdminModuleSeeder extends Seeder
             [
                 'title' => 'WhatsApp Business Integration Now Live',
                 'type' => 'announcement',
-                'content' => 'Connect your Pharmex account to WhatsApp Business! Send order confirmations, delivery updates, and promotional messages directly to customers.',
+                'content' => 'Connect your Helix account to WhatsApp Business! Send order confirmations, delivery updates, and promotional messages directly to customers.',
                 'image_url' => '/images/announcements/whatsapp-integration.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(4),
@@ -257,9 +257,9 @@ class AdminModuleSeeder extends Seeder
                 'created_by' => 1,
             ],
             [
-                'title' => 'Pharmex API for Developers',
+                'title' => 'Helix API for Developers',
                 'type' => 'announcement',
-                'content' => 'The Pharmex REST API is now available for integration with third-party systems. Build custom integrations, connect with hospital management systems, or create specialized tools.',
+                'content' => 'The Helix REST API is now available for integration with third-party systems. Build custom integrations, connect with hospital management systems, or create specialized tools.',
                 'image_url' => '/images/announcements/api-launch.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(11),
@@ -290,7 +290,7 @@ class AdminModuleSeeder extends Seeder
                 'created_by' => 1,
             ],
             [
-                'title' => 'Pharmex Loyalty Program Update',
+                'title' => 'Helix Loyalty Program Update',
                 'type' => 'promotion',
                 'content' => 'Exciting updates to the Loyalty Program! Earn 2x points on all orders this month, redeem for free deliveries, and unlock exclusive member-only deals.',
                 'image_url' => '/images/promotions/loyalty-update.jpg',
@@ -312,9 +312,9 @@ class AdminModuleSeeder extends Seeder
                 'created_by' => 1,
             ],
             [
-                'title' => 'Pharmex Impact Report: Q2 2026',
+                'title' => 'Helix Impact Report: Q2 2026',
                 'type' => 'banner',
-                'content' => 'Read our Q2 2026 Impact Report! Pharmex pharmacies served over 150,000 patients, processed 50,000+ prescriptions, and maintained 99.5% inventory accuracy.',
+                'content' => 'Read our Q2 2026 Impact Report! Helix pharmacies served over 150,000 patients, processed 50,000+ prescriptions, and maintained 99.5% inventory accuracy.',
                 'image_url' => '/images/banners/impact-report.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(1),
@@ -334,9 +334,9 @@ class AdminModuleSeeder extends Seeder
                 'created_by' => 1,
             ],
             [
-                'title' => 'Pharmex Partner Pharmacies Map',
+                'title' => 'Helix Partner Pharmacies Map',
                 'type' => 'banner',
-                'content' => 'Find your nearest Pharmex partner pharmacy on our updated interactive map! With 200+ locations across Tanzania, quality medications are always within reach.',
+                'content' => 'Find your nearest Helix partner pharmacy on our updated interactive map! With 200+ locations across Tanzania, quality medications are always within reach.',
                 'image_url' => '/images/banners/pharmacy-map.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(13),
@@ -367,9 +367,9 @@ class AdminModuleSeeder extends Seeder
                 'created_by' => 1,
             ],
             [
-                'title' => 'Pharmex Community Health Initiative',
+                'title' => 'Helix Community Health Initiative',
                 'type' => 'promotion',
-                'content' => 'Join the Pharmex Community Health Initiative! Partner with us to provide free health screenings. We provide the equipment, you provide the space.',
+                'content' => 'Join the Helix Community Health Initiative! Partner with us to provide free health screenings. We provide the equipment, you provide the space.',
                 'image_url' => '/images/promotions/community-health.jpg',
                 'status' => 'active',
                 'starts_at' => now()->subDays(4),
@@ -425,7 +425,7 @@ class AdminModuleSeeder extends Seeder
                 'pharmacy_id' => 1,
                 'user_id' => 2,
                 'subject' => 'Mobile app crashing on Android devices',
-                'description' => 'Several of our staff members are experiencing crashes on the Pharmex mobile app when trying to access the prescription module. The issue occurs on Android 14 devices. iOS seems to work fine. This is disrupting our daily operations.',
+                'description' => 'Several of our staff members are experiencing crashes on the Helix mobile app when trying to access the prescription module. The issue occurs on Android 14 devices. iOS seems to work fine. This is disrupting our daily operations.',
                 'priority' => 'high',
                 'status' => 'open',
                 'category' => 'technical',
@@ -433,7 +433,7 @@ class AdminModuleSeeder extends Seeder
                 'created_at' => now()->subDays(1),
             ],
             [
-                'pharmacy_id' => 1, 'user_id' => 3, 'subject' => 'Barcode scanner not connecting to POS', 'description' => 'The USB barcode scanner is not being recognized by the Pharmex POS system. It works on other software. We tried reinstalling drivers.', 'priority' => 'high', 'status' => 'open', 'category' => 'technical', 'assigned_to' => 1, 'created_at' => now()->subDays(3),
+                'pharmacy_id' => 1, 'user_id' => 3, 'subject' => 'Barcode scanner not connecting to POS', 'description' => 'The USB barcode scanner is not being recognized by the Helix POS system. It works on other software. We tried reinstalling drivers.', 'priority' => 'high', 'status' => 'open', 'category' => 'technical', 'assigned_to' => 1, 'created_at' => now()->subDays(3),
             ],
             [
                 'pharmacy_id' => 1, 'user_id' => 2, 'subject' => 'How to set up automatic reorder alerts', 'description' => 'We need help setting up automatic reorder alerts for fast-moving drugs like Amoxicillin and Paracetamol. Is there a way to configure minimum stock levels?', 'priority' => 'medium', 'status' => 'resolved', 'category' => 'general_inquiry', 'assigned_to' => 1, 'resolved_at' => now()->subDays(2), 'created_at' => now()->subDays(8),
@@ -457,7 +457,7 @@ class AdminModuleSeeder extends Seeder
                 'pharmacy_id' => 1, 'user_id' => 4, 'subject' => 'Customer receipt printer not working', 'description' => 'The thermal receipt printer stopped printing after the latest update. Model is Epson TM-T82. It worked before the July 20 update.', 'priority' => 'high', 'status' => 'open', 'category' => 'technical', 'assigned_to' => 1, 'created_at' => now()->subDays(2),
             ],
             [
-                'pharmacy_id' => 1, 'user_id' => 3, 'subject' => 'Request for customer SMS notification feature', 'description' => 'It would be great if Pharmex could automatically send SMS notifications when prescriptions are ready for pickup or orders are out for delivery.', 'priority' => 'low', 'status' => 'open', 'category' => 'feature_request', 'assigned_to' => 1, 'created_at' => now()->subDays(11),
+                'pharmacy_id' => 1, 'user_id' => 3, 'subject' => 'Request for customer SMS notification feature', 'description' => 'It would be great if Helix could automatically send SMS notifications when prescriptions are ready for pickup or orders are out for delivery.', 'priority' => 'low', 'status' => 'open', 'category' => 'feature_request', 'assigned_to' => 1, 'created_at' => now()->subDays(11),
             ],
             [
                 'pharmacy_id' => 1, 'user_id' => 2, 'subject' => 'Export data to Excel not working', 'description' => 'The export to Excel function on the sales report page returns a blank file. CSV export works fine but Excel export fails for all date ranges.', 'priority' => 'medium', 'status' => 'open', 'category' => 'technical', 'assigned_to' => 1, 'created_at' => now()->subDays(4),
@@ -478,13 +478,13 @@ class AdminModuleSeeder extends Seeder
                 'pharmacy_id' => 1, 'user_id' => 2, 'subject' => 'Monthly subscription payment failed', 'description' => 'Automatic subscription payment for July failed with "insufficient funds" error. Our bank has sufficient balance. Please investigate.', 'priority' => 'high', 'status' => 'resolved', 'category' => 'billing', 'assigned_to' => 1, 'resolved_at' => now()->subDays(4), 'created_at' => now()->subDays(7),
             ],
             [
-                'pharmacy_id' => 1, 'user_id' => 4, 'subject' => 'Request for custom drug labels printing', 'description' => 'We need Pharmex to support custom label printing for dispensed medications with patient name, dosage, prescriber, and pharmacy branding. Required by TMDA.', 'priority' => 'medium', 'status' => 'open', 'category' => 'feature_request', 'assigned_to' => 1, 'created_at' => now()->subDays(8),
+                'pharmacy_id' => 1, 'user_id' => 4, 'subject' => 'Request for custom drug labels printing', 'description' => 'We need Helix to support custom label printing for dispensed medications with patient name, dosage, prescriber, and pharmacy branding. Required by TMDA.', 'priority' => 'medium', 'status' => 'open', 'category' => 'feature_request', 'assigned_to' => 1, 'created_at' => now()->subDays(8),
             ],
             [
                 'pharmacy_id' => 1, 'user_id' => 3, 'subject' => 'Duplicate entries in transaction history', 'description' => 'Several duplicate entries in transaction history for last week. Each sale appears twice, affecting financial reports and reconciliation.', 'priority' => 'high', 'status' => 'open', 'category' => 'technical', 'assigned_to' => 1, 'created_at' => now()->subDays(3),
             ],
             [
-                'pharmacy_id' => 1, 'user_id' => 2, 'subject' => 'How to generate TMDA controlled substance report', 'description' => 'We need to generate a monthly controlled substance report for TMDA. Can you guide us on using the Pharmex reporting module for this?', 'priority' => 'medium', 'status' => 'resolved', 'category' => 'general_inquiry', 'assigned_to' => 1, 'resolved_at' => now()->subDays(6), 'created_at' => now()->subDays(10),
+                'pharmacy_id' => 1, 'user_id' => 2, 'subject' => 'How to generate TMDA controlled substance report', 'description' => 'We need to generate a monthly controlled substance report for TMDA. Can you guide us on using the Helix reporting module for this?', 'priority' => 'medium', 'status' => 'resolved', 'category' => 'general_inquiry', 'assigned_to' => 1, 'resolved_at' => now()->subDays(6), 'created_at' => now()->subDays(10),
             ],
             [
                 'pharmacy_id' => 1, 'user_id' => 3, 'subject' => 'POS touchscreen calibration issue', 'description' => 'Touchscreen is registering touches offset from where I touch. Causes errors selecting items. Calibration was fine before moving to new counter.', 'priority' => 'medium', 'status' => 'open', 'category' => 'technical', 'assigned_to' => 1, 'created_at' => now()->subDays(5),
@@ -514,7 +514,7 @@ class AdminModuleSeeder extends Seeder
                 'pharmacy_id' => 1, 'user_id' => 3, 'subject' => 'Controlled substance log not saving entries', 'description' => 'Controlled substance dispensing records disappear after page refresh. This is a compliance issue as TMDA requires accurate records.', 'priority' => 'urgent', 'status' => 'open', 'category' => 'compliance', 'assigned_to' => 1, 'created_at' => now()->subDays(1),
             ],
             [
-                'pharmacy_id' => 1, 'user_id' => 4, 'subject' => 'How to set up automatic daily sales summary emails', 'description' => 'I want Pharmex to send daily sales summary emails every evening. How do I configure the recipient and report format?', 'priority' => 'low', 'status' => 'resolved', 'category' => 'general_inquiry', 'assigned_to' => 1, 'resolved_at' => now()->subDays(7), 'created_at' => now()->subDays(13),
+                'pharmacy_id' => 1, 'user_id' => 4, 'subject' => 'How to set up automatic daily sales summary emails', 'description' => 'I want Helix to send daily sales summary emails every evening. How do I configure the recipient and report format?', 'priority' => 'low', 'status' => 'resolved', 'category' => 'general_inquiry', 'assigned_to' => 1, 'resolved_at' => now()->subDays(7), 'created_at' => now()->subDays(13),
             ],
             [
                 'pharmacy_id' => 1, 'user_id' => 2, 'subject' => 'Tax report missing SDL records', 'description' => 'Skills Development Levy records are missing from our quarterly tax report. We need these for TRA filing. PAYE and VAT show correctly.', 'priority' => 'high', 'status' => 'in_progress', 'category' => 'accounting', 'assigned_to' => 1, 'created_at' => now()->subDays(5),
@@ -529,7 +529,7 @@ class AdminModuleSeeder extends Seeder
                 'pharmacy_id' => 1, 'user_id' => 4, 'subject' => 'Request for customer prescription history view', 'description' => 'As a clinic, we would like to view patient prescription history when they visit our pharmacy. This would help avoid drug interactions and improve care.', 'priority' => 'medium', 'status' => 'open', 'category' => 'feature_request', 'assigned_to' => 1, 'created_at' => now()->subDays(6),
             ],
             [
-                'pharmacy_id' => 1, 'user_id' => 3, 'subject' => 'Barcode labels not printing correctly', 'description' => 'The barcode labels printed from Pharmex are too small for our shelf tags. We need an option to print larger labels with drug name, price, and barcode.', 'priority' => 'low', 'status' => 'open', 'category' => 'technical', 'assigned_to' => 1, 'created_at' => now()->subDays(8),
+                'pharmacy_id' => 1, 'user_id' => 3, 'subject' => 'Barcode labels not printing correctly', 'description' => 'The barcode labels printed from Helix are too small for our shelf tags. We need an option to print larger labels with drug name, price, and barcode.', 'priority' => 'low', 'status' => 'open', 'category' => 'technical', 'assigned_to' => 1, 'created_at' => now()->subDays(8),
             ],
             [
                 'pharmacy_id' => 1, 'user_id' => 2, 'subject' => 'Unable to void a completed transaction', 'description' => 'A customer returned a product but we cannot void the original transaction. The void button is greyed out for transactions older than 24 hours. We need a manager override option.', 'priority' => 'high', 'status' => 'open', 'category' => 'technical', 'assigned_to' => 1, 'created_at' => now()->subDays(1),
@@ -630,7 +630,7 @@ class AdminModuleSeeder extends Seeder
                 'pharmacy_id' => 1,
                 'type' => 'subscription',
                 'amount' => 500000.00,
-                'description' => 'Pharmex Pro Plan - Annual Subscription',
+                'description' => 'Helix Pro Plan - Annual Subscription',
                 'invoice_number' => 'INV-2026-SUB-001',
                 'status' => 'paid',
                 'due_date' => '2026-01-15',
@@ -660,13 +660,13 @@ class AdminModuleSeeder extends Seeder
                 'due_date' => '2026-07-01',
                 'paid_at' => '2026-06-28',
                 'payment_method' => 'mobile_money',
-                'notes' => 'Featured placement on Pharmex customer app homepage',
+                'notes' => 'Featured placement on Helix customer app homepage',
             ],
             [
                 'pharmacy_id' => 1,
                 'type' => 'subscription',
                 'amount' => 50000.00,
-                'description' => 'Pharmex Pro Plan - Monthly Renewal',
+                'description' => 'Helix Pro Plan - Monthly Renewal',
                 'invoice_number' => 'INV-2026-SUB-008',
                 'status' => 'paid',
                 'due_date' => '2026-08-01',
@@ -698,12 +698,12 @@ class AdminModuleSeeder extends Seeder
                 'payment_method' => null,
                 'notes' => 'SMS credits for customer order notifications and reminders',
             ],
-            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Pharmex Pro Plan - Monthly Renewal January', 'invoice_number' => 'INV-2026-SUB-002', 'status' => 'paid', 'due_date' => '2026-02-01', 'paid_at' => '2026-01-30', 'payment_method' => 'mobile_money', 'notes' => 'January 2026 monthly subscription'],
-            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Pharmex Pro Plan - Monthly Renewal February', 'invoice_number' => 'INV-2026-SUB-003', 'status' => 'paid', 'due_date' => '2026-03-01', 'paid_at' => '2026-02-28', 'payment_method' => 'mobile_money', 'notes' => 'February 2026 monthly subscription'],
-            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Pharmex Pro Plan - Monthly Renewal March', 'invoice_number' => 'INV-2026-SUB-004', 'status' => 'paid', 'due_date' => '2026-04-01', 'paid_at' => '2026-03-30', 'payment_method' => 'bank_transfer', 'notes' => 'March 2026 monthly subscription'],
-            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Pharmex Pro Plan - Monthly Renewal April', 'invoice_number' => 'INV-2026-SUB-005', 'status' => 'paid', 'due_date' => '2026-05-01', 'paid_at' => '2026-04-29', 'payment_method' => 'mobile_money', 'notes' => 'April 2026 monthly subscription'],
-            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Pharmex Pro Plan - Monthly Renewal May', 'invoice_number' => 'INV-2026-SUB-006', 'status' => 'paid', 'due_date' => '2026-06-01', 'paid_at' => '2026-05-31', 'payment_method' => 'mobile_money', 'notes' => 'May 2026 monthly subscription'],
-            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Pharmex Pro Plan - Monthly Renewal June', 'invoice_number' => 'INV-2026-SUB-007', 'status' => 'paid', 'due_date' => '2026-07-01', 'paid_at' => '2026-06-30', 'payment_method' => 'bank_transfer', 'notes' => 'June 2026 monthly subscription'],
+            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Helix Pro Plan - Monthly Renewal January', 'invoice_number' => 'INV-2026-SUB-002', 'status' => 'paid', 'due_date' => '2026-02-01', 'paid_at' => '2026-01-30', 'payment_method' => 'mobile_money', 'notes' => 'January 2026 monthly subscription'],
+            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Helix Pro Plan - Monthly Renewal February', 'invoice_number' => 'INV-2026-SUB-003', 'status' => 'paid', 'due_date' => '2026-03-01', 'paid_at' => '2026-02-28', 'payment_method' => 'mobile_money', 'notes' => 'February 2026 monthly subscription'],
+            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Helix Pro Plan - Monthly Renewal March', 'invoice_number' => 'INV-2026-SUB-004', 'status' => 'paid', 'due_date' => '2026-04-01', 'paid_at' => '2026-03-30', 'payment_method' => 'bank_transfer', 'notes' => 'March 2026 monthly subscription'],
+            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Helix Pro Plan - Monthly Renewal April', 'invoice_number' => 'INV-2026-SUB-005', 'status' => 'paid', 'due_date' => '2026-05-01', 'paid_at' => '2026-04-29', 'payment_method' => 'mobile_money', 'notes' => 'April 2026 monthly subscription'],
+            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Helix Pro Plan - Monthly Renewal May', 'invoice_number' => 'INV-2026-SUB-006', 'status' => 'paid', 'due_date' => '2026-06-01', 'paid_at' => '2026-05-31', 'payment_method' => 'mobile_money', 'notes' => 'May 2026 monthly subscription'],
+            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Helix Pro Plan - Monthly Renewal June', 'invoice_number' => 'INV-2026-SUB-007', 'status' => 'paid', 'due_date' => '2026-07-01', 'paid_at' => '2026-06-30', 'payment_method' => 'bank_transfer', 'notes' => 'June 2026 monthly subscription'],
             ['pharmacy_id' => 1, 'type' => 'commission', 'amount' => 55000.00, 'description' => 'Platform commission on January 2026 orders (5%)', 'invoice_number' => 'INV-2026-COM-001', 'status' => 'paid', 'due_date' => '2026-02-05', 'paid_at' => '2026-02-03', 'payment_method' => 'bank_transfer', 'notes' => 'Commission on January sales of TZS 1,100,000'],
             ['pharmacy_id' => 1, 'type' => 'commission', 'amount' => 48000.00, 'description' => 'Platform commission on February 2026 orders (5%)', 'invoice_number' => 'INV-2026-COM-002', 'status' => 'paid', 'due_date' => '2026-03-05', 'paid_at' => '2026-03-04', 'payment_method' => 'mobile_money', 'notes' => 'Commission on February sales of TZS 960,000'],
             ['pharmacy_id' => 1, 'type' => 'commission', 'amount' => 72000.00, 'description' => 'Platform commission on March 2026 orders (5%)', 'invoice_number' => 'INV-2026-COM-003', 'status' => 'paid', 'due_date' => '2026-04-05', 'paid_at' => '2026-04-03', 'payment_method' => 'bank_transfer', 'notes' => 'Commission on March sales of TZS 1,440,000'],
@@ -713,13 +713,13 @@ class AdminModuleSeeder extends Seeder
             ['pharmacy_id' => 1, 'type' => 'service', 'amount' => 75000.00, 'description' => 'SMS credits Q2 2026', 'invoice_number' => 'INV-2026-SRV-002', 'status' => 'paid', 'due_date' => '2026-04-15', 'paid_at' => '2026-04-14', 'payment_method' => 'mobile_money', 'notes' => 'SMS credits for Q2 2026'],
             ['pharmacy_id' => 1, 'type' => 'service', 'amount' => 200000.00, 'description' => 'Custom API integration setup fee', 'invoice_number' => 'INV-2026-SRV-005', 'status' => 'paid', 'due_date' => '2026-03-15', 'paid_at' => '2026-03-14', 'payment_method' => 'bank_transfer', 'notes' => 'One-time API setup for hospital system'],
             ['pharmacy_id' => 1, 'type' => 'service', 'amount' => 50000.00, 'description' => 'Staff training session', 'invoice_number' => 'INV-2026-SRV-006', 'status' => 'paid', 'due_date' => '2026-02-20', 'paid_at' => '2026-02-19', 'payment_method' => 'mobile_money', 'notes' => 'On-site training for 6 staff'],
-            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Pharmex Pro Plan - Monthly Renewal August', 'invoice_number' => 'INV-2026-SUB-009', 'status' => 'pending', 'due_date' => '2026-09-01', 'paid_at' => null, 'payment_method' => null, 'notes' => 'Upcoming August subscription'],
+            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Helix Pro Plan - Monthly Renewal August', 'invoice_number' => 'INV-2026-SUB-009', 'status' => 'pending', 'due_date' => '2026-09-01', 'paid_at' => null, 'payment_method' => null, 'notes' => 'Upcoming August subscription'],
             ['pharmacy_id' => 1, 'type' => 'commission', 'amount' => 92000.00, 'description' => 'Platform commission on August 2026 orders (5%)', 'invoice_number' => 'INV-2026-COM-008', 'status' => 'pending', 'due_date' => '2026-09-05', 'paid_at' => null, 'payment_method' => null, 'notes' => 'Projected commission on estimated August sales'],
             ['pharmacy_id' => 1, 'type' => 'service', 'amount' => 150000.00, 'description' => 'Premium listing - August 2026', 'invoice_number' => 'INV-2026-SRV-007', 'status' => 'pending', 'due_date' => '2026-08-01', 'paid_at' => null, 'payment_method' => null, 'notes' => 'Featured placement August'],
             ['pharmacy_id' => 1, 'type' => 'service', 'amount' => 75000.00, 'description' => 'SMS credits Q3 2026', 'invoice_number' => 'INV-2026-SRV-008', 'status' => 'paid', 'due_date' => '2026-08-01', 'paid_at' => '2026-07-30', 'payment_method' => 'mobile_money', 'notes' => 'SMS credits for Q3'],
             ['pharmacy_id' => 1, 'type' => 'service', 'amount' => 100000.00, 'description' => 'Cold chain monitoring device setup', 'invoice_number' => 'INV-2026-SRV-009', 'status' => 'paid', 'due_date' => '2026-06-15', 'paid_at' => '2026-06-14', 'payment_method' => 'bank_transfer', 'notes' => 'Temperature sensor installation'],
             ['pharmacy_id' => 1, 'type' => 'service', 'amount' => 25000.00, 'description' => 'Extra 10GB cloud backup storage', 'invoice_number' => 'INV-2026-SRV-010', 'status' => 'paid', 'due_date' => '2026-05-01', 'paid_at' => '2026-04-30', 'payment_method' => 'mobile_money', 'notes' => 'Additional cloud storage'],
-            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Pharmex Pro Plan - Monthly Renewal September', 'invoice_number' => 'INV-2026-SUB-010', 'status' => 'pending', 'due_date' => '2026-10-01', 'paid_at' => null, 'payment_method' => null, 'notes' => 'Upcoming September subscription'],
+            ['pharmacy_id' => 1, 'type' => 'subscription', 'amount' => 50000.00, 'description' => 'Helix Pro Plan - Monthly Renewal September', 'invoice_number' => 'INV-2026-SUB-010', 'status' => 'pending', 'due_date' => '2026-10-01', 'paid_at' => null, 'payment_method' => null, 'notes' => 'Upcoming September subscription'],
             ['pharmacy_id' => 1, 'type' => 'commission', 'amount' => 95000.00, 'description' => 'Platform commission on September 2026 orders (5%)', 'invoice_number' => 'INV-2026-COM-009', 'status' => 'overdue', 'due_date' => '2026-07-05', 'paid_at' => null, 'payment_method' => null, 'notes' => 'Overdue commission - follow up needed'],
             ['pharmacy_id' => 1, 'type' => 'service', 'amount' => 300000.00, 'description' => 'Annual conference sponsorship package', 'invoice_number' => 'INV-2026-SRV-011', 'status' => 'pending', 'due_date' => '2026-09-15', 'paid_at' => null, 'payment_method' => null, 'notes' => 'Gold sponsor for Annual Conference 2026'],
             ['pharmacy_id' => 1, 'type' => 'service', 'amount' => 50000.00, 'description' => 'Branded receipt paper and pharmacy materials', 'invoice_number' => 'INV-2026-SRV-012', 'status' => 'paid', 'due_date' => '2026-04-10', 'paid_at' => '2026-04-09', 'payment_method' => 'mobile_money', 'notes' => 'Custom branded receipt rolls'],

@@ -13,7 +13,7 @@ class SubscriptionPlanSeeder extends Seeder
             [
                 'name' => '1 Month',
                 'slug' => 'monthly',
-                'description' => 'Perfect for trying out Pharmex. Full access for 1 month.',
+                'description' => 'Perfect for trying out Helix. Full access for 1 month.',
                 'duration_months' => 1,
                 'price' => 49000,
                 'currency' => 'TZS',

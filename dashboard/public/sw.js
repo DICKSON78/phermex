@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pharmex-v5';
+const CACHE_NAME = 'helix-v5';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

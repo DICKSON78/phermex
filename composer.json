@@ -1,7 +1,7 @@
 {
-    "name": "pharmex/pharmex-app",
+    "name": "helix/helix-app",
     "type": "project",
-    "description": "Pharmex Pharmacy Management System",
+    "description": "Helix Pharmacy Management System",
     "keywords": ["laravel", "pharmacy", "management"],
     "license": "MIT",
     "require": {

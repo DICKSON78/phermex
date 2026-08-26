@@ -11,15 +11,15 @@ export default function UseAppPage() {
           <div className="w-12 h-12 bg-[#0FD452] rounded-xl flex items-center justify-center">
             <Pill className="w-7 h-7 text-[#000F14]" />
           </div>
-          <span className="text-gray-600 font-black text-3xl">PHARMEX</span>
+          <span className="text-gray-600 font-black text-3xl">HELIX</span>
         </div>
 
         <div className="w-20 h-20 mx-auto bg-[#0FD452]/10 rounded-2xl flex items-center justify-center mb-6">
           <Smartphone className="w-10 h-10 text-[#0FD452]" />
         </div>
-        <h1 className="text-3xl font-black text-gray-600 mb-3">Use the Pharmex App</h1>
+        <h1 className="text-3xl font-black text-gray-600 mb-3">Use the Helix App</h1>
         <p className="text-gray-500 text-lg leading-relaxed mb-8">
-          Ordering has moved to the Pharmex mobile app. Download it on your phone to browse pharmacies,
+          Ordering has moved to the Helix mobile app. Download it on your phone to browse pharmacies,
           order medicines, upload prescriptions, and track your deliveries.
         </p>
 

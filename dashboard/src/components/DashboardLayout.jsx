@@ -418,7 +418,7 @@ export default function DashboardLayout({ role }) {
             <Stethoscope className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-white font-bold text-[15px] leading-tight">PHARMEX</h1>
+            <h1 className="text-white font-bold text-[15px] leading-tight">HELIX</h1>
             <p className="text-green-200/60 text-[11px]">
               {role === 'admin' ? 'Admin Panel' : 'Pharmacy System'}
             </p>

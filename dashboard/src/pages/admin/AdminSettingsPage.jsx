@@ -40,14 +40,14 @@ export default function AdminSettingsPage() {
       const response = await api.get('/admin/settings')
       const remote = response.data?.data || response.data || {}
       setSettings({
-        platform: remote.platform || { name: 'Pharmex', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
+        platform: remote.platform || { name: 'Helix', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
         plans: remote.plans || [],
         notifications: remote.notifications || { email_notifications: true, sms_notifications: false },
         data_retention: remote.retention || remote.data_retention || { audit_log_retention_days: 365, order_history_retention_days: 730, notification_retention_days: 90 },
       })
     } catch {
       setSettings({
-        platform: { name: 'Pharmex', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
+        platform: { name: 'Helix', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
         plans: [],
         notifications: { email_notifications: true, sms_notifications: false },
         data_retention: { audit_log_retention_days: 365, order_history_retention_days: 730, notification_retention_days: 90 },

@@ -110,7 +110,7 @@ export default function SubscriptionBanner() {
           </div>
           <div className="flex-1">
             <span className="text-white/90 text-sm font-bold">Subscription Expired</span>
-            <p className="text-white/70 text-xs mt-0.5">Renew to continue using Pharmex</p>
+            <p className="text-white/70 text-xs mt-0.5">Renew to continue using Helix</p>
           </div>
           <button
             onClick={() => navigate('/subscribe')}

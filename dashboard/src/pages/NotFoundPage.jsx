@@ -26,7 +26,7 @@ export default function NotFoundPage() {
           <circle cx="150" cy="140" r="8" stroke="#0FD452" strokeWidth="1.5" fill="none" />
           <rect x="146" y="134" width="8" height="12" rx="1" fill="#0FD452" />
           <rect x="70" y="40" width="60" height="15" rx="6" stroke="#0FD452" strokeWidth="1.5" fill="none" />
-          <text x="100" y="51" textAnchor="middle" fill="#0FD452" fontSize="7" fontWeight="bold">PHARMEX</text>
+          <text x="100" y="51" textAnchor="middle" fill="#0FD452" fontSize="7" fontWeight="bold">HELIX</text>
         </svg>
       </div>
 

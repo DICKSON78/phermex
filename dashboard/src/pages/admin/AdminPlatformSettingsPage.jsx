@@ -45,7 +45,7 @@ export default function AdminPlatformSettingsPage() {
   const [activeSection, setActiveSection] = useState('general')
   const [settings, setSettings] = useState({
     general: {
-      platform_name: 'Pharmex',
+      platform_name: 'Helix',
       platform_url: 'https://pharmexdawa.online',
       support_email: 'support@pharmexdawa.online',
       support_phone: '+255 625 460 081',

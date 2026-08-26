@@ -81,7 +81,7 @@ export default function VerifyEmailPage() {
             <div className="w-12 h-12 bg-[#0FD452] rounded-xl flex items-center justify-center">
               <Pill className="w-7 h-7 text-[#000F14]" />
             </div>
-            <span className="text-gray-600 font-black text-3xl">PHARMEX</span>
+            <span className="text-gray-600 font-black text-3xl">HELIX</span>
           </div>
           <div className="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <Mail className="w-8 h-8 text-yellow-600" />

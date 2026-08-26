@@ -399,7 +399,7 @@ export default function RegisterOwnerPage() {
             <div className="w-12 h-12 bg-[#0FD452] rounded-xl flex items-center justify-center">
               <Pill className="w-7 h-7 text-[#000F14]" />
             </div>
-            <span className="text-xl font-bold text-gray-600">PHARMEX</span>
+            <span className="text-xl font-bold text-gray-600">HELIX</span>
           </Link>
         </div>
 
@@ -546,7 +546,7 @@ export default function RegisterOwnerPage() {
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <Store className="w-5 h-5 text-gray-400" />
                       </div>
-                      <input type="text" value={p.pharmacy_name} onChange={(e) => updatePharmacy(i, 'pharmacy_name', e.target.value)} className={`${inputClasses} ${errors[`p${i}_pharmacy_name`] ? 'border-red-400' : ''}`} placeholder="e.g. Pharmex Central Pharmacy" />
+                      <input type="text" value={p.pharmacy_name} onChange={(e) => updatePharmacy(i, 'pharmacy_name', e.target.value)} className={`${inputClasses} ${errors[`p${i}_pharmacy_name`] ? 'border-red-400' : ''}`} placeholder="e.g. Helix Central Pharmacy" />
                     </div>
                     {errors[`p${i}_pharmacy_name`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_pharmacy_name`]}</p>}
                   </div>
@@ -672,7 +672,7 @@ export default function RegisterOwnerPage() {
                 <div key={`step-location-${i}-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-2">
                     <p className="text-blue-700 text-sm font-medium">{multiple ? `Set the location for ${p.pharmacy_name || `Branch ${i + 1}`}` : 'Why is location important?'}</p>
-                    <p className="text-blue-600 text-xs mt-1">Customers discover pharmacies near them on the Pharmex app. Accurate location helps patients find your pharmacy quickly.</p>
+                    <p className="text-blue-600 text-xs mt-1">Customers discover pharmacies near them on the Helix app. Accurate location helps patients find your pharmacy quickly.</p>
                   </div>
 
                   <LocationMap

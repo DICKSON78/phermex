@@ -61,7 +61,7 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'noreply@pharmex.com'),
-        'name' => env('MAIL_FROM_NAME', 'Pharmex'),
+        'name' => env('MAIL_FROM_NAME', 'Helix'),
     ],
 
     'markdown' => [

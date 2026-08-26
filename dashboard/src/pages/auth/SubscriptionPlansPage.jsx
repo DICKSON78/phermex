@@ -165,8 +165,8 @@ export default function SubscriptionPlansPage() {
           <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Subscription Plans</h1>
           <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto">
             {subscription?.days_remaining > 0
-              ? `Your trial ends in ${subscription.days_remaining} day${subscription.days_remaining === 1 ? '' : 's'}. Choose a plan to keep using Pharmex.`
-              : 'Your trial has expired. Choose a plan to continue using Pharmex.'}
+              ? `Your trial ends in ${subscription.days_remaining} day${subscription.days_remaining === 1 ? '' : 's'}. Choose a plan to keep using Helix.`
+              : 'Your trial has expired. Choose a plan to continue using Helix.'}
           </p>
         </div>
 

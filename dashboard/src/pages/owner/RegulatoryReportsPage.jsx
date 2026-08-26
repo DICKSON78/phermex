@@ -195,7 +195,7 @@ export default function RegulatoryReportsPage() {
             </div>
             <div className="bg-gray-50 rounded-lg p-6 mb-4">
               <div className="text-center mb-4">
-                <h4 className="font-bold text-dark text-lg">PHARMEX PHARMACY</h4>
+                <h4 className="font-bold text-dark text-lg">HELIX PHARMACY</h4>
                 <p className="text-sm text-gray-500">{TEMPLATE_INFO[showPreview.report_type]?.label} — {months[(showPreview.report_period_month || 1) - 1]} {showPreview.report_period_year}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">

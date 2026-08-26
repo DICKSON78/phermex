@@ -162,7 +162,7 @@ export default function OwnerSupportPage() {
             <LifeBuoy className="w-6 h-6 text-[#0FD452]" />
             Support
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Reach the Pharmex admin team for help with your pharmacy account.</p>
+          <p className="text-sm text-gray-500 mt-1">Reach the Helix admin team for help with your pharmacy account.</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -277,7 +277,7 @@ export default function OwnerSupportPage() {
                 }`}
               >
                 <p className="font-semibold text-xs mb-1">
-                  {r.user?.role === 'admin' ? 'Pharmex Admin' : r.user?.name || 'You'}
+                  {r.user?.role === 'admin' ? 'Helix Admin' : r.user?.name || 'You'}
                   <span className="font-normal text-gray-400 ml-2">{new Date(r.created_at).toLocaleString()}</span>
                 </p>
                 <p>{r.message}</p>

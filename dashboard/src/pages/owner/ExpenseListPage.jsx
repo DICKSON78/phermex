@@ -37,10 +37,19 @@ export default function ExpenseListPage() {
   const [activeMenu, setActiveMenu] = useState(null)
   const [showFilters, setShowFilters] = useState(false)
   const [confirmAction, setConfirmAction] = useState(null)
+  const [categories, setCategories] = useState(['Rent', 'Utilities', 'Salaries', 'Supplies', 'Marketing', 'Other'])
 
   useEffect(() => {
     fetchExpenses()
+    loadCategories()
   }, [])
+
+  const loadCategories = async () => {
+    try {
+      const res = await api.get('/expenses/categories')
+      if (res.data?.categories?.length) setCategories(res.data.categories)
+    } catch (e) { /* use defaults */ }
+  }
 
   const fetchExpenses = async () => {
     try {
@@ -193,13 +202,13 @@ export default function ExpenseListPage() {
         {showFilters && (
           <div className="px-6 pb-4 border-t border-gray-100 pt-4 flex items-center gap-3 flex-wrap">
             <span className="text-xs text-gray-500">Category:</span>
-            {Object.keys(categoryColors).map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(categoryFilter === cat ? '' : cat)}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                   categoryFilter === cat
-                    ? `${categoryColors[cat].bg} ${categoryColors[cat].text} ring-2 ring-offset-1 ring-current`
+                    ? `${(categoryColors[cat] || categoryColors.Other).bg} ${(categoryColors[cat] || categoryColors.Other).text} ring-2 ring-offset-1 ring-current`
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >

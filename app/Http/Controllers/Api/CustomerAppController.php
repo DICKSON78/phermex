@@ -334,6 +334,8 @@ class CustomerAppController extends Controller
                 'delivery_phone' => 'sometimes|nullable|string|max:20',
                 'delivery_latitude' => 'sometimes|nullable|numeric|between:-90,90',
                 'delivery_longitude' => 'sometimes|nullable|numeric|between:-180,180',
+                'payment_method' => 'sometimes|in:cash,card,mobile,bank',
+                'payment_phone' => 'sometimes|nullable|string|max:20',
             ]);
 
             $user = $request->user();
@@ -399,7 +401,7 @@ class CustomerAppController extends Controller
                 'discount' => 0,
                 'tax' => 0,
                 'total' => $subtotal,
-                'payment_method' => 'cash',
+                'payment_method' => $validated['payment_method'] ?? 'cash',
                 'payment_status' => 'unpaid',
                 'order_status' => 'pending',
                 'notes' => $validated['notes'] ?? null,
@@ -409,6 +411,33 @@ class CustomerAppController extends Controller
                 'delivery_longitude' => $validated['delivery_longitude'] ?? null,
                 'processed_by' => $pharmacy->owner_id,
             ]);
+
+            // Initiate ClickPesa push for mobile money payments
+            $pushInitiated = false;
+            if (($validated['payment_method'] ?? 'cash') === 'mobile') {
+                $paymentPhone = $validated['payment_phone'] ?? $user->phone;
+                if (!empty($paymentPhone) && app(\App\Services\ClickPesaService::class)->enabled()) {
+                    try {
+                        $pushRef = 'HELIX-' . $order->id . '-' . strtoupper(Str::random(6));
+                        $push = app(\App\Services\ClickPesaService::class)->initiatePush(
+                            (string) $subtotal,
+                            $paymentPhone,
+                            $pushRef
+                        );
+                        $order->update([
+                            'payment_reference' => $push['orderReference'] ?? $pushRef,
+                            'payment_details' => [
+                                'channel' => $push['channel'] ?? 'M-PESA',
+                                'status' => $push['status'] ?? 'PROCESSING',
+                                'phone' => $paymentPhone,
+                            ],
+                        ]);
+                        $pushInitiated = true;
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('ClickPesa push init failed for order ' . $order->id . ': ' . $e->getMessage());
+                    }
+                }
+            }
 
             foreach ($orderItems as $oi) {
                 OrderItem::create(array_merge($oi, ['order_id' => $order->id]));
@@ -431,6 +460,13 @@ class CustomerAppController extends Controller
             return response()->json([
                 'message' => 'Order placed successfully.',
                 'data' => $order,
+                'payment' => [
+                    'method' => $order->payment_method,
+                    'status' => $order->payment_status,
+                    'push_initiated' => $pushInitiated,
+                    'reference' => $order->payment_reference,
+                    'details' => $order->payment_details,
+                ],
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();

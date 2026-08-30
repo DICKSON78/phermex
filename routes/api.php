@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\AdminJobController;
 use App\Http\Controllers\Api\AdminMarketingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\ExpenseController;
@@ -130,7 +131,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/support', [CustomerAppController::class, 'mySupportTickets']);
         Route::post('/support', [CustomerAppController::class, 'createSupportTicket']);
         Route::post('/support/{id}/reply', [CustomerAppController::class, 'replySupportTicket']);
+        Route::post('/payments/device-token', [PaymentController::class, 'registerDeviceToken']);
+        Route::get('/payments/{order_id}/status', [PaymentController::class, 'queryPaymentStatus']);
     });
+
+    Route::post('/payments/webhook', [PaymentController::class, 'handleWebhook']);
 
     Route::middleware([EnsureSubscriptionActive::class, AutoScopePharmacy::class, PharmacyScopeMiddleware::class])->group(function () {
         Route::get('/pharmacies', [PharmacyController::class, 'index']);
@@ -342,6 +347,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/drug-recalls/{id}/process', [DrugRecallController::class, 'process']);
 
         Route::get('/expenses/monthly-summary', [ExpenseController::class, 'monthlySummary']);
+        Route::get('/expenses/categories', [ExpenseController::class, 'categories']);
         Route::get('/expenses', [ExpenseController::class, 'index']);
         Route::post('/expenses', [ExpenseController::class, 'store']);
         Route::get('/expenses/{id}', [ExpenseController::class, 'show']);

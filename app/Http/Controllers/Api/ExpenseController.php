@@ -238,4 +238,31 @@ class ExpenseController extends Controller
             ], 500);
         }
     }
+
+    public function categories(Request $request): JsonResponse
+    {
+        try {
+            $pharmacyId = $request->input('pharmacy_id');
+
+            $existing = Expense::where('pharmacy_id', $pharmacyId)
+                ->whereNotNull('category')
+                ->distinct()
+                ->pluck('category')
+                ->map(fn ($c) => (string) $c)
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $defaults = ['Rent', 'Utilities', 'Salaries', 'Supplies', 'Marketing', 'Other'];
+
+            $categories = array_values(array_unique(array_merge($defaults, $existing)));
+
+            return response()->json(['categories' => $categories]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to load categories.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
 }

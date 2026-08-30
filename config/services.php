@@ -30,4 +30,16 @@ return [
             ],
         ],
     ],
+
+    'clickpesa' => [
+        'enabled' => env('CLICKPESA_ENABLED', false),
+        'client_id' => env('CLICKPESA_CLIENT_ID', ''),
+        'api_key' => env('CLICKPESA_API_KEY', ''),
+        'base_url' => env('CLICKPESA_BASE_URL', 'https://api.clickpesa.com/third-parties'),
+    ],
+
+    'fcm' => [
+        'server_key' => env('FCM_SERVER_KEY', ''),
+        'project_id' => env('FCM_PROJECT_ID', ''),
+    ],
 ];

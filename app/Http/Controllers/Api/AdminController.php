@@ -138,6 +138,21 @@ class AdminController extends Controller
                     'time' => $log->created_at?->diffForHumans(),
                 ]);
 
+            $activeSessions = \App\Models\AuditLog::where('action', 'like', '%login%')
+                ->where('created_at', '>=', now()->subMinutes(30))
+                ->distinct('user_id')
+                ->count('user_id');
+            $totalRequestsToday = \App\Models\AuditLog::where('created_at', '>=', now()->startOfDay())->count();
+            $failedToday = \App\Models\AuditLog::where('created_at', '>=', now()->startOfDay())
+                ->where(function ($q) {
+                    $q->where('action', 'like', '%failed%')
+                        ->orWhere('action', 'like', '%error%');
+                })
+                ->count();
+            $errorRate = $totalRequestsToday > 0 ? round(($failedToday / $totalRequestsToday) * 100, 1) : 0;
+            $apiResponseRate = $totalRequestsToday > 0 ? round(100 - $errorRate, 1) : 99.9;
+            $uptimeRate = 99.9;
+
             return response()->json([
                 'total_pharmacies' => $totalPharmacies,
                 'total_users' => $totalUsers,
@@ -156,10 +171,10 @@ class AdminController extends Controller
                 'top_pharmacies_by_revenue' => $topPharmaciesByRevenue,
                 'recent_activity' => $recentActivity,
                 'system_health' => [
-                    'api_response' => 99.8,
-                    'uptime' => 99.9,
-                    'error_rate' => 0.2,
-                    'active_sessions' => $totalUsers,
+                    'api_response' => $apiResponseRate,
+                    'uptime' => $uptimeRate,
+                    'error_rate' => $errorRate,
+                    'active_sessions' => $activeSessions,
                 ],
             ]);
         } catch (\Exception $e) {

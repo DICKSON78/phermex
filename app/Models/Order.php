@@ -24,6 +24,8 @@ class Order extends Model
         'total',
         'payment_method',
         'payment_status',
+        'payment_reference',
+        'payment_details',
         'order_status',
         'notes',
         'delivery_address',
@@ -38,6 +40,7 @@ class Order extends Model
         'discount' => 'decimal:2',
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
+        'payment_details' => 'array',
     ];
 
     public function pharmacy(): BelongsTo

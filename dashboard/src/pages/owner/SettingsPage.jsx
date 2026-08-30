@@ -574,7 +574,7 @@ export default function SettingsPage() {
             )}
           </div>
           <button
-            onClick={() => navigate(currentBase() + '/settings')}
+            onClick={() => navigate('/subscribe')}
             className="btn-primary"
           >
             Upgrade Plan

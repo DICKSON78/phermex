@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toArray } from '../../utils/safeData';
-import { Plus, FileCheck, Send, Eye, Clock, CheckCircle, FileText, Hash, Calendar, ShieldCheck, MapPin, Zap, Send as SendIcon } from 'lucide-react'
+import { Plus, FileCheck, Send, Eye, Clock, CheckCircle, FileText, Hash, Calendar, ShieldCheck, MapPin, Zap } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
@@ -17,7 +17,13 @@ const TEMPLATE_INFO = {
 }
 
 export default function RegulatoryReportsPage() {
-  const { pharmacyId } = useAuth()
+  const { pharmacyId, user } = useAuth()
+  const currentPharmacy =
+    user?.current_pharmacy ??
+    user?.currentPharmacy ??
+    (user?.pharmacy || []).find((p) => p.id === pharmacyId) ??
+    (user?.pharmacy || [])[0]
+  const pharmacyName = currentPharmacy?.pharmacy_name || currentPharmacy?.name || 'Phermex Pharmacy'
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [showGenerate, setShowGenerate] = useState(false)
@@ -195,7 +201,7 @@ export default function RegulatoryReportsPage() {
             </div>
             <div className="bg-gray-50 rounded-lg p-6 mb-4">
               <div className="text-center mb-4">
-                <h4 className="font-bold text-dark text-lg">HELIX PHARMACY</h4>
+                <h4 className="font-bold text-dark text-lg">{pharmacyName}</h4>
                 <p className="text-sm text-gray-500">{TEMPLATE_INFO[showPreview.report_type]?.label} — {months[(showPreview.report_period_month || 1) - 1]} {showPreview.report_period_year}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">

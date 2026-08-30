@@ -54,26 +54,14 @@ export default function AdminContentShowPage() {
   const [loading, setLoading] = useState(true)
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [toggling, setToggling] = useState(false)
+  const [error, setError] = useState(null)
 
   const fetchPost = useCallback(async () => {
     try {
       const response = await api.get(`/admin/content/${id}`)
       setPost(response.data.data || response.data)
     } catch {
-      setPost({
-        id: Number(id),
-        title: 'Sample Content Post',
-        type: 'announcement',
-        target: 'All',
-        status: 'active',
-        date: '2026-07-15',
-        updatedAt: '2026-07-18',
-        author: 'Admin',
-        tags: ['pharmacy', 'update'],
-        content: 'This is a sample content post used for demonstration purposes. It contains important information for all pharmacy owners and managers.',
-        views: 1247,
-        engagement: 89,
-      })
+      setError('Failed to load content details')
     } finally {
       setLoading(false)
     }
@@ -95,7 +83,7 @@ export default function AdminContentShowPage() {
     setToggling(true)
     try {
       const newStatus = post.status === 'active' ? 'draft' : 'active'
-      await api.patch(`/admin/content/${id}`, { status: newStatus })
+      await api.patch(`/admin/content/${id}/toggle-status`, { status: newStatus })
       setPost({ ...post, status: newStatus })
     } catch {
       setPost({ ...post, status: post.status === 'active' ? 'draft' : 'active' })
@@ -115,6 +103,16 @@ export default function AdminContentShowPage() {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 text-[#0FD452] animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 flex flex-col items-center justify-center min-h-[400px]">
+        <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
+        <p className="text-gray-600 text-sm">{error}</p>
+        <button onClick={() => navigate('/dashboard/content')} className="text-[#0FD452] mt-2 text-sm font-medium hover:underline">Go back</button>
       </div>
     )
   }

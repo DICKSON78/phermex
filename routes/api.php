@@ -410,6 +410,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{id}', [AdminUserController::class, 'update']);
         Route::patch('/users/{id}', [AdminUserController::class, 'updateStatus']);
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
+        Route::post('/users/{id}/message', [AdminUserController::class, 'sendMessage']);
 
         // Admin Settings
         Route::get('/settings', [AdminSettingController::class, 'index']);

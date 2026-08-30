@@ -36,6 +36,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts'
+import toast from 'react-hot-toast'
 import api from '../../services/api'
 
 const DATE_RANGES = [
@@ -75,6 +76,39 @@ export default function ReportsPage() {
   const [customDateTo, setCustomDateTo] = useState('')
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState(null)
+
+  const handleExport = () => {
+    if (!data) return
+    const activeData = data[activeTab]
+    if (!activeData) { toast.error('No data to export'); return }
+
+    let headers, rows
+    if (activeTab === 'financial' && activeData.monthlyPL) {
+      headers = ['Month', 'Revenue', 'Expenses', 'Net Profit']
+      rows = activeData.monthlyPL.map(r => [r.month, r.revenue, r.expenses, r.profit])
+    } else if (activeTab === 'sales' && activeData.revenueChart) {
+      headers = ['Date', 'Revenue']
+      rows = activeData.revenueChart.map(r => [r.date, r.revenue])
+    } else if (activeTab === 'inventory') {
+      headers = ['Item', 'Stock', 'Reorder Level', 'Status']
+      rows = activeData.lowStockItems.map(r => [r.name, r.currentStock, r.reorderLevel, r.currentStock === 0 ? 'Out of stock' : 'Low'])
+    } else if (activeTab === 'customers' && activeData.topCustomers) {
+      headers = ['Customer', 'Orders', 'Total Spent']
+      rows = activeData.topCustomers.map(r => [r.name, r.orders, r.totalSpent])
+    } else {
+      toast.error('No tabular data to export'); return
+    }
+
+    const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `report-${activeTab}-${dateRange}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Report exported')
+  }
 
   useEffect(() => {
     fetchReportData()
@@ -206,17 +240,10 @@ export default function ReportsPage() {
         )}
 
         <div className="ml-auto">
-          <div className="relative group">
-            <button className="btn-secondary">
-              <Download className="w-4 h-4" />
-              Export
-            </button>
-            <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-10">
-              <div className="bg-[#000F14] text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
-                Coming soon
-              </div>
-            </div>
-          </div>
+          <button onClick={handleExport} className="btn-secondary">
+            <Download className="w-4 h-4" />
+            Export
+          </button>
         </div>
       </div>
 

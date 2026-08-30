@@ -294,4 +294,39 @@ class AdminUserController extends Controller
             ], 500);
         }
     }
+
+    public function sendMessage(Request $request, $id): JsonResponse
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            $validated = $request->validate([
+                'message' => 'required|string|max:5000',
+            ]);
+
+            \Illuminate\Support\Facades\Mail::raw($validated['message'], function ($message) use ($user) {
+                $message->to($user->email)
+                    ->subject('Message from Helix Admin')
+                    ->from(config('mail.from.address'), config('mail.from.name'));
+            });
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'user_message_sent',
+                'model_type' => User::class,
+                'model_id' => $user->id,
+                'new_values' => ['to' => $user->email],
+                'ip_address' => $request->ip(),
+            ]);
+
+            return response()->json(['message' => 'Message sent successfully.']);
+        } catch (\Illuminate\Database\ModelNotFoundException) {
+            return response()->json(['message' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to send message.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
 }

@@ -6,6 +6,7 @@ import {
   Calendar, Pill, Tag, Package, DollarSign, FileText, User,
 } from 'lucide-react'
 import api from '../../services/api'
+import toast from 'react-hot-toast'
 
 
 const TYPE_CONFIG = {
@@ -28,21 +29,25 @@ export default function StockMovementsPage() {
   const [dateTo, setDateTo] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [showAdjustForm, setShowAdjustForm] = useState(false)
-  const [adjustDrug, setAdjustDrug] = useState('')
-  const [adjustDir, setAdjustDir] = useState('increase')
-  const [adjustQty, setAdjustQty] = useState('')
-  const [adjustReason, setAdjustReason] = useState('')
-  const [adjustRef, setAdjustRef] = useState('')
+  const [adjustmentForm, setAdjustmentForm] = useState({ drug_id: '', type: 'adjustment_in', quantity: '', reason: '', unit_cost: '' })
+  const [drugs, setDrugs] = useState([])
   const pageSize = 25
 
   useEffect(() => {
     fetchMovements()
+    const fetchDrugs = async () => {
+      try {
+        const drugsRes = await api.get('/drugs')
+        setDrugs(drugsRes.data?.data || drugsRes.data || [])
+      } catch (e) { /* ignore */ }
+    }
+    fetchDrugs()
   }, [])
 
   const fetchMovements = async () => {
     setLoading(true)
     try {
-      const res = await api.get('/stock-movements')
+      const res = await api.get('/drug-movements')
       setMovements(toArray(res.data))
     } catch {
       setMovements([])
@@ -84,28 +89,26 @@ export default function StockMovementsPage() {
     { label: 'Expiries', value: stats.expiries, icon: XCircle, color: 'bg-red-100 text-red-600' },
   ]
 
-  const handleManualAdjustment = () => {
-    if (!adjustDrug.trim() || !adjustQty) return
-    const qty = parseInt(adjustQty, 10)
-    const newMovement = {
-      id: Date.now(),
-      drug_name: adjustDrug,
-      type: 'adjustment',
-      quantity: adjustDir === 'increase' ? qty : -qty,
-      unit_cost: 0,
-      total_value: 0,
-      reference: adjustRef || `ADJ-${Date.now()}`,
-      performed_by: 'Owner',
-      notes: adjustReason || `Manual ${adjustDir}`,
-      created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
+  const handleManualAdjustment = async () => {
+    if (!adjustmentForm.drug_id || !adjustmentForm.quantity || !adjustmentForm.reason) {
+      toast.error('Please fill in all required fields')
+      return
     }
-    setMovements((prev) => [newMovement, ...prev])
-    setShowAdjustForm(false)
-    setAdjustDrug('')
-    setAdjustDir('increase')
-    setAdjustQty('')
-    setAdjustReason('')
-    setAdjustRef('')
+    try {
+      const res = await api.post('/drug-movements', {
+        drug_id: parseInt(adjustmentForm.drug_id),
+        type: adjustmentForm.type,
+        quantity: parseInt(adjustmentForm.quantity),
+        reason: adjustmentForm.reason,
+        unit_cost: parseFloat(adjustmentForm.unit_cost || 0)
+      })
+      setShowAdjustForm(false)
+      setAdjustmentForm({ drug_id: '', type: 'adjustment_in', quantity: '', reason: '', unit_cost: '' })
+      toast.success('Stock adjustment recorded')
+      fetchMovements()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to record adjustment')
+    }
   }
 
   return (
@@ -354,46 +357,37 @@ export default function StockMovementsPage() {
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Drug Name</label>
-                  <input
-                    type="text"
-                    value={adjustDrug}
-                    onChange={(e) => setAdjustDrug(e.target.value)}
-                    placeholder="Enter drug name"
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Drug</label>
+                  <select
+                    value={adjustmentForm.drug_id}
+                    onChange={(e) => setAdjustmentForm({ ...adjustmentForm, drug_id: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
-                  />
+                  >
+                    <option value="">Select drug</option>
+                    {drugs.map((d) => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Direction</label>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setAdjustDir('increase')}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
-                        adjustDir === 'increase'
-                          ? 'bg-green-50 border-green-300 text-green-700'
-                          : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
-                      }`}
-                    >
-                      Increase (+)
-                    </button>
-                    <button
-                      onClick={() => setAdjustDir('decrease')}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
-                        adjustDir === 'decrease'
-                          ? 'bg-red-50 border-red-300 text-red-700'
-                          : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
-                      }`}
-                    >
-                      Decrease (-)
-                    </button>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Type</label>
+                  <select
+                    value={adjustmentForm.type}
+                    onChange={(e) => setAdjustmentForm({ ...adjustmentForm, type: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
+                  >
+                    <option value="adjustment_in">Adjustment In (+)</option>
+                    <option value="adjustment_out">Adjustment Out (-)</option>
+                    <option value="return">Return</option>
+                    <option value="expiry">Expiry</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Quantity</label>
                   <input
                     type="number"
-                    value={adjustQty}
-                    onChange={(e) => setAdjustQty(e.target.value)}
+                    value={adjustmentForm.quantity}
+                    onChange={(e) => setAdjustmentForm({ ...adjustmentForm, quantity: e.target.value })}
                     placeholder="0"
                     min="1"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
@@ -403,19 +397,21 @@ export default function StockMovementsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Reason</label>
                   <input
                     type="text"
-                    value={adjustReason}
-                    onChange={(e) => setAdjustReason(e.target.value)}
+                    value={adjustmentForm.reason}
+                    onChange={(e) => setAdjustmentForm({ ...adjustmentForm, reason: e.target.value })}
                     placeholder="Reason for adjustment"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Reference (Optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Unit Cost (Optional)</label>
                   <input
-                    type="text"
-                    value={adjustRef}
-                    onChange={(e) => setAdjustRef(e.target.value)}
-                    placeholder="Reference code"
+                    type="number"
+                    value={adjustmentForm.unit_cost}
+                    onChange={(e) => setAdjustmentForm({ ...adjustmentForm, unit_cost: e.target.value })}
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
                   />
                 </div>
@@ -429,7 +425,7 @@ export default function StockMovementsPage() {
                 </button>
                 <button
                   onClick={handleManualAdjustment}
-                  disabled={!adjustDrug.trim() || !adjustQty}
+                  disabled={!adjustmentForm.drug_id || !adjustmentForm.quantity || !adjustmentForm.reason}
                   className="flex items-center gap-2 px-4 py-2.5 bg-[#0FD452] text-white rounded-xl text-sm font-semibold hover:bg-[#0bc246] disabled:opacity-50 transition-colors"
                 >
                   <RefreshCw className="w-4 h-4" />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import { toArray } from '../../utils/safeData';
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../../services/api'
@@ -142,8 +143,8 @@ export default function PrescriptionFormPage() {
       }
       await api.post('/prescriptions', payload)
       navigate(`${base}/prescriptions`)
-    } catch {
-      navigate(`${base}/prescriptions`)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save prescription')
     } finally {
       setSubmitting(false)
     }

@@ -7,6 +7,12 @@ import { useAuth } from '../../contexts/AuthContext'
 
 const STATUS_COLORS = { pending: 'bg-yellow-100 text-yellow-700', approved: 'bg-blue-100 text-blue-700', in_transit: 'bg-indigo-100 text-indigo-700', completed: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600' }
 
+const LOCATIONS = [
+  { value: 'main_warehouse', label: 'Main Warehouse' },
+  { value: 'storefront', label: 'Storefront' },
+  { value: 'cold_storage', label: 'Cold Storage' },
+]
+
 export default function StockTransferPage() {
   const { pharmacyId } = useAuth()
   const [transfers, setTransfers] = useState([])
@@ -109,8 +115,20 @@ export default function StockTransferPage() {
             <h3 className="text-lg font-semibold text-dark mb-4">New Stock Transfer</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">From Location *</label><input type="text" required value={form.from_location} onChange={(e) => setForm({...form, from_location: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" placeholder="e.g. Main Warehouse" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">To Location *</label><input type="text" required value={form.to_location} onChange={(e) => setForm({...form, to_location: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" placeholder="e.g. Branch Pharmacy" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">From Location *</label>
+                  <select required value={form.from_location} onChange={(e) => setForm({...form, from_location: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none">
+                    <option value="">Select location</option>
+                    {LOCATIONS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">To Location *</label>
+                  <select required value={form.to_location} onChange={(e) => setForm({...form, to_location: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none">
+                    <option value="">Select location</option>
+                    {LOCATIONS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+                  </select>
+                </div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2"><h4 className="text-sm font-semibold text-dark">Items</h4><button type="button" onClick={() => setForm({...form, items: [...form.items, { drug_id: '', quantity_sent: 1, batch_number: '', expiry_date: '' }]})} className="text-sm text-primary font-medium">+ Add</button></div>

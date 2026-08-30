@@ -23,8 +23,10 @@ import {
   Plus,
 } from 'lucide-react'
 import api from '../../services/api'
+import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { currentBase } from '../../utils/roles'
 
 const WORKING_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -571,7 +573,10 @@ export default function SettingsPage() {
               </p>
             )}
           </div>
-          <button className="btn-primary">
+          <button
+            onClick={() => navigate(currentBase() + '/settings')}
+            className="btn-primary"
+          >
             Upgrade Plan
           </button>
         </div>
@@ -716,6 +721,15 @@ export default function SettingsPage() {
                 Cancel
               </button>
               <button
+                onClick={async () => {
+                  try {
+                    await api.post('/subscriptions/cancel')
+                    toast.success('Subscription deactivated')
+                    setShowDeactivateConfirm(false)
+                  } catch (err) {
+                    toast.error(err.response?.data?.message || 'Failed to deactivate')
+                  }
+                }}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
               >
                 Deactivate

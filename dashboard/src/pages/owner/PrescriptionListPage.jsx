@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import { toArray } from '../../utils/safeData';
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
@@ -62,6 +63,7 @@ export default function PrescriptionListPage() {
         })))
       } catch {
         setPrescriptions([])
+        toast.error('Failed to load prescriptions')
       } finally {
         setLoading(false)
       }

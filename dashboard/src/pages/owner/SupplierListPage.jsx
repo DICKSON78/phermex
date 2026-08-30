@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toArray } from '../../utils/safeData';
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Star, Eye, Trash2, Phone, Mail, ChevronLeft, ChevronRight, Users, TrendingUp, Package, Building, MapPin, CreditCard, BarChart, Activity } from 'lucide-react'
+import { Plus, Search, Star, Eye, Trash2, Phone, Mail, ChevronLeft, ChevronRight, Users, TrendingUp, Pencil, Building, MapPin, CreditCard, BarChart, Activity } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
+import { currentBase } from '../../utils/roles'
 
 function LoadingSkeleton() {
   return (
@@ -255,8 +256,8 @@ export default function SupplierListPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => navigate(`/dashboard/suppliers/${s.id}`)} className="btn-icon-primary"><Eye className="w-4 h-4" /></button>
-                      <button onClick={() => openEdit(s)} className="btn-icon-blue"><Package className="w-4 h-4" /></button>
+                      <button onClick={() => navigate(currentBase() + '/suppliers/' + s.id)} className="btn-icon-primary"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => openEdit(s)} className="btn-icon-blue"><Pencil className="w-4 h-4" /></button>
                       <button onClick={() => setDeleteModal({ open: true, supplier: s })} className="btn-icon-red"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>

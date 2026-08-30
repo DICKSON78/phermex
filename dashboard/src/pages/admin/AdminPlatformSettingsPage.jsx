@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Settings,
   Shield,
@@ -12,6 +12,8 @@ import {
   Mail,
   Smartphone,
 } from 'lucide-react'
+import api from '../../services/api'
+import toast from 'react-hot-toast'
 
 const SECTIONS = [
   { id: 'general', label: 'General', icon: Globe, description: 'Platform name, branding, and contact info' },
@@ -73,8 +75,37 @@ export default function AdminPlatformSettingsPage() {
       trial_days: 7,
       late_fee_percent: 5,
     },
+    notifications: {
+      email_notifications: true,
+      sms_notifications: false,
+      push_notifications: false,
+    },
   })
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await api.get('/admin/settings')
+        const s = res.data?.settings || res.data || {}
+        setSettings(prev => ({
+          ...prev,
+          general: { ...prev.general, ...s.general },
+          security: { ...prev.security, ...s.security },
+          payment: { ...prev.payment, ...s.payment },
+          notifications: {
+            ...prev.notifications,
+            email_notifications: s.email_notifications ?? prev.notifications.email_notifications,
+            sms_notifications: s.sms_notifications ?? prev.notifications.sms_notifications,
+            push_notifications: s.push_notifications ?? prev.notifications.push_notifications,
+          },
+        }))
+      } catch (err) {
+        // Use defaults
+      }
+    }
+    loadSettings()
+  }, [])
 
   const { general: gen = {}, security: sec = {}, payment: pay = {} } = settings
 
@@ -88,9 +119,15 @@ export default function AdminPlatformSettingsPage() {
     setSettings(prev => ({ ...prev, payment: { ...prev.payment, [key]: value } }))
   }
 
-  const handleSave = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+  const handleSave = async () => {
+    try {
+      await api.put('/admin/settings/platform', settings)
+      toast.success('Settings saved')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      toast.error('Failed to save settings')
+    }
   }
 
   return (
@@ -280,12 +317,12 @@ export default function AdminPlatformSettingsPage() {
               </div>
               <div className="p-6 space-y-4">
                 {[
-                  { label: 'New Registration', desc: 'When a new pharmacy signs up', enabled: true, icon: Mail },
-                  { label: 'Subscription Expiry', desc: '7 days before subscription expires', enabled: true, icon: CreditCard },
-                  { label: 'Payment Received', desc: 'When payment is confirmed', enabled: true, icon: Check },
-                  { label: 'Support Ticket Update', desc: 'When a ticket status changes', enabled: true, icon: Bell },
-                  { label: 'System Maintenance', desc: 'Scheduled maintenance alerts', enabled: false, icon: Settings },
-                  { label: 'Drug Recall Alert', desc: 'Critical drug recall notifications', enabled: true, icon: Shield },
+                  { key: 'email_new_registration', label: 'New Registration', desc: 'When a new pharmacy signs up', icon: Mail },
+                  { key: 'email_subscription_expiry', label: 'Subscription Expiry', desc: '7 days before subscription expires', icon: CreditCard },
+                  { key: 'email_payment_received', label: 'Payment Received', desc: 'When payment is confirmed', icon: Check },
+                  { key: 'email_support_ticket', label: 'Support Ticket Update', desc: 'When a ticket status changes', icon: Bell },
+                  { key: 'email_system_maintenance', label: 'System Maintenance', desc: 'Scheduled maintenance alerts', icon: Settings },
+                  { key: 'email_drug_recall', label: 'Drug Recall Alert', desc: 'Critical drug recall notifications', icon: Shield },
                 ].map((item, i) => {
                   const Icon = item.icon
                   return (
@@ -299,7 +336,7 @@ export default function AdminPlatformSettingsPage() {
                           <p className="text-xs text-gray-500">{item.desc}</p>
                         </div>
                       </div>
-                      <Toggle checked={item.enabled} onChange={() => {}} />
+                      <Toggle checked={settings.notifications[item.key] ?? true} onChange={(v) => setSettings({...settings, notifications: {...settings.notifications, [item.key]: v}})} />
                     </div>
                   )
                 })}

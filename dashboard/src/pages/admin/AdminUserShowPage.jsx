@@ -29,6 +29,7 @@ import {
   Heart,
 } from 'lucide-react'
 import api from '../../services/api'
+import toast from 'react-hot-toast'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import Modal from '../../components/Modal'
 
@@ -68,6 +69,8 @@ export default function AdminUserShowPage() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [successModal, setSuccessModal] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
+  const [error, setError] = useState(null)
+  const [acting, setActing] = useState(null)
 
   useEffect(() => {
     fetchUser()
@@ -78,14 +81,7 @@ export default function AdminUserShowPage() {
       const res = await api.get(`/admin/users/${id}`)
       setUser(res.data.data || res.data)
     } catch {
-      setUser({
-        id: Number(id), name: 'Sample User', email: 'sample@example.com', phone: '+256700000000',
-        code: 'PHX-000001', role: 'pharmacist', pharmacy: 'HealthPlus Pharmacy', status: 'active', joined: '2026-01-15',
-        date_of_birth: '1990-05-15', gender: 'Male', position: 'Senior Pharmacist',
-        department: 'Pharmacy', employment_type: 'Full-time', salary: 3500,
-        hire_date: '2026-01-15', manager: 'Alice Mwamba', last_active: '2026-07-20',
-        orders_processed: 425, performance_score: 92,
-      })
+      setError('Failed to load user details')
     } finally {
       setLoading(false)
     }
@@ -99,6 +95,45 @@ export default function AdminUserShowPage() {
     setSuccessMsg('User deleted successfully')
     setSuccessModal(true)
     setTimeout(() => navigate('/dashboard/users'), 1500)
+  }
+
+  const handleSendMessage = async () => {
+    const body = window.prompt('Enter the message to send to this user:')
+    if (body === null || body.trim() === '') return
+    setActing('message')
+    try {
+      await api.post(`/admin/users/${id}/message`, { message: body.trim() })
+      toast.success('Message sent to user')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send message')
+    } finally {
+      setActing(null)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    setActing('password')
+    try {
+      await api.post('/forgot-password', { identifier: user.email })
+      toast.success('Password reset code sent to user')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to reset password')
+    } finally {
+      setActing(null)
+    }
+  }
+
+  const handleDeactivate = async () => {
+    setActing('deactivate')
+    try {
+      await api.patch(`/admin/users/${id}`, { status: 'inactive' })
+      setUser((prev) => (prev ? { ...prev, status: 'inactive', is_active: false } : prev))
+      toast.success('User deactivated')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to deactivate user')
+    } finally {
+      setActing(null)
+    }
   }
 
   if (loading) {
@@ -118,6 +153,23 @@ export default function AdminUserShowPage() {
             <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm h-96 animate-pulse" />
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm h-96 animate-pulse" />
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-red-500 text-sm">{error}</p>
+          <button
+            onClick={() => navigate('/dashboard/users')}
+            className="text-[#0FD452] mt-2 text-sm font-medium hover:underline"
+          >
+            Go back
+          </button>
         </div>
       </div>
     )
@@ -462,7 +514,7 @@ export default function AdminUserShowPage() {
                     <p className="text-xs text-gray-500">Browse activity log</p>
                   </div>
                 </Link>
-                <button className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full">
+                <button onClick={handleSendMessage} disabled={acting === 'message'} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full disabled:opacity-50">
                   <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
                     <MessageSquare className="w-4 h-4 text-green-600" />
                   </div>
@@ -471,7 +523,7 @@ export default function AdminUserShowPage() {
                     <p className="text-xs text-gray-500">Message this user</p>
                   </div>
                 </button>
-                <button className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full">
+                <button onClick={handleResetPassword} disabled={acting === 'password'} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full disabled:opacity-50">
                   <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
                     <KeyRound className="w-4 h-4 text-orange-600" />
                   </div>
@@ -480,7 +532,7 @@ export default function AdminUserShowPage() {
                     <p className="text-xs text-gray-500">Generate new password</p>
                   </div>
                 </button>
-                <button className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full">
+                <button onClick={handleDeactivate} disabled={acting === 'deactivate'} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full disabled:opacity-50">
                   <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
                     <UserX className="w-4 h-4 text-red-600" />
                   </div>

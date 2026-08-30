@@ -126,12 +126,12 @@ export default function AdminPendingApprovalsPage() {
   }
 
   const handleConfirmPayment = async () => {
-    if (!selectedPharmacy) return
+    if (!paymentPharmacy) return
     try {
-      setActionLoading(selectedPharmacy.id)
-      await api.patch(`/admin/pharmacies/${selectedPharmacy.id}/confirm-payment`)
-      setPharmacies((prev) => prev.map((p) => (p.id === selectedPharmacy.id ? { ...p, payment_status: 'confirmed' } : p)))
-      if (selectedPharmacy) setSelectedPharmacy((s) => s ? { ...s, payment_status: 'confirmed' } : null)
+      setActionLoading(paymentPharmacy.id)
+      await api.patch(`/admin/pharmacies/${paymentPharmacy.id}/confirm-payment`)
+      setPharmacies((prev) => prev.map((p) => (p.id === paymentPharmacy.id ? { ...p, payment_status: 'confirmed' } : p)))
+      if (paymentPharmacy) setPaymentPharmacy((s) => s ? { ...s, payment_status: 'confirmed' } : null)
       setShowPaymentModal(false)
       setPaymentNote('')
       showToast('Payment confirmed. Subscription activated!')

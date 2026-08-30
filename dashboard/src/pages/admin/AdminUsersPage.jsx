@@ -29,6 +29,7 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../../services/api'
+import toast from 'react-hot-toast'
 
 const ROLE_STYLES = {
   admin: 'bg-red-100 text-red-700',
@@ -356,7 +357,14 @@ export default function AdminUsersPage() {
                                   {user.status === 'active' ? 'Deactivate' : 'Activate'}
                                 </button>
                                 <button
-                                  onClick={() => { setActiveMenu(null); navigate('/dashboard/users/' + user.id) }}
+                                  onClick={() => {
+                                    setActiveMenu(null)
+                                    if (window.confirm('Are you sure you want to delete this user? This cannot be undone.')) {
+                                      api.delete(`/admin/users/${user.id}`)
+                                        .then(() => { toast.success('User deleted'); fetchUsers() })
+                                        .catch(() => toast.error('Failed to delete user'))
+                                    }
+                                  }}
                                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                                 >
                                   <Trash2 className="h-4 w-4" />

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, XCircle, Package, Truck, Printer, Pill, Hash, DollarSign, ShoppingCart } from 'lucide-react'
 import api from '../../services/api'
+import { currentBase } from '../../utils/roles'
 import toast from 'react-hot-toast'
 
 const STATUS_COLORS = { draft: 'bg-gray-100 text-gray-600', pending_approval: 'bg-yellow-100 text-yellow-700', approved: 'bg-blue-100 text-blue-700', ordered: 'bg-indigo-100 text-indigo-700', partially_received: 'bg-orange-100 text-orange-700', received: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600' }
@@ -62,7 +63,7 @@ export default function PurchaseOrderDetailPage() {
   return (
     <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate('/dashboard/purchase-orders')} className="btn-ghost">
+        <button onClick={() => navigate(currentBase() + '/purchase-orders')} className="btn-ghost">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </button>
         <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">

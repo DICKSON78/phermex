@@ -17,6 +17,7 @@ import {
   Tag,
 } from 'lucide-react'
 import api from '../../services/api'
+import toast from 'react-hot-toast'
 
 const PLAN_COLORS = {
   Trial: 'border-gray-200 bg-gray-50',
@@ -46,6 +47,7 @@ export default function AdminSettingsPage() {
         data_retention: remote.retention || remote.data_retention || { audit_log_retention_days: 365, order_history_retention_days: 730, notification_retention_days: 90 },
       })
     } catch {
+      toast.error('Failed to load settings')
       setSettings({
         platform: { name: 'Helix', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
         plans: [],
@@ -61,7 +63,9 @@ export default function AdminSettingsPage() {
     setSaving('platform')
     try {
       await api.put('/admin/settings/platform', settings.platform || {})
-    } catch {}
+    } catch {
+      toast.error('Failed to save platform settings')
+    }
     setTimeout(() => {
       setSaving(null)
       setSaved('platform')
@@ -73,7 +77,9 @@ export default function AdminSettingsPage() {
     setSaving('notifications')
     try {
       await api.put('/admin/settings/notifications', settings.notifications || {})
-    } catch {}
+    } catch {
+      toast.error('Failed to save notification settings')
+    }
     setTimeout(() => {
       setSaving(null)
       setSaved('notifications')
@@ -85,7 +91,9 @@ export default function AdminSettingsPage() {
     setSaving('retention')
     try {
       await api.put('/admin/settings/retention', settings.data_retention || {})
-    } catch {}
+    } catch {
+      toast.error('Failed to save retention settings')
+    }
     setTimeout(() => {
       setSaving(null)
       setSaved('retention')

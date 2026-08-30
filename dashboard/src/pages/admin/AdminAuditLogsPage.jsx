@@ -137,8 +137,8 @@ export default function AdminAuditLogsPage() {
       if (search) params.append('action', search)
       if (userFilter) params.append('user_id', userFilter)
       if (modelFilter) params.append('model_type', modelFilter)
-      if (dateFrom) params.append('from', dateFrom)
-      if (dateTo) params.append('to', dateTo)
+      if (dateFrom) params.append('date_from', dateFrom)
+      if (dateTo) params.append('date_to', dateTo)
 
       const response = await api.get(`/admin/audit-logs?${params.toString()}`)
       setLogs(response.data.data || response.data || [])

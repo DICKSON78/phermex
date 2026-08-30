@@ -92,7 +92,7 @@ export default function AdminPharmaciesPage() {
   const handleToggleStatus = async (pharmacy) => {
     const newStatus = pharmacy.status === 'suspended' ? 'active' : 'suspended'
     try {
-      await api.patch(`/admin/pharmacies/${pharmacy.id}`, { status: newStatus })
+      await api.patch(`/admin/pharmacies/${pharmacy.id}/status`, { status: newStatus })
     } catch {}
     setPharmacies((prev) =>
       prev.map((p) => (p.id === pharmacy.id ? { ...p, status: newStatus } : p))
@@ -322,12 +322,12 @@ export default function AdminPharmaciesPage() {
                         
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${SUBSCRIPTION_STYLES[pharmacy.subscription] || 'bg-gray-100 text-gray-600'}`}>
-                          {pharmacy.subscription}
-                        </span>
+                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${SUBSCRIPTION_STYLES[pharmacy.subscription_type] || 'bg-gray-100 text-gray-600'}`}>
+                           {pharmacy.subscription_type}
+                         </span>
                         
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{pharmacy.joined}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{new Date(pharmacy.created_at).toLocaleDateString()}</td>
                       <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1">
                           <button
@@ -373,7 +373,7 @@ export default function AdminPharmaciesPage() {
                               <MapPin className="h-4 w-4 text-gray-400" />
                               <div>
                                 <p className="text-xs text-gray-500">City</p>
-                                <p className="text-sm font-medium text-[#000F14]">{pharmacy.city}</p>
+                                <p className="text-sm font-medium text-[#000F14]">{pharmacy.district}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -394,7 +394,7 @@ export default function AdminPharmaciesPage() {
                               <Calendar className="h-4 w-4 text-gray-400" />
                               <div>
                                 <p className="text-xs text-gray-500">Joined</p>
-                                <p className="text-sm font-medium text-[#000F14]">{pharmacy.joined}</p>
+                                <p className="text-sm font-medium text-[#000F14]">{new Date(pharmacy.created_at).toLocaleDateString()}</p>
                               </div>
                             </div>
                           </div>

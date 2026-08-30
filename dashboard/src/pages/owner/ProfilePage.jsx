@@ -190,7 +190,7 @@ export default function ProfilePage() {
           <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
               <KeyRound className="w-3.5 h-3.5" />
-              <span className="font-mono text-xs">{user?.user_code || 'PHX-' + Math.random().toString(36).substring(2, 8).toUpperCase()}</span>
+              <span className="font-mono text-xs">{user?.user_code || 'N/A'}</span>
             </div>
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
               <Calendar className="w-3.5 h-3.5" />

@@ -182,6 +182,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       controller: _controller,
                       minLines: 1,
                       maxLines: 4,
+                      maxLength: 2000,
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _send(),
                       decoration: InputDecoration(

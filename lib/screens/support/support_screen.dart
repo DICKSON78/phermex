@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
@@ -33,7 +34,7 @@ class _SupportScreenState extends State<SupportScreen> {
         _error = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -62,7 +63,8 @@ class _SupportScreenState extends State<SupportScreen> {
       await _refreshDetail(ticket);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(ApiService.friendlyError(e))));
       }
     }
   }
@@ -473,7 +475,7 @@ class _CreateTicketSheetState extends State<_CreateTicketSheet> {
         widget.onCreated();
       }
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

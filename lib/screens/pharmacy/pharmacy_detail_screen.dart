@@ -25,10 +25,23 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
   String? _error;
   String? _search;
   int? _selectedCategory;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() => _search = null);
     _load();
   }
 
@@ -137,6 +150,47 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
             ),
           ),
 
+          // Call / Directions actions
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      final phone = widget.pharmacy.phone;
+                      if (phone != null && phone.isNotEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Call $phone'), behavior: SnackBarBehavior.floating),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.phone, size: 16),
+                    label: const Text('Call'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      final lat = widget.pharmacy.latitude;
+                      final lng = widget.pharmacy.longitude;
+                      if (lat != null && lng != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Opening maps...'), behavior: SnackBarBehavior.floating),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.directions, size: 16),
+                    label: const Text('Directions'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Search + category chips
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
@@ -147,6 +201,8 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                 border: Border.all(color: const Color(0xFFEEF1F0)),
               ),
               child: TextField(
+                controller: _searchController,
+                onChanged: (_) => setState(() {}),
                 onSubmitted: (v) {
                   setState(() => _search = v.isEmpty ? null : v);
                   _load();
@@ -156,6 +212,12 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                   hintText: 'Search drugs...',
                   hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
                   prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF9CA3AF)),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18, color: Color(0xFF9CA3AF)),
+                          onPressed: _clearSearch,
+                        )
+                      : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                 ),

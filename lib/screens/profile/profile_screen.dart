@@ -7,6 +7,8 @@ import '../notifications/notifications_screen.dart';
 import '../prescriptions/prescriptions_screen.dart';
 import '../support/support_screen.dart';
 
+const String appVersion = '1.0.0';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -28,6 +30,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _phone = user?['phone'];
     _email = user?['email'];
     _userCode = user?['user_code'];
+    _refreshProfile();
+  }
+
+  Future<void> _refreshProfile() async {
+    try {
+      final user = await CustomerRepository.me();
+      await ApiService.updateCachedUser(user);
+      if (!mounted) return;
+      _refreshFromCache(); // Rebuild with fresh cached user
+    } catch (_) {}
   }
 
   void _refreshFromCache() {
@@ -56,6 +68,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     if (confirmed != true) return;
+    try {
+      await ApiService.post('/logout', {});
+    } catch (_) {
+      // Server logout failed, proceed with local logout anyway
+    }
     await ApiService.logout();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -212,10 +229,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
 
           const SizedBox(height: 30),
-          const Center(
-            // TODO: Update version string with each release
-            child: Text('Helix v1.0.0',
-                style: TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+          Center(
+            child: Text('Helix v$appVersion',
+                style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
           ),
           const SizedBox(height: 20),
         ],

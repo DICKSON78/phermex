@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/models.dart';
+import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
@@ -35,7 +37,7 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
         _error = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -109,7 +111,16 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
                         padding: const EdgeInsets.all(20),
                         itemCount: _prescriptions.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (context, i) => _PrescriptionCard(prescription: _prescriptions[i]),
+                        itemBuilder: (context, i) {
+                          final p = _prescriptions[i];
+                          return GestureDetector(
+                            onTap: () => showDialog(
+                              context: context,
+                              builder: (_) => _PrescriptionDetailDialog(prescription: p),
+                            ),
+                            child: _PrescriptionCard(prescription: p),
+                          );
+                        },
                       ),
                     ),
     );
@@ -185,6 +196,161 @@ class _PrescriptionCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PrescriptionDetailDialog extends StatelessWidget {
+  final Prescription prescription;
+  const _PrescriptionDetailDialog({required this.prescription});
+
+  @override
+  Widget build(BuildContext context) {
+    final status = prescription.status ?? '';
+    final photo = prescription.photo;
+    final notes = prescription.notes;
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text('#${prescription.prescriptionCode ?? prescription.id}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppHelpers.statusColor(status).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(status.toUpperCase(),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppHelpers.statusColor(status))),
+                ),
+              ],
+            ),
+            if (prescription.pharmacyName != null) ...[
+              const SizedBox(height: 4),
+              Text(prescription.pharmacyName!,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+            ],
+            const SizedBox(height: 16),
+            if (photo != null && photo.isNotEmpty)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: CachedNetworkImage(
+                  imageUrl: photo,
+                  height: 220,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    height: 220,
+                    color: const Color(0xFFF3F4F6),
+                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    height: 220,
+                    color: const Color(0xFFF3F4F6),
+                    child: const Icon(Icons.broken_image_outlined, color: Color(0xFF9CA3AF)),
+                  ),
+                ),
+              )
+            else
+              Container(
+                height: 140,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(Icons.description_outlined, size: 32, color: Color(0xFFD1D5DB)),
+              ),
+            const SizedBox(height: 16),
+            _DetailRow(
+              icon: Icons.medical_services_outlined,
+              label: 'Doctor',
+              value: prescription.doctorName != null && prescription.doctorName!.isNotEmpty
+                  ? 'Dr. ${prescription.doctorName}'
+                  : '',
+            ),
+            const SizedBox(height: 10),
+            _DetailRow(
+              icon: Icons.local_hospital_outlined,
+              label: 'Hospital',
+              value: prescription.hospitalName ?? '',
+            ),
+            const SizedBox(height: 10),
+            _DetailRow(
+              icon: Icons.event_note_outlined,
+              label: 'Submitted',
+              value: AppHelpers.formatDate(prescription.createdAt),
+            ),
+            if (notes != null && notes.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              const Text('Notes',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+              const SizedBox(height: 6),
+              Text(notes, style: const TextStyle(fontSize: 13, height: 1.5, color: Color(0xFF374151))),
+            ],
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _DetailRow({required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: AppTheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 16, color: AppTheme.primary),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF9CA3AF))),
+              const SizedBox(height: 2),
+              Text(value.isEmpty ? '—' : value,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -292,7 +458,7 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
-      _showError(e.toString());
+      _showError(ApiService.friendlyError(e));
     }
   }
 

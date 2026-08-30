@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
-import '../services/customer_repository.dart';
+import '../services/api_service.dart';
 import 'home/home_screen.dart';
 import 'orders/orders_list_screen.dart';
 import 'chat/chat_list_screen.dart';
@@ -32,10 +32,11 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _loadUnreadCount() async {
     try {
-      final notifications = await CustomerRepository.notifications();
+      final data = await ApiService.get('/customer-app/notifications/unread-count');
       if (!mounted) return;
-      final unread = notifications.where((n) => !n.isRead).length;
-      setState(() => _unreadNotifications = unread);
+      setState(() {
+        _unreadNotifications = data is Map ? (data['unread_count'] ?? 0) : 0;
+      });
     } catch (_) {}
   }
   @override
@@ -65,7 +66,12 @@ class _HomeShellState extends State<HomeShell> {
                 final active = _index == i;
                 return GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => setState(() => _index = i),
+                  onTap: () {
+                    setState(() => _index = i);
+                    Future.delayed(const Duration(milliseconds: 200), () {
+                      if (mounted) _loadUnreadCount();
+                    });
+                  },
                   child: AnimatedScale(
                     duration: const Duration(milliseconds: 150),
                     scale: active ? 1.05 : 1,

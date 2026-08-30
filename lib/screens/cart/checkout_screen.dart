@@ -24,8 +24,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     final user = ApiService.cachedUser;
-    _addressController.text = (user?['location'] ?? '') as String;
-    _phoneController.text = (user?['phone'] ?? '') as String;
+    _addressController.text = (user?['location'] ?? '').toString();
+    _phoneController.text = (user?['phone'] ?? '').toString();
   }
 
   @override
@@ -175,16 +175,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ...cart.items.map((item) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text('${item.drug.name ?? 'Drug'} x${item.quantity}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 13, color: Color(0xFF111827))),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text('${item.drug.name ?? 'Drug'} x${item.quantity}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 13, color: Color(0xFF111827))),
+                                  ),
+                                  Text(AppHelpers.formatTZS(item.total),
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                                ],
                               ),
-                              Text(AppHelpers.formatTZS(item.total),
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                              if ((item.drug.quantity ?? 0) <= 0)
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 2),
+                                  child: Text('May be out of stock',
+                                      style: TextStyle(fontSize: 11, color: Colors.orange)),
+                                ),
                             ],
                           ),
                         );

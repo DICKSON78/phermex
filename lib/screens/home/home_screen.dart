@@ -25,12 +25,25 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   String? _error;
   String? _search;
+  final _searchController = TextEditingController();
   String _userName = '';
 
   @override
   void initState() {
     super.initState();
     _userName = ApiService.userName ?? '';
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() => _search = null);
     _load();
   }
 
@@ -167,6 +180,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
                       onSubmitted: (v) {
                         setState(() => _search = v.isEmpty ? null : v);
                         _load();
@@ -176,6 +191,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         hintText: 'Search medicines or pharmacies...',
                         hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
                         prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF9CA3AF)),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18, color: Color(0xFF9CA3AF)),
+                                onPressed: _clearSearch,
+                              )
+                            : null,
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,

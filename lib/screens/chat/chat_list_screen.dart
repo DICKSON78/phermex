@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
@@ -33,7 +34,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         _error = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -69,8 +70,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       onRefresh: _load,
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        children: const [
-                          SizedBox(height: 120),
+                        children: [
+                          const SizedBox(height: 120),
                           Icon(Icons.chat_bubble_outline, size: 48, color: Color(0xFFD1D5DB)),
                           SizedBox(height: 12),
                           Center(

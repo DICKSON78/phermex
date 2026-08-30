@@ -324,6 +324,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _loginCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscure = true;
@@ -346,7 +347,24 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  String? _validateEmailOrPhone(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Email or phone is required';
+    final isEmail = v.contains('@');
+    final isPhone = RegExp(r'^\+?[0-9]{7,15}$').hasMatch(v);
+    if (!isEmail && !isPhone) return 'Enter a valid email or phone number';
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    final v = value ?? '';
+    if (v.isEmpty) return 'Password is required';
+    if (v.length < 6) return 'Password must be at least 6 characters';
+    return null;
+  }
+
   Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -386,23 +404,34 @@ class _LoginScreenState extends State<LoginScreen> {
                     _ErrorBanner(_error!),
                     const SizedBox(height: 14),
                   ],
-                  TextField(
-                    controller: _loginCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: _fieldDecoration(hint: 'Email or phone number', icon: Icons.mail_outline),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _passwordCtrl,
-                    obscureText: _obscure,
-                    onSubmitted: (_) => _submit(),
-                    decoration: _fieldDecoration(
-                      hint: 'Password',
-                      icon: Icons.lock_outline,
-                      suffix: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, size: 20, color: _gray400),
-                        onPressed: () => setState(() => _obscure = !_obscure),
-                      ),
+                  Form(
+                    key: _formKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextFormField(
+                          controller: _loginCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: _validateEmailOrPhone,
+                          decoration: _fieldDecoration(hint: 'Email or phone number', icon: Icons.mail_outline),
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _passwordCtrl,
+                          obscureText: _obscure,
+                          validator: _validatePassword,
+                          onFieldSubmitted: (_) => _submit(),
+                          decoration: _fieldDecoration(
+                            hint: 'Password',
+                            icon: Icons.lock_outline,
+                            suffix: IconButton(
+                              icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, size: 20, color: _gray400),
+                              onPressed: () => setState(() => _obscure = !_obscure),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -457,6 +486,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
@@ -485,11 +515,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  String? _validateName(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Name is required';
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Email is required';
+    if (!v.contains('@')) return 'Enter a valid email address';
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Phone is required';
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    final v = value ?? '';
+    if (v.isEmpty) return 'Password is required';
+    if (v.length < 8) return 'Password must be at least 8 characters';
+    return null;
+  }
+
+  String? _validateConfirm(String? value) {
+    if (value == null || value.isEmpty) return 'Please confirm your password';
+    if (value != _passwordCtrl.text) return 'Passwords do not match';
+    return null;
+  }
+
   Future<void> _submit() async {
-    if (_passwordCtrl.text != _confirmCtrl.text) {
-      setState(() => _error = 'Passwords do not match');
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -536,41 +594,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     _ErrorBanner(_error!),
                     const SizedBox(height: 14),
                   ],
-                  TextField(
-                    controller: _nameCtrl,
-                    decoration: _fieldDecoration(hint: 'Full name', icon: Icons.person_outline),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: _fieldDecoration(hint: 'Email address', icon: Icons.mail_outline),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _phoneCtrl,
-                    keyboardType: TextInputType.phone,
-                    decoration: _fieldDecoration(hint: 'Phone number', icon: Icons.phone_outlined),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _passwordCtrl,
-                    obscureText: _obscure,
-                    decoration: _fieldDecoration(
-                      hint: 'Password (min 8 chars)',
-                      icon: Icons.lock_outline,
-                      suffix: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, size: 20, color: _gray400),
-                        onPressed: () => setState(() => _obscure = !_obscure),
-                      ),
+                  Form(
+                    key: _formKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextFormField(
+                          controller: _nameCtrl,
+                          validator: _validateName,
+                          decoration: _fieldDecoration(hint: 'Full name', icon: Icons.person_outline),
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _emailCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: _validateEmail,
+                          decoration: _fieldDecoration(hint: 'Email address', icon: Icons.mail_outline),
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _phoneCtrl,
+                          keyboardType: TextInputType.phone,
+                          validator: _validatePhone,
+                          decoration: _fieldDecoration(hint: 'Phone number', icon: Icons.phone_outlined),
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _passwordCtrl,
+                          obscureText: _obscure,
+                          validator: _validatePassword,
+                          decoration: _fieldDecoration(
+                            hint: 'Password (min 8 chars)',
+                            icon: Icons.lock_outline,
+                            suffix: IconButton(
+                              icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, size: 20, color: _gray400),
+                              onPressed: () => setState(() => _obscure = !_obscure),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _confirmCtrl,
+                          obscureText: _obscure,
+                          validator: _validateConfirm,
+                          onFieldSubmitted: (_) => _submit(),
+                          decoration: _fieldDecoration(hint: 'Confirm password', icon: Icons.lock_outline),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _confirmCtrl,
-                    obscureText: _obscure,
-                    onSubmitted: (_) => _submit(),
-                    decoration: _fieldDecoration(hint: 'Confirm password', icon: Icons.lock_outline),
                   ),
                   const SizedBox(height: 20),
                   _PrimaryButton(loading: _loading, label: 'CREATE ACCOUNT', onPressed: _submit),

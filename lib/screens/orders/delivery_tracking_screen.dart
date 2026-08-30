@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 
@@ -39,7 +40,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
         _error = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

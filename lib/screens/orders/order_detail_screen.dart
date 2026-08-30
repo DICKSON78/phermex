@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
+import '../../state/cart_state.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
-import '../pharmacy/pharmacy_detail_screen.dart';
 import 'delivery_tracking_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -94,6 +95,35 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         behavior: SnackBarBehavior.floating,
       ));
     }
+  }
+
+  void _reorder(Order order) {
+    final cart = context.read<CartState>();
+    for (final item in order.items) {
+      final drugId = item.drugId;
+      if (drugId == null) continue;
+      cart.add(
+        Drug(
+          id: drugId,
+          name: item.drugName,
+          price: item.unitPrice,
+          quantity: 100,
+        ),
+        qty: item.quantity,
+        pharmacyId: order.pharmacyId,
+        pharmacyName: order.pharmacyName,
+      );
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Items added to cart'),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'VIEW CART',
+          onPressed: () => Navigator.pushNamed(context, '/cart'),
+        ),
+      ),
+    );
   }
 
   @override
@@ -271,18 +301,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             SizedBox(
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  final pharmacyId = order.pharmacyId;
-                  if (pharmacyId != null) {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => PharmacyDetailScreen(
-                          pharmacy: Pharmacy(id: pharmacyId, name: order.pharmacyName),
-                        ),
-                      ),
-                    );
-                  }
-                },
+                onPressed: () => _reorder(order),
                 icon: const Icon(Icons.refresh, size: 16, color: AppTheme.dark),
                 label: const Text('Reorder', style: TextStyle(color: AppTheme.dark)),
               ),

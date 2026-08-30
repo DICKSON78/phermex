@@ -6,6 +6,7 @@ import '../auth/login_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../prescriptions/prescriptions_screen.dart';
 import '../support/support_screen.dart';
+import 'address_book_screen.dart';
 
 const String appVersion = '1.0.0';
 
@@ -194,6 +195,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     label: 'Notifications',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _MenuTile(
+                    icon: Icons.location_on_outlined,
+                    label: 'Saved Addresses',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AddressBookScreen()),
                     ),
                   ),
                   const Divider(height: 1, indent: 56),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/api_service.dart';
+import 'services/push_service.dart';
 import 'state/cart_state.dart';
 import 'theme.dart';
 import 'screens/auth/login_screen.dart';
@@ -55,6 +56,10 @@ class _SessionGateState extends State<SessionGate> {
 
   Future<void> _load() async {
     await ApiService.loadSession();
+    if (ApiService.isLoggedIn) {
+      // Best-effort FCM token registration; never blocks or crashes.
+      await PushService.initPushNotifications();
+    }
     setState(() => _ready = true);
   }
 

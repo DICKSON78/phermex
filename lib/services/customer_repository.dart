@@ -107,7 +107,10 @@ class CustomerRepository {
     return [];
   }
 
-  static Future<Order> placeOrder({
+  /// Places an order and returns the raw response data (including Order fields
+  /// plus any `payment` payload). Callers construct an [Order] via
+  /// `Order.fromJson` and can read `data['payment']` for payment details.
+  static Future<Map<String, dynamic>> placeOrder({
     required int pharmacyId,
     required List<CartItem> items,
     required String deliveryAddress,
@@ -115,6 +118,8 @@ class CustomerRepository {
     double? deliveryLatitude,
     double? deliveryLongitude,
     String? notes,
+    String? paymentMethod,
+    String? paymentPhone,
   }) async {
     final res = await ApiService.post('/orders', {
       'pharmacy_id': pharmacyId,
@@ -127,9 +132,33 @@ class CustomerRepository {
       if (deliveryLatitude != null) 'delivery_latitude': deliveryLatitude,
       if (deliveryLongitude != null) 'delivery_longitude': deliveryLongitude,
       'notes': notes,
+      if (paymentMethod != null && paymentMethod.isNotEmpty)
+        'payment_method': paymentMethod,
+      if (paymentPhone != null && paymentPhone.isNotEmpty)
+        'payment_phone': paymentPhone,
     });
     final data = _data(res);
-    return Order.fromJson(data is Map ? Map<String, dynamic>.from(data) : {});
+    return data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
+  }
+
+  /// Polls the payment status for an order.
+  /// Returns a Map with `status` (`unpaid`|`paid`) and `gateway_status`.
+  static Future<Map<String, dynamic>> paymentStatus(int orderId) async {
+    final res = await ApiService.get('/payments/$orderId/status');
+    if (res is Map) {
+      return {
+        'status': res['status'] ?? 'unpaid',
+        'gateway_status': res['gateway_status'],
+      };
+    }
+    final data = _data(res);
+    if (data is Map) {
+      return {
+        'status': data['status'] ?? 'unpaid',
+        'gateway_status': data['gateway_status'],
+      };
+    }
+    return {'status': 'unpaid', 'gateway_status': null};
   }
 
   static Future<List<Order>> myOrders() async {

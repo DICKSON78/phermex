@@ -65,6 +65,10 @@ class TaxController extends Controller
                 ], 422);
             }
 
+            if (!in_array((int) $request->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
             $validated = $validator->validated();
 
             $exists = TaxRecord::where('pharmacy_id', $validated['pharmacy_id'])

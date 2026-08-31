@@ -55,6 +55,10 @@ class BankController extends Controller
                 ], 422);
             }
 
+            if (!in_array((int) $request->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
             $validated = $validator->validated();
             $validated['current_balance'] = $validated['opening_balance'] ?? 0;
 
@@ -220,6 +224,10 @@ class BankController extends Controller
                     'message' => 'Validation failed.',
                     'errors' => $validator->errors(),
                 ], 422);
+            }
+
+            if (!in_array((int) $request->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
             }
 
             $fromAccount = BankAccount::findOrFail($request->from_bank_account_id);

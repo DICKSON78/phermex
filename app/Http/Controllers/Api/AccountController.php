@@ -71,6 +71,10 @@ class AccountController extends Controller
                 ], 422);
             }
 
+            if (!in_array((int) $request->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
             $exists = Account::where('pharmacy_id', $request->pharmacy_id)
                 ->where('account_code', $request->account_code)
                 ->exists();

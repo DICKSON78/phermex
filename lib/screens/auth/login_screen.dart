@@ -171,7 +171,7 @@ class _BrandHeader extends StatelessWidget {
             ],
           ),
           child: ClipOval(
-            child: Image.asset('assets/images/logo_circle.png', fit: BoxFit.cover),
+            child: Image.asset('assets/images/helix_logo.png', fit: BoxFit.cover),
           ),
         ),
         const SizedBox(height: 18),

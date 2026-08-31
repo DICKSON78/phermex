@@ -394,6 +394,62 @@ class ChatMessage {
   }
 }
 
+class PharmacyReview {
+  final int id;
+  final int? rating;
+  final String? review;
+  final String? userName;
+  final String? createdAt;
+  final bool mine;
+
+  PharmacyReview({
+    required this.id,
+    this.rating,
+    this.review,
+    this.userName,
+    this.createdAt,
+    this.mine = false,
+  });
+
+  factory PharmacyReview.fromJson(Map<String, dynamic> json) {
+    final user = json['user'];
+    return PharmacyReview(
+      id: json['id'] ?? 0,
+      rating: json['rating'],
+      review: json['review'],
+      userName: user is Map ? user['name'] : null,
+      createdAt: json['created_at'],
+      mine: json['mine'] == true || json['is_mine'] == true,
+    );
+  }
+}
+
+class BroadcastMessage {
+  final int id;
+  final String? title;
+  final String? message;
+  final String? audience;
+  final String? createdAt;
+
+  BroadcastMessage({
+    required this.id,
+    this.title,
+    this.message,
+    this.audience,
+    this.createdAt,
+  });
+
+  factory BroadcastMessage.fromJson(Map<String, dynamic> json) {
+    return BroadcastMessage(
+      id: json['id'] ?? 0,
+      title: json['title'],
+      message: json['message'],
+      audience: json['audience'],
+      createdAt: json['created_at'],
+    );
+  }
+}
+
 class SupportTicket {
   final int id;
   final String? subject;

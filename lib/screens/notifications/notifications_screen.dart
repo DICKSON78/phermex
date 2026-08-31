@@ -14,6 +14,7 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   List<AppNotification> _notifications = [];
+  List<BroadcastMessage> _broadcasts = [];
   bool _loading = true;
   String? _error;
 
@@ -26,10 +27,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final list = await CustomerRepository.notifications();
+      final results = await Future.wait([
+        CustomerRepository.notifications(),
+        CustomerRepository.broadcasts(),
+      ]);
       if (!mounted) return;
       setState(() {
-        _notifications = list;
+        _notifications = results[0] as List<AppNotification>;
+        _broadcasts = results[1] as List<BroadcastMessage>;
         _error = null;
       });
     } catch (e) {
@@ -98,7 +103,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                   ),
                 )
-              : _notifications.isEmpty
+              : _notifications.isEmpty && _broadcasts.isEmpty
                   ? RefreshIndicator(
                       onRefresh: _load,
                       child: ListView(
@@ -116,70 +121,144 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     )
                   : RefreshIndicator(
                       onRefresh: _load,
-                      child: ListView.separated(
+                      child: ListView(
                         padding: const EdgeInsets.all(20),
-                        itemCount: _notifications.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (context, i) {
-                          final n = _notifications[i];
-                          return GestureDetector(
-                            onTap: () => _markRead(n),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: n.isRead ? const Color(0xFFEEF1F0) : AppTheme.primary.withOpacity(0.4),
-                                ),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
+                        children: [
+                          if (_broadcasts.isNotEmpty) ...[
+                            const Text('Announcements',
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B7280))),
+                            const SizedBox(height: 10),
+                            ..._broadcasts.map((b) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _BroadcastCard(broadcast: b),
+                                )),
+                            if (_notifications.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              const Divider(height: 24),
+                              const Text('Recent',
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B7280))),
+                              const SizedBox(height: 10),
+                            ],
+                          ],
+                          ..._notifications.map((n) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: GestureDetector(
+                                  onTap: () => _markRead(n),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: n.isRead
-                                          ? const Color(0xFFF3F4F6)
-                                          : AppTheme.primary.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: n.isRead
+                                            ? const Color(0xFFEEF1F0)
+                                            : AppTheme.primary.withOpacity(0.4),
+                                      ),
                                     ),
-                                    child: Icon(Icons.notifications_none,
-                                        size: 18,
-                                        color: n.isRead ? const Color(0xFF9CA3AF) : AppTheme.primary),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
+                                    child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(n.title ?? '',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: n.isRead ? FontWeight.w600 : FontWeight.w700,
-                                              color: const Color(0xFF111827),
-                                            )),
-                                        if (n.message != null && n.message!.isNotEmpty) ...[
-                                          const SizedBox(height: 4),
-                                          Text(n.message!,
-                                              maxLines: 3,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                                        ],
-                                        const SizedBox(height: 6),
-                                        Text(AppHelpers.formatDate(n.createdAt),
-                                            style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: n.isRead
+                                                ? const Color(0xFFF3F4F6)
+                                                : AppTheme.primary.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Icon(Icons.notifications_none,
+                                              size: 18,
+                                              color: n.isRead ? const Color(0xFF9CA3AF) : AppTheme.primary),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(n.title ?? '',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: n.isRead ? FontWeight.w600 : FontWeight.w700,
+                                                    color: const Color(0xFF111827),
+                                                  )),
+                                              if (n.message != null && n.message!.isNotEmpty) ...[
+                                                const SizedBox(height: 4),
+                                                Text(n.message!,
+                                                    maxLines: 3,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                                              ],
+                                              const SizedBox(height: 6),
+                                              Text(AppHelpers.formatDate(n.createdAt),
+                                                  style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                                            ],
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+                                ),
+                              )),
+                        ],
                       ),
                     ),
+    );
+  }
+}
+
+class _BroadcastCard extends StatelessWidget {
+  final BroadcastMessage broadcast;
+  const _BroadcastCard({required this.broadcast});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0a1f14), Color(0xFF14532d)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.campaign_outlined, size: 18, color: AppTheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(broadcast.title ?? 'Announcement',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+                if (broadcast.message != null && broadcast.message!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(broadcast.message!,
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12, height: 1.4, color: Color(0xCCFFFFFF))),
+                ],
+                if (broadcast.createdAt != null) ...[
+                  const SizedBox(height: 6),
+                  Text(AppHelpers.formatDate(broadcast.createdAt),
+                      style: const TextStyle(fontSize: 11, color: Color(0x99FFFFFF))),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

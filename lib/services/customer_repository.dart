@@ -107,6 +107,40 @@ class CustomerRepository {
     return [];
   }
 
+  /// Returns a map with `reviews` (list) and `hasReviewed` (bool) + `myRating`.
+  static Future<Map<String, dynamic>> pharmacyReviews(int pharmacyId) async {
+    final res = await ApiService.get('/pharmacies/$pharmacyId/reviews');
+    final data = _data(res);
+    final raw = data is Map ? data['reviews'] : data;
+    List<PharmacyReview> reviews = [];
+    if (raw is List) {
+      reviews = raw.map((r) => PharmacyReview.fromJson(r is Map ? Map<String, dynamic>.from(r) : {})).toList();
+    }
+    final my = data is Map ? data['my_review'] : null;
+    return {
+      'reviews': reviews,
+      'hasReviewed': data is Map ? (data['has_reviewed'] ?? false) : false,
+      'myRating': my is Map ? my['rating'] : null,
+    };
+  }
+
+  static Future<void> submitPharmacyReview(int pharmacyId, {required int rating, String? review}) async {
+    await ApiService.post('/pharmacies/$pharmacyId/reviews', {
+      'rating': rating,
+      if (review != null && review.isNotEmpty) 'review': review,
+    });
+  }
+
+  static Future<List<BroadcastMessage>> broadcasts() async {
+    final res = await ApiService.get('/broadcasts');
+    final data = _data(res);
+    if (data is List) return data.map((b) => BroadcastMessage.fromJson(b is Map ? Map<String, dynamic>.from(b) : {})).toList();
+    if (data is Map && data['data'] is List) {
+      return data['data'].map((b) => BroadcastMessage.fromJson(b is Map ? Map<String, dynamic>.from(b) : {})).toList();
+    }
+    return [];
+  }
+
   /// Places an order and returns the raw response data (including Order fields
   /// plus any `payment` payload). Callers construct an [Order] via
   /// `Order.fromJson` and can read `data['payment']` for payment details.

@@ -9,6 +9,7 @@ import '../../theme.dart';
 import '../../utils/helpers.dart';
 import '../cart/cart_screen.dart';
 import 'drug_detail_screen.dart';
+import 'pharmacy_reviews_screen.dart';
 
 class PharmacyDetailScreen extends StatefulWidget {
   final Pharmacy pharmacy;
@@ -130,20 +131,26 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                   ),
                 ),
                 if (widget.pharmacy.hasRating)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(20),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => PharmacyReviewsScreen(pharmacy: widget.pharmacy)),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.star, size: 10, color: Color(0xFFFBBF24)),
-                        const SizedBox(width: 3),
-                        Text(widget.pharmacy.rating!.toStringAsFixed(1),
-                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFD97706))),
-                      ],
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star, size: 10, color: Color(0xFFFBBF24)),
+                          const SizedBox(width: 3),
+                          Text(widget.pharmacy.rating!.toStringAsFixed(1),
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFD97706))),
+                        ],
+                      ),
                     ),
                   ),
               ],
@@ -185,6 +192,21 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                     },
                     icon: const Icon(Icons.directions, size: 16),
                     label: const Text('Directions'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => PharmacyReviewsScreen(pharmacy: widget.pharmacy)),
+                    ),
+                    icon: Icon(Icons.star_border,
+                        size: 16,
+                        color: widget.pharmacy.hasRating
+                            ? const Color(0xFFFBBF24)
+                            : Theme.of(context).colorScheme.primary),
+                    label: const Text('Reviews'),
                   ),
                 ),
               ],

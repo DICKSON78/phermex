@@ -142,11 +142,28 @@ class ChatController extends Controller
 
     // ── Pharmacy (owner/staff) endpoints ────────────────
 
+    private function pharmacyForTenant(Request $request): ?Pharmacy
+    {
+        $user = $request->user();
+
+        if (!$user || !$user->isTenantUser()) {
+            return null;
+        }
+
+        $pharmacyId = $user->resolveCurrentPharmacyId();
+
+        if (!$pharmacyId) {
+            return null;
+        }
+
+        return Pharmacy::find($pharmacyId);
+    }
+
     public function pharmacyConversations(Request $request): JsonResponse
     {
         try {
             $userId = $request->user()->id;
-            $pharmacy = Pharmacy::where('owner_id', $userId)->first();
+            $pharmacy = $this->pharmacyForTenant($request);
 
             if (!$pharmacy) {
                 return response()->json(['message' => 'No pharmacy found.'], 404);
@@ -189,7 +206,7 @@ class ChatController extends Controller
     {
         try {
             $userId = $request->user()->id;
-            $pharmacy = Pharmacy::where('owner_id', $userId)->first();
+            $pharmacy = $this->pharmacyForTenant($request);
 
             if (!$pharmacy) {
                 return response()->json(['message' => 'No pharmacy found.'], 404);
@@ -223,7 +240,7 @@ class ChatController extends Controller
             ]);
 
             $userId = $request->user()->id;
-            $pharmacy = Pharmacy::where('owner_id', $userId)->first();
+            $pharmacy = $this->pharmacyForTenant($request);
 
             if (!$pharmacy) {
                 return response()->json(['message' => 'No pharmacy found.'], 404);
@@ -255,7 +272,7 @@ class ChatController extends Controller
     {
         try {
             $userId = $request->user()->id;
-            $pharmacy = Pharmacy::where('owner_id', $userId)->first();
+            $pharmacy = $this->pharmacyForTenant($request);
 
             if (!$pharmacy) {
                 return response()->json(['message' => 'No pharmacy found.'], 404);

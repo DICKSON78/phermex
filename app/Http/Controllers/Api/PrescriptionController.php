@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Drug;
 use App\Models\DrugMovement;
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Prescription;
@@ -106,7 +107,7 @@ class PrescriptionController extends Controller
     public function show($id): JsonResponse
     {
         try {
-            $prescription = Prescription::with(['customer', 'items.drug', 'dispenser'])
+            $prescription = Prescription::with(['customer', 'user', 'items.drug', 'dispenser'])
                 ->findOrFail($id);
 
             return response()->json([
@@ -221,6 +222,140 @@ class PrescriptionController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Failed to dispense prescription.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function process(Request $request, $id): JsonResponse
+    {
+        try {
+            $prescription = Prescription::with('items.drug')->findOrFail($id);
+
+            if ($prescription->status !== 'pending') {
+                return response()->json([
+                    'message' => 'Only pending prescriptions can be processed.',
+                ], 422);
+            }
+
+            $validated = $request->validate([
+                'items' => 'required|array|min:1',
+                'items.*.drug_id' => 'required|exists:drugs,id',
+                'items.*.quantity' => 'required|integer|min:1',
+                'total' => 'sometimes|nullable|numeric|min:0',
+            ]);
+
+            DB::beginTransaction();
+
+            $pharmacy = $prescription->pharmacy_id;
+
+            $subtotal = 0;
+            $orderItems = [];
+
+            foreach ($validated['items'] as $item) {
+                $drug = Drug::lockForUpdate()
+                    ->where('id', $item['drug_id'])
+                    ->where('pharmacy_id', $pharmacy)
+                    ->first();
+
+                if (!$drug) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => "Drug ID {$item['drug_id']} does not belong to this pharmacy.",
+                    ], 422);
+                }
+
+                if ($drug->quantity < $item['quantity']) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => "Insufficient stock for '{$drug->name}'. Available: {$drug->quantity}.",
+                    ], 422);
+                }
+
+                $unitPrice = $drug->selling_price;
+                $totalPrice = $unitPrice * $item['quantity'];
+                $subtotal += $totalPrice;
+
+                $orderItems[] = [
+                    'drug_id' => $drug->id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $unitPrice,
+                    'total_price' => $totalPrice,
+                ];
+
+                $drug->decrement('quantity', $item['quantity']);
+
+                DrugMovement::create([
+                    'pharmacy_id' => $pharmacy,
+                    'drug_id' => $drug->id,
+                    'movement_type' => 'sale',
+                    'quantity' => -$item['quantity'],
+                    'unit_cost' => $drug->buying_price,
+                    'reference_number' => $prescription->prescription_code,
+                    'performed_by' => Auth::id(),
+                ]);
+            }
+
+            $orderTotal = $validated['total'] ?? $subtotal;
+            $orderCode = 'ORD-' . now()->format('Y') . strtoupper(substr(uniqid(), -5));
+
+            $order = Order::create([
+                'pharmacy_id' => $pharmacy,
+                'user_id' => $prescription->user_id,
+                'customer_id' => $prescription->customer_id,
+                'order_code' => $orderCode,
+                'order_type' => 'prescription',
+                'subtotal' => $subtotal,
+                'discount' => 0,
+                'tax' => 0,
+                'total' => $orderTotal,
+                'payment_method' => 'cash',
+                'payment_status' => 'unpaid',
+                'order_status' => 'dispensed',
+                'notes' => "Dispensed from prescription {$prescription->prescription_code}",
+                'processed_by' => Auth::id(),
+            ]);
+
+            $order->items()->createMany($orderItems);
+
+            $prescription->update([
+                'status' => 'dispensed',
+                'dispensed_by' => Auth::id(),
+                'dispensed_at' => now(),
+            ]);
+
+            if ($prescription->user_id) {
+                Notification::create([
+                    'pharmacy_id' => $prescription->pharmacy_id,
+                    'user_id' => $prescription->user_id,
+                    'title' => 'Prescription Ready',
+                    'message' => "Your prescription {$prescription->prescription_code} has been processed. Order #{$order->order_code} is ready.",
+                    'type' => 'info',
+                    'is_read' => false,
+                    'link' => "/orders/{$order->id}",
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Prescription processed successfully.',
+                'prescription' => $prescription->fresh()->load(['customer', 'user', 'items.drug', 'dispenser']),
+                'order' => $order->load(['items.drug', 'user']),
+            ], 201);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            DB::rollBack();
+            return response()->json(['message' => 'Prescription not found.'], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to process prescription.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }

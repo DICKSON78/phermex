@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Delivery;
 use App\Models\Drug;
 use App\Models\DrugCategory;
 use App\Models\DrugMovement;
@@ -453,6 +454,21 @@ class CustomerAppController extends Controller
                 'link' => "/dashboard/orders/{$order->id}",
             ]);
 
+            // Create a pending delivery record for the customer's online order
+            // unless one has already been linked to this order.
+            if (!Delivery::where('order_id', $order->id)->exists()) {
+                Delivery::create([
+                    'pharmacy_id' => $pharmacy->id,
+                    'order_id' => $order->id,
+                    'delivery_code' => 'DLV-' . strtoupper(Str::random(8)),
+                    'customer_name' => $user->name,
+                    'customer_phone' => $validated['delivery_phone'] ?? $user->phone,
+                    'delivery_address' => $validated['delivery_address'],
+                    'delivery_fee' => 0,
+                    'status' => 'pending',
+                ]);
+            }
+
             $order->load('items.drug', 'pharmacy', 'user');
 
             DB::commit();
@@ -487,7 +503,7 @@ class CustomerAppController extends Controller
     {
         try {
             $orders = Order::where('user_id', $request->user()->id)
-                ->with('pharmacy')
+                ->with('pharmacy', 'delivery')
                 ->orderByDesc('created_at')
                 ->paginate($request->input('per_page', 15));
 
@@ -573,7 +589,7 @@ class CustomerAppController extends Controller
         try {
             $order = Order::where('id', $id)
                 ->where('user_id', $request->user()->id)
-                ->with('items.drug', 'pharmacy')
+                ->with('items.drug', 'pharmacy', 'delivery')
                 ->firstOrFail();
 
             return response()->json([

@@ -32,8 +32,18 @@ import {
   ShieldCheck,
   AlertTriangle,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import ConfirmDialog from '../../components/ConfirmDialog'
+
+function Th({ children }) {
+  return (
+    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+      {children}
+    </th>
+  )
+}
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', {
@@ -119,6 +129,44 @@ export default function AdminPharmacyShowPage() {
   const [rejectReason, setRejectReason] = useState('')
   const [paymentNote, setPaymentNote] = useState('')
   const [toast, setToast] = useState(null)
+
+  // Per-pharmacy drill-down tabs
+  const [activeTab, setActiveTab] = useState('drugs')
+  const [tabData, setTabData] = useState({})
+  const [tabLoading, setTabLoading] = useState(false)
+  const [tabPage, setTabPage] = useState({})
+  const [tabLastPage, setTabLastPage] = useState({})
+
+  const TAB_ENDPOINTS = {
+    drugs: 'drugs',
+    orders: 'orders',
+    expenses: 'expenses',
+    prescriptions: 'prescriptions',
+  }
+
+  const fetchTab = async (tab = activeTab, pageNum = 1) => {
+    const endpoint = TAB_ENDPOINTS[tab]
+    if (!endpoint || !id) return
+    setTabLoading(true)
+    try {
+      const res = await api.get(`/admin/pharmacies/${id}/${endpoint}?page=${pageNum}&per_page=10`)
+      const d = res.data?.data || res.data
+      const list = Array.isArray(d) ? d : (d.data || [])
+      setTabData((prev) => ({ ...prev, [tab]: { list, meta: d } }))
+      setTabPage((prev) => ({ ...prev, [tab]: pageNum }))
+      setTabLastPage((prev) => ({ ...prev, [tab]: d.last_page || 1 }))
+    } catch {
+      setTabData((prev) => ({ ...prev, [tab]: { list: [], meta: {} } }))
+      setTabLastPage((prev) => ({ ...prev, [tab]: 1 }))
+    } finally {
+      setTabLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (id) fetchTab('drugs', 1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   useEffect(() => { fetchPharmacy() }, [id])
 
@@ -515,6 +563,169 @@ export default function AdminPharmacyShowPage() {
               })}
             </div>
           </SectionCard>
+        </div>
+      </div>
+
+      {/* Per-Pharmacy Operational Data */}
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2.5 flex-wrap">
+          <div className="w-9 h-9 bg-[#0FD452]/10 rounded-lg flex items-center justify-center">
+            <TrendingUp className={`w-4 h-4 text-[#0FD452]`} />
+          </div>
+          <div className="mr-4">
+            <h3 className="text-sm font-semibold text-[#000F14]">Operational Data</h3>
+            <p className="text-xs text-gray-500">Drugs, orders, expenses &amp; prescriptions for this pharmacy</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-1 bg-gray-100 rounded-lg p-1 ml-auto">
+            {[
+              { key: 'drugs', label: 'Drugs', icon: Pill },
+              { key: 'orders', label: 'Orders', icon: ShoppingCart },
+              { key: 'expenses', label: 'Expenses', icon: DollarSign },
+              { key: 'prescriptions', label: 'Prescriptions', icon: FileText },
+            ].map((t) => {
+              const TIc = t.icon
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => fetchTab(t.key, 1)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    activeTab === t.key ? 'bg-white text-[#0FD452] shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <TIc className="w-3.5 h-3.5" />
+                  {t.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+        <div className="p-5">
+          {tabLoading && !tabData[activeTab]?.list?.length ? (
+            <div className="flex items-center justify-center py-10 text-sm text-gray-400">
+              <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading {activeTab}...
+            </div>
+          ) : tabData[activeTab]?.list?.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                {activeTab === 'drugs' ? <Pill className="w-6 h-6 text-gray-300" />
+                  : activeTab === 'orders' ? <ShoppingCart className="w-6 h-6 text-gray-300" />
+                  : activeTab === 'expenses' ? <DollarSign className="w-6 h-6 text-gray-300" />
+                  : <FileText className="w-6 h-6 text-gray-300" />}
+              </div>
+              <p className="text-sm font-medium text-gray-700">No {activeTab} found</p>
+              <p className="text-xs text-gray-400 mt-1">This pharmacy has no {activeTab} yet.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              {activeTab === 'drugs' && (
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="bg-gray-50"><Th>Drug</Th><Th>Category</Th><Th>Stock</Th><Th>Selling Price</Th><Th>Reorder Level</Th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {tabData.drugs.list.map((row) => (
+                      <tr key={row.id} className="hover:bg-[#0FD452]/5">
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          <div className="flex items-center gap-2">
+                            <Pill className="w-4 h-4 text-[#0FD452]" />
+                            {row.name}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">{row.category?.name || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.quantity ?? 0}</td>
+                        <td className="px-4 py-3 text-gray-600">{formatCurrency(row.selling_price)}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.reorder_level ?? 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {activeTab === 'orders' && (
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="bg-gray-50"><Th>Order</Th><Th>Type</Th><Th>Total</Th><Th>Payment</Th><Th>Status</Th><Th>Date</Th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {tabData.orders.list.map((row) => (
+                      <tr key={row.id} className="hover:bg-[#0FD452]/5">
+                        <td className="px-4 py-3 font-medium text-gray-900 font-mono">{row.order_code || row.id}</td>
+                        <td className="px-4 py-3 text-gray-600 capitalize">{row.order_type || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{formatCurrency(row.total)}</td>
+                        <td className="px-4 py-3">
+                          <span className={PAY_STATUS[row.payment_status]?.color || 'bg-gray-100 text-gray-600'}>
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium">{row.payment_status || '—'}</span>
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 capitalize">{row.order_status || row.status || '—'}</td>
+                        <td className="px-4 py-3 text-gray-500">{formatDate(row.created_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {activeTab === 'expenses' && (
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="bg-gray-50"><Th>Title</Th><Th>Category</Th><Th>Amount</Th><Th>Date</Th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {tabData.expenses.list.map((row) => (
+                      <tr key={row.id} className="hover:bg-[#0FD452]/5">
+                        <td className="px-4 py-3 font-medium text-gray-900">{row.title || row.description || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.category || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{formatCurrency(row.amount)}</td>
+                        <td className="px-4 py-3 text-gray-500">{formatDate(row.created_at || row.date)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {activeTab === 'prescriptions' && (
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="bg-gray-50"><Th>Code</Th><Th>Doctor</Th><Th>Patient</Th><Th>Items</Th><Th>Status</Th><Th>Date</Th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {tabData.prescriptions.list.map((row) => (
+                      <tr key={row.id} className="hover:bg-[#0FD452]/5">
+                        <td className="px-4 py-3 font-medium text-gray-900 font-mono">{row.prescription_code || row.id}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.doctor_name || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.customer?.full_name || row.customer?.name || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.items?.length ?? 0}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
+                            row.status === 'dispensed' ? 'bg-green-100 text-green-700'
+                            : row.status === 'cancelled' ? 'bg-red-100 text-red-600'
+                            : 'bg-yellow-100 text-yellow-700'
+                          }`}>{row.status || '—'}</span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">{formatDate(row.created_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+          {tabLastPage[activeTab] > 1 && (
+            <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-4">
+              <button
+                onClick={() => fetchTab(activeTab, (tabPage[activeTab] || 1) - 1)}
+                disabled={(tabPage[activeTab] || 1) === 1}
+                className="btn-ghost"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+              </button>
+              <span className="text-sm text-gray-500">{tabPage[activeTab] || 1} / {tabLastPage[activeTab]}</span>
+              <button
+                onClick={() => fetchTab(activeTab, (tabPage[activeTab] || 1) + 1)}
+                disabled={(tabPage[activeTab] || 1) === tabLastPage[activeTab]}
+                className="btn-ghost"
+              >
+                Next <ChevronRight className="h-4 w-4 ml-1" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

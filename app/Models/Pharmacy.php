@@ -222,4 +222,9 @@ class Pharmacy extends Model
     {
         return $this->belongsToMany(User::class, 'pharmacy_user');
     }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(PharmacyReview::class);
+    }
 }

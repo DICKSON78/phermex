@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -184,6 +185,27 @@ class DeliveryController extends Controller
                 $delivery->order->update(['order_status' => 'delivered']);
             } elseif ($validated['status'] === 'out_for_delivery') {
                 $delivery->order->update(['order_status' => 'out_for_delivery']);
+            }
+
+            if (in_array($validated['status'], ['out_for_delivery', 'delivered'])) {
+                $order = $delivery->order;
+
+                if ($order && $order->user_id) {
+                    $title = $validated['status'] === 'delivered' ? 'Order Delivered' : 'Out for Delivery';
+                    $message = $validated['status'] === 'delivered'
+                        ? "Your order #{$order->order_code} has been delivered. Thank you for shopping with us!"
+                        : "Your order #{$order->order_code} is out for delivery and on its way to you.";
+
+                    Notification::create([
+                        'pharmacy_id' => $order->pharmacy_id,
+                        'user_id' => $order->user_id,
+                        'title' => $title,
+                        'message' => $message,
+                        'type' => $validated['status'] === 'delivered' ? 'success' : 'info',
+                        'is_read' => false,
+                        'link' => "/orders/{$order->id}",
+                    ]);
+                }
             }
 
             return response()->json([

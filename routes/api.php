@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BankController;
+use App\Http\Controllers\Api\BroadcastController;
 use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\ChatController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayrollController;
 use App\Http\Controllers\Api\PerformanceController;
 use App\Http\Controllers\Api\PharmacyController;
+use App\Http\Controllers\Api\PharmacyReviewController;
 use App\Http\Controllers\Api\PrescriptionController;
 use App\Http\Controllers\Api\TaxController;
 use App\Http\Controllers\Api\SupplierController;
@@ -111,6 +113,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/pharmacies/{id}', [CustomerAppController::class, 'pharmacyDetail']);
         Route::get('/pharmacies/{id}/drugs', [CustomerAppController::class, 'pharmacyDrugs']);
         Route::get('/pharmacies/{id}/categories', [CustomerAppController::class, 'pharmacyCategories']);
+        Route::get('/pharmacies/{id}/reviews', [PharmacyReviewController::class, 'index']);
+        Route::post('/pharmacies/{id}/reviews', [PharmacyReviewController::class, 'store']);
+        Route::get('/broadcasts', [BroadcastController::class, 'customerBroadcasts']);
         Route::post('/orders', [CustomerAppController::class, 'placeOrder']);
         Route::get('/orders', [CustomerAppController::class, 'myOrders']);
         Route::get('/orders/{id}', [CustomerAppController::class, 'orderDetail']);
@@ -145,6 +150,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/pharmacies/{pharmacy}', [PharmacyController::class, 'show']);
         Route::put('/pharmacies/{pharmacy}', [PharmacyController::class, 'update']);
         Route::get('/pharmacies/{pharmacy}/stats', [PharmacyController::class, 'stats']);
+        Route::get('/pharmacies/{pharmacy}/reviews', [PharmacyReviewController::class, 'pharmacyReviews']);
+        Route::get('/broadcasts', [BroadcastController::class, 'pharmacyBroadcasts']);
 
         Route::get('/drugs/search', [DrugController::class, 'search']);
         Route::get('/drug-categories', [DrugController::class, 'categories']);
@@ -179,6 +186,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/prescriptions', [PrescriptionController::class, 'index']);
         Route::post('/prescriptions', [PrescriptionController::class, 'store']);
         Route::post('/prescriptions/{id}/dispense', [PrescriptionController::class, 'dispense']);
+        Route::post('/prescriptions/{id}/process', [PrescriptionController::class, 'process']);
         Route::post('/prescriptions/{id}/cancel', [PrescriptionController::class, 'cancel']);
         Route::get('/prescriptions/{id}', [PrescriptionController::class, 'show']);
 
@@ -407,6 +415,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/pharmacies/{id}/reject', [AdminController::class, 'rejectPharmacy']);
         Route::patch('/pharmacies/{id}/confirm-payment', [AdminController::class, 'confirmPayment']);
         Route::get('/pending-pharmacies', [AdminController::class, 'listPendingPharmacies']);
+        Route::get('/reviews', [AdminController::class, 'reviews']);
+
+        // Admin per-pharmacy drill-down
+        Route::get('/pharmacies/{id}/orders', [AdminController::class, 'pharmacyOrders']);
+        Route::get('/pharmacies/{id}/drugs', [AdminController::class, 'pharmacyDrugs']);
+        Route::get('/pharmacies/{id}/expenses', [AdminController::class, 'pharmacyExpenses']);
+        Route::get('/pharmacies/{id}/prescriptions', [AdminController::class, 'pharmacyPrescriptions']);
+
+        // Admin Broadcasts
+        Route::get('/broadcasts', [BroadcastController::class, 'index']);
+        Route::post('/broadcasts', [BroadcastController::class, 'store']);
+        Route::patch('/broadcasts/{id}/toggle-active', [BroadcastController::class, 'toggleActive']);
+        Route::delete('/broadcasts/{id}', [BroadcastController::class, 'destroy']);
 
         // Admin User Management
         Route::get('/users/list', [AdminUserController::class, 'index']);
@@ -493,6 +514,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::get('/pharmacy', [NotificationController::class, 'pharmacy']);
+        Route::put('/pharmacy/read-all', [NotificationController::class, 'pharmacyReadAll']);
         Route::get('/{id}', [NotificationController::class, 'show']);
         Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::put('/read-all', [NotificationController::class, 'markAllRead']);

@@ -14,6 +14,7 @@ import {
   BarChart3,
   Truck,
   Settings,
+  Star,
 } from 'lucide-react'
 import DashboardLayout from './DashboardLayout'
 
@@ -41,6 +42,7 @@ const ownerNavGroups = [
       { icon: Package, label: 'Orders', path: '/owner/orders' },
       { icon: FileText, label: 'Prescriptions', path: '/owner/prescriptions' },
       { icon: Users, label: 'Customers', path: '/owner/customers' },
+      { icon: Star, label: 'Reviews', path: '/owner/reviews' },
     ],
   },
   {

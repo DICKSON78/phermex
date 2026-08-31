@@ -42,6 +42,8 @@ import {
   LifeBuoy,
   Check,
   Plus,
+  Star,
+  Megaphone,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -70,6 +72,7 @@ import ExportPage from '../pages/owner/ExportPage'
 import SettingsPage from '../pages/owner/SettingsPage'
 import NotificationsPage from '../pages/owner/NotificationsPage'
 import ProfilePage from '../pages/owner/ProfilePage'
+import PharmacyReviewsPage from '../pages/owner/PharmacyReviewsPage'
 
 import SupplierListPage from '../pages/owner/SupplierListPage'
 import SupplierDetailPage from '../pages/owner/SupplierDetailPage'
@@ -136,6 +139,8 @@ import AdminPendingApprovalsPage from '../pages/admin/AdminPendingApprovalsPage'
 import AdminJobsPage from '../pages/admin/AdminJobsPage'
 import AdminJobFormPage from '../pages/admin/AdminJobFormPage'
 import AdminJobShowPage from '../pages/admin/AdminJobShowPage'
+import AdminBroadcastPage from '../pages/admin/AdminBroadcastPage'
+import AdminReviewsPage from '../pages/admin/AdminReviewsPage'
 
 import SellerDashboard from '../pages/seller/SellerDashboard'
 
@@ -164,6 +169,7 @@ const ownerNavGroups = [
       { path: '/dashboard/prescriptions', icon: FileText, label: 'Prescriptions' },
       { path: '/dashboard/customers', icon: Users, label: 'Customers' },
       { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages' },
+      { path: '/dashboard/reviews', icon: Star, label: 'Reviews' },
     ],
   },
   {
@@ -278,6 +284,8 @@ const adminNavGroups = [
       { path: '/dashboard/support', icon: FileText, label: 'Support Tickets' },
       { path: '/dashboard/content', icon: BookOpen, label: 'Content & Announcements' },
       { path: '/dashboard/marketing', icon: ClipboardList, label: 'Marketing' },
+      { path: '/dashboard/reviews', icon: Star, label: 'Reviews' },
+      { path: '/dashboard/broadcasts', icon: Megaphone, label: 'Broadcasts' },
     ],
   },
   {
@@ -750,6 +758,7 @@ export default function DashboardLayout({ role }) {
               <Route path="barcode" element={<BarcodePage />} />
               <Route path="export" element={<ExportPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="reviews" element={<PharmacyReviewsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="settings/pharmacies/new" element={<AddPharmacyPage />} />
@@ -830,6 +839,8 @@ export default function DashboardLayout({ role }) {
               <Route path="jobs/new" element={<AdminJobFormPage />} />
               <Route path="jobs/:id" element={<AdminJobShowPage />} />
               <Route path="jobs/:id/edit" element={<AdminJobFormPage />} />
+              <Route path="reviews" element={<AdminReviewsPage />} />
+              <Route path="broadcasts" element={<AdminBroadcastPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           )}

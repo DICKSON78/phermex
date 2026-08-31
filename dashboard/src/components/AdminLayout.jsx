@@ -6,6 +6,8 @@ import {
   CreditCard,
   Settings,
   ClipboardList,
+  Star,
+  Megaphone,
 } from 'lucide-react'
 import DashboardLayout from './DashboardLayout'
 
@@ -14,6 +16,8 @@ const adminNavGroups = [
     label: 'MAIN',
     items: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
+      { icon: Star, label: 'Reviews', path: '/admin/reviews' },
+      { icon: Megaphone, label: 'Broadcasts', path: '/admin/broadcasts' },
     ],
   },
   {

@@ -712,4 +712,111 @@ class AdminController extends Controller
             return response()->json(['message' => 'Failed to fetch pharmacies.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
+
+    public function pharmacyOrders(Request $request, $id): JsonResponse
+    {
+        try {
+            $pharmacy = Pharmacy::findOrFail($id);
+
+            $orders = Order::with(['items.drug', 'user', 'processor'])
+                ->where('pharmacy_id', $pharmacy->id)
+                ->latest()
+                ->paginate($request->input('per_page', 20));
+
+            return response()->json($orders);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch orders.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function pharmacyDrugs(Request $request, $id): JsonResponse
+    {
+        try {
+            $pharmacy = Pharmacy::findOrFail($id);
+
+            $drugs = Drug::with('category')
+                ->where('pharmacy_id', $pharmacy->id)
+                ->latest()
+                ->paginate($request->input('per_page', 20));
+
+            return response()->json($drugs);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch drugs.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function pharmacyExpenses(Request $request, $id): JsonResponse
+    {
+        try {
+            $pharmacy = Pharmacy::findOrFail($id);
+
+            $expenses = Expense::with('recorder:id,name')
+                ->where('pharmacy_id', $pharmacy->id)
+                ->latest()
+                ->paginate($request->input('per_page', 20));
+
+            return response()->json($expenses);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch expenses.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function pharmacyPrescriptions(Request $request, $id): JsonResponse
+    {
+        try {
+            $pharmacy = Pharmacy::findOrFail($id);
+
+            $prescriptions = \App\Models\Prescription::with(['customer', 'user', 'items.drug', 'dispenser'])
+                ->where('pharmacy_id', $pharmacy->id)
+                ->latest()
+                ->paginate($request->input('per_page', 20));
+
+            return response()->json($prescriptions);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch prescriptions.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function reviews(Request $request): JsonResponse
+    {
+        try {
+            $query = \App\Models\PharmacyReview::with(['user:id,name', 'pharmacy:id,pharmacy_name']);
+
+            if ($request->filled('pharmacy_id')) {
+                $query->where('pharmacy_id', $request->input('pharmacy_id'));
+            }
+
+            $reviews = $query->latest()->paginate($request->input('per_page', 20));
+
+            return response()->json([
+                'message' => 'Reviews retrieved.',
+                'data' => $reviews,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch reviews.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
 }

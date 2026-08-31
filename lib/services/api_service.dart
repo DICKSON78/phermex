@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
@@ -17,6 +18,14 @@ class ApiService {
   static const String _tokenKey = 'pharmex_customer_token';
   static const String _userKey = 'pharmex_customer_user';
 
+  // Legacy keys used before the secure-storage migration (plaintext).
+  static const String _legacyTokenKey = 'pharmex_customer_token';
+  static const String _legacyUserKey = 'pharmex_customer_user';
+
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
+
   static String? _token;
   static Map<String, dynamic>? _cachedUser;
 
@@ -25,17 +34,43 @@ class ApiService {
   static Future<void> saveSession(String token, Map<String, dynamic> user) async {
     _token = token;
     _cachedUser = user;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
-    await prefs.setString(_userKey, jsonEncode(user));
+    await _storeSession(token, user);
+  }
+
+  static Future<void> _storeSession(String token, Map<String, dynamic> user) async {
+    await _secureStorage.write(key: _tokenKey, value: token);
+    await _secureStorage.write(key: _userKey, value: jsonEncode(user));
+    // Best-effort cleanup of legacy plaintext copies.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_legacyTokenKey);
+      await prefs.remove(_legacyUserKey);
+    } catch (_) {}
   }
 
   static Future<void> loadSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString(_tokenKey);
-    final userStr = prefs.getString(_userKey);
-    if (userStr != null) {
-      _cachedUser = jsonDecode(userStr);
+    try {
+      _token = await _secureStorage.read(key: _tokenKey);
+      final userStr = await _secureStorage.read(key: _userKey);
+      if (userStr != null) {
+        _cachedUser = jsonDecode(userStr) as Map<String, dynamic>?;
+      }
+    } catch (_) {}
+
+    // First launch after migration: read any legacy plaintext session and
+    // move it into secure storage.
+    if (_token == null) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final legacyToken = prefs.getString(_legacyTokenKey);
+        final legacyUser = prefs.getString(_legacyUserKey);
+        if (legacyToken != null) {
+          final user = legacyUser != null
+              ? (jsonDecode(legacyUser) as Map<String, dynamic>?)
+              : null;
+          await _storeSession(legacyToken, user ?? {});
+        }
+      } catch (_) {}
     }
   }
 
@@ -46,8 +81,9 @@ class ApiService {
   /// Updates the cached user profile without touching the auth token.
   static Future<void> updateCachedUser(Map<String, dynamic> user) async {
     _cachedUser = user;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userKey, jsonEncode(user));
+    try {
+      await _secureStorage.write(key: _userKey, value: jsonEncode(user));
+    } catch (_) {}
   }
 
   static String? get userName => _cachedUser?['name'];
@@ -55,17 +91,25 @@ class ApiService {
   static Future<void> logout() async {
     _token = null;
     _cachedUser = null;
+    try {
+      await _secureStorage.delete(key: _tokenKey);
+      await _secureStorage.delete(key: _userKey);
+    } catch (_) {}
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
+    await prefs.remove(_legacyTokenKey);
+    await prefs.remove(_legacyUserKey);
   }
 
   static Future<void> clearSession() async {
     _token = null;
     _cachedUser = null;
+    try {
+      await _secureStorage.delete(key: _tokenKey);
+      await _secureStorage.delete(key: _userKey);
+    } catch (_) {}
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
+    await prefs.remove(_legacyTokenKey);
+    await prefs.remove(_legacyUserKey);
     navigatorKey.currentState?.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,

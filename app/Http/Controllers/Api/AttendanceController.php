@@ -9,10 +9,17 @@ use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
 {
+    private function employeeIsAccessible(Request $request, int $employeeId): bool
+    {
+        $employee = \App\Models\Employee::where('id', $employeeId)->first();
+
+        return $employee && in_array((int) $employee->pharmacy_id, $request->user()->accessiblePharmacyIds(), true);
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Attendance::with('employee');
+            $query = Attendance::with('employee')->whereHas('employee');
 
             if ($request->filled('employee_id')) {
                 $query->where('employee_id', $request->input('employee_id'));
@@ -52,6 +59,12 @@ class AttendanceController extends Controller
                 'recorded_by' => 'nullable|exists:users,id',
             ]);
 
+            if (!$this->employeeIsAccessible($request, (int) $validated['employee_id'])) {
+                return response()->json([
+                    'message' => 'You do not have access to this employee.',
+                ], 403);
+            }
+
             $existing = Attendance::where('employee_id', $validated['employee_id'])
                 ->where('date', $validated['date'])
                 ->first();
@@ -90,6 +103,12 @@ class AttendanceController extends Controller
             $request->validate([
                 'employee_id' => 'required|exists:employees,id',
             ]);
+
+            if (!$this->employeeIsAccessible($request, (int) $request->input('employee_id'))) {
+                return response()->json([
+                    'message' => 'You do not have access to this employee.',
+                ], 403);
+            }
 
             $today = now()->toDateString();
 
@@ -143,6 +162,12 @@ class AttendanceController extends Controller
                 'employee_id' => 'required|exists:employees,id',
             ]);
 
+            if (!$this->employeeIsAccessible($request, (int) $request->input('employee_id'))) {
+                return response()->json([
+                    'message' => 'You do not have access to this employee.',
+                ], 403);
+            }
+
             $today = now()->toDateString();
 
             $attendance = Attendance::where('employee_id', $request->input('employee_id'))
@@ -187,6 +212,12 @@ class AttendanceController extends Controller
         try {
             $attendance = Attendance::findOrFail($id);
 
+            if (!$this->employeeIsAccessible($request, (int) $attendance->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this attendance record.',
+                ], 403);
+            }
+
             $validated = $request->validate([
                 'status' => 'sometimes|in:present,absent,late,half_day,leave,holiday',
                 'clock_in' => 'nullable|date',
@@ -217,10 +248,17 @@ class AttendanceController extends Controller
         }
     }
 
-    public function destroy($id): JsonResponse
+    public function destroy(Request $request, $id): JsonResponse
     {
         try {
             $attendance = Attendance::findOrFail($id);
+
+            if (!$this->employeeIsAccessible($request, (int) $attendance->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this attendance record.',
+                ], 403);
+            }
+
             $attendance->delete();
 
             return response()->json(['message' => 'Attendance record deleted.']);
@@ -237,7 +275,7 @@ class AttendanceController extends Controller
     public function getReport(Request $request): JsonResponse
     {
         try {
-            $query = Attendance::with('employee');
+            $query = Attendance::with('employee')->whereHas('employee');
 
             if ($request->filled('employee_id')) {
                 $query->where('employee_id', $request->input('employee_id'));

@@ -58,6 +58,12 @@ class CustomerController extends Controller
 
             $validated['customer_code'] = $customerCode;
 
+            if (!in_array((int) $validated['pharmacy_id'], $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json([
+                    'message' => 'You do not have access to this pharmacy.',
+                ], 403);
+            }
+
             $customer = Customer::create($validated);
 
             return response()->json([

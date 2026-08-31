@@ -9,10 +9,17 @@ use Illuminate\Http\Request;
 
 class LeaveController extends Controller
 {
+    private function employeeIsAccessible(Request $request, int $employeeId): bool
+    {
+        $employee = \App\Models\Employee::where('id', $employeeId)->first();
+
+        return $employee && in_array((int) $employee->pharmacy_id, $request->user()->accessiblePharmacyIds(), true);
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Leave::with(['employee', 'approvedBy']);
+            $query = Leave::with(['employee', 'approvedBy'])->whereHas('employee');
 
             if ($request->filled('employee_id')) {
                 $query->where('employee_id', $request->input('employee_id'));
@@ -51,6 +58,12 @@ class LeaveController extends Controller
             $validated['days_count'] = Leave::calculateDays($validated['start_date'], $validated['end_date']);
             $validated['status'] = 'pending';
 
+            if (!$this->employeeIsAccessible($request, (int) $validated['employee_id'])) {
+                return response()->json([
+                    'message' => 'You do not have access to this employee.',
+                ], 403);
+            }
+
             $leave = Leave::create($validated);
 
             return response()->json([
@@ -70,10 +83,16 @@ class LeaveController extends Controller
         }
     }
 
-    public function show($id): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
         try {
             $leave = Leave::with(['employee', 'approvedBy'])->findOrFail($id);
+
+            if (!$this->employeeIsAccessible($request, (int) $leave->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this leave request.',
+                ], 403);
+            }
 
             return response()->json(['leave' => $leave]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
@@ -90,6 +109,12 @@ class LeaveController extends Controller
     {
         try {
             $leave = Leave::findOrFail($id);
+
+            if (!$this->employeeIsAccessible($request, (int) $leave->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this leave request.',
+                ], 403);
+            }
 
             if ($leave->status !== 'pending') {
                 return response()->json([
@@ -118,6 +143,12 @@ class LeaveController extends Controller
         try {
             $leave = Leave::findOrFail($id);
 
+            if (!$this->employeeIsAccessible($request, (int) $leave->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this leave request.',
+                ], 403);
+            }
+
             if ($leave->status !== 'pending') {
                 return response()->json([
                     'message' => 'Only pending leaves can be rejected.',
@@ -143,10 +174,16 @@ class LeaveController extends Controller
         }
     }
 
-    public function cancel($id): JsonResponse
+    public function cancel(Request $request, $id): JsonResponse
     {
         try {
             $leave = Leave::findOrFail($id);
+
+            if (!$this->employeeIsAccessible($request, (int) $leave->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this leave request.',
+                ], 403);
+            }
 
             if ($leave->status !== 'pending') {
                 return response()->json([
@@ -178,6 +215,13 @@ class LeaveController extends Controller
             ]);
 
             $employee = \App\Models\Employee::findOrFail($request->input('employee_id'));
+
+            if (!$this->employeeIsAccessible($request, (int) $employee->id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this employee.',
+                ], 403);
+            }
+
             $balance = $employee->getLeaveBalance();
 
             return response()->json(['balance' => $balance]);
@@ -199,7 +243,7 @@ class LeaveController extends Controller
     public function getCalendar(Request $request): JsonResponse
     {
         try {
-            $query = Leave::with('employee')
+            $query = Leave::with('employee')->whereHas('employee')
                 ->where('status', 'approved')
                 ->where('end_date', '>=', now());
 

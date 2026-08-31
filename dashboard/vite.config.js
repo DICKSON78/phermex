@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/dashboard/',
   build: {
-    sourcemap: true,
+    sourcemap: false,
     outDir: 'dist',
   },
   server: {

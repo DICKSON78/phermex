@@ -92,6 +92,12 @@ class DrugController extends Controller
             $validated['slug'] = $slug;
             $validated['barcode'] = $barcode;
 
+            if (!in_array((int) $validated['pharmacy_id'], $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json([
+                    'message' => 'You do not have access to this pharmacy.',
+                ], 403);
+            }
+
             if ($request->hasFile('image')) {
                 $validated['image_url'] = $request->file('image')->store('drugs', 'public');
             }

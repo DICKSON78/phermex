@@ -38,7 +38,6 @@ class VerifyEmailController extends Controller
 
             return response()->json([
                 'message' => 'Verification code sent.',
-                'debug_code' => config('app.debug') ? $code : null,
             ]);
         } catch (\Exception $e) {
             return response()->json([

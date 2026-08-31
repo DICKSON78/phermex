@@ -360,18 +360,17 @@ export default function DrugDetailPage() {
             </div>
             <button
               onClick={() => {
+                const source = document.getElementById('barcode-printable')
                 const printWindow = window.open('', '_blank')
-                printWindow.document.write(`
-                  <html><head><title>Barcode - ${drug.name}</title>
-                  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
-                  </head><body style="text-align:center;padding:40px;font-family:sans-serif">
-                  <h2>${drug.name}</h2>
-                  <p>${drug.barcode}</p>
-                  <svg id="bc"></svg>
-                  <script>JsBarcode("#bc","${drug.barcode}",{format:"CODE128",width:2,height:50,displayValue:true,fontSize:14});<\/script>
-                  </body></html>
-                `)
+                if (!source || !printWindow) return
+                const cloned = source.cloneNode(true)
+                printWindow.document.open()
+                printWindow.document.write(
+                  '<html><head><title>Barcode</title></head>' +
+                    '<body style="text-align:center;padding:40px;font-family:sans-serif"></body></html>'
+                )
                 printWindow.document.close()
+                printWindow.document.body.appendChild(cloned)
                 printWindow.onload = () => { printWindow.print() }
               }}
               className="btn-secondary"

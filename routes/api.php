@@ -60,8 +60,8 @@ use App\Http\Middleware\PharmacyScopeMiddleware;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('/forgot-password', [PasswordResetController::class, 'sendCode'])->middleware('throttle:5,1');
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:5,1');
 Route::post('/demo-requests', [DemoRequestController::class, 'store']);
@@ -88,10 +88,10 @@ Route::get('/jobs/{id}', [JobController::class, 'show']);
 Route::post('/jobs/{id}/apply', [JobController::class, 'apply']);
 
 Route::prefix('customer-app')->group(function () {
-    Route::post('/register', [CustomerAppController::class, 'register']);
-    Route::post('/login', [CustomerAppController::class, 'login']);
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendCode']);
-    Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+    Route::post('/register', [CustomerAppController::class, 'register'])->middleware('throttle:5,1');
+    Route::post('/login', [CustomerAppController::class, 'login'])->middleware('throttle:10,1');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendCode'])->middleware('throttle:5,1');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:5,1');
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -201,13 +201,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/employees/stats', [EmployeeController::class, 'getStats']);
         Route::patch('/employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);
         Route::get('/employees', [EmployeeController::class, 'index']);
-        Route::post('/employees', [EmployeeController::class, 'store']);
+        Route::post('/employees', [EmployeeController::class, 'store'])->middleware('role:owner,pharmacist');
         Route::get('/employees/{id}', [EmployeeController::class, 'show']);
         Route::put('/employees/{id}', [EmployeeController::class, 'update']);
         Route::delete('/employees/{id}', [EmployeeController::class, 'destroy']);
 
         Route::get('/pharmacists', [PharmacistController::class, 'index']);
-        Route::post('/pharmacists', [PharmacistController::class, 'store']);
+        Route::post('/pharmacists', [PharmacistController::class, 'store'])->middleware('role:owner,pharmacist');
         Route::get('/pharmacists/{id}', [PharmacistController::class, 'show']);
         Route::put('/pharmacists/{id}', [PharmacistController::class, 'update']);
         Route::delete('/pharmacists/{id}', [PharmacistController::class, 'destroy']);
@@ -223,8 +223,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/leaves/balance', [LeaveController::class, 'getBalance']);
         Route::get('/leaves/calendar', [LeaveController::class, 'getCalendar']);
-        Route::post('/leaves/{id}/approve', [LeaveController::class, 'approve']);
-        Route::post('/leaves/{id}/reject', [LeaveController::class, 'reject']);
+        Route::post('/leaves/{id}/approve', [LeaveController::class, 'approve'])->middleware('role:owner,pharmacist');
+        Route::post('/leaves/{id}/reject', [LeaveController::class, 'reject'])->middleware('role:owner,pharmacist');
         Route::post('/leaves/{id}/cancel', [LeaveController::class, 'cancel']);
         Route::get('/leaves', [LeaveController::class, 'index']);
         Route::post('/leaves', [LeaveController::class, 'store']);
@@ -240,8 +240,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/payroll', [PayrollController::class, 'index']);
 
         Route::get('/performance/summary', [PerformanceController::class, 'getSummary']);
-        Route::post('/performance/{id}/submit', [PerformanceController::class, 'submit']);
-        Route::post('/performance/{id}/acknowledge', [PerformanceController::class, 'acknowledge']);
+        Route::post('/performance/{id}/submit', [PerformanceController::class, 'submit'])->middleware('role:owner,pharmacist');
+        Route::post('/performance/{id}/acknowledge', [PerformanceController::class, 'acknowledge'])->middleware('role:owner,pharmacist');
         Route::get('/performance', [PerformanceController::class, 'index']);
         Route::post('/performance', [PerformanceController::class, 'store']);
         Route::get('/performance/{id}', [PerformanceController::class, 'show']);
@@ -364,7 +364,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/deliveries', [DeliveryController::class, 'index']);
         Route::get('/deliveries/drivers', [DeliveryController::class, 'drivers']);
-        Route::post('/deliveries', [DeliveryController::class, 'store']);
+        Route::post('/deliveries', [DeliveryController::class, 'store'])->middleware('role:owner,pharmacist');
         Route::get('/deliveries/{id}', [DeliveryController::class, 'show']);
         Route::patch('/deliveries/{id}', [DeliveryController::class, 'update']);
         Route::put('/deliveries/{id}/status', [DeliveryController::class, 'updateStatus']);

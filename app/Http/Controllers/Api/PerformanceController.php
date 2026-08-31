@@ -9,10 +9,17 @@ use Illuminate\Http\Request;
 
 class PerformanceController extends Controller
 {
+    private function employeeIsAccessible(Request $request, int $employeeId): bool
+    {
+        $employee = \App\Models\Employee::where('id', $employeeId)->first();
+
+        return $employee && in_array((int) $employee->pharmacy_id, $request->user()->accessiblePharmacyIds(), true);
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = PerformanceReview::with(['employee', 'reviewer']);
+            $query = PerformanceReview::with(['employee', 'reviewer'])->whereHas('employee');
 
             if ($request->filled('employee_id')) {
                 $query->where('employee_id', $request->input('employee_id'));
@@ -58,6 +65,12 @@ class PerformanceController extends Controller
 
             $validated['status'] = 'draft';
 
+            if (!$this->employeeIsAccessible($request, (int) $validated['employee_id'])) {
+                return response()->json([
+                    'message' => 'You do not have access to this employee.',
+                ], 403);
+            }
+
             $review = PerformanceReview::create($validated);
 
             return response()->json([
@@ -77,10 +90,16 @@ class PerformanceController extends Controller
         }
     }
 
-    public function show($id): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
         try {
             $review = PerformanceReview::with(['employee', 'reviewer'])->findOrFail($id);
+
+            if (!$this->employeeIsAccessible($request, (int) $review->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this review.',
+                ], 403);
+            }
 
             return response()->json(['review' => $review]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
@@ -97,6 +116,12 @@ class PerformanceController extends Controller
     {
         try {
             $review = PerformanceReview::findOrFail($id);
+
+            if (!$this->employeeIsAccessible($request, (int) $review->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this review.',
+                ], 403);
+            }
 
             $validated = $request->validate([
                 'rating' => 'sometimes|numeric|min:1|max:5',
@@ -127,10 +152,16 @@ class PerformanceController extends Controller
         }
     }
 
-    public function submit($id): JsonResponse
+    public function submit(Request $request, $id): JsonResponse
     {
         try {
             $review = PerformanceReview::findOrFail($id);
+
+            if (!$this->employeeIsAccessible($request, (int) $review->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this review.',
+                ], 403);
+            }
 
             if ($review->status !== 'draft') {
                 return response()->json([
@@ -154,10 +185,16 @@ class PerformanceController extends Controller
         }
     }
 
-    public function acknowledge($id): JsonResponse
+    public function acknowledge(Request $request, $id): JsonResponse
     {
         try {
             $review = PerformanceReview::findOrFail($id);
+
+            if (!$this->employeeIsAccessible($request, (int) $review->employee_id)) {
+                return response()->json([
+                    'message' => 'You do not have access to this review.',
+                ], 403);
+            }
 
             if ($review->status !== 'submitted') {
                 return response()->json([
@@ -184,7 +221,7 @@ class PerformanceController extends Controller
     public function getSummary(Request $request): JsonResponse
     {
         try {
-            $query = PerformanceReview::query();
+            $query = PerformanceReview::query()->whereHas('employee');
 
             if ($request->filled('employee_id')) {
                 $query->where('employee_id', $request->input('employee_id'));

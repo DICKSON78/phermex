@@ -81,6 +81,12 @@ class EmployeeController extends Controller
             $validated['employee_number'] = Employee::generateEmployeeNumber($validated['pharmacy_id']);
             $validated['status'] = 'active';
 
+            if (!in_array((int) $validated['pharmacy_id'], $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json([
+                    'message' => 'You do not have access to this pharmacy.',
+                ], 403);
+            }
+
             $employee = Employee::create($validated);
 
             return response()->json([

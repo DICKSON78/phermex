@@ -87,6 +87,18 @@ class DeliveryController extends Controller
             $validated['delivery_code'] = $deliveryCode;
             $validated['status'] = 'pending';
 
+            if (!in_array((int) $validated['pharmacy_id'], $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json([
+                    'message' => 'You do not have access to this pharmacy.',
+                ], 403);
+            }
+
+            if ((int) $order->pharmacy_id !== (int) $validated['pharmacy_id']) {
+                return response()->json([
+                    'message' => 'The order does not belong to the selected pharmacy.',
+                ], 422);
+            }
+
             $delivery = Delivery::create($validated);
 
             if ($order->order_status !== 'delivered') {

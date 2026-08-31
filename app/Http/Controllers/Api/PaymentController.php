@@ -113,6 +113,24 @@ class PaymentController extends Controller
 
     public function handleWebhook(Request $request): JsonResponse
     {
+        $secret = config('services.clickpesa.webhook_secret', '');
+
+        if ($secret === '') {
+            return response()->json(['message' => 'Webhook not configured.'], 503);
+        }
+
+        $rawBody = $request->getContent();
+        $expectedSignature = hash_hmac('sha256', $rawBody, $secret);
+
+        $providedSignature = $request->header('x-signature')
+            ?? $request->header('x-clickpesa-signature')
+            ?? $request->header('x-webhook-signature')
+            ?? '';
+
+        if ($providedSignature === '' || !hash_equals($expectedSignature, $providedSignature)) {
+            return response()->json(['message' => 'Invalid webhook signature.'], 401);
+        }
+
         $payload = $request->all();
 
         $orderReference = $payload['orderReference']

@@ -10,6 +10,16 @@ use Illuminate\Support\Str;
 
 class UploadController extends Controller
 {
+    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
+
+    private const MIME_TO_EXTENSION = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        'application/pdf' => 'pdf',
+    ];
+
     public function store(Request $request): JsonResponse
     {
         try {
@@ -20,7 +30,24 @@ class UploadController extends Controller
 
             $folder = $validated['folder'] ?? 'uploads';
             $file = $validated['file'];
-            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+
+            $clientExtension = strtolower($file->getClientOriginalExtension());
+            if (!in_array($clientExtension, self::ALLOWED_EXTENSIONS, true)) {
+                return response()->json([
+                    'message' => 'Validation failed.',
+                    'error' => ['file' => ['The file type is not allowed.']],
+                ], 422);
+            }
+
+            $detectedExtension = self::MIME_TO_EXTENSION[$file->getMimeType()] ?? $clientExtension;
+            if (!in_array($detectedExtension, self::ALLOWED_EXTENSIONS, true)) {
+                return response()->json([
+                    'message' => 'Validation failed.',
+                    'error' => ['file' => ['The file type is not allowed.']],
+                ], 422);
+            }
+
+            $filename = Str::uuid() . '.' . $detectedExtension;
             $path = $file->storeAs($folder, $filename, 'public');
 
             return response()->json([

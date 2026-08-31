@@ -63,10 +63,6 @@ class PasswordResetController extends Controller
             ],
         ];
 
-        if (config('app.debug')) {
-            $response['data']['debug_code'] = $code;
-        }
-
         return response()->json($response);
     }
 
@@ -75,7 +71,7 @@ class PasswordResetController extends Controller
         $validated = $request->validate([
             'identifier' => 'required|string|max:255',
             'code' => 'required|string|digits:6',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = $this->findUserByIdentifier($validated['identifier']);

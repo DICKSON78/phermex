@@ -13,6 +13,13 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 
+// Only allow navigation to internal dashboard paths. Blocks javascript:,
+// external URLs, and protocol-relative links injected by attackers.
+function safeNavigate(link) {
+  if (typeof link !== 'string' || !link.startsWith('/dashboard/')) return
+  window.location.href = link
+}
+
 const TABS = ['All', 'Unread', 'Alerts', 'Info']
 
 const TYPE_CONFIG = {
@@ -301,7 +308,7 @@ export default function NotificationsPage() {
                     <div
                       key={notification.id}
                       onClick={() => {
-                        if (notification.link) window.location.href = notification.link
+                        if (notification.link) safeNavigate(notification.link)
                       }}
                       className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer group ${
                         notification.is_read
@@ -373,7 +380,7 @@ export default function NotificationsPage() {
                 key={notification.id}
                 onClick={() => {
                   markAsRead(notification.id)
-                  if (notification.link) window.location.href = notification.link
+                  if (notification.link) safeNavigate(notification.link)
                 }}
                 className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer group ${
                   notification.is_read

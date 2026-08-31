@@ -117,12 +117,38 @@ class SubscriptionController extends Controller
     public function confirmPayment(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'pharmacy_id' => 'required|exists:pharmacies,id',
             'payment_ref' => 'sometimes|string|max:255',
             'payment_method' => 'sometimes|string|max:50',
         ]);
 
-        $pharmacy = Pharmacy::findOrFail($validated['pharmacy_id']);
+        $user = $request->user();
+        $accessibleIds = $user->accessiblePharmacyIds();
+        $pharmacyId = $user->resolveCurrentPharmacyId();
+
+        if (!$pharmacyId || !in_array($pharmacyId, $accessibleIds, true)) {
+            return response()->json(['message' => 'No accessible pharmacy found.'], 404);
+        }
+
+        $pharmacy = Pharmacy::find($pharmacyId);
+
+        if (!$pharmacy) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        }
+
+        $isOwner = (int) $pharmacy->owner_id === $user->id
+            || ($user->role === 'owner' && in_array((int) $pharmacy->id, $accessibleIds, true));
+
+        if (!$isOwner) {
+            return response()->json([
+                'message' => 'You are not authorized to confirm payment for this pharmacy.',
+            ], 403);
+        }
+
+        if ($pharmacy->application_status !== 'approved') {
+            return response()->json([
+                'message' => 'Your pharmacy application has not been approved yet.',
+            ], 403);
+        }
 
         if (!$pharmacy->subscription_plan_id) {
             return response()->json(['message' => 'No subscription plan selected.'], 400);

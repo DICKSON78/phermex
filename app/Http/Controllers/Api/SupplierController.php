@@ -64,6 +64,12 @@ class SupplierController extends Controller
                 'notes' => 'nullable|string',
             ]);
 
+            if (!in_array((int) $validated['pharmacy_id'], $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json([
+                    'message' => 'You do not have access to this pharmacy.',
+                ], 403);
+            }
+
             $supplier = Supplier::create($validated);
 
             return response()->json(['message' => 'Supplier created.', 'supplier' => $supplier], 201);

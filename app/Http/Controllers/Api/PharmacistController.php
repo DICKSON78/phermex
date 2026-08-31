@@ -55,6 +55,12 @@ class PharmacistController extends Controller
                 'permissions' => 'sometimes|nullable|array',
             ]);
 
+            if (!in_array((int) $validated['pharmacy_id'], $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json([
+                    'message' => 'You do not have access to this pharmacy.',
+                ], 403);
+            }
+
             DB::beginTransaction();
 
             $userCode = 'PHX-' . strtoupper(Str::random(6));

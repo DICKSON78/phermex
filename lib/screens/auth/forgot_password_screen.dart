@@ -53,7 +53,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (!mounted) return;
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(e.toString()),
+        content: Text(ApiService.friendlyError(e)),
         backgroundColor: const Color(0xFFDC2626),
         behavior: SnackBarBehavior.floating,
       ));
@@ -87,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (!mounted) return;
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(e.toString()),
+        content: Text(ApiService.friendlyError(e)),
         backgroundColor: const Color(0xFFDC2626),
         behavior: SnackBarBehavior.floating,
       ));

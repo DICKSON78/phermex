@@ -157,6 +157,60 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
             ),
           ),
 
+          // Store details & hours
+          if (widget.pharmacy.openLabel.isNotEmpty ||
+              widget.pharmacy.description != null ||
+              widget.pharmacy.workingDays != null)
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.pharmacy.description ?? '',
+                    style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: Color(0xFF6B7280)),
+                  ),
+                  if (widget.pharmacy.openLabel.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _DetailRow(
+                      icon: Icons.schedule,
+                      title: 'Opening Hours',
+                      value: widget.pharmacy.openLabel,
+                    ),
+                  ],
+                  if (widget.pharmacy.workingDays != null &&
+                      widget.pharmacy.workingDays!.isNotEmpty)
+                    _DetailRow(
+                      icon: Icons.calendar_today_outlined,
+                      title: 'Working Days',
+                      value: widget.pharmacy.workingDays!.join(', '),
+                    ),
+                  if (widget.pharmacy.street != null &&
+                      widget.pharmacy.street!.isNotEmpty)
+                    _DetailRow(
+                      icon: Icons.place_outlined,
+                      title: 'Location',
+                      value: [
+                        widget.pharmacy.street,
+                        if (widget.pharmacy.locationLabel.isNotEmpty)
+                          widget.pharmacy.locationLabel,
+                      ].whereType<String>().join(', '),
+                    ),
+                  if (widget.pharmacy.email != null &&
+                      widget.pharmacy.email!.isNotEmpty)
+                    _DetailRow(
+                      icon: Icons.email_outlined,
+                      title: 'Email',
+                      value: widget.pharmacy.email!,
+                    ),
+                ],
+              ),
+            ),
+
           // Call / Directions actions
           Container(
             color: Colors.white,
@@ -493,5 +547,45 @@ class _DrugCard extends StatelessWidget {
 
   Widget _pillIcon() {
     return const Icon(Icons.medication, size: 24, color: AppTheme.primary);
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  const _DetailRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: AppTheme.primaryDark),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+                children: [
+                  TextSpan(
+                    text: '$title: ',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                  ),
+                  TextSpan(text: value),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -78,6 +78,16 @@ class CustomerRepository {
     return [];
   }
 
+  /// Returns all published pharmacies around Dar es Salaam (wide radius).
+  static Future<List<Pharmacy>> allPharmacies({String? search}) async {
+    return nearby(
+      latitude: -6.7924,
+      longitude: 39.2083,
+      radiusKm: 100,
+      search: search,
+    );
+  }
+
   static Future<Pharmacy> pharmacyDetail(int id) async {
     final res = await ApiService.get('/pharmacies/$id');
     final data = _data(res);

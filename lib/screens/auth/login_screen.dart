@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../home_shell.dart';
 import 'forgot_password_screen.dart';
@@ -161,7 +162,8 @@ class _BrandHeader extends StatelessWidget {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: _green, width: 2),
             boxShadow: [
               BoxShadow(
                 color: _green.withValues(alpha: 0.25),
@@ -170,7 +172,8 @@ class _BrandHeader extends StatelessWidget {
               ),
             ],
           ),
-          child: ClipOval(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
             child: Image.asset('assets/images/helix_logo.png', fit: BoxFit.cover),
           ),
         ),
@@ -178,13 +181,13 @@ class _BrandHeader extends StatelessWidget {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: _ink, fontSize: 27, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+          style: const TextStyle(color: _ink, fontSize: 27, fontWeight: FontWeight.w800, letterSpacing: 0.3, fontFamily: 'Poppins'),
         ),
         const SizedBox(height: 7),
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: _gray500, fontSize: 14),
+          style: const TextStyle(color: _gray500, fontSize: 14, fontFamily: 'Poppins'),
         ),
       ],
     );
@@ -232,18 +235,17 @@ class _PrimaryButton extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: loading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
+                  style: ElevatedButton.styleFrom(
           backgroundColor: _green,
-          foregroundColor: _ink,
+          foregroundColor: Colors.white,
           elevation: 0,
           disabledBackgroundColor: _green.withValues(alpha: 0.5),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5, fontFamily: 'Poppins'),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
         child: loading
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: _ink))
-            : Text(label),
-      ),
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+            : Text(label),      ),
     );
   }
 }
@@ -264,7 +266,7 @@ class _GoogleButton extends StatelessWidget {
           backgroundColor: Colors.white,
           side: const BorderSide(color: _border),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -376,7 +378,7 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const HomeShell()),
       );
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -386,7 +388,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bg,
-      body: SafeArea(
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.white,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
@@ -396,7 +404,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const _BrandHeader(
-                    title: 'Helix',
+                    title: 'Welcome Back',
                     subtitle: 'Sign in to your account',
                   ),
                   const SizedBox(height: 30),
@@ -566,7 +574,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         (route) => false,
       );
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = ApiService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -576,7 +584,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bg,
-      body: SafeArea(
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.white,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),

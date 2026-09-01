@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 import '../services/api_service.dart';
 import 'home/home_screen.dart';
@@ -47,7 +48,15 @@ class _HomeShellState extends State<HomeShell> {
       const ChatListScreen(),
       const ProfileScreen(),
     ];
-    return Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
       body: IndexedStack(index: _index, children: screens),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -135,6 +144,7 @@ class _HomeShellState extends State<HomeShell> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

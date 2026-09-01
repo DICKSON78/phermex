@@ -39,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final user = await CustomerRepository.me();
       await ApiService.updateCachedUser(user);
       if (!mounted) return;
-      _refreshFromCache(); // Rebuild with fresh cached user
+      _refreshFromCache();
     } catch (_) {}
   }
 
@@ -71,9 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (confirmed != true) return;
     try {
       await ApiService.post('/logout', {});
-    } catch (_) {
-      // Server logout failed, proceed with local logout anyway
-    }
+    } catch (_) {}
     await ApiService.logout();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -100,177 +98,286 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final initial = _name != null && _name!.isNotEmpty ? _name![0].toUpperCase() : 'U';
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
+      appBar: AppBar(
+        title: const Text('Profile'),
+        backgroundColor: Colors.white,
+      ),
       body: ListView(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.only(bottom: 32),
         children: [
-          // Header
+          // User card
           Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+            margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFEEF1F0)),
+            ),
             child: Row(
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppTheme.primary, AppTheme.primaryDark],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
+                    color: AppTheme.primary.withOpacity(0.12),
+                    shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
                   child: Text(initial,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.dark)),
+                      style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primaryDark)),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_name ?? 'Customer',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                      if (_email != null)
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(_name ?? 'Customer',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textDark)),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.verified,
+                              size: 16, color: Color(0xFF1D9BF0)),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      const Text('Customer',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.primaryDark)),
+                      if (_email != null && _email!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
                         Text(_email!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
-                      if (_phone != null)
+                            style: const TextStyle(
+                                fontSize: 12, color: Color(0xFF64748B))),
+                      ],
+                      if (_phone != null && _phone!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
                         Text(_phone!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                            style: const TextStyle(
+                                fontSize: 12, color: Color(0xFF64748B))),
+                      ],
+                      if (_userCode != null && _userCode!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text('ID: $_userCode',
+                              style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0CB843))),
+                        ),
+                      ],
                     ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _openEdit,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.edit_outlined,
+                        size: 18, color: Colors.white),
                   ),
                 ),
               ],
             ),
           ),
 
-          if (_userCode != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-              child: Row(
-                children: [
-                  const Icon(Icons.badge_outlined, size: 14, color: Color(0xFF9CA3AF)),
-                  const SizedBox(width: 6),
-                  Text('Customer ID: $_userCode',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
-                ],
+          // Menu section
+          const _SectionTitle('Menu'),
+          _MenuGroup([
+            _MenuRow(
+              icon: Icons.person_outline,
+              label: 'Edit Profile',
+              subtitle: 'Update your personal details',
+              onTap: _openEdit,
+            ),
+            _MenuRow(
+              icon: Icons.description_outlined,
+              label: 'My Prescriptions',
+              subtitle: 'Your uploaded prescriptions',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PrescriptionsScreen()),
               ),
             ),
-
-          const SizedBox(height: 16),
-
-          // Menu
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFEEF1F0)),
-              ),
-              child: Column(
-                children: [
-                  _MenuTile(
-                    icon: Icons.edit_outlined,
-                    label: 'Edit Profile',
-                    onTap: _openEdit,
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _MenuTile(
-                    icon: Icons.description_outlined,
-                    label: 'My Prescriptions',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const PrescriptionsScreen()),
-                    ),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _MenuTile(
-                    icon: Icons.notifications_none,
-                    label: 'Notifications',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                    ),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _MenuTile(
-                    icon: Icons.location_on_outlined,
-                    label: 'Saved Addresses',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AddressBookScreen()),
-                    ),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _MenuTile(
-                    icon: Icons.support_agent,
-                    label: 'Support',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const SupportScreen()),
-                    ),
-                  ),
-                ],
+            _MenuRow(
+              icon: Icons.notifications_none,
+              label: 'Notifications',
+              subtitle: 'Order updates & alerts',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
               ),
             ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Logout
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                onPressed: _logout,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFDC2626),
-                  side: const BorderSide(color: Color(0xFFFECACA)),
-                  backgroundColor: const Color(0xFFFEF2F2),
-                ),
-                child: const Text('Log out'),
+            _MenuRow(
+              icon: Icons.location_on_outlined,
+              label: 'Saved Addresses',
+              subtitle: 'Delivery addresses',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AddressBookScreen()),
               ),
             ),
-          ),
+            _MenuRow(
+              icon: Icons.support_agent,
+              label: 'Support',
+              subtitle: 'We usually reply within 24 hours',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SupportScreen()),
+              ),
+            ),
+          ]),
 
-          const SizedBox(height: 30),
+          // Account action
+          const _SectionTitle('Account'),
+          _MenuGroup([
+            _MenuRow(
+              icon: Icons.logout,
+              label: 'Log out',
+              subtitle: 'Sign out of your account',
+              destructive: true,
+              onTap: _logout,
+            ),
+          ]),
+
+          const SizedBox(height: 24),
           Center(
             child: Text('Helix v$appVersion',
-                style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
           ),
-          const SizedBox(height: 20),
         ],
       ),
     );
   }
 }
 
-class _MenuTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  const _MenuTile({required this.icon, required this.label, required this.onTap});
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  const _SectionTitle(this.title);
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: AppTheme.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(label,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
-            ),
-            const Icon(Icons.chevron_right, size: 18, color: Color(0xFFD1D5DB)),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+      child: Text(title.toUpperCase(),
+          style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF94A3B8),
+              letterSpacing: 1)),
+    );
+  }
+}
+
+class _MenuGroup extends StatelessWidget {
+  final List<Widget> rows;
+  const _MenuGroup(this.rows);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEEF1F0)),
+      ),
+      child: Column(
+        children: [
+          for (int i = 0; i < rows.length; i++) ...[
+            if (i > 0)
+              Divider(height: 1, indent: 52, color: const Color(0xFFF1F5F9)),
+            rows[i],
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final bool destructive;
+  final VoidCallback onTap;
+  const _MenuRow({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.onTap,
+    this.destructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = destructive ? const Color(0xFFDC2626) : AppTheme.primaryDark;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 20, color: color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: destructive
+                                ? const Color(0xFFDC2626)
+                                : AppTheme.textDark)),
+                    if (subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(subtitle,
+                          style: const TextStyle(
+                              fontSize: 12, color: Color(0xFF64748B))),
+                    ],
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right,
+                  size: 22, color: Color(0xFFCBD5E1)),
+            ],
+          ),
         ),
       ),
     );
@@ -279,7 +386,9 @@ class _MenuTile extends StatelessWidget {
 
 class _EditProfileSheet extends StatefulWidget {
   final VoidCallback onSaved;
-  const _EditProfileSheet({required this.onSaved});
+  const _EditProfileSheet({this.onSaved = _noop});
+
+  static void _noop() {}
 
   @override
   State<_EditProfileSheet> createState() => _EditProfileSheetState();
@@ -345,7 +454,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      _showError(e.toString());
+      _showError(ApiService.friendlyError(e));
     }
   }
 
@@ -420,9 +529,9 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                     ? const SizedBox(
                         width: 22,
                         height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.dark),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Save Changes', style: TextStyle(color: AppTheme.dark, fontWeight: FontWeight.w700)),
+                    : const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),
           ],

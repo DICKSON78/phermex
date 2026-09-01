@@ -63,7 +63,7 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _openUpload,
         backgroundColor: AppTheme.primary,
-        foregroundColor: AppTheme.dark,
+        foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: const Icon(Icons.upload_file, size: 22),
       ),
@@ -604,9 +604,9 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                     ? const SizedBox(
                         width: 22,
                         height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.dark),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Submit Prescription', style: TextStyle(color: AppTheme.dark, fontWeight: FontWeight.w700)),
+                    : const Text('Submit Prescription', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),
           ],

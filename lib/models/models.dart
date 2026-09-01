@@ -34,15 +34,23 @@ class Pharmacy {
   final String? district;
   final String? region;
   final String? ward;
+  final String? street;
   final double? latitude;
   final double? longitude;
   final double? distance;
   final int? drugCount;
   final String? phone;
+  final String? email;
   final String? licenseNumber;
   final String? status;
   final double? rating;
   final int? totalReviews;
+  final String? description;
+  final String? coverImage;
+  final String? logo;
+  final String? businessCategory;
+  final List<String>? workingDays;
+  final Map<String, dynamic>? workingHours;
 
   Pharmacy({
     required this.id,
@@ -51,15 +59,23 @@ class Pharmacy {
     this.district,
     this.region,
     this.ward,
+    this.street,
     this.latitude,
     this.longitude,
     this.distance,
     this.drugCount,
     this.phone,
+    this.email,
     this.licenseNumber,
     this.status,
     this.rating,
     this.totalReviews,
+    this.description,
+    this.coverImage,
+    this.logo,
+    this.businessCategory,
+    this.workingDays,
+    this.workingHours,
   });
 
   String get locationLabel {
@@ -70,6 +86,15 @@ class Pharmacy {
   /// True only when the pharmacy has real customer reviews on the platform.
   bool get hasRating => (totalReviews ?? 0) > 0 && (rating ?? 0) > 0;
 
+  String get openLabel {
+    final hours = workingHours;
+    if (hours == null) return '';
+    final open = hours['open'];
+    final close = hours['close'];
+    if (open == null || close == null) return '';
+    return 'Open ${open} – ${close}';
+  }
+
   factory Pharmacy.fromJson(Map<String, dynamic> json) {
     return Pharmacy(
       id: json['id'] ?? 0,
@@ -78,15 +103,27 @@ class Pharmacy {
       district: json['district'],
       region: json['region'],
       ward: json['ward'],
+      street: json['street'],
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       distance: (json['distance'] as num?)?.toDouble(),
       drugCount: json['drug_count'],
       phone: json['phone'],
+      email: json['email'],
       licenseNumber: json['license_number'],
       status: json['status'],
       rating: (json['rating'] as num?)?.toDouble(),
       totalReviews: json['total_reviews'],
+      description: json['description'],
+      coverImage: json['cover_image'],
+      logo: json['pharmacy_logo'],
+      businessCategory: json['business_category'],
+      workingDays: json['working_days'] is List
+          ? (json['working_days'] as List).map((e) => e.toString()).toList()
+          : null,
+      workingHours: json['working_hours'] is Map
+          ? Map<String, dynamic>.from(json['working_hours'] as Map)
+          : null,
     );
   }
 }

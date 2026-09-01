@@ -128,8 +128,7 @@ class ApiService {
 
   static Uri _uri(String path) => Uri.parse('${ApiConfig.baseUrl}$path');
 
-  static dynamic _decode(http.Response res) {
-    if (res.statusCode == 401) {
+  static dynamic _decode(http.Response res) {    if (res.statusCode == 401) {
       clearSession();
       throw ApiException('Session expired. Please log in again.');
     }
@@ -149,58 +148,128 @@ class ApiService {
     throw ApiException(message);
   }
 
+  static final Exception _transportTimeout = Exception('Request timed out. Please check your connection.');
+
+  /// Converts a raw transport/network exception (or a server-provided message)
+  /// into a customer-safe [ApiException] before it reaches the UI. Server
+  /// success/validation messages pass through; TLS/socket/timed-out errors are
+  /// replaced with friendly text so customers never see raw internals.
+  static Exception _sanitize(Object e) {
+    if (e is ApiException) return e;
+    final msg = e.toString();
+    final lower = msg.toLowerCase();
+    final isTransport = lower.contains('handshake') ||
+        lower.contains('tls') ||
+        lower.contains('certificate') ||
+        lower.contains('ssl') ||
+        lower.contains('sockethostlookup') ||
+        lower.contains('socketexception') ||
+        lower.contains('connection refused') ||
+        lower.contains('connection closed') ||
+        lower.contains('connection reset') ||
+        lower.contains('clientexception') ||
+        lower.contains('bad state') ||
+        lower.contains('timed out') ||
+        lower.contains('timeout') ||
+        lower.contains('network');
+    if (isTransport) {
+      return ApiException(friendlyError(e));
+    }
+    // Unknown/other exceptions: never echo raw internals to the customer.
+    return ApiException('Something went wrong. Please try again.');
+  }
+
   static Future<dynamic> get(String path) async {
-    final res = await http
-        .get(_uri(path), headers: _headers())
-        .timeout(_timeout, onTimeout: () => throw Exception('Request timed out. Please check your connection.'));
-    return _decode(res);
+    try {
+      final res = await http
+          .get(_uri(path), headers: _headers())
+          .timeout(_timeout, onTimeout: () => throw _transportTimeout);
+      return _decode(res);
+    } catch (e) {
+      throw _sanitize(e);
+    }
   }
 
   static Future<dynamic> post(String path, [Map<String, dynamic>? body]) async {
-    final res = await http
-        .post(
-          _uri(path),
-          headers: _headers(),
-          body: jsonEncode(body ?? {}),
-        )
-        .timeout(_timeout, onTimeout: () => throw Exception('Request timed out. Please check your connection.'));
-    return _decode(res);
+    try {
+      final res = await http
+          .post(
+            _uri(path),
+            headers: _headers(),
+            body: jsonEncode(body ?? {}),
+          )
+          .timeout(_timeout, onTimeout: () => throw _transportTimeout);
+      return _decode(res);
+    } catch (e) {
+      throw _sanitize(e);
+    }
   }
 
   static Future<dynamic> put(String path, [Map<String, dynamic>? body]) async {
-    final res = await http
-        .put(
-          _uri(path),
-          headers: _headers(),
-          body: jsonEncode(body ?? {}),
-        )
-        .timeout(_timeout, onTimeout: () => throw Exception('Request timed out. Please check your connection.'));
-    return _decode(res);
+    try {
+      final res = await http
+          .put(
+            _uri(path),
+            headers: _headers(),
+            body: jsonEncode(body ?? {}),
+          )
+          .timeout(_timeout, onTimeout: () => throw _transportTimeout);
+      return _decode(res);
+    } catch (e) {
+      throw _sanitize(e);
+    }
   }
 
   /// Uploads a local file via multipart/form-data to /upload,
   /// returns the decoded JSON response (contains data.url).
   static Future<dynamic> uploadFile(String filePath, {String folder = 'uploads'}) async {
-    final uri = Uri.parse('${ApiConfig.apiBaseUrl}/upload');
-    final req = http.MultipartRequest('POST', uri)
-      ..headers['Accept'] = 'application/json'
-      ..headers['Authorization'] = _token != null ? 'Bearer $_token' : ''
-      ..fields['folder'] = folder
-      ..files.add(await http.MultipartFile.fromPath('file', filePath));
-    final streamed = await req.send().timeout(_timeout, onTimeout: () => throw Exception('Request timed out. Please check your connection.'));
-    final res = await http.Response.fromStream(streamed);
-    return _decode(res);
+    try {
+      final uri = Uri.parse('${ApiConfig.apiBaseUrl}/upload');
+      final req = http.MultipartRequest('POST', uri)
+        ..headers['Accept'] = 'application/json'
+        ..headers['Authorization'] = _token != null ? 'Bearer $_token' : ''
+        ..fields['folder'] = folder
+        ..files.add(await http.MultipartFile.fromPath('file', filePath));
+      final streamed = await req.send().timeout(_timeout, onTimeout: () => throw _transportTimeout);
+      final res = await http.Response.fromStream(streamed);
+      return _decode(res);
+    } catch (e) {
+      throw _sanitize(e);
+    }
   }
 
   static String friendlyError(Object e) {
     final msg = e.toString();
-    if (msg.contains('timed out')) return 'Connection timed out. Please try again.';
-    if (msg.contains('SocketException') || msg.contains('Connection refused')) return 'No internet connection.';
-    if (msg.contains('500')) return 'Server error. Please try again later.';
+    if (msg.contains('timed out')) return 'Connection timed out. Please check your connection and try again.';
+    if (msg.contains('SocketException') ||
+        msg.contains('Connection refused') ||
+        msg.contains('Connection closed') ||
+        msg.contains('Connection reset')) {
+      return 'No internet connection. Please check your connection and try again.';
+    }
+    if (msg.contains('HandshakeException') ||
+        msg.contains('TlsException') ||
+        msg.contains('certificate') ||
+        msg.contains('SSL')) {
+      return 'We could not securely connect to our servers. Please try again in a moment.';
+    }
+    if (msg.contains('ClientException') || msg.contains('Bad state')) {
+      return 'No internet connection. Please check your connection and try again.';
+    }
+    if (msg.contains('500') || msg.contains('503')) return 'Server error. Please try again later.';
+    if (msg.contains('429')) return 'Too many attempts. Please wait a moment and try again.';
     if (msg.contains('422')) return 'Invalid data. Please check your input.';
     if (msg.contains('401')) return 'Session expired. Please log in again.';
     if (msg.contains('403')) return "You don't have permission for this action.";
     if (msg.contains('404')) return 'Not found.';
+    if (msg.contains('ApiException') || msg.contains('Exception')) {
+      // Return the sanitized, trimmed message produced by ApiService (already
+      // customer-safe), otherwise a generic fallback.
+      final trimmed = msg.replaceAll(RegExp(r'^(ApiException|Exception):?\s*'), '').trim();
+      if (trimmed.isNotEmpty && !trimmed.contains('connection')) {
+        return trimmed;
+      }
+    }
     return 'Something went wrong. Please try again.';
   }
 }

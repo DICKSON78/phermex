@@ -359,7 +359,7 @@ export default function DashboardLayout({ role }) {
   const currentPharmacy = user?.current_pharmacy ?? user?.currentPharmacy
     ?? accessiblePharmacies.find(p => p.id === pharmacyId)
     ?? accessiblePharmacies[0]
-  const showPharmacySwitcher = role === 'owner'
+  const showPharmacySwitcher = role === 'owner' && accessiblePharmacies.length > 1
 
   const navGroups = role === 'owner' ? ownerNavGroups : role === 'admin' ? adminNavGroups : sellerNavGroups
   const basePath = '/dashboard'

@@ -86,8 +86,7 @@ export function AuthProvider({ children }) {
   }
 
   const pharmacyId =
-    user?.current_pharmacy_id ??
-    user?.currentPharmacy?.id ??
+    user?.current_pharmacy?.id ??
     user?.pharmacy?.[0]?.id ??
     user?.pharmacy_id ??
     null

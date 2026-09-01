@@ -4,9 +4,11 @@ use App\Http\Middleware\AutoScopePharmacy;
 use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\PharmacyScopeMiddleware;
 use App\Http\Middleware\RoleMiddleware;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -23,10 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->statefulApi();
-
-        // Unauthenticated guests would otherwise hit "Route [login] not defined"
-        // when calling guarded endpoints without Accept: application/json.
-        $middleware->redirectGuestsTo('/login');
 
         // Public, unauthenticated form endpoints. Browsers on the deployed
         // domain count as Sanctum "stateful" requests, which would otherwise
@@ -46,5 +44,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // API requests must receive a 401 JSON response when unauthenticated,
+        // never an HTML redirect. Redirecting guests to the (unnamed) web
+        // login route previously produced "Route [login] not defined" -> 500
+        // for every guarded endpoint, including /api/customer-app/*.
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+            return redirect()->guest('/login');
+        });
     })->create();

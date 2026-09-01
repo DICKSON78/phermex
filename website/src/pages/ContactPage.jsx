@@ -4,9 +4,9 @@ import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
 const offices = [
-  { city: 'Dar es Salaam', country: 'Tanzania', address: 'Plot 123, Samora Avenue, Dar es Salaam', phone: '+255 625 460 081' },
-  { city: 'Arusha', country: 'Tanzania', address: 'Sokoine Road, Arusha', phone: '+255 625 460 081' },
-  { city: 'Mwanza', country: 'Tanzania', address: 'Station Road, Mwanza', phone: '+255 625 460 081' },
+  { city: 'Dar es Salaam', country: 'Tanzania', address: 'Plot 123, Samora Avenue, Dar es Salaam', phone: '+255 669 254 444' },
+  { city: 'Arusha', country: 'Tanzania', address: 'Sokoine Road, Arusha', phone: '+255 669 254 444' },
+  { city: 'Mwanza', country: 'Tanzania', address: 'Station Road, Mwanza', phone: '+255 669 254 444' },
 ]
 
 export default function ContactPage() {
@@ -157,7 +157,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-400">Phone</p>
-                      <a href="tel:+255625460081" className="text-black font-bold hover:text-[#0FD452] transition-colors">+255 625 460 081</a>
+                      <a href="tel:+255669254444" className="text-black font-bold hover:text-[#0FD452] transition-colors">+255 669 254 444</a>
                     </div>
                   </div>
                   <div className="flex gap-3">
@@ -168,7 +168,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-400">Email</p>
-                      <a href="mailto:allosltd@gmail.com" className="text-black font-bold hover:text-[#0FD452] transition-colors">allosltd@gmail.com</a>
+                      <a href="mailto:support@helix.co.tz" className="text-black font-bold hover:text-[#0FD452] transition-colors">support@helix.co.tz</a>
                     </div>
                   </div>
                   <div className="flex gap-3">
@@ -201,13 +201,13 @@ export default function ContactPage() {
               <div className="border-t border-gray-100 pt-8">
                 <h3 className="text-black font-bold text-lg mb-4">Follow Us</h3>
                 <div className="flex gap-3">
-                  <a href="https://www.linkedin.com/in/pharmex-co-ltd-part-of-allos-holding-co-ltd-299605359" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0FD452]/10 flex items-center justify-center text-[#0FD452] hover:bg-[#0FD452] hover:text-white transition-all">
+                  <a href="https://www.linkedin.com/in/helix-co-ltd-part-of-allos-holding-co-ltd-299605359" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0FD452]/10 flex items-center justify-center text-[#0FD452] hover:bg-[#0FD452] hover:text-white transition-all">
                     <span className="text-xs font-bold">in</span>
                   </a>
-                  <a href="https://www.instagram.com/pharmex_co.ltd" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0FD452]/10 flex items-center justify-center text-[#0FD452] hover:bg-[#0FD452] hover:text-white transition-all">
+                  <a href="https://www.instagram.com/helix_co.ltd" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0FD452]/10 flex items-center justify-center text-[#0FD452] hover:bg-[#0FD452] hover:text-white transition-all">
                     <span className="text-xs font-bold">Ig</span>
                   </a>
-                  <a href="https://www.youtube.com/@pharmex_co.ltd" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0FD452]/10 flex items-center justify-center text-[#0FD452] hover:bg-[#0FD452] hover:text-white transition-all">
+                  <a href="https://www.youtube.com/@helix_co.ltd" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0FD452]/10 flex items-center justify-center text-[#0FD452] hover:bg-[#0FD452] hover:text-white transition-all">
                     <span className="text-xs font-bold">Yt</span>
                   </a>
                 </div>
@@ -223,13 +223,13 @@ export default function ContactPage() {
             <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">FOLLOW US</p>
             <h2 className="text-3xl lg:text-4xl font-extrabold text-black mb-8">Stay Connected</h2>
             <div className="flex justify-center gap-4">
-              <a href="https://www.linkedin.com/in/pharmex-co-ltd-part-of-allos-holding-co-ltd-299605359" target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] hover:shadow-lg transition-all">
+              <a href="https://www.linkedin.com/in/helix-co-ltd-part-of-allos-holding-co-ltd-299605359" target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] hover:shadow-lg transition-all">
                 <span className="text-xs font-bold">in</span>
               </a>
-              <a href="https://www.instagram.com/pharmex_co.ltd" target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] hover:shadow-lg transition-all">
+              <a href="https://www.instagram.com/helix_co.ltd" target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] hover:shadow-lg transition-all">
                 <span className="text-xs font-bold">Ig</span>
               </a>
-              <a href="https://www.youtube.com/@pharmex_co.ltd" target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] hover:shadow-lg transition-all">
+              <a href="https://www.youtube.com/@helix_co.ltd" target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] hover:shadow-lg transition-all">
                 <span className="text-xs font-bold">Yt</span>
               </a>
             </div>

@@ -3,23 +3,23 @@ import { DASHBOARD_URL } from '../config'
 
 const faqs = [
   {
-    q: 'What is Pharmex?',
-    a: 'Pharmex is a web-based pharmacy management system designed for pharmacies in Africa. It helps you manage inventory, process prescriptions, handle sales, and generate business insights — all from one platform.',
+    q: 'What is Helix?',
+    a: 'Helix is a web-based pharmacy management system designed for pharmacies in Africa. It helps you manage inventory, process prescriptions, handle sales, and generate business insights — all from one platform.',
     cat: 'General',
   },
   {
-    q: 'How much does Pharmex cost?',
+    q: 'How much does Helix cost?',
     a: 'We offer flexible pricing plans tailored to pharmacies of all sizes. Contact our sales team for a custom quote based on your pharmacy needs.',
     cat: 'Pricing',
   },
   {
-    q: 'Is Pharmex cloud-based?',
-    a: 'Yes! Pharmex is fully cloud-based — accessible from any device with an internet connection. Your data is securely stored and backed up automatically.',
+    q: 'Is Helix cloud-based?',
+    a: 'Yes! Helix is fully cloud-based — accessible from any device with an internet connection. Your data is securely stored and backed up automatically.',
     cat: 'General',
   },
   {
-    q: 'Do I need special hardware to use Pharmex?',
-    a: 'No special hardware is required. Pharmex works on any device with a modern web browser — computers, tablets, and smartphones.',
+    q: 'Do I need special hardware to use Helix?',
+    a: 'No special hardware is required. Helix works on any device with a modern web browser — computers, tablets, and smartphones.',
     cat: 'Technical',
   },
   {
@@ -43,13 +43,13 @@ const faqs = [
     cat: 'General',
   },
   {
-    q: 'Can I use Pharmex on my phone?',
-    a: 'Yes, Pharmex is fully responsive and works on mobile browsers. We also have a dedicated mobile interface optimized for pharmacy staff on the go.',
+    q: 'Can I use Helix on my phone?',
+    a: 'Yes, Helix is fully responsive and works on mobile browsers. We also have a dedicated mobile interface optimized for pharmacy staff on the go.',
     cat: 'Technical',
   },
   {
-    q: 'Does Pharmex work offline?',
-    a: 'Currently, Pharmex requires an internet connection. However, we have taken measures to ensure it works well even on slower connections common in some areas.',
+    q: 'Does Helix work offline?',
+    a: 'Currently, Helix requires an internet connection. However, we have taken measures to ensure it works well even on slower connections common in some areas.',
     cat: 'Technical',
   },
   {
@@ -87,7 +87,7 @@ export default function FAQPage() {
               <span className="text-[#0FD452]">Questions</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 max-w-lg mx-auto">
-              Everything you need to know about Pharmex. Can't find what you're looking for? Get in touch.
+              Everything you need to know about Helix. Can't find what you're looking for? Get in touch.
             </p>
           </div>
         </div>

@@ -36,8 +36,8 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-[72px]">
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.jpeg" alt="Pharmex" className="h-10 w-10 rounded-full object-cover" />
-              <span className="text-[#0FD452] font-bold text-lg tracking-wide">PHARMEX</span>
+              <img src="/helix-logo.png" alt="Helix" className="h-10 w-10 rounded-full object-cover" />
+              <span className="text-[#0FD452] font-bold text-lg tracking-wide">HELIX</span>
             </Link>
 
             <div className="hidden lg:flex items-center gap-8">

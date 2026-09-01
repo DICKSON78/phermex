@@ -12,7 +12,7 @@ export default function Testimonial() {
               <span className="text-[#0FD452]">Medication Delivery</span>.
             </h2>
             <p className="text-gray-300 text-base mt-6 leading-relaxed max-w-md">
-              &ldquo;Pharmex transformed how I deliver medications to my patients. From order to doorstep, everything is seamless and tracked in real-time.&rdquo;
+              &ldquo;Helix transformed how I deliver medications to my patients. From order to doorstep, everything is seamless and tracked in real-time.&rdquo;
             </p>
             <div className="mt-8">
               <a href={DASHBOARD_URL + '/register'} className="btn-asaak">

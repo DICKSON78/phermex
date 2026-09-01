@@ -18,7 +18,7 @@ export default function Hero() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">PHARMEX</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">HELIX</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
               DON'T WAIT,<br />
               <span className="text-[#0FD452]">APPLY TODAY</span>
@@ -49,7 +49,7 @@ export default function Hero() {
                       <path d="M12 6l4 6h-8l4-6z" fill="white" fillOpacity="0.3"/>
                       <path d="M10 13h4v5h-4z" fill="white"/>
                     </svg>
-                    <span className="text-black font-bold text-sm">Pharmex</span>
+                    <span className="text-black font-bold text-sm">Helix</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
@@ -124,7 +124,7 @@ export default function Hero() {
                       <path d="M12 6l4 6h-8l4-6z" fill="white" fillOpacity="0.3"/>
                       <path d="M10 13h4v5h-4z" fill="white"/>
                     </svg>
-                    <span className="text-black font-bold text-xs">Pharmex</span>
+                    <span className="text-black font-bold text-xs">Helix</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">

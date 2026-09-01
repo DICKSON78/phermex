@@ -9,7 +9,7 @@ import dicksonSteven from '../Dickson Steven CTO.png'
 const milestones = [
   {
     year: '2023', title: 'The Beginning',
-    desc: 'Pharmex was founded in Dar es Salaam with a vision to digitize pharmacies across Africa.',
+    desc: 'Helix was founded in Dar es Salaam with a vision to digitize pharmacies across Africa.',
     icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
   },
   {
@@ -46,13 +46,13 @@ export default function AboutPage() {
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">ABOUT PHARMEX</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">ABOUT HELIX</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
               Empowering Pharmacies Across{' '}
               <span className="text-[#0FD452]">Africa</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              Pharmex is building the digital backbone for African pharmacies. We provide a complete management platform that helps pharmacy owners streamline operations, serve patients better, and grow their business.
+              Helix is building the digital backbone for African pharmacies. We provide a complete management platform that helps pharmacy owners streamline operations, serve patients better, and grow their business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <Link to="/products" className="btn-asaak hover:!bg-white hover:!text-black">
@@ -74,7 +74,7 @@ export default function AboutPage() {
               <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">OUR STORY</p>
               <h2 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight">Built by Pharmacists, for Pharmacists</h2>
               <div className="mt-6 space-y-4 text-gray-500 text-sm leading-relaxed">
-                <p>Pharmex started in 2023 when our founder, Isack Mahozi, saw firsthand the challenges pharmacy owners face managing their businesses — from inventory tracking to prescription management.</p>
+                <p>Helix started in 2023 when our founder, Isack Mahozi, saw firsthand the challenges pharmacy owners face managing their businesses — from inventory tracking to prescription management.</p>
                 <p>What began as a simple inventory tool has grown into a comprehensive pharmacy management platform used by hundreds of pharmacies across Africa.</p>
                 <p>Today, we're a team of 50+ passionate individuals working to make pharmacy management simple, efficient, and accessible for every pharmacy in Africa.</p>
               </div>

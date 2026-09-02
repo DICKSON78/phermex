@@ -636,6 +636,16 @@ class CustomerAppController extends Controller
 
             $prescription->load('pharmacy');
 
+            Notification::create([
+                'pharmacy_id' => $validated['pharmacy_id'],
+                'user_id' => $prescription->pharmacy?->owner_id,
+                'title' => 'New Prescription Received',
+                'message' => "You received a prescription from {$user->name} (#{$prescription->prescription_code}). Review it to fulfil the request.",
+                'type' => 'info',
+                'is_read' => false,
+                'link' => '/prescriptions',
+            ]);
+
             return response()->json([
                 'message' => 'Prescription uploaded successfully.',
                 'data' => $prescription,

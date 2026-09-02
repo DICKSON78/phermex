@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
@@ -9,6 +10,7 @@ import '../../theme.dart';
 import '../../utils/helpers.dart';
 import '../cart/cart_screen.dart';
 import 'drug_detail_screen.dart';
+import 'pharmacy_map_screen.dart';
 import 'pharmacy_reviews_screen.dart';
 
 class PharmacyDetailScreen extends StatefulWidget {
@@ -211,56 +213,55 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
               ),
             ),
 
-          // Call / Directions actions
+          // Call / Map / Reviews actions (icon tiles)
           Container(
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      final phone = widget.pharmacy.phone;
-                      if (phone != null && phone.isNotEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Call $phone'), behavior: SnackBarBehavior.floating),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.phone, size: 16),
-                    label: const Text('Call'),
-                  ),
+                _IconAction(
+                  icon: Icons.phone_outlined,
+                  label: 'Call',
+                  onTap: () {
+                    final phone = widget.pharmacy.phone;
+                    if (phone != null && phone.isNotEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Call $phone'), behavior: SnackBarBehavior.floating),
+                      );
+                    }
+                  },
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      final lat = widget.pharmacy.latitude;
-                      final lng = widget.pharmacy.longitude;
-                      if (lat != null && lng != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Opening maps...'), behavior: SnackBarBehavior.floating),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.directions, size: 16),
-                    label: const Text('Directions'),
-                  ),
+                _IconAction(
+                  icon: Icons.directions_outlined,
+                  label: 'Map',
+                  onTap: () {
+                    final lat = widget.pharmacy.latitude;
+                    final lng = widget.pharmacy.longitude;
+                    if (lat != null && lng != null) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => PharmacyMapScreen(
+                            name: widget.pharmacy.name ?? 'Pharmacy',
+                            destination: LatLng(lat, lng),
+                            address: widget.pharmacy.locationLabel,
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Location not available'),
+                            behavior: SnackBarBehavior.floating),
+                      );
+                    }
+                  },
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (_) => PharmacyReviewsScreen(pharmacy: widget.pharmacy)),
-                    ),
-                    icon: Icon(Icons.star_border,
-                        size: 16,
-                        color: widget.pharmacy.hasRating
-                            ? const Color(0xFFFBBF24)
-                            : Theme.of(context).colorScheme.primary),
-                    label: const Text('Reviews'),
+                _IconAction(
+                  icon: Icons.star_border_rounded,
+                  label: 'Reviews',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => PharmacyReviewsScreen(pharmacy: widget.pharmacy)),
                   ),
                 ),
               ],
@@ -585,6 +586,41 @@ class _DetailRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _IconAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _IconAction({required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: AppTheme.primaryDark, size: 22),
+            ),
+            const SizedBox(height: 6),
+            Text(label,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
+          ],
+        ),
       ),
     );
   }

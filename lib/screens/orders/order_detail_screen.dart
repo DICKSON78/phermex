@@ -6,7 +6,6 @@ import '../../services/customer_repository.dart';
 import '../../state/cart_state.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
-import 'delivery_tracking_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final int orderId;
@@ -154,8 +153,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildOrder(BuildContext context) {
     final order = _order!;
     final status = order.orderStatus ?? '';
-    final cancelled = status == 'cancelled';
-    final completed = status == 'delivered' || status == 'completed';
 
     return RefreshIndicator(
       onRefresh: _load,

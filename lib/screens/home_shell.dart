@@ -17,6 +17,8 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
   int _unreadNotifications = 0;
+  int _homeRefreshTick = 0;
+  int _ordersRefreshTick = 0;
 
   static const _tabs = [
     (icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
@@ -43,8 +45,8 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final screens = [
-      HomeScreen(unreadNotifications: _unreadNotifications),
-      const OrdersListScreen(),
+      HomeScreen(unreadNotifications: _unreadNotifications, refreshTick: _homeRefreshTick),
+      OrdersListScreen(refreshTick: _ordersRefreshTick),
       const ChatListScreen(),
       const ProfileScreen(),
     ];
@@ -76,7 +78,11 @@ class _HomeShellState extends State<HomeShell> {
                 return GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    setState(() => _index = i);
+                    setState(() {
+                      _index = i;
+                      if (i == 0) _homeRefreshTick++;
+                      if (i == 1) _ordersRefreshTick++;
+                    });
                     Future.delayed(const Duration(milliseconds: 200), () {
                       if (mounted) _loadUnreadCount();
                     });

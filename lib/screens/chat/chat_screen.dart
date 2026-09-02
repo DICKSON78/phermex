@@ -215,7 +215,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         color: AppTheme.primary,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(Icons.send, size: 18, color: AppTheme.dark),
+                      child: const Icon(Icons.send, size: 18, color: Colors.white),
                     ),
                   ),
                 ],

@@ -472,10 +472,10 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, 20),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: SingleChildScrollView(
         padding: EdgeInsets.only(bottom: bottomInset),
@@ -485,41 +485,104 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
           children: [
             Center(
               child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(4)),
+                width: 42,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE5E7EB),
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text('Upload Prescription',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-            const SizedBox(height: 4),
-            const Text('The pharmacy will review your prescription and confirm the order.',
-                style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.description_outlined,
+                      color: AppTheme.primaryDark, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Upload Prescription',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF111827))),
+                      const SizedBox(height: 2),
+                      Text('The pharmacy will review and confirm your order.',
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade500)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
 
             // Photo picker
             GestureDetector(
               onTap: _pickPhoto,
               child: Container(
-                height: 140,
+                width: double.infinity,
+                height: 148,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: const Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE5E7EB), style: BorderStyle.solid),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: _photoPath != null
+                        ? AppTheme.primary
+                        : const Color(0xFFE5E7EB),
+                    width: 1.4,
+                  ),
                 ),
                 child: _photoPath != null
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.file(File(_photoPath!), fit: BoxFit.cover),
+                        borderRadius: BorderRadius.circular(18),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.file(File(_photoPath!), fit: BoxFit.cover),
+                            const Positioned(
+                              right: 10,
+                              top: 10,
+                              child: CircleAvatar(
+                                radius: 16,
+                                backgroundColor: AppTheme.primary,
+                                child: Icon(Icons.check,
+                                    size: 18, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
                       )
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.add_a_photo_outlined, size: 32, color: Color(0xFF9CA3AF)),
-                          SizedBox(height: 8),
-                          Text('Tap to add prescription photo (optional)',
-                              style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                        children: [
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withOpacity(0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.add_a_photo_outlined,
+                                size: 24, color: AppTheme.primaryDark),
+                          ),
+                          const SizedBox(height: 10),
+                          const Text('Tap to add prescription photo (optional)',
+                              style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF9CA3AF))),
                         ],
                       ),
               ),
@@ -528,24 +591,63 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
 
             TextField(
               controller: _doctorController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Doctor Name',
                 hintText: 'Dr. John Doe',
+                prefixIcon: const Icon(Icons.person_outline,
+                    size: 20, color: Color(0xFF9CA3AF)),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(
+                      color: AppTheme.primary, width: 1.8),
+                ),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _notesController,
-              maxLines: 2,
-              decoration: const InputDecoration(
+              maxLines: 3,
+              decoration: InputDecoration(
                 labelText: 'Notes (optional)',
                 hintText: 'Medicines needed, dosage, etc.',
+                prefixIcon: const Icon(Icons.edit_note,
+                    size: 20, color: Color(0xFF9CA3AF)),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(
+                      color: AppTheme.primary, width: 1.8),
+                ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-            Text('Pharmacy',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+            Text('Select Pharmacy',
+                style:
+                    TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.grey.shade700)),
             const SizedBox(height: 8),
             _loadingPharmacies
                 ? const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2)))
@@ -556,7 +658,7 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                             style: TextStyle(fontSize: 12, color: Color(0xFFDC2626))),
                       )
                     : Container(
-                        height: 110,
+                        height: 112,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: _pharmacies.length,
@@ -566,24 +668,46 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                             return GestureDetector(
                               onTap: () => setState(() => _pharmacyId = p.id),
                               child: Container(
-                                width: 140,
+                                width: 146,
                                 margin: const EdgeInsets.only(right: 10),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: selected ? AppTheme.primary.withOpacity(0.1) : const Color(0xFFF9FAFB),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: selected ? AppTheme.primary : const Color(0xFFE5E7EB)),
+                                  color: selected
+                                      ? AppTheme.primary.withOpacity(0.1)
+                                      : const Color(0xFFF9FAFB),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: selected
+                                        ? AppTheme.primary
+                                        : const Color(0xFFE5E7EB),
+                                    width: selected ? 1.6 : 1,
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(Icons.local_pharmacy, size: 20, color: AppTheme.primary),
+                                    Container(
+                                      width: 34,
+                                      height: 34,
+                                      decoration: BoxDecoration(
+                                        color: selected
+                                            ? AppTheme.primary
+                                            : AppTheme.primary.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(Icons.local_pharmacy,
+                                          size: 18,
+                                          color: AppTheme.primaryDark),
+                                    ),
                                     const SizedBox(height: 8),
                                     Expanded(
                                       child: Text(p.name ?? 'Pharmacy',
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
+                                          style: const TextStyle(
+                                              fontSize: 12.5,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF111827))),
                                     ),
                                   ],
                                 ),
@@ -599,14 +723,26 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
               height: 52,
               child: ElevatedButton(
                 onPressed: _submitting ? null : _submit,
-                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  disabledBackgroundColor: AppTheme.primary.withOpacity(0.5),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
                 child: _submitting
                     ? const SizedBox(
                         width: 22,
                         height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Submit Prescription', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    : const Text('Submit Prescription',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700)),
               ),
             ),
           ],

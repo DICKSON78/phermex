@@ -27,6 +27,19 @@ class User {
   }
 }
 
+/// Converts a JSON value that may be an int, double, or numeric string into a
+/// double, or null if it is absent/not numeric. Backend fields such as
+/// `rating` (`"0.00"`) and prices (`"50000.00"`) arrive as strings.
+double? _toDouble(Object? value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) {
+    final parsed = double.tryParse(value);
+    if (parsed != null) return parsed;
+  }
+  return null;
+}
+
 class Pharmacy {
   final int id;
   final String? name;
@@ -104,15 +117,15 @@ class Pharmacy {
       region: json['region'],
       ward: json['ward'],
       street: json['street'],
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
-      distance: (json['distance'] as num?)?.toDouble(),
+      latitude: _toDouble(json['latitude']),
+      longitude: _toDouble(json['longitude']),
+      distance: _toDouble(json['distance']),
       drugCount: json['drug_count'],
       phone: json['phone'],
       email: json['email'],
       licenseNumber: json['license_number'],
       status: json['status'],
-      rating: (json['rating'] as num?)?.toDouble(),
+      rating: _toDouble(json['rating']),
       totalReviews: json['total_reviews'],
       description: json['description'],
       coverImage: json['cover_image'],
@@ -178,8 +191,8 @@ class Drug {
       name: json['name'],
       genericName: json['generic_name'],
       manufacturer: json['manufacturer'],
-      price: (json['selling_price'] ?? json['price'] as num?)?.toDouble(),
-      buyingPrice: (json['buying_price'] as num?)?.toDouble(),
+      price: _toDouble(json['selling_price'] ?? json['price']),
+      buyingPrice: _toDouble(json['buying_price']),
       quantity: json['quantity'],
       description: json['description'],
       categoryName: cat is Map ? cat['name'] : null,
@@ -236,8 +249,8 @@ class OrderItem {
       drugId: json['drug_id'],
       drugName: drug is Map ? drug['name'] : null,
       quantity: json['quantity'] ?? 0,
-      unitPrice: (json['unit_price'] as num?)?.toDouble() ?? 0,
-      totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0,
+      unitPrice: _toDouble(json['unit_price']) ?? 0,
+      totalPrice: _toDouble(json['total_price']) ?? 0,
     );
   }
 }
@@ -249,6 +262,7 @@ class Order {
   final String? paymentStatus;
   final String? paymentMethod;
   final double subtotal;
+  final double discount;
   final double total;
   final String? notes;
   final String? createdAt;
@@ -268,6 +282,7 @@ class Order {
     this.paymentStatus,
     this.paymentMethod,
     required this.subtotal,
+    this.discount = 0,
     required this.total,
     this.notes,
     this.createdAt,
@@ -294,8 +309,9 @@ class Order {
       orderStatus: json['order_status'],
       paymentStatus: json['payment_status'],
       paymentMethod: json['payment_method'],
-      subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0,
-      total: (json['total'] as num?)?.toDouble() ?? 0,
+      subtotal: _toDouble(json['subtotal']) ?? 0,
+      discount: _toDouble(json['discount']) ?? 0,
+      total: _toDouble(json['total']) ?? 0,
       notes: json['notes'],
       createdAt: json['created_at'],
       pharmacyId: pharmacy is Map ? pharmacy['id'] : null,
@@ -303,8 +319,8 @@ class Order {
       deliveryStatus: json['delivery_status'],
       deliveryAddress: json['delivery_address'],
       deliveryPhone: json['delivery_phone'],
-      deliveryLatitude: (json['delivery_latitude'] as num?)?.toDouble(),
-      deliveryLongitude: (json['delivery_longitude'] as num?)?.toDouble(),
+      deliveryLatitude: _toDouble(json['delivery_latitude']),
+      deliveryLongitude: _toDouble(json['delivery_longitude']),
       items: items,
     );
   }

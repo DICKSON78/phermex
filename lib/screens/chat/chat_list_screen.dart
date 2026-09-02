@@ -96,9 +96,18 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   ? RefreshIndicator(
                       onRefresh: _load,
                       color: AppTheme.primary,
-                      child: ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: const [SizedBox(height: 140, child: _ChatEmptyState())],
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
+                              ),
+                              child: const _ChatEmptyState(),
+                            ),
+                          );
+                        },
                       ),
                     )
                   : RefreshIndicator(

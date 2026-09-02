@@ -119,7 +119,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                   child: ElevatedButton(
                     onPressed: _addAddress,
                     style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-                    child: const Text('Save Address', style: TextStyle(color: AppTheme.dark, fontWeight: FontWeight.w700)),
+                    child: const Text('Save Address', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],

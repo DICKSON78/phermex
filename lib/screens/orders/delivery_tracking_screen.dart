@@ -184,12 +184,12 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                               shape: BoxShape.circle,
                             ),
                             child: done
-                                ? const Icon(Icons.check, size: 14, color: AppTheme.dark)
+                                ? const Icon(Icons.check, size: 14, color: Colors.white)
                                 : current
                                     ? const SizedBox(
                                         width: 10,
                                         height: 10,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.dark),
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                       )
                                     : null,
                           ),

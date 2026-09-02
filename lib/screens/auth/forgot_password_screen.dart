@@ -182,9 +182,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ? const SizedBox(
                       width: 22,
                       height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.dark))
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : Text(_step == 1 ? 'Send Reset Code' : 'Reset Password',
-                      style: const TextStyle(color: AppTheme.dark, fontWeight: FontWeight.w700)),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
             ),
           ),
           const SizedBox(height: 12),
@@ -230,7 +230,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
             child: const Text('Back to Sign In',
-                style: TextStyle(color: AppTheme.dark, fontWeight: FontWeight.w700)),
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ),
       ],

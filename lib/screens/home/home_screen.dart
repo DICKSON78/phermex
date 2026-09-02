@@ -9,6 +9,7 @@ import '../notifications/notifications_screen.dart';
 import '../pharmacy/pharmacy_detail_screen.dart';
 import '../orders/orders_list_screen.dart';
 import '../orders/order_detail_screen.dart';
+import '../orders/delivery_tracking_screen.dart';
 import '../prescriptions/prescriptions_screen.dart';
 import 'all_pharmacies_screen.dart';
 
@@ -18,7 +19,8 @@ import 'all_pharmacies_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int unreadNotifications;
-  const HomeScreen({super.key, this.unreadNotifications = 0});
+  final int refreshTick;
+  const HomeScreen({super.key, this.unreadNotifications = 0, this.refreshTick = 0});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -38,6 +40,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _userName = ApiService.userName ?? '';
     _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.refreshTick != oldWidget.refreshTick) _load();
   }
 
   @override
@@ -99,15 +107,27 @@ class _HomeScreenState extends State<HomeScreen> {
       usedFallbackLocation = pos == null;
       final lat = pos?.latitude ?? -6.7924;
       final lng = pos?.longitude ?? 39.2083;
-      final results = await Future.wait<Object>([
-        CustomerRepository.nearby(latitude: lat, longitude: lng, search: _search),
-        CustomerRepository.myOrders(),
-      ]);
+      // Fetch pharmacies and recent orders independently so a failure in one
+      // does not blank the other. Use a wide radius so pharmacies always show.
+      List<Pharmacy> pharmacies = const [];
+      List<Order> orders = const [];
+      String? sectionError;
+      try {
+        pharmacies = await CustomerRepository.nearby(
+            latitude: lat, longitude: lng, radiusKm: 100, search: _search);
+      } catch (_) {
+        sectionError = 'Could not load pharmacies. Pull to refresh.';
+      }
+      try {
+        orders = await CustomerRepository.myOrders();
+      } catch (_) {
+        if (sectionError == null) sectionError = null;
+      }
       if (!mounted) return;
       setState(() {
-        _pharmacies = (results[0] as List).cast<Pharmacy>();
-        _recentOrders = (results[1] as List).cast<Order>().take(3).toList();
-        _error = null;
+        _pharmacies = pharmacies;
+        _recentOrders = orders.take(3).toList();
+        _error = sectionError;
       });
       if (usedFallbackLocation) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -136,90 +156,96 @@ class _HomeScreenState extends State<HomeScreen> {
     final topInset = MediaQuery.paddingOf(context).top;
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
-      body: RefreshIndicator(
-        color: AppTheme.primary,
-        onRefresh: _load,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            _HomeHeader(
-              topPadding: topInset + 8,
-              greeting: _greeting(),
-              name: _userName.trim().isNotEmpty ? _userName.trim() : 'Shopper',
-              tagline: AppStrings.tagline,
-              initial: _avatarInitial,
-              unreadNotifications: widget.unreadNotifications,
-              onNotifications: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-              ),
+      body: Column(
+        children: [
+          _HomeHeader(
+            topPadding: topInset + 8,
+            greeting: _greeting(),
+            name: _userName.trim().isNotEmpty ? _userName.trim() : 'Shopper',
+            tagline: AppStrings.tagline,
+            initial: _avatarInitial,
+            unreadNotifications: widget.unreadNotifications,
+            onNotifications: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
             ),
+          ),
 
-            _SearchBox(
-              controller: _searchController,
-              onSubmitted: (v) {
-                setState(() => _search = v.isEmpty ? null : v);
-                _load();
-              },
-              onClear: _clearSearch,
-            ),
+          _SearchBox(
+            controller: _searchController,
+            onSubmitted: (v) {
+              setState(() => _search = v.isEmpty ? null : v);
+              _load();
+            },
+            onClear: _clearSearch,
+          ),
 
-            _CategoryChips(
-              onSelect: _openCategory,
-            ),
+          _CategoryChips(
+            onSelect: _openCategory,
+          ),
 
-            _QuickActions(
-              onOrderMedicine: () => Scrollable.ensureVisible(_nearbyKey.currentContext!),
-              onUploadRx: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PrescriptionsScreen()),
-              ),
-            ),
-
-            if (_activeOrder != null)
-              _ActiveOrderCard(
-                order: _activeOrder!,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => OrderDetailScreen(orderId: _activeOrder!.id),
+          Expanded(
+            child: RefreshIndicator(
+              color: AppTheme.primary,
+              onRefresh: _load,
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _QuickActions(
+                    onOrderMedicine: _openAllPharmacies,
+                    onUploadRx: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const PrescriptionsScreen()),
+                    ),
                   ),
-                ),
-              ),
 
-            if (_recentOrders.isNotEmpty)
-              _SectionHeader(
-                title: 'Recent Orders',
-                actionLabel: 'See all',
-                onAction: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const OrdersListScreen()),
-                ),
-                child: Column(
-                  children: _recentOrders
-                      .map((o) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: GestureDetector(
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => OrderDetailScreen(orderId: o.id),
-                                ),
-                              ),
-                              child: _RecentOrderCard(order: o),
-                            ),
-                          ))
-                      .toList(),
-                ),
-              ),
+                  if (_activeOrder != null)
+                    _ActiveOrderCard(
+                      order: _activeOrder!,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => DeliveryTrackingScreen(orderId: _activeOrder!.id),
+                        ),
+                      ),
+                    ),
 
-            _NearbySection(
-              nearbyKey: _nearbyKey,
-              pharmacies: _pharmacies,
-              loading: _loading,
-              error: _error,
-              onRetry: _load,
-              onViewAll: _openAllPharmacies,
+                  if (_recentOrders.isNotEmpty)
+                    _SectionHeader(
+                      title: 'Recent Orders',
+                      actionLabel: 'See all',
+                      onAction: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const OrdersListScreen()),
+                      ),
+                      child: Column(
+                        children: _recentOrders
+                            .map((o) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => OrderDetailScreen(orderId: o.id),
+                                      ),
+                                    ),
+                                    child: _RecentOrderCard(order: o),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+
+                  _NearbySection(
+                    nearbyKey: _nearbyKey,
+                    pharmacies: _pharmacies,
+                    loading: _loading,
+                    error: _error,
+                    onRetry: _load,
+                    onViewAll: _openAllPharmacies,
+                  ),
+
+                  const SizedBox(height: 28),
+                ],
+              ),
             ),
-
-            const SizedBox(height: 28),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -648,11 +674,11 @@ class _ActiveOrderCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.dark,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.primary, width: 1.2),
             boxShadow: const [
-              BoxShadow(
-                  color: Color(0x1A000F14), blurRadius: 12, offset: Offset(0, 4)),
+              BoxShadow(color: Color(0x0D0F172A), blurRadius: 10, offset: Offset(0, 3)),
             ],
           ),
           child: Row(
@@ -665,7 +691,7 @@ class _ActiveOrderCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(Icons.inventory_2_outlined,
-                    size: 20, color: AppTheme.dark),
+                    size: 20, color: Colors.white),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -673,25 +699,32 @@ class _ActiveOrderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Active Order',
-                        style: TextStyle(fontSize: 12, color: Color(0x99FFFFFF))),
+                        style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
                     Text('#${order.orderCode ?? order.id}',
                         style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white)),
+                            color: Color(0xFF111827))),
                   ],
                 ),
               ),
-              const Row(
-                children: [
-                  Text('Track',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primary)),
-                  SizedBox(width: 4),
-                  Icon(Icons.navigation, size: 13, color: AppTheme.primary),
-                ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  children: [
+                    Text('Track',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white)),
+                    SizedBox(width: 4),
+                    Icon(Icons.navigation, size: 13, color: Colors.white),
+                  ],
+                ),
               ),
             ],
           ),

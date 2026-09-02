@@ -90,9 +90,9 @@ class _PharmacyReviewsScreenState extends State<PharmacyReviewsScreen> {
                         height: 48,
                         child: ElevatedButton.icon(
                           onPressed: _openWrite,
-                          icon: const Icon(Icons.star_half, size: 18, color: AppTheme.dark),
+                          icon: const Icon(Icons.star_half, size: 18, color: Colors.white),
                           label: Text(_hasReviewed ? 'Update your review' : 'Write a review',
-                              style: const TextStyle(color: AppTheme.dark)),
+                              style: const TextStyle(color: Colors.white)),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -330,9 +330,9 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                     ? const SizedBox(
                         width: 22,
                         height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.dark),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Submit Review', style: TextStyle(color: AppTheme.dark, fontWeight: FontWeight.w700)),
+                    : const Text('Submit Review', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),
           ],

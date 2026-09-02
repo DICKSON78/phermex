@@ -104,9 +104,9 @@ class DrugDetailScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.add_shopping_cart, size: 18, color: AppTheme.dark),
+                        const Icon(Icons.add_shopping_cart, size: 18, color: Colors.white),
                         const SizedBox(width: 8),
-                        const Text('Add to Cart', style: TextStyle(color: AppTheme.dark, fontSize: 14, fontWeight: FontWeight.w700)),
+                        const Text('Add to Cart', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
                       ],
                     ),
                   ),

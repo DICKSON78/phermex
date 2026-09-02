@@ -7,7 +7,8 @@ import '../../utils/helpers.dart';
 import 'order_detail_screen.dart';
 
 class OrdersListScreen extends StatefulWidget {
-  const OrdersListScreen({super.key});
+  final int refreshTick;
+  const OrdersListScreen({super.key, this.refreshTick = 0});
 
   @override
   State<OrdersListScreen> createState() => _OrdersListScreenState();
@@ -29,6 +30,14 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
     _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant OrdersListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.refreshTick != oldWidget.refreshTick) {
+      _load();
+    }
   }
 
   @override
@@ -194,13 +203,10 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = order.orderStatus ?? '';
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)),
-      ),
+      onTap: () => _showOrderSheet(context, order),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -215,48 +221,172 @@ class _OrderCard extends StatelessWidget {
                 color: AppTheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.primary),
+              child: const Icon(Icons.receipt_long_outlined, size: 18, color: AppTheme.primary),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(order.pharmacyName ?? 'Pharmacy',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppHelpers.statusColor(status).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(status.toUpperCase(),
-                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppHelpers.statusColor(status))),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('#${order.orderCode ?? order.id} · ${AppHelpers.formatDate(order.createdAt)}',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
-                      Text(AppHelpers.formatTZS(order.total),
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                    ],
-                  ),
+                  Text(order.pharmacyName ?? 'Pharmacy',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                  const SizedBox(height: 2),
+                  Text('#${order.orderCode ?? order.id}',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
                 ],
               ),
             ),
+            const SizedBox(width: 8),
+            Text(AppHelpers.formatTZS(order.total),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showOrderSheet(BuildContext context, Order order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _OrderDetailsSheet(order: order),
+    );
+  }
+}
+
+class _OrderDetailsSheet extends StatelessWidget {
+  final Order order;
+  const _OrderDetailsSheet({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    final status = order.orderStatus ?? '';
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 42,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(order.pharmacyName ?? 'Pharmacy',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppHelpers.statusColor(status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(status.toUpperCase(),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppHelpers.statusColor(status))),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text('#${order.orderCode ?? order.id} · ${AppHelpers.formatDate(order.createdAt)}',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    if (order.items.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Text('No items recorded',
+                            style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                      )
+                    else
+                      ...order.items.map((item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(item.drugName ?? 'Drug',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 13, color: Color(0xFF111827))),
+                                ),
+                                Text('x${item.quantity}',
+                                    style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                                const SizedBox(width: 12),
+                                Text(AppHelpers.formatTZS(item.totalPrice),
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                              ],
+                            ),
+                          )),
+                    const Divider(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Payment',
+                            style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                        Text(
+                            '${AppHelpers.statusLabel(order.paymentStatus ?? '')} · ${order.paymentMethod ?? 'cash'}',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Total',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                        Text(AppHelpers.formatTZS(order.total),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primary)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)),
+                    );
+                  },
+                  icon: const Icon(Icons.receipt_long, size: 18, color: Colors.white),
+                  label: const Text('Open Full Details', style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

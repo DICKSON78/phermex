@@ -398,7 +398,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('View Cart', style: TextStyle(color: AppTheme.dark, fontSize: 14, fontWeight: FontWeight.w700)),
+                      const Text('View Cart', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -531,7 +531,7 @@ class _DrugCard extends StatelessWidget {
                             color: AppTheme.primary,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.add, size: 16, color: AppTheme.dark),
+                          child: const Icon(Icons.add, size: 16, color: Colors.white),
                         ),
                       ),
                   ],

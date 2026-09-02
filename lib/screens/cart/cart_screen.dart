@@ -97,7 +97,7 @@ class CartScreen extends StatelessWidget {
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                           ),
-                          child: const Text('Checkout', style: TextStyle(color: AppTheme.dark, fontWeight: FontWeight.w700)),
+                          child: const Text('Checkout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                         ),
                       ),
                     ],

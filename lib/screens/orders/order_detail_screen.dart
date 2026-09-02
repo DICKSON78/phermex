@@ -44,11 +44,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  bool get _isActive {
-    final s = _order?.orderStatus ?? '';
-    return s.isNotEmpty && s != 'delivered' && s != 'completed' && s != 'cancelled';
-  }
-
   bool get _canCancel => _order?.orderStatus == 'pending';
 
   Future<void> _cancelOrder() async {
@@ -159,97 +154,56 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildOrder(BuildContext context) {
     final order = _order!;
     final status = order.orderStatus ?? '';
+    final cancelled = status == 'cancelled';
+    final completed = status == 'delivered' || status == 'completed';
 
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
         children: [
-          // Status card
+          // Pharmacy header (receipt top): logo/initial + name + order ref
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.dark,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFEEF1F0)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(status.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppHelpers.statusColor(status),
-                        )),
-                    Text(AppHelpers.formatDate(order.createdAt),
-                        style: const TextStyle(fontSize: 11, color: Color(0x99FFFFFF))),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(order.pharmacyName ?? 'Pharmacy',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
-                if (order.deliveryAddress != null && order.deliveryAddress!.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 12, color: Color(0x99FFFFFF)),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(order.deliveryAddress!,
-                            style: const TextStyle(fontSize: 12, color: Color(0x99FFFFFF))),
-                      ),
-                    ],
-                  ),
-                ],
-                if (order.notes != null && order.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text('Notes: ${order.notes}',
-                      style: const TextStyle(fontSize: 12, color: Color(0x99FFFFFF))),
-                ],
-                const SizedBox(height: 16),
-                Row(
-                  children: [
+                    _PharmacyAvatar(name: order.pharmacyName),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Payment',
-                                style: TextStyle(fontSize: 10, color: Color(0x99FFFFFF))),
-                            Text(
-                              '${AppHelpers.statusLabel(order.paymentStatus ?? '')} · ${order.paymentMethod ?? 'cash'}',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                            ),
-                          ],
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(order.pharmacyName ?? 'Pharmacy',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                          const SizedBox(height: 2),
+                          Text('#${order.orderCode ?? order.id}',
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Total',
-                                style: TextStyle(fontSize: 10, color: Color(0x99FFFFFF))),
-                            Text(AppHelpers.formatTZS(order.total),
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primary)),
-                          ],
-                        ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppHelpers.statusColor(status).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
                       ),
+                      child: Text(status.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: AppHelpers.statusColor(status),
+                          )),
                     ),
                   ],
                 ),
@@ -259,59 +213,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
           const SizedBox(height: 16),
 
-          // Track button
-          if (_isActive)
-            SizedBox(
-              height: 48,
-              child: ElevatedButton.icon(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => DeliveryTrackingScreen(orderId: order.id)),
-                ),
-                icon: const Icon(Icons.navigation, size: 16, color: AppTheme.dark),
-                label: const Text('Track Delivery', style: TextStyle(color: AppTheme.dark)),
-              ),
-            ),
-
-          // Cancel button
-          if (_canCancel) ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 48,
-              child: OutlinedButton.icon(
-                onPressed: _cancelling ? null : _cancelOrder,
-                icon: _cancelling
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFDC2626)))
-                    : const Icon(Icons.cancel_outlined, size: 16, color: Color(0xFFDC2626)),
-                label: const Text('Cancel Order',
-                    style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w600)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFFDC2626)),
-                  backgroundColor: Colors.white,
-                ),
-              ),
-            ),
-          ],
-
           // Reorder button
           if (status == 'delivered' || status == 'completed') ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 48,
-              child: ElevatedButton.icon(
-                onPressed: () => _reorder(order),
-                icon: const Icon(Icons.refresh, size: 16, color: AppTheme.dark),
-                label: const Text('Reorder', style: TextStyle(color: AppTheme.dark)),
-              ),
-            ),
+            const SizedBox(height: 12),
+            SizedBox(height: 48, child: _reorderButton(order)),
           ],
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
-          // Items
-          const Text('Order Items',
+          // Receipt / Items
+          const Text('Receipt',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
           const SizedBox(height: 10),
           Container(
@@ -322,7 +233,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               border: Border.all(color: const Color(0xFFEEF1F0)),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Items
                 if (order.items.isEmpty)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
@@ -333,31 +246,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ...order.items.map((item) => Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: Text(item.drugName ?? 'Drug',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 13, color: Color(0xFF111827))),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item.drugName ?? 'Drug',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 13, color: Color(0xFF111827))),
+                                  const SizedBox(height: 2),
+                                  Text('${AppHelpers.formatTZS(item.unitPrice)} × ${item.quantity}',
+                                      style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                                ],
+                              ),
                             ),
-                            Text('x${item.quantity}',
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 12),
                             Text(AppHelpers.formatTZS(item.totalPrice),
                                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
                           ],
                         ),
                       )),
                 const Divider(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Subtotal',
-                        style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
-                    Text(AppHelpers.formatTZS(order.subtotal),
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                  ],
-                ),
+                _ReceiptRow(label: 'Subtotal', value: AppHelpers.formatTZS(order.subtotal)),
+                if (order.discount > 0)
+                  _ReceiptRow(label: 'Discount', value: '− ${AppHelpers.formatTZS(order.discount)}',
+                      valueColor: const Color(0xFFDC2626)),
                 const SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -368,8 +283,116 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primary)),
                   ],
                 ),
+                const Divider(height: 16),
+                // Order summary details
+                _ReceiptRow(label: 'Order Ref', value: '#${order.orderCode ?? order.id}'),
+                _ReceiptRow(label: 'Date', value: AppHelpers.formatDate(order.createdAt)),
+                _ReceiptRow(label: 'Payment',
+                    value:
+                        '${AppHelpers.statusLabel(order.paymentStatus ?? '')} · ${order.paymentMethod ?? 'cash'}'),
+                _ReceiptRow(label: 'Delivery',
+                    value: AppHelpers.statusLabel(order.deliveryStatus ?? order.orderStatus ?? '')),
+                if (order.deliveryAddress != null && order.deliveryAddress!.isNotEmpty)
+                  _ReceiptRow(label: 'Deliver to', value: order.deliveryAddress!),
+                if (order.deliveryPhone != null && order.deliveryPhone!.isNotEmpty)
+                  _ReceiptRow(label: 'Contact', value: order.deliveryPhone!),
+                if (order.notes != null && order.notes!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(width: 90, child: Text('Notes',
+                            style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)))),
+                        Expanded(
+                          child: Text(order.notes!,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF111827))),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
+          ),
+
+          if (_canCancel) ...[
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: _cancelling ? null : _cancelOrder,
+                icon: _cancelling
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.cancel_outlined, size: 18, color: Colors.white),
+                label: const Text('Cancel Order',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFDC2626),
+                  disabledBackgroundColor: const Color(0xFFDC2626).withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _reorderButton(Order order) {
+    return ElevatedButton.icon(
+      onPressed: () => _reorder(order),
+      icon: const Icon(Icons.refresh, size: 16, color: Colors.white),
+      label: const Text('Reorder', style: TextStyle(color: Colors.white)),
+    );
+  }
+}
+
+class _PharmacyAvatar extends StatelessWidget {
+  final String? name;
+  const _PharmacyAvatar({this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = ((name ?? 'P')).isNotEmpty
+        ? (name!.trim().isEmpty ? 'P' : name!.trim()[0].toUpperCase())
+        : 'P';
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withValues(alpha: 0.12),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(initial,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.primaryDark)),
+    );
+  }
+}
+
+class _ReceiptRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+  const _ReceiptRow({required this.label, required this.value, this.valueColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 90, child: Text(label,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)))),
+          Expanded(
+            child: Text(value,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: valueColor ?? const Color(0xFF111827))),
           ),
         ],
       ),

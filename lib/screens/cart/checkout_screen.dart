@@ -459,10 +459,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ? const SizedBox(
                             width: 22,
                             height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.dark),
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
                         : const Text('Place Order',
-                            style: TextStyle(color: AppTheme.dark, fontWeight: FontWeight.w700)),
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ),

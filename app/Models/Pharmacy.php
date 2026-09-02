@@ -139,10 +139,15 @@ class Pharmacy extends Model
 
     public function isActive(): bool
     {
-        if ($this->application_status !== 'approved') return false;
-        if ($this->trial_ends_at && $this->trial_ends_at->isFuture()) return true;
-        if ($this->payment_status === 'paid' && $this->subscription_end_date && $this->subscription_end_date->isFuture()) return true;
-        return false;
+        // Billing is disabled while the platform is in testing (no time limit).
+        // Any approved pharmacy is active. Re-instate the date checks below
+        // once paid plans/live billing are agreed and integrated.
+        return $this->application_status === 'approved';
+
+        // if ($this->application_status !== 'approved') return false;
+        // if ($this->trial_ends_at && $this->trial_ends_at->isFuture()) return true;
+        // if ($this->payment_status === 'paid' && $this->subscription_end_date && $this->subscription_end_date->isFuture()) return true;
+        // return false;
     }
 
     public function hasTrial(): bool

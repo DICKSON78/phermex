@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
@@ -39,7 +40,29 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final list = await CustomerRepository.allPharmacies(search: _search);
+      var lat = -6.7924;
+      var lng = 39.2083;
+      try {
+        var enabled = await Geolocator.isLocationServiceEnabled();
+        if (enabled) {
+          var perm = await Geolocator.checkPermission();
+          if (perm == LocationPermission.denied) {
+            perm = await Geolocator.requestPermission();
+          }
+          if (perm == LocationPermission.whileInUse ||
+              perm == LocationPermission.always) {
+            final pos = await Geolocator.getCurrentPosition();
+            lat = pos.latitude;
+            lng = pos.longitude;
+          }
+        }
+      } catch (_) {}
+      final list = await CustomerRepository.nearby(
+        latitude: lat,
+        longitude: lng,
+        radiusKm: 100,
+        search: _search,
+      );
       if (!mounted) return;
       setState(() {
         _pharmacies = list;

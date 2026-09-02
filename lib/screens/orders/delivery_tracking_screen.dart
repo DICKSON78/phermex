@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
@@ -139,6 +141,10 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
 
           const SizedBox(height: 20),
 
+          _buildMap(order),
+
+          const SizedBox(height: 20),
+
           if (cancelled)
             Container(
               padding: const EdgeInsets.all(16),
@@ -230,6 +236,122 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  /// Uber-style live map: pharmacy (origin) → delivery location (destination),
+  /// with a connecting polyline and floating "live" badge.
+  Widget _buildMap(Order order) {
+    final fromLat = order.pharmacyLatitude;
+    final fromLng = order.pharmacyLongitude;
+    final toLat = order.deliveryLatitude;
+    final toLng = order.deliveryLongitude;
+    final hasOrigin = fromLat != null && fromLng != null;
+    final hasDest = toLat != null && toLng != null;
+
+    if (!hasOrigin && !hasDest) {
+      return const SizedBox.shrink();
+    }
+
+    final from = LatLng(
+      hasOrigin ? fromLat : (hasDest ? toLat : 0),
+      hasOrigin ? fromLng : (hasDest ? toLng : 0),
+    );
+    final to = LatLng(
+      hasDest ? toLat : (hasOrigin ? fromLat : 0),
+      hasDest ? toLng : (hasOrigin ? fromLng : 0),
+    );
+
+    final center = LatLng(
+      (from.latitude + to.latitude) / 2,
+      (from.longitude + to.longitude) / 2,
+    );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: SizedBox(
+        height: 240,
+        child: Stack(
+          children: [
+            FlutterMap(
+              options: MapOptions(
+                initialCenter: center,
+                initialZoom: 14,
+                interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.pharmex.pharmex_customer_app',
+                ),
+                if (hasOrigin && hasDest)
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: [from, to],
+                        color: AppTheme.primary,
+                        strokeWidth: 4,
+                      ),
+                    ],
+                  ),
+                if (hasOrigin)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: from,
+                        width: 42,
+                        height: 48,
+                        child: Column(
+                          children: [Icon(Icons.local_pharmacy, size: 38, color: AppTheme.primary)],
+                        ),
+                      ),
+                    ],
+                  ),
+                if (hasDest)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: to,
+                        width: 40,
+                        height: 44,
+                        child: Column(
+                          children: [Icon(Icons.location_on, size: 38, color: const Color(0xFFDC2626))],
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            // Live badge
+            Positioned(
+              top: 12,
+              left: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 8,
+                      height: 8,
+                      child: CircularProgressIndicator(strokeWidth: 1.6, color: Colors.white),
+                    ),
+                    SizedBox(width: 6),
+                    Text('LIVE',
+                        style: TextStyle(
+                            fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -268,6 +268,8 @@ class Order {
   final String? createdAt;
   final int? pharmacyId;
   final String? pharmacyName;
+  final double? pharmacyLatitude;
+  final double? pharmacyLongitude;
   final String? deliveryStatus;
   final String? deliveryAddress;
   final String? deliveryPhone;
@@ -288,6 +290,8 @@ class Order {
     this.createdAt,
     this.pharmacyId,
     this.pharmacyName,
+    this.pharmacyLatitude,
+    this.pharmacyLongitude,
     this.deliveryStatus,
     this.deliveryAddress,
     this.deliveryPhone,
@@ -316,6 +320,8 @@ class Order {
       createdAt: json['created_at'],
       pharmacyId: pharmacy is Map ? pharmacy['id'] : null,
       pharmacyName: pharmacy is Map ? pharmacy['pharmacy_name'] : null,
+      pharmacyLatitude: pharmacy is Map ? _toDouble(pharmacy['latitude']) : null,
+      pharmacyLongitude: pharmacy is Map ? _toDouble(pharmacy['longitude']) : null,
       deliveryStatus: json['delivery_status'],
       deliveryAddress: json['delivery_address'],
       deliveryPhone: json['delivery_phone'],

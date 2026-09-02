@@ -20,7 +20,7 @@ class PrescriptionController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Prescription::with(['customer', 'items.drug', 'dispenser'])
+            $query = Prescription::with(['customer', 'user', 'items.drug', 'dispenser'])
                 ->when($request->filled('pharmacy_id'), fn ($q) => $q->where('pharmacy_id', $request->input('pharmacy_id')));
 
             if ($request->filled('status')) {
@@ -393,7 +393,7 @@ class PrescriptionController extends Controller
 
             $prescriptions = Prescription::where('pharmacy_id', $request->input('pharmacy_id'))
                 ->where('doctor_name', 'like', "%{$request->input('doctor_name')}%")
-                ->with(['customer', 'items.drug', 'dispenser'])
+                ->with(['customer', 'user', 'items.drug', 'dispenser'])
                 ->latest()
                 ->paginate(20);
 

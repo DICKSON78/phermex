@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\BroadcastController;
 use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\TelemedicineController;
 use App\Http\Controllers\Api\CustomerAppController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DrugController;
@@ -132,6 +133,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/chats/{pharmacyId}', [ChatController::class, 'customerMessages']);
         Route::post('/chats/{pharmacyId}', [ChatController::class, 'customerSend']);
         Route::put('/chats/{pharmacyId}/read', [ChatController::class, 'customerMarkRead']);
+
+        Route::post('/telemedicine/request', [TelemedicineController::class, 'requestConsult']);
+        Route::get('/telemedicine/active', [TelemedicineController::class, 'activeConsult']);
+        Route::post('/telemedicine/{id}/cancel', [TelemedicineController::class, 'cancelConsult']);
 
         Route::get('/support', [CustomerAppController::class, 'mySupportTickets']);
         Route::post('/support', [CustomerAppController::class, 'createSupportTicket']);
@@ -379,6 +384,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/chats/{customerId}', [ChatController::class, 'pharmacyMessages']);
         Route::post('/chats/{customerId}', [ChatController::class, 'pharmacySend']);
         Route::put('/chats/{customerId}/read', [ChatController::class, 'pharmacyMarkRead']);
+
+        Route::get('/telemedicine/pending', [TelemedicineController::class, 'pendingConsults']);
+        Route::get('/telemedicine/live', [TelemedicineController::class, 'liveConsults']);
+        Route::post('/telemedicine/{id}/accept', [TelemedicineController::class, 'acceptConsult']);
+        Route::post('/telemedicine/{id}/end', [TelemedicineController::class, 'endConsult']);
 
         // Owner support tickets
         Route::get('/support/tickets', [AdminSupportController::class, 'ownerIndex'])

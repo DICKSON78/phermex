@@ -135,7 +135,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/chats/{pharmacyId}/read', [ChatController::class, 'customerMarkRead']);
 
         Route::post('/telemedicine/request', [TelemedicineController::class, 'requestConsult']);
+        Route::post('/telemedicine/book', [TelemedicineController::class, 'bookConsult']);
         Route::get('/telemedicine/active', [TelemedicineController::class, 'activeConsult']);
+        Route::get('/telemedicine/appointments', [TelemedicineController::class, 'appointments']);
+        Route::get('/telemedicine/schedule', [TelemedicineController::class, 'scheduleSlots']);
         Route::post('/telemedicine/{id}/cancel', [TelemedicineController::class, 'cancelConsult']);
 
         Route::get('/support', [CustomerAppController::class, 'mySupportTickets']);
@@ -387,6 +390,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/telemedicine/pending', [TelemedicineController::class, 'pendingConsults']);
         Route::get('/telemedicine/live', [TelemedicineController::class, 'liveConsults']);
+        Route::get('/telemedicine/scheduled', [TelemedicineController::class, 'scheduledAppointments']);
+        Route::post('/telemedicine/{id}/notify', [TelemedicineController::class, 'notifyPatientBeforeCall']);
         Route::post('/telemedicine/{id}/accept', [TelemedicineController::class, 'acceptConsult']);
         Route::post('/telemedicine/{id}/end', [TelemedicineController::class, 'endConsult']);
 

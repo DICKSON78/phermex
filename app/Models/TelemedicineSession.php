@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Models\Scopes\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class TelemedicineSession extends Model
 {
     use TenantScoped;
+    use SoftDeletes;
 
     protected $fillable = [
         'patient_user_id',
@@ -17,11 +19,15 @@ class TelemedicineSession extends Model
         'pharmacist_user_id',
         'room_code',
         'status',
+        'scheduled_at',
+        'topic',
+        'patient_notes',
         'started_at',
         'ended_at',
     ];
 
     protected $casts = [
+        'scheduled_at' => 'datetime',
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
     ];
@@ -49,6 +55,12 @@ class TelemedicineSession extends Model
     public function scopeActive($q)
     {
         return $q->whereIn('status', ['requested', 'live']);
+    }
+
+    public function scopeUpcomingAppointments($q)
+    {
+        return $q->where('status', 'scheduled')
+            ->where('scheduled_at', '>=', now());
     }
 
     public function scopeForPharmacy($q, int $pharmacyId)

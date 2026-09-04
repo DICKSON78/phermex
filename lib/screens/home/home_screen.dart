@@ -214,20 +214,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       onAction: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const OrdersListScreen()),
                       ),
-                      child: Column(
-                        children: _recentOrders
-                            .map((o) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: GestureDetector(
-                                    onTap: () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => OrderDetailScreen(orderId: o.id),
+                      child: SizedBox(
+                        height: _RecentOrderCard.cardHeight,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: _recentOrders
+                              .map((o) => Padding(
+                                    padding: const EdgeInsets.only(right: 12),
+                                    child: GestureDetector(
+                                      onTap: () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => OrderDetailScreen(orderId: o.id),
+                                        ),
                                       ),
+                                      child: _RecentOrderCard(order: o),
                                     ),
-                                    child: _RecentOrderCard(order: o),
-                                  ),
-                                ))
-                            .toList(),
+                                  ))
+                              .toList(),
+                        ),
                       ),
                     ),
 
@@ -739,75 +743,67 @@ class _RecentOrderCard extends StatelessWidget {
   final Order order;
   const _RecentOrderCard({required this.order});
 
+  // Fixed dimensions so the card tiles nicely in a horizontal scroll row.
+  static const double cardHeight = 128;
+  static const double cardWidth = 174;
+
   @override
   Widget build(BuildContext context) {
     final status = order.orderStatus ?? '';
     final statusColor = AppHelpers.statusColor(status);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEF1F0)),
-        boxShadow: const [
-          BoxShadow(color: Color(0x0D0F172A), blurRadius: 8, offset: Offset(0, 2)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+    return SizedBox(
+      width: cardWidth,
+      height: cardHeight,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEEF1F0)),
+          boxShadow: const [
+            BoxShadow(color: Color(0x0D0F172A), blurRadius: 8, offset: Offset(0, 2)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _Pill(
+              label: AppHelpers.statusLabel(status).toUpperCase(),
+              color: statusColor,
+              textColor: statusColor,
             ),
-            child: const Icon(Icons.inventory_2_outlined,
-                size: 17, color: AppTheme.primaryDark),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 8),
+            Text(order.pharmacyName ?? 'Pharmacy',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textDark)),
+            const SizedBox(height: 4),
+            Text('#${order.orderCode ?? order.id}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+            const Spacer(),
+            Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Text(order.pharmacyName ?? 'Pharmacy',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textDark)),
-                    ),
-                    const SizedBox(width: 8),
-                    _Pill(
-                      label: AppHelpers.statusLabel(status).toUpperCase(),
-                      color: statusColor,
-                      textColor: statusColor,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('#${order.orderCode ?? order.id}',
-                        style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF94A3B8))),
-                    Text(AppHelpers.formatTZS(order.total),
-                        style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textDark)),
-                  ],
+                const Icon(Icons.inventory_2_outlined,
+                    size: 15, color: Color(0xFF94A3B8)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(AppHelpers.formatTZS(order.total),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textDark)),
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -887,12 +883,18 @@ class _NearbySection extends StatelessWidget {
               message: 'No pharmacies found nearby',
             )
           else
-            ...pharmacies
-                .map((p) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _NearbyPharmacyCard(pharmacy: p),
-                    ))
-                .toList(),
+            SizedBox(
+              height: _NearbyPharmacyCard.cardHeight,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: pharmacies
+                    .map((p) => Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: _NearbyPharmacyCard(pharmacy: p),
+                        ))
+                    .toList(),
+              ),
+            ),
         ],
       ),
     );
@@ -902,6 +904,10 @@ class _NearbySection extends StatelessWidget {
 class _NearbyPharmacyCard extends StatelessWidget {
   final Pharmacy pharmacy;
   const _NearbyPharmacyCard({required this.pharmacy});
+
+  // Fixed dimensions for the movie-style horizontal poster row.
+  static const double cardHeight = 214;
+  static const double cardWidth = 164;
 
   @override
   Widget build(BuildContext context) {
@@ -913,218 +919,190 @@ class _NearbyPharmacyCard extends StatelessWidget {
         MaterialPageRoute(
             builder: (_) => PharmacyDetailScreen(pharmacy: pharmacy)),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: const [
-              BoxShadow(
-                  color: Color(0x12000000), blurRadius: 10, offset: Offset(0, 3)),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Cover image / placeholder
-              SizedBox(
-                height: 110,
-                width: double.infinity,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    pharmacy.coverImage != null &&
-                            pharmacy.coverImage!.isNotEmpty
-                        ? Image.network(
-                            pharmacy.coverImage!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _coverFallback(),
-                          )
-                        : _coverFallback(),
-                    // Dark gradient overlay for legibility
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Color(0x66000000)],
+      child: SizedBox(
+        width: cardWidth,
+        height: cardHeight,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x12000000), blurRadius: 10, offset: Offset(0, 3)),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Cover image / placeholder
+                SizedBox(
+                  height: 116,
+                  width: double.infinity,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      pharmacy.coverImage != null &&
+                              pharmacy.coverImage!.isNotEmpty
+                          ? Image.network(
+                              pharmacy.coverImage!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _coverFallback(),
+                            )
+                          : _coverFallback(),
+                      // Dark gradient overlay for legibility
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Color(0x77000000)],
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: 14,
-                      bottom: 12,
-                      child: Row(
-                        children: [
-                          Container(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      // Circular pharmacist profile / logo
+                      Positioned(
+                        left: 10,
+                        bottom: 8,
+                        child: _profileAvatar(),
+                      ),
+                      if (distance.isNotEmpty)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(
-                              color: AppTheme.primary,
-                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(999),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.local_pharmacy,
-                                    size: 13, color: Colors.white),
-                                SizedBox(width: 4),
-                                Text('Pharmacy',
-                                    style: TextStyle(
+                                const Icon(Icons.navigation,
+                                    size: 11, color: Colors.white),
+                                const SizedBox(width: 2),
+                                Text(distance,
+                                    style: const TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w700,
                                         color: Colors.white)),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          if (pharmacy.hasRating)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.45),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.star,
-                                      size: 13, color: Color(0xFFFBBF24)),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                      '${pharmacy.rating!.toStringAsFixed(1)}',
-                                      style: const TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white)),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    if (distance.isNotEmpty)
-                      Positioned(
-                        top: 10,
-                        right: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 9, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: const [
-                              BoxShadow(
-                                  color: Color(0x22000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 1)),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.navigation,
-                                  size: 12, color: AppTheme.primaryDark),
-                              const SizedBox(width: 3),
-                              Text(distance,
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppTheme.textDark)),
-                            ],
-                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(pharmacy.name ?? 'Pharmacy',
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 9, 10, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(pharmacy.name ?? 'Pharmacy',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textDark)),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          const Icon(Icons.place_outlined,
+                              size: 12, color: Color(0xFF94A3B8)),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              pharmacy.locationLabel.isEmpty
+                                  ? 'Pharmacy'
+                                  : pharmacy.locationLabel,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textDark)),
-                        ),
-                        if (pharmacy.hasRating)
-                          Text('${pharmacy.totalReviews} reviews',
-                              style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF94A3B8),
-                                  fontWeight: FontWeight.w600)),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.place_outlined,
-                            size: 13, color: Color(0xFF94A3B8)),
-                        const SizedBox(width: 3),
-                        Expanded(
-                          child: Text(
-                            pharmacy.locationLabel.isEmpty
-                                ? 'Pharmacy'
-                                : pharmacy.locationLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontSize: 12, color: Color(0xFF94A3B8)),
+                                  fontSize: 11, color: Color(0xFF94A3B8)),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    if (pharmacy.openLabel.isNotEmpty) ...[
-                      Row(
-                        children: [
-                          const Icon(Icons.schedule,
-                              size: 13, color: AppTheme.primaryDark),
-                          const SizedBox(width: 4),
-                          Text(pharmacy.openLabel,
-                              style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.primaryDark)),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          if (pharmacy.hasRating)
+                            Row(
+                              children: [
+                                const Icon(Icons.star,
+                                    size: 12, color: Color(0xFFFBBF24)),
+                                const SizedBox(width: 3),
+                                Text('${pharmacy.rating!.toStringAsFixed(1)}',
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFFF59E0B))),
+                              ],
+                            )
+                          else ...[
+                            const Icon(Icons.schedule,
+                                size: 12, color: AppTheme.primaryDark),
+                            const SizedBox(width: 3),
+                            Text(pharmacy.openLabel.isEmpty
+                                ? 'Open'
+                                : pharmacy.openLabel,
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.primaryDark)),
+                          ],
+                        ],
+                      ),
                     ],
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) =>
-                                PharmacyDetailScreen(pharmacy: pharmacy)),
-                      ),
-                      child: Container(
-                        height: 44,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text('Order Now',
-                            style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white)),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _profileAvatar() {
+    final avatar = pharmacy.logo != null && pharmacy.logo!.isNotEmpty
+        ? pharmacy.logo!
+        : null;
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        color: Colors.white,
+      ),
+      child: avatar != null
+          ? ClipOval(
+              child: Image.network(
+                avatar,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _avatarFallback(),
+              ),
+            )
+          : _avatarFallback(),
+    );
+  }
+
+  Widget _avatarFallback() {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.primary, AppTheme.primaryDark],
+        ),
+      ),
+      child: const Center(
+        child: Icon(Icons.local_pharmacy, size: 20, color: Colors.white),
       ),
     );
   }

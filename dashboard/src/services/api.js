@@ -342,4 +342,13 @@ export const drugRecalls = {
   getActive: (params) => api.get('/drug-recalls/active', { params }),
 }
 
+export const telemedicine = {
+  pending: () => api.get('/telemedicine/pending'),
+  live: () => api.get('/telemedicine/live'),
+  scheduled: () => api.get('/telemedicine/scheduled'),
+  accept: (id) => api.post(`/telemedicine/${id}/accept`),
+  end: (id) => api.post(`/telemedicine/${id}/end`),
+  notify: (id) => api.post(`/telemedicine/${id}/notify`),
+}
+
 export default api

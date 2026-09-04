@@ -44,6 +44,7 @@ import {
   Plus,
   Star,
   Megaphone,
+  Video,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -73,6 +74,7 @@ import SettingsPage from '../pages/owner/SettingsPage'
 import NotificationsPage from '../pages/owner/NotificationsPage'
 import ProfilePage from '../pages/owner/ProfilePage'
 import PharmacyReviewsPage from '../pages/owner/PharmacyReviewsPage'
+import TelemedicinePage from '../pages/owner/TelemedicinePage'
 
 import SupplierListPage from '../pages/owner/SupplierListPage'
 import SupplierDetailPage from '../pages/owner/SupplierDetailPage'
@@ -170,6 +172,7 @@ const ownerNavGroups = [
       { path: '/dashboard/customers', icon: Users, label: 'Customers' },
       { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages' },
       { path: '/dashboard/reviews', icon: Star, label: 'Reviews' },
+      { path: '/dashboard/telemedicine', icon: Video, label: 'Telemedicine' },
     ],
   },
   {
@@ -328,6 +331,7 @@ const sellerNavGroups = [
       { path: '/dashboard/prescriptions', icon: FileText, label: 'Prescriptions' },
       { path: '/dashboard/customers', icon: Users, label: 'Customers' },
       { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages' },
+      { path: '/dashboard/telemedicine', icon: Video, label: 'Telemedicine' },
     ],
   },
   {
@@ -764,6 +768,7 @@ export default function DashboardLayout({ role }) {
               <Route path="settings/pharmacies/new" element={<AddPharmacyPage />} />
               <Route path="chats" element={<PharmacyChatListPage />} />
               <Route path="chats/:customerId" element={<PharmacyChatPage />} />
+              <Route path="telemedicine" element={<TelemedicinePage />} />
               <Route path="support" element={<OwnerSupportPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
@@ -790,6 +795,7 @@ export default function DashboardLayout({ role }) {
               <Route path="customers/:id/edit" element={<CustomerFormPage />} />
               <Route path="chats" element={<PharmacyChatListPage />} />
               <Route path="chats/:customerId" element={<PharmacyChatPage />} />
+              <Route path="telemedicine" element={<TelemedicinePage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
@@ -841,6 +847,7 @@ export default function DashboardLayout({ role }) {
               <Route path="jobs/:id/edit" element={<AdminJobFormPage />} />
               <Route path="reviews" element={<AdminReviewsPage />} />
               <Route path="broadcasts" element={<AdminBroadcastPage />} />
+              <Route path="telemedicine" element={<TelemedicinePage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           )}

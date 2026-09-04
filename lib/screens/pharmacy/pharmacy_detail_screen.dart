@@ -267,7 +267,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                 ),
                 _IconAction(
                   icon: Icons.videocam_outlined,
-                  label: 'Video',
+                  label: 'Telemedicine',
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => TelemedicineScreen(

@@ -12,6 +12,7 @@ import '../cart/cart_screen.dart';
 import 'drug_detail_screen.dart';
 import 'pharmacy_map_screen.dart';
 import 'pharmacy_reviews_screen.dart';
+import '../telemedicine/telemedicine_screen.dart';
 
 class PharmacyDetailScreen extends StatefulWidget {
   final Pharmacy pharmacy;
@@ -262,6 +263,18 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (_) => PharmacyReviewsScreen(pharmacy: widget.pharmacy)),
+                  ),
+                ),
+                _IconAction(
+                  icon: Icons.videocam_outlined,
+                  label: 'Video',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => TelemedicineScreen(
+                        pharmacyId: widget.pharmacy.id,
+                        pharmacyName: widget.pharmacy.name,
+                      ),
+                    ),
                   ),
                 ),
               ],

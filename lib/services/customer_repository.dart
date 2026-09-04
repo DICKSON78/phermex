@@ -349,4 +349,25 @@ class CustomerRepository {
   static Future<void> replySupportTicket(int id, String message) async {
     await ApiService.post('/support/$id/reply', {'message': message});
   }
+
+  /// Requests a live video consultation with a pharmacy.
+  /// Returns the telemedicine session (with room_code / room_url).
+  static Future<Map<String, dynamic>> requestTelemedicine(int pharmacyId) async {
+    final res = await ApiService.post('/telemedicine/request', {'pharmacy_id': pharmacyId});
+    return _data(res);
+  }
+
+  /// Fetches the customer's active consultation (if any), otherwise null.
+  static Future<Map<String, dynamic>?> activeTelemedicine() async {
+    final res = await ApiService.get('/telemedicine/active');
+    final data = _data(res);
+    if (data is Map && data['room_code'] != null) {
+      return Map<String, dynamic>.from(data);
+    }
+    return null;
+  }
+
+  static Future<void> cancelTelemedicine(int id) async {
+    await ApiService.post('/telemedicine/$id/cancel');
+  }
 }

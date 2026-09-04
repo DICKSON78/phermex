@@ -352,9 +352,43 @@ class CustomerRepository {
 
   /// Requests a live video consultation with a pharmacy.
   /// Returns the telemedicine session (with room_code / room_url).
-  static Future<Map<String, dynamic>> requestTelemedicine(int pharmacyId) async {
-    final res = await ApiService.post('/telemedicine/request', {'pharmacy_id': pharmacyId});
+  static Future<Map<String, dynamic>> requestTelemedicine(int pharmacyId,
+      {String? topic, String? patientNotes}) async {
+    final res = await ApiService.post('/telemedicine/request', {
+      'pharmacy_id': pharmacyId,
+      if (topic != null) 'topic': topic,
+      if (patientNotes != null) 'patient_notes': patientNotes,
+    });
     return _data(res);
+  }
+
+  /// Books a scheduled video consultation (appointment) at a chosen time slot.
+  static Future<Map<String, dynamic>> bookTelemedicine(int pharmacyId,
+      {required String scheduledAt, String? topic, String? patientNotes}) async {
+    final res = await ApiService.post('/telemedicine/book', {
+      'pharmacy_id': pharmacyId,
+      'scheduled_at': scheduledAt,
+      if (topic != null) 'topic': topic,
+      if (patientNotes != null) 'patient_notes': patientNotes,
+    });
+    return _data(res);
+  }
+
+  /// Fetches all of the customer's telemedicine appointments / history.
+  static Future<List<Map<String, dynamic>>> telemedicineAppointments() async {
+    final res = await ApiService.get('/telemedicine/appointments');
+    final data = _data(res);
+    if (data is List) return data.map((e) => Map<String, dynamic>.from(e)).toList();
+    return [];
+  }
+
+  /// Fetches available appointment time slots for a pharmacy.
+  static Future<List<Map<String, dynamic>>?> telemedicineSlots(int pharmacyId,
+      {int days = 7}) async {
+    final res = await ApiService.get('/telemedicine/schedule?pharmacy_id=$pharmacyId&days=$days');
+    final data = _data(res);
+    if (data is List) return data.map((e) => Map<String, dynamic>.from(e)).toList();
+    return null;
   }
 
   /// Fetches the customer's active consultation (if any), otherwise null.

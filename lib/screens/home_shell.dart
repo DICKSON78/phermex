@@ -4,7 +4,7 @@ import '../theme.dart';
 import '../services/api_service.dart';
 import 'home/home_screen.dart';
 import 'orders/orders_list_screen.dart';
-import 'chat/chat_list_screen.dart';
+import 'telemedicine/telemedicine_screen.dart';
 import 'profile/profile_screen.dart';
 
 class HomeShell extends StatefulWidget {
@@ -23,7 +23,7 @@ class _HomeShellState extends State<HomeShell> {
   static const _tabs = [
     (icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
     (icon: Icons.receipt_long_outlined, activeIcon: Icons.receipt_long, label: 'Orders'),
-    (icon: Icons.chat_bubble_outline, activeIcon: Icons.chat_bubble, label: 'Chat'),
+    (icon: Icons.videocam_outlined, activeIcon: Icons.videocam, label: 'Telemedicine'),
     (icon: Icons.person_outline, activeIcon: Icons.person, label: 'Me'),
   ];
 
@@ -47,7 +47,7 @@ class _HomeShellState extends State<HomeShell> {
     final screens = [
       HomeScreen(unreadNotifications: _unreadNotifications, refreshTick: _homeRefreshTick),
       OrdersListScreen(refreshTick: _ordersRefreshTick),
-      const ChatListScreen(),
+      const TelemedicineScreen(),
       const ProfileScreen(),
     ];
     return AnnotatedRegion<SystemUiOverlayStyle>(

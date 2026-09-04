@@ -251,11 +251,14 @@ class TelemedicineController extends Controller
             $hours = $pharmacy->working_hours ?? ['open' => '08:00', 'close' => '18:00'];
             $open = $hours['open'] ?? '08:00';
             $close = $hours['close'] ?? '18:00';
+
+            // Days this pharmacy is open, keyed by short name, e.g. ["Mon","Tue",...].
+            // If unset, treat every day as open.
+            $workingDays = $pharmacy->working_days ?? [];
+            $openDayNames = array_map(fn ($d) => strtolower((string) $d), $workingDays);
+
             $slotMinutes = 20;
             $slotGapMinutes = 10;
-
-            $start = Carbon::parse($open);
-            $end = Carbon::parse($close);
             $slotSize = $slotMinutes + $slotGapMinutes;
 
             $booked = TelemedicineSession::where('pharmacy_id', $pharmacy->id)
@@ -267,14 +270,20 @@ class TelemedicineController extends Controller
 
             $slots = [];
             foreach ($this->nextDays($days) as $dayDate) {
+                $dayName = strtolower($dayDate->format('D'));
+                if (count($openDayNames) > 0 && !in_array($dayName, $openDayNames)) {
+                    continue;
+                }
                 $dayKey = $dayDate->format('Y-m-d');
                 $dateTime = Carbon::parse($dayKey . ' ' . $open);
                 while ($dateTime->format('H:i') < $close) {
                     $slotKey = $dateTime->format('Y-m-d H:i');
                     if ($dateTime->gt(now()) && !in_array($slotKey, $booked)) {
                         $slots[] = [
-                            'start' => $dateTime->format('Y-m-d H:i'),
+                            'start' => $slotKey,
                             'end' => $dateTime->copy()->addMinutes($slotMinutes)->format('H:i'),
+                            'date_label' => $dayDate->format('D, M j'),
+                            'time_label' => $dateTime->format('g:i A'),
                         ];
                     }
                     $dateTime->addMinutes($slotSize);

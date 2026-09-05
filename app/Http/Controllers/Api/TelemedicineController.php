@@ -257,8 +257,10 @@ class TelemedicineController extends Controller
             $workingDays = $pharmacy->working_days ?? [];
             $openDayNames = array_map(fn ($d) => strtolower((string) $d), $workingDays);
 
-            $slotMinutes = 20;
-            $slotGapMinutes = 10;
+            $slotMinutes = (int) ($pharmacy->slot_minutes ?? 20);
+            $slotGapMinutes = (int) ($pharmacy->slot_gap_minutes ?? 10);
+            if ($slotMinutes < 10 || $slotMinutes > 90) $slotMinutes = 20;
+            if ($slotGapMinutes < 0 || $slotGapMinutes > 30) $slotGapMinutes = 10;
             $slotSize = $slotMinutes + $slotGapMinutes;
 
             $booked = TelemedicineSession::where('pharmacy_id', $pharmacy->id)
@@ -427,6 +429,170 @@ class TelemedicineController extends Controller
             $session->update(['status' => 'ended', 'ended_at' => now()]);
 
             return response()->json(['message' => 'Consultation ended.', 'data' => $this->serialize($session)]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Consultation not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Slot management (pharmacy side)
+    // ------------------------------------------------------------------
+
+    private function currentPharmacyForUser(Request $request): Pharmacy
+    {
+        $user = $request->user();
+        $ids = $this->pharmacyIds($request);
+        if ($ids->isEmpty()) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException();
+        }
+
+        $currentId = $user->resolveCurrentPharmacyId();
+        if ($currentId && $ids->contains($currentId)) {
+            return Pharmacy::findOrFail($currentId);
+        }
+
+        return Pharmacy::findOrFail($ids->first());
+    }
+
+    public function slotSettings(Request $request): JsonResponse
+    {
+        try {
+            $pharmacy = $this->currentPharmacyForUser($request);
+            $days = (int) $request->get('days', 7);
+
+            $hours = $pharmacy->working_hours ?? ['open' => '08:00', 'close' => '18:00'];
+            $open = $hours['open'] ?? '08:00';
+            $close = $hours['close'] ?? '18:00';
+            $workingDays = $pharmacy->working_days ?? [];
+            if (count($workingDays) === 0) {
+                $workingDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            }
+
+            $openDayNames = array_map(fn ($d) => strtolower((string) $d), $workingDays);
+            $slotMinutes = (int) ($pharmacy->slot_minutes ?? 20);
+            $slotGapMinutes = (int) ($pharmacy->slot_gap_minutes ?? 10);
+            $slotSize = $slotMinutes + $slotGapMinutes;
+
+            $booked = TelemedicineSession::where('pharmacy_id', $pharmacy->id)
+                ->where('status', 'scheduled')
+                ->where('scheduled_at', '>', now())
+                ->pluck('scheduled_at')
+                ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d H:i'))
+                ->all();
+
+            $slots = [];
+            foreach ($this->nextDays($days) as $dayDate) {
+                $dayName = strtolower($dayDate->format('D'));
+                if (!in_array($dayName, $openDayNames)) {
+                    continue;
+                }
+                $dayKey = $dayDate->format('Y-m-d');
+                $dateTime = Carbon::parse($dayKey . ' ' . $open);
+                while ($dateTime->format('H:i') < $close) {
+                    $slotKey = $dateTime->format('Y-m-d H:i');
+                    if ($dateTime->gt(now())) {
+                        $slots[] = [
+                            'start' => $slotKey,
+                            'end' => $dateTime->copy()->addMinutes($slotMinutes)->format('H:i'),
+                            'date_label' => $dayDate->format('D, M j'),
+                            'time_label' => $dateTime->format('g:i A'),
+                            'booked' => in_array($slotKey, $booked),
+                        ];
+                    }
+                    $dateTime->addMinutes($slotSize);
+                }
+            }
+
+            return response()->json([
+                'data' => [
+                    'working_days' => $workingDays,
+                    'working_hours' => $hours,
+                    'slot_minutes' => $slotMinutes,
+                    'slot_gap_minutes' => $slotGapMinutes,
+                    'slots' => $slots,
+                ],
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
+        }
+    }
+
+    public function updateSlotSettings(Request $request): JsonResponse
+    {
+        try {
+            $pharmacy = $this->currentPharmacyForUser($request);
+
+            $validated = $request->validate([
+                'working_days' => 'required|array|min:1',
+                'working_days.*' => 'in:Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+                'working_hours.open' => 'required|date_format:H:i',
+                'working_hours.close' => 'required|date_format:H:i|after:working_hours.open',
+                'slot_minutes' => 'required|integer|min:10|max:90',
+                'slot_gap_minutes' => 'required|integer|min:0|max:30',
+            ]);
+
+            $pharmacy->update([
+                'working_days' => $validated['working_days'],
+                'working_hours' => $validated['working_hours'],
+                'slot_minutes' => $validated['slot_minutes'],
+                'slot_gap_minutes' => $validated['slot_gap_minutes'],
+            ]);
+
+            return response()->json([
+                'message' => 'Slot settings updated.',
+                'data' => $pharmacy->fresh(['working_days', 'working_hours', 'slot_minutes', 'slot_gap_minutes']),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation failed.', 'error' => $e->errors()], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
+        }
+    }
+
+    public function history(Request $request): JsonResponse
+    {
+        try {
+            $sessions = TelemedicineSession::whereIn('pharmacy_id', $this->pharmacyIds($request))
+                ->whereIn('status', ['ended', 'missed', 'cancelled'])
+                ->latest()
+                ->limit(100)
+                ->get()
+                ->map(fn ($s) => $this->serialize($s));
+
+            return response()->json(['data' => $sessions]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
+        }
+    }
+
+    public function saveNotes(Request $request, string $id): JsonResponse
+    {
+        try {
+            $session = TelemedicineSession::findOrFail($id);
+
+            $pharmacyIds = $this->pharmacyIds($request);
+            if (!$pharmacyIds->contains($session->pharmacy_id)) {
+                return response()->json(['message' => 'Not allowed.'], 403);
+            }
+
+            $validated = $request->validate([
+                'pharmacist_notes' => 'nullable|string|max:5000',
+            ]);
+
+            $session->update(['pharmacist_notes' => $validated['pharmacist_notes'] ?? null]);
+
+            return response()->json([
+                'message' => 'Notes saved.',
+                'data' => $this->serialize($session),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation failed.', 'error' => $e->errors()], 422);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Consultation not found.'], 404);
         } catch (\Exception $e) {

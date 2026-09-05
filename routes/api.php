@@ -391,6 +391,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/telemedicine/pending', [TelemedicineController::class, 'pendingConsults']);
         Route::get('/telemedicine/live', [TelemedicineController::class, 'liveConsults']);
         Route::get('/telemedicine/scheduled', [TelemedicineController::class, 'scheduledAppointments']);
+        Route::get('/telemedicine/history', [TelemedicineController::class, 'history']);
+        Route::get('/telemedicine/slot-settings', [TelemedicineController::class, 'slotSettings']);
+        Route::put('/telemedicine/slot-settings', [TelemedicineController::class, 'updateSlotSettings']);
+        Route::put('/telemedicine/{id}/notes', [TelemedicineController::class, 'saveNotes']);
         Route::post('/telemedicine/{id}/notify', [TelemedicineController::class, 'notifyPatientBeforeCall']);
         Route::post('/telemedicine/{id}/accept', [TelemedicineController::class, 'acceptConsult']);
         Route::post('/telemedicine/{id}/end', [TelemedicineController::class, 'endConsult']);

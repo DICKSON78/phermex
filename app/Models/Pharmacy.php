@@ -35,6 +35,8 @@ class Pharmacy extends Model
         'description',
         'working_days',
         'working_hours',
+        'slot_minutes',
+        'slot_gap_minutes',
         'opening_capital',
         'monthly_revenue',
         'rating',
@@ -58,6 +60,8 @@ class Pharmacy extends Model
     protected $casts = [
         'working_days' => 'array',
         'working_hours' => 'array',
+        'slot_minutes' => 'integer',
+        'slot_gap_minutes' => 'integer',
         'is_published' => 'boolean',
         'subscription_expires_at' => 'datetime',
         'subscription_start_date' => 'datetime',

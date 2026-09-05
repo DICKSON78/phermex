@@ -22,6 +22,7 @@ class TelemedicineSession extends Model
         'scheduled_at',
         'topic',
         'patient_notes',
+        'pharmacist_notes',
         'started_at',
         'ended_at',
     ];

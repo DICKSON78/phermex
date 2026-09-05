@@ -270,6 +270,12 @@ class TelemedicineController extends Controller
                 ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d H:i'))
                 ->all();
 
+            // Persisted (manually managed) slots override the generated ones.
+            $persisted = \App\Models\TelemedicineSlot::where('pharmacy_id', $pharmacy->id)
+                ->where('slot_date', '>=', Carbon::today()->format('Y-m-d'))
+                ->get()
+                ->mapWithKeys(fn ($s) => [$s->key() => $s]);
+
             $slots = [];
             foreach ($this->nextDays($days) as $dayDate) {
                 $dayName = strtolower($dayDate->format('D'));
@@ -280,12 +286,24 @@ class TelemedicineController extends Controller
                 $dateTime = Carbon::parse($dayKey . ' ' . $open);
                 while ($dateTime->format('H:i') < $close) {
                     $slotKey = $dateTime->format('Y-m-d H:i');
+                    $persistedSlot = $persisted->get($slotKey);
+
+                    if ($persistedSlot && !$persistedSlot->is_available) {
+                        $dateTime->addMinutes($slotSize);
+                        continue;
+                    }
+
                     if ($dateTime->gt(now()) && !in_array($slotKey, $booked)) {
                         $slots[] = [
+                            'id' => $persistedSlot->id ?? null,
                             'start' => $slotKey,
-                            'end' => $dateTime->copy()->addMinutes($slotMinutes)->format('H:i'),
+                            'end' => $persistedSlot
+                                ? substr((string) $persistedSlot->end_time, 0, 5)
+                                : $dateTime->copy()->addMinutes($slotMinutes)->format('H:i'),
+                            'date' => $dayKey,
                             'date_label' => $dayDate->format('D, M j'),
                             'time_label' => $dateTime->format('g:i A'),
+                            'is_available' => true,
                         ];
                     }
                     $dateTime->addMinutes($slotSize);
@@ -595,6 +613,128 @@ class TelemedicineController extends Controller
             return response()->json(['message' => 'Validation failed.', 'error' => $e->errors()], 422);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Consultation not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Slot CRUD (persisted, pharmacy side)
+    // ------------------------------------------------------------------
+
+    public function slotIndex(Request $request): JsonResponse
+    {
+        try {
+            $pharmacy = $this->currentPharmacyForUser($request);
+
+            $slots = \App\Models\TelemedicineSlot::where('pharmacy_id', $pharmacy->id)
+                ->orderBy('slot_date')
+                ->orderBy('start_time')
+                ->get()
+                ->map(fn ($s) => [
+                    'id' => $s->id,
+                    'slot_date' => $s->slot_date->format('Y-m-d'),
+                    'date_label' => $s->slot_date->format('D, M j'),
+                    'start_time' => substr((string) $s->start_time, 0, 5),
+                    'end_time' => substr((string) $s->end_time, 0, 5),
+                    'is_available' => $s->is_available,
+                ]);
+
+            return response()->json(['data' => $slots]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
+        }
+    }
+
+    public function storeSlot(Request $request): JsonResponse
+    {
+        try {
+            $pharmacy = $this->currentPharmacyForUser($request);
+
+            $validated = $request->validate([
+                'slot_date' => 'required|date|after_or_equal:today',
+                'start_time' => 'required|date_format:H:i',
+                'end_time' => 'required|date_format:H:i|after:start_time',
+                'is_available' => 'sometimes|boolean',
+            ]);
+
+            $slot = \App\Models\TelemedicineSlot::create([
+                'pharmacy_id' => $pharmacy->id,
+                'slot_date' => $validated['slot_date'],
+                'start_time' => $validated['start_time'],
+                'end_time' => $validated['end_time'],
+                'is_available' => $validated['is_available'] ?? true,
+            ]);
+
+            return response()->json([
+                'message' => 'Slot created.',
+                'data' => [
+                    'id' => $slot->id,
+                    'slot_date' => $slot->slot_date->format('Y-m-d'),
+                    'date_label' => $slot->slot_date->format('D, M j'),
+                    'start_time' => substr((string) $slot->start_time, 0, 5),
+                    'end_time' => substr((string) $slot->end_time, 0, 5),
+                    'is_available' => $slot->is_available,
+                ],
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation failed.', 'error' => $e->errors()], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
+        }
+    }
+
+    public function updateSlot(Request $request, string $id): JsonResponse
+    {
+        try {
+            $pharmacy = $this->currentPharmacyForUser($request);
+
+            $slot = \App\Models\TelemedicineSlot::where('pharmacy_id', $pharmacy->id)->findOrFail($id);
+
+            $validated = $request->validate([
+                'slot_date' => 'sometimes|date|after_or_equal:today',
+                'start_time' => 'sometimes|date_format:H:i',
+                'end_time' => 'sometimes|date_format:H:i|after:start_time',
+                'is_available' => 'sometimes|boolean',
+            ]);
+
+            $slot->update($validated);
+
+            return response()->json([
+                'message' => 'Slot updated.',
+                'data' => [
+                    'id' => $slot->id,
+                    'slot_date' => $slot->slot_date->format('Y-m-d'),
+                    'date_label' => $slot->slot_date->format('D, M j'),
+                    'start_time' => substr((string) $slot->start_time, 0, 5),
+                    'end_time' => substr((string) $slot->end_time, 0, 5),
+                    'is_available' => $slot->is_available,
+                ],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation failed.', 'error' => $e->errors()], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Slot not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
+        }
+    }
+
+    public function destroySlot(Request $request, string $id): JsonResponse
+    {
+        try {
+            $pharmacy = $this->currentPharmacyForUser($request);
+
+            $slot = \App\Models\TelemedicineSlot::where('pharmacy_id', $pharmacy->id)->findOrFail($id);
+            $slot->delete();
+
+            return response()->json(['message' => 'Slot deleted.']);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Slot not found.'], 404);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }

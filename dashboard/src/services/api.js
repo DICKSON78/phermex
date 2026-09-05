@@ -353,6 +353,10 @@ export const telemedicine = {
   accept: (id) => api.post(`/telemedicine/${id}/accept`),
   end: (id) => api.post(`/telemedicine/${id}/end`),
   notify: (id) => api.post(`/telemedicine/${id}/notify`),
+  slots: () => api.get('/telemedicine/slots'),
+  createSlot: (data) => api.post('/telemedicine/slots', data),
+  updateSlot: (id, data) => api.put(`/telemedicine/slots/${id}`, data),
+  deleteSlot: (id) => api.delete(`/telemedicine/slots/${id}`),
 }
 
 export default api

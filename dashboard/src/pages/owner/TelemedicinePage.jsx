@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { toArray } from '../../utils/safeData'
 import {
   Stethoscope, Plus, Clock4, Timer, Phone, FileText, Search,
-  MoreVertical, CheckCircle2, Bell, PencilLine, Trash2, Video, X, CalendarDays,
+  Bell, PencilLine, Trash2, Video, X, CalendarDays,
   User, PhoneCall, RefreshCw, ToggleLeft, ToggleRight, Filter,
 } from 'lucide-react'
 import api from '../../services/api'
@@ -59,7 +59,6 @@ export default function TelemedicinePage() {
   const [slots, setSlots] = useState([])
   const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [activeMenu, setActiveMenu] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [modal, setModal] = useState(null) // 'slot' | 'notes' | 'settings'
   const [modalItem, setModalItem] = useState(null)
@@ -332,35 +331,62 @@ export default function TelemedicinePage() {
                           <td className="px-6 py-4 text-sm font-mono text-gray-500">{item.room_code}</td>
                           <td className="px-6 py-4 text-sm text-gray-600 max-w-[220px] truncate">{item.topic || item.patient_notes || '—'}</td>
                           <td className="px-6 py-4 text-sm text-gray-600 max-w-[220px] truncate">{item.pharmacist_notes || '—'}</td>
-                          <td className="px-6 py-4 text-right relative">
-                            <button onClick={() => setActiveMenu(activeMenu === index ? null : index)} className="btn-ghost">
-                              <MoreVertical className="w-4 h-4" />
-                            </button>
-                            {activeMenu === index && (
-                              <>
-                                <div className="fixed inset-0 z-40" onClick={() => setActiveMenu(null)} />
-                                <div className="absolute right-6 top-full mt-1 w-44 bg-white rounded-xl shadow-xl border border-gray-200 py-1 z-50">
-                                  {item.status === 'requested' && (
-                                    <MenuBtn icon={CheckCircle2} color="text-green-600 hover:bg-green-50" label="Accept & Go Live" onClick={() => startConsult(item.id)} />
-                                  )}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                              {(item.status === 'requested' || item.status === 'scheduled') && (
+                                <>
+                                  <button
+                                    onClick={() => startConsult(item.id)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0FD452] text-[#000F14] text-xs font-semibold hover:bg-[#0bc246]"
+                                  >
+                                    <Video className="w-3.5 h-3.5" /> Go Live
+                                  </button>
                                   {item.status === 'scheduled' && (
-                                    <MenuBtn icon={CheckCircle2} color="text-green-600 hover:bg-green-50" label="Accept & Go Live" onClick={() => startConsult(item.id)} />
+                                    <button
+                                      onClick={() => notifyPatient(item.id)}
+                                      title="Notify patient"
+                                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
+                                    >
+                                      <Bell className="w-4 h-4" />
+                                    </button>
                                   )}
-                                  {item.status === 'live' && (
-                                    <MenuBtn icon={PhoneCall} color="text-red-600 hover:bg-red-50" label="End Consult" onClick={() => endConsult(item.id)} />
-                                  )}
-                                  {item.status === 'scheduled' && (
-                                    <MenuBtn icon={Bell} label="Notify Patient" onClick={() => notifyPatient(item.id)} />
-                                  )}
-                                  {(item.status === 'live' || item.status === 'requested') && item.room_url && (
-                                    <a href={item.room_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                      <Video className="w-4 h-4" /> Join Video Room
-                                    </a>
-                                  )}
-                                  <MenuBtn icon={PencilLine} label={item.pharmacist_notes ? 'Edit Notes' : 'Add Notes'} onClick={() => openNotes(item)} />
-                                </div>
-                              </>
-                            )}
+                                </>
+                              )}
+                              {item.status === 'live' && (
+                                <>
+                                  <a
+                                    href={item.room_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0FD452] text-[#000F14] text-xs font-semibold hover:bg-[#0bc246]"
+                                  >
+                                    <PhoneCall className="w-3.5 h-3.5" /> Join Room
+                                  </a>
+                                  <button
+                                    onClick={() => endConsult(item.id)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100"
+                                  >
+                                    End
+                                  </button>
+                                </>
+                              )}
+                              {item.status === 'requested' || item.status === 'live' ? (
+                                <button
+                                  onClick={() => openNotes(item)}
+                                  title="Notes / prescription"
+                                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
+                                >
+                                  <PencilLine className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => openNotes(item)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50"
+                                >
+                                  <PencilLine className="w-3.5 h-3.5" /> {item.pharmacist_notes ? 'Edit Notes' : 'Add Notes'}
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       )
@@ -447,24 +473,23 @@ export default function TelemedicinePage() {
                             </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-right relative">
-                          <button onClick={() => setActiveMenu(activeMenu === `slot-${index}` ? null : `slot-${index}`)} className="btn-ghost">
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                          {activeMenu === `slot-${index}` && (
-                            <>
-                              <div className="fixed inset-0 z-40" onClick={() => setActiveMenu(null)} />
-                              <div className="absolute right-6 top-full mt-1 w-36 bg-white rounded-xl shadow-xl border border-gray-200 py-1 z-50">
-                                <MenuBtn icon={PencilLine} label="Edit" onClick={() => { setModal('slot'); setModalItem(slot); setActiveMenu(null) }} />
-                                <button
-                                  onClick={() => { setConfirmDelete(slot); setActiveMenu(null) }}
-                                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                                >
-                                  <Trash2 className="w-4 h-4" /> Delete
-                                </button>
-                              </div>
-                            </>
-                          )}
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              title="Edit slot"
+                              onClick={() => { setModal('slot'); setModalItem(slot) }}
+                              className="btn-icon-blue"
+                            >
+                              <PencilLine className="w-4 h-4" />
+                            </button>
+                            <button
+                              title="Delete slot"
+                              onClick={() => setConfirmDelete(slot)}
+                              className="btn-icon-red"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -577,14 +602,6 @@ function TH({ icon: Icon, children, align }) {
         <span>{children}</span>
       </div>
     </th>
-  )
-}
-
-function MenuBtn({ icon: Icon, label, onClick, color = 'text-gray-700 hover:bg-gray-50' }) {
-  return (
-    <button onClick={onClick} className={`flex items-center gap-2 w-full px-3 py-2 text-sm ${color}`}>
-      <Icon className="w-4 h-4" /> {label}
-    </button>
   )
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, Loader2, Save, User, Briefcase, DollarSign, AlertCircle, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Loader2, Save, User, Briefcase, DollarSign, AlertCircle, Users, X, KeyRound, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { employees } from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
@@ -9,18 +9,21 @@ const STEPS = [
   { id: 1, label: 'Personal Info', icon: User },
   { id: 2, label: 'Employment', icon: Briefcase },
   { id: 3, label: 'Emergency Contact', icon: AlertCircle },
+  { id: 4, label: 'Login Account', icon: KeyRound },
 ]
 
 export default function EmployeeFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { pharmacyId } = useAuth()
+  const { user: authUser, pharmacyId } = useAuth()
   const isEdit = Boolean(id)
 
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(isEdit)
   const [errors, setErrors] = useState({})
+  const [showPassword, setShowPassword] = useState(false)
+  const currentPharmacyName = authUser?.current_pharmacy?.pharmacy_name || authUser?.currentPharmacy?.pharmacy_name || ''
 
   const [form, setForm] = useState({
     first_name: '', last_name: '', email: '', phone: '', date_of_birth: '',
@@ -30,6 +33,7 @@ export default function EmployeeFormPage() {
     bank_account_number: '', emergency_contact_name: '', emergency_contact_phone: '',
     emergency_contact_relationship: '',
     pharmacy_id: pharmacyId,
+    create_account: false, account_role: 'pharmacist', password: '', password_confirmation: '',
   })
 
   useEffect(() => {
@@ -55,7 +59,9 @@ export default function EmployeeFormPage() {
         emergency_contact_name: emp.emergency_contact_name || '',
         emergency_contact_phone: emp.emergency_contact_phone || '',
         emergency_contact_relationship: emp.emergency_contact_relationship || '',
-        pharmacy_id: emp.pharmacy_id || 1,
+        pharmacy_id: emp.pharmacy_id || pharmacyId,
+        create_account: Boolean(emp.user), account_role: emp.user?.role || 'pharmacist',
+        password: '', password_confirmation: '',
       })
     } catch {
       toast.error('Failed to load employee data')
@@ -85,11 +91,18 @@ export default function EmployeeFormPage() {
     if (s === 3) {
       if (!form.basic_salary || Number(form.basic_salary) <= 0) errs.basic_salary = 'Required'
     }
+    if (s === 4 && form.create_account) {
+      if (!form.account_role) errs.account_role = 'Required'
+      if (!form.email.trim()) errs.email = 'Required'
+      else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Invalid email'
+      if (form.password && form.password.length < 8) errs.password = 'At least 8 characters'
+      if (form.password && form.password !== form.password_confirmation) errs.password_confirmation = 'Passwords do not match'
+    }
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
 
-  const nextStep = () => { if (validateStep(step)) setStep(s => Math.min(3, s + 1)) }
+  const nextStep = () => { if (validateStep(step)) setStep(s => Math.min(4, s + 1)) }
   const prevStep = () => setStep(s => Math.max(1, s - 1))
 
   const handleSubmit = async () => {
@@ -100,12 +113,19 @@ export default function EmployeeFormPage() {
       if (data.allowances) data.allowances = Number(data.allowances)
       else data.allowances = 0
 
+      if (!data.create_account) {
+        delete data.create_account
+        delete data.account_role
+        delete data.password
+        delete data.password_confirmation
+      }
+
       if (isEdit) {
         await employees.update(id, data)
         toast.success('Employee updated')
       } else {
         await employees.create(data)
-        toast.success('Employee created')
+        toast.success(data.create_account ? 'Employee created with login access' : 'Employee created')
       }
       navigate('/dashboard/employees')
     } catch (err) {
@@ -469,6 +489,107 @@ export default function EmployeeFormPage() {
             </div>
           )}
 
+          {/* Step 4: Login Account */}
+          {step === 4 && (
+            <div className="p-6">
+              <div className="flex items-center mb-6">
+                <div className="h-10 w-10 bg-[#0FD452]/10 rounded-lg flex items-center justify-center mr-3">
+                  <KeyRound className="w-5 h-5 text-[#0FD452]" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Login Account</h3>
+                  <p className="text-sm text-gray-600">Give this employee access to the pharmacy system</p>
+                </div>
+              </div>
+
+              <label className="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50 mb-6 cursor-pointer">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Grant system login access</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Employee will sign in and only see {currentPharmacyName || 'this pharmacy'}'s data
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.create_account}
+                  onClick={() => handleChange('create_account', !form.create_account)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${form.create_account ? 'bg-[#0FD452]' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.create_account ? 'left-[22px]' : 'left-0.5'}`} />
+                </button>
+              </label>
+
+              {form.create_account && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Role *</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Briefcase className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <select
+                        value={form.account_role}
+                        onChange={(e) => handleChange('account_role', e.target.value)}
+                        className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
+                      >
+                        <option value="pharmacist">Pharmacist</option>
+                        <option value="cashier">Cashier</option>
+                        <option value="delivery">Delivery</option>
+                      </select>
+                    </div>
+                    {errors.account_role && <p className="text-xs text-red-500 mt-1">{errors.account_role}</p>}
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-gray-500 mb-2">System access: this employee can sign in to the dashboard for {currentPharmacyName || 'this pharmacy'} only — they will not see any other pharmacy.</p>
+                  </div>
+                  {isEdit && (
+                    <div className="md:col-span-2">
+                      <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+                        {form.create_account ? 'This employee already has a login account. Enter a new password below to reset it.' : ''}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">{isEdit ? 'New Password' : 'Password (min 8 chars)'}</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <KeyRound className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={form.password}
+                        onChange={(e) => handleChange('password', e.target.value)}
+                        placeholder="••••••••"
+                        className="pl-10 pr-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Confirm Password</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <KeyRound className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <input
+                        type="password"
+                        value={form.password_confirmation}
+                        onChange={(e) => handleChange('password_confirmation', e.target.value)}
+                        placeholder="••••••••"
+                        className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
+                      />
+                    </div>
+                    {errors.password_confirmation && <p className="text-xs text-red-500 mt-1">{errors.password_confirmation}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Sticky Bottom Bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-between">
             <button type="button" onClick={() => navigate('/dashboard/employees')} className="btn-secondary">
@@ -481,7 +602,7 @@ export default function EmployeeFormPage() {
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
               )}
-              {step < 3 ? (
+              {step < 4 ? (
                 <button type="button" onClick={nextStep} className="btn-primary">
                   Next <ArrowRight className="w-4 h-4" />
                 </button>

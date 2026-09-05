@@ -163,16 +163,17 @@ export default function EmployeeListPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>Type</span></div></th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>Salary</span></div></th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-[#0FD452]" /><span>Status</span></div></th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><UserCheck className="w-3.5 h-3.5 text-[#0FD452]" /><span>Login Access</span></div></th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><Users className="w-3.5 h-3.5 text-[#0FD452]" /><span>Actions</span></div></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
-                  <tr><td colSpan={7} className="px-6 py-16 text-center">
+                  <tr><td colSpan={8} className="px-6 py-16 text-center">
                     <Loader2 className="w-8 h-8 text-[#0FD452] animate-spin mx-auto" />
                   </td></tr>
                 ) : employeeList.length === 0 ? (
-                  <tr><td colSpan={7} className="px-6 py-16 text-center text-gray-400">
+                  <tr><td colSpan={8} className="px-6 py-16 text-center text-gray-400">
                     <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                     <p className="text-sm">No employees found</p>
                   </td></tr>
@@ -202,6 +203,18 @@ export default function EmployeeListPage() {
                         <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${STATUS_COLORS[emp.status] || ''}`}>
                           {emp.status}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {emp.user ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0FD452]/10 text-[#0FD452] border border-[#0FD452]/20 capitalize">
+                            <UserCheck className="w-3.5 h-3.5" />
+                            {emp.user.role}
+                          </span>
+                        ) : (
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-400 border border-gray-200">
+                            No account
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/employees/${emp.id}`) }} className="text-[#0FD452] hover:text-[#0DC048] text-sm font-medium">

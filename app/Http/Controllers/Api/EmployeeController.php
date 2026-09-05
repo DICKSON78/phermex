@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class EmployeeController extends Controller
 {
@@ -76,6 +80,10 @@ class EmployeeController extends Controller
                 'emergency_contact_name' => 'nullable|string|max:255',
                 'emergency_contact_phone' => 'nullable|string|max:255',
                 'user_id' => 'nullable|exists:users,id',
+                'create_account' => 'sometimes|boolean',
+                'account_role' => 'sometimes|required_if:create_account,true|in:pharmacist,cashier,delivery',
+                'password' => 'sometimes|required_if:create_account,true|string|min:8'
+                    . ($request->boolean('create_account') ? '|confirmed' : ''),
             ]);
 
             $validated['employee_number'] = Employee::generateEmployeeNumber($validated['pharmacy_id']);
@@ -89,9 +97,40 @@ class EmployeeController extends Controller
 
             $employee = Employee::create($validated);
 
+            $createdUser = null;
+            if ($request->boolean('create_account')) {
+                $existing = User::where('email', $validated['email'])->withTrashed()->first();
+                if ($existing) {
+                    return response()->json([
+                        'message' => 'An account with this email already exists.',
+                        'errors' => ['email' => ['An account with this email already exists.']],
+                    ], 422);
+                }
+
+                $createdUser = DB::transaction(function () use ($validated, $employee) {
+                    $user = User::create([
+                        'name' => trim($validated['first_name'] . ' ' . $validated['last_name']),
+                        'email' => $validated['email'],
+                        'phone' => $validated['phone'] ?? null,
+                        'role' => $validated['account_role'],
+                        'user_code' => 'USR-' . strtoupper(Str::random(8)),
+                        'password' => Hash::make($validated['password']),
+                        'is_active' => true,
+                        'current_pharmacy_id' => $validated['pharmacy_id'],
+                    ]);
+
+                    $user->pharmacy()->attach($validated['pharmacy_id']);
+
+                    $employee->update(['user_id' => $user->id]);
+
+                    return $user;
+                });
+            }
+
             return response()->json([
                 'message' => 'Employee created successfully.',
-                'employee' => $employee,
+                'employee' => $employee->load('user'),
+                'user' => $createdUser,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -157,13 +196,63 @@ class EmployeeController extends Controller
                 'emergency_contact_phone' => 'nullable|string|max:255',
                 'status' => 'sometimes|in:active,inactive,suspended,terminated',
                 'user_id' => 'nullable|exists:users,id',
+                'create_account' => 'sometimes|boolean',
+                'account_role' => 'nullable|in:pharmacist,cashier,delivery',
+                'password' => 'nullable|string|min:8',
             ]);
+
+            if (!empty($validated['email']) && !$employee->user) {
+                $dupe = User::where('email', $validated['email'])
+                    ->where('id', '!=', $employee->user_id)
+                    ->whereNull('deleted_at')
+                    ->first();
+                if ($dupe) {
+                    return response()->json([
+                        'message' => 'An account with this email already exists.',
+                        'errors' => ['email' => ['An account with this email already exists.']],
+                    ], 422);
+                }
+            }
 
             $employee->update($validated);
 
+            if ($request->boolean('create_account')) {
+                DB::transaction(function () use ($validated, $employee) {
+                    $user = $employee->user;
+                    if (!$user) {
+                        $user = User::create([
+                            'name' => trim(($validated['first_name'] ?? $employee->first_name) . ' ' . ($validated['last_name'] ?? $employee->last_name)),
+                            'email' => $validated['email'] ?? $employee->email,
+                            'phone' => $validated['phone'] ?? $employee->phone ?? null,
+                            'role' => $validated['account_role'] ?? 'pharmacist',
+                            'user_code' => 'USR-' . strtoupper(Str::random(8)),
+                            'password' => $validated['password'] ? Hash::make($validated['password']) : Hash::make(Str::random(16)),
+                            'is_active' => true,
+                            'current_pharmacy_id' => $employee->pharmacy_id,
+                        ]);
+                        $user->pharmacy()->attach($employee->pharmacy_id);
+                        $employee->update(['user_id' => $user->id]);
+                    } else {
+                        if (!empty($validated['password'])) {
+                            $user->update(['password' => Hash::make($validated['password'])]);
+                        }
+                        if (!empty($validated['account_role'])) {
+                            $user->update(['role' => $validated['account_role']]);
+                        }
+                        $user->update(array_filter([
+                            'name' => isset($validated['first_name']) || isset($validated['last_name'])
+                                ? trim(($validated['first_name'] ?? $employee->first_name) . ' ' . ($validated['last_name'] ?? $employee->last_name))
+                                : null,
+                            'email' => $validated['email'] ?? null,
+                            'phone' => $validated['phone'] ?? null,
+                        ]));
+                    }
+                });
+            }
+
             return response()->json([
                 'message' => 'Employee updated successfully.',
-                'employee' => $employee->fresh(),
+                'employee' => $employee->fresh()->load('user'),
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Employee not found.'], 404);
@@ -184,6 +273,11 @@ class EmployeeController extends Controller
     {
         try {
             $employee = Employee::findOrFail($id);
+
+            if ($employee->user) {
+                $employee->user->update(['is_active' => false]);
+            }
+
             $employee->delete();
 
             return response()->json(['message' => 'Employee deleted successfully.']);
@@ -242,6 +336,10 @@ class EmployeeController extends Controller
             $employee = Employee::findOrFail($id);
             $employee->status = $employee->status === 'active' ? 'inactive' : 'active';
             $employee->save();
+
+            if ($employee->user) {
+                $employee->user->update(['is_active' => $employee->status === 'active']);
+            }
 
             return response()->json([
                 'message' => 'Employee status updated.',

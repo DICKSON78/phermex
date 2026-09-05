@@ -140,9 +140,15 @@ export default function EmployeeDetailPage() {
                 <p className="text-xs text-gray-500 mt-1">{emp.attendance?.length || 0} records</p>
               </div>
               <div className="bg-white border border-gray-200 rounded-xl p-5">
-                <p className="text-sm text-gray-500 mb-1">Total Earned (YTD)</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalEarned)}</p>
-                <p className="text-xs text-gray-500 mt-1">Net: {formatCurrency(totalNet)}</p>
+                <p className="text-sm text-gray-500 mb-1">Login Access</p>
+                {emp.user ? (
+                  <p className="text-2xl font-bold text-[#0FD452] capitalize">{emp.user.role}</p>
+                ) : (
+                  <p className="text-2xl font-bold text-gray-300">None</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {emp.user ? (emp.user.is_active ? 'Can sign in to this pharmacy only' : 'Account deactivated') : 'No system account created'}
+                </p>
               </div>
             </div>
 

@@ -26,7 +26,9 @@ import api from '../../services/api'
 const PLAN_STYLES = {
   Trial: 'badge badge-gray',
   Basic: 'badge badge-green',
+  Starter: 'badge badge-green',
   Pro: 'badge badge-blue',
+  Professional: 'badge badge-blue',
   Enterprise: 'badge badge-yellow',
 }
 
@@ -36,7 +38,7 @@ const STATUS_STYLES = {
   suspended: 'badge badge-red',
 }
 
-const PLANS = ['Trial', 'Basic', 'Pro', 'Enterprise']
+const PLANS = ['Trial', 'Basic', 'Starter', 'Pro', 'Professional', 'Enterprise']
 const STATUSES = ['active', 'expired', 'suspended']
 
 function formatCurrency(amount) {

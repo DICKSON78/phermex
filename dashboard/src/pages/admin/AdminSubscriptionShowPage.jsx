@@ -29,7 +29,9 @@ import api from '../../services/api'
 const PLAN_STYLES = {
   Trial: 'badge badge-gray',
   Basic: 'badge badge-green',
+  Starter: 'badge badge-green',
   Pro: 'badge badge-blue',
+  Professional: 'badge badge-blue',
   Enterprise: 'badge badge-yellow',
 }
 

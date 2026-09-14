@@ -549,6 +549,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/plans', [SubscriptionController::class, 'plans']);
         Route::get('/status', [SubscriptionController::class, 'status']);
         Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
+        Route::post('/checkout', [SubscriptionController::class, 'checkout']);
+        Route::get('/payment-status', [SubscriptionController::class, 'paymentStatus']);
         Route::post('/confirm-payment', [SubscriptionController::class, 'confirmPayment']);
     });
 });

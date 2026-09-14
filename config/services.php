@@ -39,6 +39,10 @@ return [
         'base_url' => env('CLICKPESA_BASE_URL', 'https://api.clickpesa.com/third-parties'),
     ],
 
+    'subscriptions' => [
+        'tzs_per_usd' => (float) env('SUBSCRIPTION_TZS_PER_USD', 2600),
+    ],
+
     'fcm' => [
         'server_key' => env('FCM_SERVER_KEY', ''),
         'project_id' => env('FCM_PROJECT_ID', ''),

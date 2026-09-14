@@ -18,6 +18,7 @@ class RevenueRecord extends Model
         'amount',
         'description',
         'invoice_number',
+        'payment_reference',
         'status',
         'due_date',
         'paid_at',

@@ -146,6 +146,8 @@ import AdminReviewsPage from '../pages/admin/AdminReviewsPage'
 
 import SellerDashboard from '../pages/seller/SellerDashboard'
 
+import SubscriptionsPage from '../pages/owner/SubscriptionsPage'
+
 const ownerNavGroups = [
   {
     label: 'MAIN',
@@ -248,6 +250,7 @@ const ownerNavGroups = [
       { path: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
       { path: '/dashboard/profile', icon: User, label: 'Profile' },
       { path: '/dashboard/settings', icon: Settings, label: 'Pharmacy Settings' },
+      { path: '/dashboard/subscriptions', icon: CreditCard, label: 'Subscription & Billing' },
     ],
   },
 ]
@@ -766,6 +769,7 @@ export default function DashboardLayout({ role }) {
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="settings/pharmacies/new" element={<AddPharmacyPage />} />
+              <Route path="subscriptions" element={<SubscriptionsPage />} />
               <Route path="chats" element={<PharmacyChatListPage />} />
               <Route path="chats/:customerId" element={<PharmacyChatPage />} />
               <Route path="telemedicine" element={<TelemedicinePage />} />

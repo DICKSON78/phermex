@@ -88,7 +88,7 @@ class AdminSubscriptionController extends Controller
         try {
             $validated = $request->validate([
                 'pharmacy' => 'required|string|max:255',
-                'plan' => 'required|string|in:Trial,Basic,Pro,Enterprise',
+                'plan' => 'required|string|in:Trial,Basic,Pro,Enterprise,Starter,Professional',
                 'amount' => 'required|numeric|min:0',
                 'startDate' => 'required|date',
                 'expiryDate' => 'required|date|after:startDate',
@@ -173,7 +173,7 @@ class AdminSubscriptionController extends Controller
 
             $validated = $request->validate([
                 'pharmacy' => 'sometimes|string|max:255',
-                'plan' => 'sometimes|string|in:Trial,Basic,Pro,Enterprise',
+                'plan' => 'sometimes|string|in:Trial,Basic,Pro,Enterprise,Starter,Professional',
                 'amount' => 'sometimes|numeric|min:0',
                 'startDate' => 'sometimes|date',
                 'expiryDate' => 'sometimes|date',

@@ -5,8 +5,8 @@ import toast from 'react-hot-toast'
 import Modal from '../../components/Modal'
 import api from '../../services/api'
 
-const PLANS = ['Trial', 'Basic', 'Pro', 'Enterprise']
-const PLAN_AMOUNTS = { Trial: 0, Basic: 50000, Pro: 100000, Enterprise: 200000 }
+const PLANS = ['Trial', 'Basic', 'Starter', 'Pro', 'Professional', 'Enterprise']
+const PLAN_AMOUNTS = { Trial: 0, Basic: 50000, Starter: 390000, Pro: 100000, Professional: 520000, Enterprise: 650000 }
 
 export default function AdminSubscriptionFormPage() {
   const { id } = useParams()

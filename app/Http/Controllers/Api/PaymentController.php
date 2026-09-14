@@ -178,6 +178,53 @@ class PaymentController extends Controller
                 ])]);
             }
 
+            // Subscription payments: match the pending invoice by reference.
+            if (!$order) {
+                $revenue = \App\Models\RevenueRecord::where('payment_reference', $orderReference)
+                    ->where('type', 'subscription')
+                    ->first();
+
+                if ($revenue) {
+                    if (strpos($status, 'SUCCESS') !== false || strpos($status, 'SETTLED') !== false || strpos($status, 'RECEIVED') !== false) {
+                        if ($revenue->status !== 'paid') {
+                            $revenue->update([
+                                'status' => 'paid',
+                                'paid_at' => now(),
+                                'payment_method' => 'mobile',
+                            ]);
+                        }
+
+                        $subscription = \App\Models\Subscription::where('pharmacy_id', $revenue->pharmacy_id)
+                            ->where('status', 'active')
+                            ->latest('id')
+                            ->first();
+
+                        if ($subscription) {
+                            $subscription->update([
+                                'transaction_id' => $orderReference,
+                                'payment_method' => 'mobile',
+                            ]);
+                        }
+
+                        \App\Models\Pharmacy::where('id', $revenue->pharmacy_id)->update([
+                            'payment_status' => 'paid',
+                            'status' => 'active',
+                            'is_published' => true,
+                        ]);
+
+                        Notification::create([
+                            'pharmacy_id' => $revenue->pharmacy_id,
+                            'user_id' => \App\Models\Pharmacy::where('id', $revenue->pharmacy_id)->value('owner_id'),
+                            'title' => 'Subscription Payment Received',
+                            'message' => 'Your subscription payment was received. Your plan is now active.',
+                            'type' => 'success',
+                            'is_read' => false,
+                            'link' => '/dashboard/subscriptions',
+                        ]);
+                    }
+                }
+            }
+
             return response()->json(['message' => 'OK']);
         } catch (\Exception $e) {
             return response()->json([

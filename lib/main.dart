@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/api_service.dart';
+import 'services/offline_service.dart';
 import 'services/push_service.dart';
 import 'state/cart_state.dart';
 import 'theme.dart';
@@ -9,6 +10,7 @@ import 'screens/home_shell.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  OfflineService.init();
   runApp(
     MultiProvider(
       providers: [

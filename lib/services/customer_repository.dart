@@ -1,5 +1,6 @@
 import '../models/models.dart';
 import 'api_service.dart';
+import 'offline_service.dart';
 
 class CustomerRepository {
   static dynamic _data(dynamic res) => res is Map ? res['data'] : res;
@@ -80,12 +81,24 @@ class CustomerRepository {
 
   /// Returns all published pharmacies around Dar es Salaam (wide radius).
   static Future<List<Pharmacy>> allPharmacies({String? search}) async {
-    return nearby(
-      latitude: -6.7924,
-      longitude: 39.2083,
-      radiusKm: 100,
-      search: search,
-    );
+    const cacheKey = 'pharmacies';
+    try {
+      final res = await ApiService.get(
+        '/nearby?latitude=-6.7924&longitude=39.2083&radius_km=100'
+        '${search != null ? '&search=${Uri.encodeQueryComponent(search)}' : ''}',
+      );
+      final data = _data(res);
+      final list = data is List ? data : <dynamic>[];
+      // Cache the raw decoded JSON for offline fallback.
+      await OfflineService.remember(cacheKey, list);
+      return list.map((p) => Pharmacy.fromJson(p is Map<String, dynamic> ? p : {})).toList();
+    } catch (e) {
+      final cached = await OfflineService.cachedListOrEmpty(cacheKey);
+      if (cached.isNotEmpty) {
+        return cached.map((p) => Pharmacy.fromJson(p is Map<String, dynamic> ? p : {})).toList();
+      }
+      rethrow;
+    }
   }
 
   static Future<Pharmacy> pharmacyDetail(int id) async {
@@ -101,13 +114,25 @@ class CustomerRepository {
     final query = '?per_page=100'
         '${search != null ? '&search=${Uri.encodeQueryComponent(search)}' : ''}'
         '${categoryId != null ? '&category_id=$categoryId' : ''}';
-    final res = await ApiService.get('/pharmacies/$pharmacyId/drugs$query');
-    final data = _data(res);
-    if (data is Map && data['data'] is List) {
-      return (data['data'] as List).map((d) => Drug.fromJson(d)).toList();
+    final cacheKey = 'drugs:$pharmacyId';
+    try {
+      final res = await ApiService.get('/pharmacies/$pharmacyId/drugs$query');
+      final data = _data(res);
+      List<dynamic> rawList = [];
+      if (data is Map && data['data'] is List) {
+        rawList = data['data'] as List;
+      } else if (data is List) {
+        rawList = data;
+      }
+      await OfflineService.remember(cacheKey, rawList);
+      return rawList.map((d) => Drug.fromJson(d is Map<String, dynamic> ? d : {})).toList();
+    } catch (e) {
+      final cached = await OfflineService.cachedListOrEmpty(cacheKey);
+      if (cached.isNotEmpty) {
+        return cached.map((d) => Drug.fromJson(d is Map<String, dynamic> ? d : {})).toList();
+      }
+      rethrow;
     }
-    if (data is List) return data.map((d) => Drug.fromJson(d)).toList();
-    return [];
   }
 
   static Future<List<DrugCategory>> pharmacyCategories(int pharmacyId) async {
@@ -206,13 +231,25 @@ class CustomerRepository {
   }
 
   static Future<List<Order>> myOrders() async {
-    final res = await ApiService.get('/orders?per_page=50');
-    final data = _data(res);
-    if (data is Map && data['data'] is List) {
-      return (data['data'] as List).map((o) => Order.fromJson(o)).toList();
+    const cacheKey = 'orders';
+    try {
+      final res = await ApiService.get('/orders?per_page=50');
+      final data = _data(res);
+      List<dynamic> rawList = [];
+      if (data is Map && data['data'] is List) {
+        rawList = data['data'] as List;
+      } else if (data is List) {
+        rawList = data;
+      }
+      await OfflineService.remember(cacheKey, rawList);
+      return rawList.map((o) => Order.fromJson(o)).toList();
+    } catch (e) {
+      final cached = await OfflineService.cachedListOrEmpty(cacheKey);
+      if (cached.isNotEmpty) {
+        return cached.map((o) => Order.fromJson(o)).toList();
+      }
+      rethrow;
     }
-    if (data is List) return data.map((o) => Order.fromJson(o)).toList();
-    return [];
   }
 
   static Future<Map<String, dynamic>> myOrdersPaginated({int page = 1, int perPage = 15}) async {

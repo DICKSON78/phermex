@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme.dart';
 import '../services/api_service.dart';
+import '../widgets/offline_banner.dart';
 import 'home/home_screen.dart';
 import 'orders/orders_list_screen.dart';
 import 'telemedicine/telemedicine_screen.dart';
@@ -59,7 +60,14 @@ class _HomeShellState extends State<HomeShell> {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-      body: IndexedStack(index: _index, children: screens),
+      body: Column(
+        children: [
+          OfflineBanner(),
+          Expanded(
+            child: IndexedStack(index: _index, children: screens),
+          ),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,

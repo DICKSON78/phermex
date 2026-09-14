@@ -8,6 +8,7 @@ import '../prescriptions/prescriptions_screen.dart';
 import '../support/support_screen.dart';
 import '../loyalty/loyalty_screen.dart';
 import '../insurance/insurance_screen.dart';
+import '../chatbot/chatbot_screen.dart';
 import 'address_book_screen.dart';
 
 const String appVersion = '1.0.0';
@@ -266,6 +267,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               subtitle: 'We usually reply within 24 hours',
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SupportScreen()),
+              ),
+            ),
+            _MenuRow(
+              icon: Icons.smart_toy_outlined,
+              label: 'Assistant',
+              subtitle: 'Instant answers about ordering & services',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ChatbotScreen()),
               ),
             ),
           ]),

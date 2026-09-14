@@ -356,6 +356,16 @@ class CustomerRepository {
     await ApiService.delete('/insurance/$id');
   }
 
+  static Future<Map<String, dynamic>> chatbotReply(String message, {int? pharmacyId}) async {
+    final res = await ApiService.post('/chatbot', {
+      'message': message,
+      if (pharmacyId != null) 'pharmacy_id': pharmacyId,
+    });
+    final data = _data(res);
+    if (data is Map) return Map<String, dynamic>.from(data);
+    return {'reply': '', 'suggestions': <dynamic>[]};
+  }
+
   static Future<List<ChatConversation>> conversations() async {
     final res = await ApiService.get('/chats');
     final data = _data(res);

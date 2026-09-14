@@ -66,16 +66,6 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     if (added == true) _load();
   }
 
-  String _relationshipLabel(String? rel) {
-    switch (rel) {
-      case 'self': return 'Self';
-      case 'spouse': return 'Spouse';
-      case 'child': return 'Child';
-      case 'dependent': return 'Dependent';
-      default: return 'Self';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,13 +109,13 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                             const Text(
                               'No insurance policies yet',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                             ),
                             const SizedBox(height: 6),
                             const Text(
                               'Add your NHIF or private insurance policy so pharmacies can apply your coverage.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                              style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
                             ),
                             const SizedBox(height: 24),
                             OutlinedButton.icon(
@@ -146,7 +136,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                           children: [
                             const Text(
                               'Covered plans',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                             ),
                             const SizedBox(height: 12),
                             ..._records.map((r) => _InsuranceCard(
@@ -218,12 +208,12 @@ class _InsuranceCard extends StatelessWidget {
                   children: [
                     Text(
                       providerName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.textPrimary),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.textDark),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Policy ${record['policy_number']?.toString() ?? ''}',
-                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                      style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                     ),
                   ],
                 ),
@@ -256,8 +246,8 @@ class _InsuranceCard extends StatelessWidget {
           if (expiryDate != null) ...[
             const SizedBox(height: 10),
             Text(
-              isExpired ? 'Policy expired ${_fmtDate(expiryDate!)}' : 'Valid until ${_fmtDate(expiryDate!)}',
-              style: TextStyle(fontSize: 12, color: isExpired ? Colors.redAccent : AppTheme.textSecondary),
+              isExpired ? 'Policy expired ${_fmtDate(expiryDate)}' : 'Valid until ${_fmtDate(expiryDate)}',
+              style: TextStyle(fontSize: 12, color: isExpired ? Colors.redAccent : AppTheme.textMuted),
             ),
           ],
         ],
@@ -279,9 +269,9 @@ class _InfoCell extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+        Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
         const SizedBox(height: 2),
-        Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+        Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
       ],
     );
   }
@@ -300,7 +290,6 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
   final _holderName = TextEditingController();
   String? _pharmacyId;
   String? _providerId;
-  String _providerName = '';
   String _relationship = 'self';
   String? _expiryDate;
   double _coverage = 100;
@@ -386,11 +375,7 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
                           child: Text(name, overflow: TextOverflow.ellipsis),
                         );
                       }).toList(),
-                      onChanged: (v) {
-                        setState(() => _providerId = v);
-                        final provider = _providers.firstWhere((p) => p['id'].toString() == v, orElse: () => const {});
-                        _providerName = provider['name']?.toString() ?? '';
-                      },
+                      onChanged: (v) => setState(() => _providerId = v),
                       validator: (v) => v == null ? 'Select a provider' : null,
                     ),
                     const SizedBox(height: 14),
@@ -424,7 +409,7 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
                     _label('Coverage %'),
                     Text(
                       '${_coverage.toStringAsFixed(0)}% of your bill will be covered',
-                      style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                      style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                     ),
                     Slider(
                       value: _coverage,
@@ -441,7 +426,7 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
                       icon: const Icon(Icons.calendar_today_outlined, size: 18),
                       label: Text(_expiryDate ?? 'Select expiry date'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.textPrimary,
+                        foregroundColor: AppTheme.textDark,
                         alignment: Alignment.centerLeft,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                       ),
@@ -476,7 +461,7 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
 
   Widget _label(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 6),
-        child: Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+        child: Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
       );
 
   Future<void> _pickExpiry() async {

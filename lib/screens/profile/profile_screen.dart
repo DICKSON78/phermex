@@ -7,6 +7,7 @@ import '../notifications/notifications_screen.dart';
 import '../prescriptions/prescriptions_screen.dart';
 import '../support/support_screen.dart';
 import '../loyalty/loyalty_screen.dart';
+import '../insurance/insurance_screen.dart';
 import 'address_book_screen.dart';
 
 const String appVersion = '1.0.0';
@@ -241,6 +242,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               subtitle: 'Points earned & redemption history',
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const LoyaltyScreen()),
+              ),
+            ),
+            _MenuRow(
+              icon: Icons.shield_outlined,
+              label: 'Health Insurance',
+              subtitle: 'NHIF & private insurance policies',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const InsuranceScreen()),
               ),
             ),
             _MenuRow(

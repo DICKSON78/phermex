@@ -220,6 +220,17 @@ class ApiService {
     }
   }
 
+  static Future<dynamic> delete(String path) async {
+    try {
+      final res = await http
+          .delete(_uri(path), headers: _headers())
+          .timeout(_timeout, onTimeout: () => throw _transportTimeout);
+      return _decode(res);
+    } catch (e) {
+      throw _sanitize(e);
+    }
+  }
+
   /// Uploads a local file via multipart/form-data to /upload,
   /// returns the decoded JSON response (contains data.url).
   static Future<dynamic> uploadFile(String filePath, {String folder = 'uploads'}) async {

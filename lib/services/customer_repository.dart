@@ -293,6 +293,32 @@ class CustomerRepository {
     return {'pharmacies': [], 'transactions': []};
   }
 
+  static Future<List<Map<String, dynamic>>> myInsurance() async {
+    final res = await ApiService.get('/insurance');
+    final data = _data(res);
+    if (data is List) return data.map((e) => Map<String, dynamic>.from(e)).toList();
+    return [];
+  }
+
+  static Future<List<Map<String, dynamic>>> insuranceProviders({int? pharmacyId}) async {
+    final query = pharmacyId != null ? '?pharmacy_id=$pharmacyId' : '';
+    final res = await ApiService.get('/insurance/providers$query');
+    final data = _data(res);
+    if (data is List) return data.map((e) => Map<String, dynamic>.from(e)).toList();
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> addInsurance(Map<String, dynamic> payload) async {
+    final res = await ApiService.post('/insurance', payload);
+    final data = _data(res);
+    if (data is Map) return Map<String, dynamic>.from(data);
+    return {};
+  }
+
+  static Future<void> removeInsurance(int id) async {
+    await ApiService.delete('/insurance/$id');
+  }
+
   static Future<List<ChatConversation>> conversations() async {
     final res = await ApiService.get('/chats');
     final data = _data(res);

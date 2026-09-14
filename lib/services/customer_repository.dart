@@ -286,6 +286,13 @@ class CustomerRepository {
     await ApiService.put('/notifications/read-all');
   }
 
+  static Future<Map<String, dynamic>> myLoyalty() async {
+    final res = await ApiService.get('/loyalty');
+    final data = _data(res);
+    if (data is Map) return Map<String, dynamic>.from(data);
+    return {'pharmacies': [], 'transactions': []};
+  }
+
   static Future<List<ChatConversation>> conversations() async {
     final res = await ApiService.get('/chats');
     final data = _data(res);

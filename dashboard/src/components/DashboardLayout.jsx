@@ -46,6 +46,7 @@ import {
   Megaphone,
   Video,
   Gift,
+  ShieldCheck,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -77,6 +78,9 @@ import ProfilePage from '../pages/owner/ProfilePage'
 import PharmacyReviewsPage from '../pages/owner/PharmacyReviewsPage'
 import TelemedicinePage from '../pages/owner/TelemedicinePage'
 import LoyaltyPage from '../pages/owner/LoyaltyPage'
+import InsuranceProvidersPage from '../pages/owner/InsuranceProvidersPage'
+import PatientInsurancesPage from '../pages/owner/PatientInsurancesPage'
+import InsuranceClaimsPage from '../pages/owner/InsuranceClaimsPage'
 import ConsolidatedFinancialReportPage from '../pages/owner/ConsolidatedFinancialReportPage'
 import PlanGate from '../components/PlanGate'
 
@@ -180,6 +184,14 @@ const ownerNavGroups = [
       { path: '/dashboard/reviews', icon: Star, label: 'Reviews' },
       { path: '/dashboard/telemedicine', icon: Video, label: 'Telemedicine' },
       { path: '/dashboard/loyalty', icon: Gift, label: 'Loyalty Program' },
+    ],
+  },
+  {
+    label: 'INSURANCE',
+    items: [
+      { path: '/dashboard/insurance/providers', icon: ShieldCheck, label: 'Insurance Providers' },
+      { path: '/dashboard/insurance/patients', icon: ShieldCheck, label: 'Patient Insurance' },
+      { path: '/dashboard/insurance/claims', icon: ShieldCheck, label: 'Claims' },
     ],
   },
   {
@@ -342,6 +354,14 @@ const sellerNavGroups = [
       { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages' },
       { path: '/dashboard/telemedicine', icon: Video, label: 'Telemedicine' },
       { path: '/dashboard/loyalty', icon: Gift, label: 'Loyalty Program' },
+    ],
+  },
+  {
+    label: 'INSURANCE',
+    items: [
+      { path: '/dashboard/insurance/providers', icon: ShieldCheck, label: 'Insurance Providers' },
+      { path: '/dashboard/insurance/patients', icon: ShieldCheck, label: 'Patient Insurance' },
+      { path: '/dashboard/insurance/claims', icon: ShieldCheck, label: 'Claims' },
     ],
   },
   {
@@ -782,6 +802,9 @@ export default function DashboardLayout({ role }) {
               <Route path="chats/:customerId" element={<PharmacyChatPage />} />
               <Route path="telemedicine" element={<TelemedicinePage />} />
               <Route path="loyalty" element={<LoyaltyPage />} />
+              <Route path="insurance/providers" element={<InsuranceProvidersPage />} />
+              <Route path="insurance/patients" element={<PatientInsurancesPage />} />
+              <Route path="insurance/claims" element={<InsuranceClaimsPage />} />
               <Route path="support" element={<OwnerSupportPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
@@ -810,6 +833,9 @@ export default function DashboardLayout({ role }) {
               <Route path="chats/:customerId" element={<PharmacyChatPage />} />
               <Route path="telemedicine" element={<TelemedicinePage />} />
               <Route path="loyalty" element={<LoyaltyPage />} />
+              <Route path="insurance/providers" element={<InsuranceProvidersPage />} />
+              <Route path="insurance/patients" element={<PatientInsurancesPage />} />
+              <Route path="insurance/claims" element={<InsuranceClaimsPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />

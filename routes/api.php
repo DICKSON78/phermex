@@ -47,6 +47,7 @@ use App\Http\Controllers\Api\RegulatoryReportController;
 use App\Http\Controllers\Api\DrugRecallController;
 use App\Http\Controllers\Api\DemoRequestController;
 use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\InsuranceController;
 use App\Http\Controllers\Api\LoyaltyController;
 use App\Http\Controllers\Api\AdminJobController;
 use App\Http\Controllers\Api\AdminMarketingController;
@@ -144,6 +145,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/loyalty', [LoyaltyController::class, 'myLoyalty']);
 
+        Route::get('/insurance', [InsuranceController::class, 'myInsurance']);
+        Route::get('/insurance/providers', [InsuranceController::class, 'availableProviders']);
+        Route::post('/insurance', [InsuranceController::class, 'storeMyInsurance']);
+        Route::delete('/insurance/{id}', [InsuranceController::class, 'destroyMyInsurance']);
+
         Route::get('/support', [CustomerAppController::class, 'mySupportTickets']);
         Route::post('/support', [CustomerAppController::class, 'createSupportTicket']);
         Route::post('/support/{id}/reply', [CustomerAppController::class, 'replySupportTicket']);
@@ -215,6 +221,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/loyalty/customers/{customerUserId}/transactions', [LoyaltyController::class, 'transactions']);
         Route::post('/loyalty/adjust', [LoyaltyController::class, 'adjust']);
         Route::post('/loyalty/redeem', [LoyaltyController::class, 'redeem']);
+
+        Route::get('/insurance/stats', [InsuranceController::class, 'stats']);
+        Route::get('/insurance/providers', [InsuranceController::class, 'providers']);
+        Route::post('/insurance/providers', [InsuranceController::class, 'storeProvider'])->middleware('role:owner,pharmacist');
+        Route::put('/insurance/providers/{id}', [InsuranceController::class, 'updateProvider'])->middleware('role:owner,pharmacist');
+        Route::delete('/insurance/providers/{id}', [InsuranceController::class, 'destroyProvider'])->middleware('role:owner,pharmacist');
+        Route::get('/insurance/patients', [InsuranceController::class, 'patients']);
+        Route::get('/insurance/users/search', [InsuranceController::class, 'searchUsers']);
+        Route::post('/insurance/patients', [InsuranceController::class, 'storePatient'])->middleware('role:owner,pharmacist');
+        Route::put('/insurance/patients/{id}', [InsuranceController::class, 'updatePatient'])->middleware('role:owner,pharmacist');
+        Route::delete('/insurance/patients/{id}', [InsuranceController::class, 'destroyPatient'])->middleware('role:owner,pharmacist');
+        Route::get('/insurance/claims', [InsuranceController::class, 'claims']);
+        Route::post('/insurance/claims', [InsuranceController::class, 'storeClaim'])->middleware('role:owner,pharmacist');
+        Route::put('/insurance/claims/{id}', [InsuranceController::class, 'updateClaim'])->middleware('role:owner,pharmacist');
+        Route::get('/insurance/claims/{id}', [InsuranceController::class, 'showClaim']);
 
         Route::get('/employees/stats', [EmployeeController::class, 'getStats']);
         Route::patch('/employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);

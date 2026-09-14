@@ -95,6 +95,24 @@ export const loyalty = {
   redeem: (data) => api.post('/loyalty/redeem', data),
 }
 
+export const insurance = {
+  stats: () => api.get('/insurance/stats'),
+  providers: () => api.get('/insurance/providers'),
+  getProviders: () => api.get('/insurance/providers'),
+  createProvider: (data) => api.post('/insurance/providers', data),
+  updateProvider: (id, data) => api.put(`/insurance/providers/${id}`, data),
+  deleteProvider: (id) => api.delete(`/insurance/providers/${id}`),
+  patients: (params) => api.get('/insurance/patients', { params }),
+  searchUsers: (search) => api.get('/insurance/users/search', { params: { search } }),
+  createPatient: (data) => api.post('/insurance/patients', data),
+  updatePatient: (id, data) => api.put(`/insurance/patients/${id}`, data),
+  deletePatient: (id) => api.delete(`/insurance/patients/${id}`),
+  claims: (params) => api.get('/insurance/claims', { params }),
+  createClaim: (data) => api.post('/insurance/claims', data),
+  updateClaim: (id, data) => api.put(`/insurance/claims/${id}`, data),
+  claim: (id) => api.get(`/insurance/claims/${id}`),
+}
+
 export const pharmacists = {
   getAll: (params) => api.get('/pharmacists', { params }),
   getById: (id) => api.get(`/pharmacists/${id}`),

@@ -46,6 +46,23 @@ class PharmacyController extends Controller
                 ], 403);
             }
 
+            $existingCount = Pharmacy::where('owner_id', $user->id)->count();
+            $cap = 1;
+            $ownerPlan = \App\Models\Subscription::whereIn('pharmacy_id', $user->accessiblePharmacyIds())
+                ->latest('id')
+                ->value('plan');
+            if (in_array($ownerPlan, ['professional', 'enterprise'], true)) {
+                $cap = PHP_INT_MAX;
+            } elseif ($ownerPlan === 'starter') {
+                $cap = 3;
+            }
+
+            if ($existingCount >= $cap) {
+                return response()->json([
+                    'message' => 'Your current plan allows a maximum of ' . ($cap === PHP_INT_MAX ? 'unlimited' : $cap) . ' pharmacies. Upgrade your plan to add more.',
+                ], 422);
+            }
+
             $validated = $request->validate([
                 'pharmacy_name' => 'required|string|max:255',
                 'pharmacy_type' => 'sometimes|in:independent,chain,hospital,online',

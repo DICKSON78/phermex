@@ -40,6 +40,7 @@ class SubscriptionController extends Controller
             'has_pharmacy' => true,
             'application_status' => $pharmacy->application_status,
             'subscription_type' => $pharmacy->subscriptionType(),
+            'plan' => $pharmacy->subscriptions()->latest('id')->value('plan'),
             'days_remaining' => $pharmacy->daysRemaining(),
             'trial_ends_at' => $pharmacy->trial_ends_at?->toISOString(),
             'subscription_end_date' => $pharmacy->subscription_end_date?->toISOString(),

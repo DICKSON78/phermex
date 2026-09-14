@@ -77,6 +77,7 @@ import ProfilePage from '../pages/owner/ProfilePage'
 import PharmacyReviewsPage from '../pages/owner/PharmacyReviewsPage'
 import TelemedicinePage from '../pages/owner/TelemedicinePage'
 import LoyaltyPage from '../pages/owner/LoyaltyPage'
+import PlanGate from '../components/PlanGate'
 
 import SupplierListPage from '../pages/owner/SupplierListPage'
 import SupplierDetailPage from '../pages/owner/SupplierDetailPage'
@@ -744,7 +745,7 @@ export default function DashboardLayout({ role }) {
               <Route path="bank-management" element={<BankManagementPage />} />
               <Route path="budgets" element={<BudgetPage />} />
               <Route path="tax-management" element={<TaxManagementPage />} />
-              <Route path="financial-reports" element={<FinancialReportsPage />} />
+              <Route path="financial-reports" element={<PlanGate requiredPlan="professional"><FinancialReportsPage /></PlanGate>} />
               <Route path="employees" element={<EmployeeListPage />} />
               <Route path="employees/new" element={<EmployeeFormPage />} />
               <Route path="employees/:id" element={<EmployeeDetailPage />} />

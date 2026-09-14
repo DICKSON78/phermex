@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import SessionTimeout from './components/SessionTimeout'
+import OfflineBanner from './components/OfflineBanner'
 
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
@@ -56,6 +57,7 @@ function DashboardApp() {
 export default function App() {
   return (
     <ErrorBoundary>
+      <OfflineBanner />
       <SessionTimeout />
       <Routes>
       {/* Public guest routes */}

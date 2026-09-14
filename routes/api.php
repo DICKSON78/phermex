@@ -47,6 +47,7 @@ use App\Http\Controllers\Api\RegulatoryReportController;
 use App\Http\Controllers\Api\DrugRecallController;
 use App\Http\Controllers\Api\DemoRequestController;
 use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\InsuranceController;
 use App\Http\Controllers\Api\LoyaltyController;
 use App\Http\Controllers\Api\AdminJobController;
@@ -144,6 +145,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/telemedicine/{id}/cancel', [TelemedicineController::class, 'cancelConsult']);
 
         Route::get('/loyalty', [LoyaltyController::class, 'myLoyalty']);
+
+        Route::post('/chatbot', [ChatbotController::class, 'respond']);
 
         Route::get('/insurance', [InsuranceController::class, 'myInsurance']);
         Route::get('/insurance/providers', [InsuranceController::class, 'availableProviders']);

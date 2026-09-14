@@ -152,6 +152,7 @@ export const reports = {
   inventory: (params) => api.get('/reports/inventory', { params }),
   financial: (params) => api.get('/reports/financial', { params }),
   customers: (params) => api.get('/reports/customers', { params }),
+  consolidatedFinancial: (params) => api.get('/reports/consolidated-financial', { params }),
 }
 
 export const employees = {

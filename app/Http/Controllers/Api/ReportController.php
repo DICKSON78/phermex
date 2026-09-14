@@ -9,6 +9,7 @@ use App\Models\DrugCategory;
 use App\Models\Expense;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Pharmacy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -201,6 +202,86 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to generate financial report.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Consolidated multi-pharmacy financial report. Spans every pharmacy the
+     * user can access, so it intentionally does not filter by a single
+     * pharmacy_id (TenantScoped still limits results to accessible ones).
+     */
+    public function consolidatedFinancialReport(Request $request): JsonResponse
+    {
+        try {
+            $dateFrom = $request->input('date_from', now()->subDays(30)->startOfDay());
+            $dateTo = $request->input('date_to', now()->endOfDay());
+
+            $paidOrderScope = function ($q) use ($dateFrom, $dateTo) {
+                $q->whereDate('created_at', '>=', $dateFrom)
+                  ->whereDate('created_at', '<=', $dateTo)
+                  ->where('payment_status', 'paid');
+            };
+
+            $revenueRows = Order::query()
+                ->where($paidOrderScope)
+                ->select('pharmacy_id', DB::raw('SUM(total) as revenue'), DB::raw('COUNT(*) as orders_count'), DB::raw('COUNT(DISTINCT user_id) as customers_count'))
+                ->groupBy('pharmacy_id')
+                ->get();
+
+            $expenseScope = function ($q) use ($dateFrom, $dateTo) {
+                $q->whereDate('date', '>=', $dateFrom)
+                  ->whereDate('date', '<=', $dateTo);
+            };
+
+            $expenseRows = Expense::where($expenseScope)
+                ->select('pharmacy_id', DB::raw('SUM(amount) as expenses'), DB::raw('COUNT(*) as expense_count'))
+                ->groupBy('pharmacy_id')
+                ->get();
+
+            $expenseByPharmacy = $expenseRows->keyBy('pharmacy_id');
+            $revenueByPharmacy = $revenueRows->keyBy('pharmacy_id');
+
+            $pharmacyIds = $revenueByPharmacy->keys()->merge($expenseByPharmacy->keys())->unique()->values();
+            $pharmacies = Pharmacy::whereIn('id', $pharmacyIds)->get(['id', 'pharmacy_name'])->keyBy('id');
+
+            $pharmacyReports = $pharmacyIds->map(function ($pharmacyId) use ($pharmacies, $revenueByPharmacy, $expenseByPharmacy) {
+                $revenue = (float) ($revenueByPharmacy->get($pharmacyId)?->revenue ?? 0);
+                $expenses = (float) ($expenseByPharmacy->get($pharmacyId)?->expenses ?? 0);
+                $net = $revenue - $expenses;
+
+                return [
+                    'pharmacy_id' => (int) $pharmacyId,
+                    'pharmacy_name' => $pharmacies->get($pharmacyId)?->pharmacy_name ?? 'Unknown Pharmacy',
+                    'revenue' => $revenue,
+                    'expenses' => $expenses,
+                    'orders_count' => (int) ($revenueByPharmacy->get($pharmacyId)?->orders_count ?? 0),
+                    'customers_count' => (int) ($revenueByPharmacy->get($pharmacyId)?->customers_count ?? 0),
+                    'expense_count' => (int) ($expenseByPharmacy->get($pharmacyId)?->expense_count ?? 0),
+                    'net_profit' => $net,
+                    'profit_margin' => $revenue > 0 ? round(($net / $revenue) * 100, 2) : 0,
+                ];
+            })->values();
+
+            $totals = [
+                'revenue' => round($pharmacyReports->sum('revenue'), 2),
+                'expenses' => round($pharmacyReports->sum('expenses'), 2),
+                'net_profit' => round($pharmacyReports->sum('net_profit'), 2),
+                'orders_count' => $pharmacyReports->sum('orders_count'),
+                'customers_count' => $pharmacyReports->sum('customers_count'),
+                'pharmacies_count' => $pharmacyReports->count(),
+            ];
+
+            $totals['profit_margin'] = $totals['revenue'] > 0 ? round(($totals['net_profit'] / $totals['revenue']) * 100, 2) : 0;
+
+            return response()->json([
+                'totals' => $totals,
+                'pharmacies' => $pharmacyReports,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to generate consolidated financial report.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }

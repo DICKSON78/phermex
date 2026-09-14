@@ -77,6 +77,7 @@ import ProfilePage from '../pages/owner/ProfilePage'
 import PharmacyReviewsPage from '../pages/owner/PharmacyReviewsPage'
 import TelemedicinePage from '../pages/owner/TelemedicinePage'
 import LoyaltyPage from '../pages/owner/LoyaltyPage'
+import ConsolidatedFinancialReportPage from '../pages/owner/ConsolidatedFinancialReportPage'
 import PlanGate from '../components/PlanGate'
 
 import SupplierListPage from '../pages/owner/SupplierListPage'
@@ -197,6 +198,7 @@ const ownerNavGroups = [
       { path: '/dashboard/budgets', icon: DollarSign, label: 'Budgets' },
       { path: '/dashboard/tax-management', icon: Receipt, label: 'Tax Management' },
       { path: '/dashboard/financial-reports', icon: BarChart3, label: 'Financial Reports' },
+      { path: '/dashboard/consolidated-reports', icon: BarChart3, label: 'Consolidated Reports' },
     ],
   },
   {
@@ -746,6 +748,7 @@ export default function DashboardLayout({ role }) {
               <Route path="budgets" element={<BudgetPage />} />
               <Route path="tax-management" element={<TaxManagementPage />} />
               <Route path="financial-reports" element={<PlanGate requiredPlan="professional"><FinancialReportsPage /></PlanGate>} />
+              <Route path="consolidated-reports" element={<PlanGate requiredPlan="professional"><ConsolidatedFinancialReportPage /></PlanGate>} />
               <Route path="employees" element={<EmployeeListPage />} />
               <Route path="employees/new" element={<EmployeeFormPage />} />
               <Route path="employees/:id" element={<EmployeeDetailPage />} />

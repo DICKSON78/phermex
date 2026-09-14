@@ -86,6 +86,15 @@ export const customers = {
   purchaseHistory: (id) => api.get(`/customers/${id}/purchase-history`),
 }
 
+export const loyalty = {
+  settings: () => api.get('/loyalty/settings'),
+  updateSettings: (data) => api.put('/loyalty/settings', data),
+  members: (params) => api.get('/loyalty/members', { params }),
+  transactions: (userId) => api.get(`/loyalty/customers/${userId}/transactions`),
+  adjust: (data) => api.post('/loyalty/adjust', data),
+  redeem: (data) => api.post('/loyalty/redeem', data),
+}
+
 export const pharmacists = {
   getAll: (params) => api.get('/pharmacists', { params }),
   getById: (id) => api.get(`/pharmacists/${id}`),

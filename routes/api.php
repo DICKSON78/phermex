@@ -47,6 +47,7 @@ use App\Http\Controllers\Api\RegulatoryReportController;
 use App\Http\Controllers\Api\DrugRecallController;
 use App\Http\Controllers\Api\DemoRequestController;
 use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\LoyaltyController;
 use App\Http\Controllers\Api\AdminJobController;
 use App\Http\Controllers\Api\AdminMarketingController;
 use App\Http\Controllers\Api\NotificationController;
@@ -141,6 +142,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/telemedicine/schedule', [TelemedicineController::class, 'scheduleSlots']);
         Route::post('/telemedicine/{id}/cancel', [TelemedicineController::class, 'cancelConsult']);
 
+        Route::get('/loyalty', [LoyaltyController::class, 'myLoyalty']);
+
         Route::get('/support', [CustomerAppController::class, 'mySupportTickets']);
         Route::post('/support', [CustomerAppController::class, 'createSupportTicket']);
         Route::post('/support/{id}/reply', [CustomerAppController::class, 'replySupportTicket']);
@@ -205,6 +208,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/customers/{id}', [CustomerController::class, 'show']);
         Route::put('/customers/{id}', [CustomerController::class, 'update']);
         Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+
+        Route::get('/loyalty/settings', [LoyaltyController::class, 'settings']);
+        Route::put('/loyalty/settings', [LoyaltyController::class, 'updateSettings']);
+        Route::get('/loyalty/members', [LoyaltyController::class, 'members']);
+        Route::get('/loyalty/customers/{customerUserId}/transactions', [LoyaltyController::class, 'transactions']);
+        Route::post('/loyalty/adjust', [LoyaltyController::class, 'adjust']);
+        Route::post('/loyalty/redeem', [LoyaltyController::class, 'redeem']);
 
         Route::get('/employees/stats', [EmployeeController::class, 'getStats']);
         Route::patch('/employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);

@@ -8,6 +8,7 @@ use App\Models\DrugMovement;
 use App\Models\Notification;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\LoyaltyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -228,6 +229,10 @@ class OrderController extends Controller
                     'is_read' => false,
                     'link' => "/orders/{$order->id}",
                 ]);
+            }
+
+            if (in_array($newStatus, ['delivered', 'dispensed'], true) && !$order->fresh()->loyalty_awarded) {
+                app(LoyaltyService::class)->awardForOrder($order->fresh());
             }
 
             return response()->json([

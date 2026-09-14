@@ -33,6 +33,7 @@ class Order extends Model
         'delivery_latitude',
         'delivery_longitude',
         'processed_by',
+        'loyalty_awarded',
     ];
 
     protected $casts = [
@@ -41,6 +42,7 @@ class Order extends Model
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
         'payment_details' => 'array',
+        'loyalty_awarded' => 'boolean',
     ];
 
     public function pharmacy(): BelongsTo

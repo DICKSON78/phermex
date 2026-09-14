@@ -45,6 +45,7 @@ import {
   Star,
   Megaphone,
   Video,
+  Gift,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -75,6 +76,7 @@ import NotificationsPage from '../pages/owner/NotificationsPage'
 import ProfilePage from '../pages/owner/ProfilePage'
 import PharmacyReviewsPage from '../pages/owner/PharmacyReviewsPage'
 import TelemedicinePage from '../pages/owner/TelemedicinePage'
+import LoyaltyPage from '../pages/owner/LoyaltyPage'
 
 import SupplierListPage from '../pages/owner/SupplierListPage'
 import SupplierDetailPage from '../pages/owner/SupplierDetailPage'
@@ -175,6 +177,7 @@ const ownerNavGroups = [
       { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages' },
       { path: '/dashboard/reviews', icon: Star, label: 'Reviews' },
       { path: '/dashboard/telemedicine', icon: Video, label: 'Telemedicine' },
+      { path: '/dashboard/loyalty', icon: Gift, label: 'Loyalty Program' },
     ],
   },
   {
@@ -335,6 +338,7 @@ const sellerNavGroups = [
       { path: '/dashboard/customers', icon: Users, label: 'Customers' },
       { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages' },
       { path: '/dashboard/telemedicine', icon: Video, label: 'Telemedicine' },
+      { path: '/dashboard/loyalty', icon: Gift, label: 'Loyalty Program' },
     ],
   },
   {
@@ -773,6 +777,7 @@ export default function DashboardLayout({ role }) {
               <Route path="chats" element={<PharmacyChatListPage />} />
               <Route path="chats/:customerId" element={<PharmacyChatPage />} />
               <Route path="telemedicine" element={<TelemedicinePage />} />
+              <Route path="loyalty" element={<LoyaltyPage />} />
               <Route path="support" element={<OwnerSupportPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
@@ -800,6 +805,7 @@ export default function DashboardLayout({ role }) {
               <Route path="chats" element={<PharmacyChatListPage />} />
               <Route path="chats/:customerId" element={<PharmacyChatPage />} />
               <Route path="telemedicine" element={<TelemedicinePage />} />
+              <Route path="loyalty" element={<LoyaltyPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />

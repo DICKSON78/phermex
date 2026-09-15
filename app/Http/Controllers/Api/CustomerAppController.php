@@ -266,7 +266,8 @@ class CustomerAppController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('generic_name', 'like', "%{$search}%")
-                      ->orWhere('manufacturer', 'like', "%{$search}%");
+                      ->orWhere('manufacturer', 'like', "%{$search}%")
+                      ->orWhere('barcode', 'like', "%{$search}%");
                 });
             }
 

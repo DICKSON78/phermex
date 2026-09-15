@@ -7,10 +7,7 @@ import '../../theme.dart';
 import '../../utils/helpers.dart';
 import '../notifications/notifications_screen.dart';
 import '../pharmacy/pharmacy_detail_screen.dart';
-import '../orders/orders_list_screen.dart';
-import '../orders/order_detail_screen.dart';
-import '../orders/delivery_tracking_screen.dart';
-import '../prescriptions/prescriptions_screen.dart';
+import '../telemedicine/telemedicine_screen.dart';
 import 'all_pharmacies_screen.dart';
 
 // M-TAI / Vantage design language adapted to Pharmex.
@@ -28,7 +25,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Pharmacy> _pharmacies = [];
-  List<Order> _recentOrders = [];
   bool _loading = true;
   String? _error;
   String? _search;
@@ -107,10 +103,8 @@ class _HomeScreenState extends State<HomeScreen> {
       usedFallbackLocation = pos == null;
       final lat = pos?.latitude ?? -6.7924;
       final lng = pos?.longitude ?? 39.2083;
-      // Fetch pharmacies and recent orders independently so a failure in one
-      // does not blank the other. Use a wide radius so pharmacies always show.
+      // Fetch pharmacies. Use a wide radius so pharmacies always show.
       List<Pharmacy> pharmacies = const [];
-      List<Order> orders = const [];
       String? sectionError;
       try {
         pharmacies = await CustomerRepository.nearby(
@@ -118,15 +112,9 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (_) {
         sectionError = 'Could not load pharmacies. Pull to refresh.';
       }
-      try {
-        orders = await CustomerRepository.myOrders();
-      } catch (_) {
-        if (sectionError == null) sectionError = null;
-      }
       if (!mounted) return;
       setState(() {
         _pharmacies = pharmacies;
-        _recentOrders = orders.take(3).toList();
         _error = sectionError;
       });
       if (usedFallbackLocation) {
@@ -141,14 +129,6 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  Order? get _activeOrder {
-    for (final o in _recentOrders) {
-      final s = o.orderStatus;
-      if (s != null && s != 'delivered' && s != 'cancelled' && s != 'completed') return o;
-    }
-    return null;
   }
 
   @override
@@ -179,6 +159,12 @@ class _HomeScreenState extends State<HomeScreen> {
             onClear: _clearSearch,
           ),
 
+          _DoctorBanner(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const TelemedicineScreen()),
+            ),
+          ),
+
           _CategoryChips(
             onSelect: _openCategory,
           ),
@@ -190,51 +176,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  _QuickActions(
-                    onOrderMedicine: _openAllPharmacies,
-                    onUploadRx: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const PrescriptionsScreen()),
-                    ),
-                  ),
-
-                  if (_activeOrder != null)
-                    _ActiveOrderCard(
-                      order: _activeOrder!,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => DeliveryTrackingScreen(orderId: _activeOrder!.id),
-                        ),
-                      ),
-                    ),
-
-                  if (_recentOrders.isNotEmpty)
-                    _SectionHeader(
-                      title: 'Recent Orders',
-                      actionLabel: 'See all',
-                      onAction: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const OrdersListScreen()),
-                      ),
-                      child: SizedBox(
-                        height: _RecentOrderCard.cardHeight,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: _recentOrders
-                              .map((o) => Padding(
-                                    padding: const EdgeInsets.only(right: 12),
-                                    child: GestureDetector(
-                                      onTap: () => Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => OrderDetailScreen(orderId: o.id),
-                                        ),
-                                      ),
-                                      child: _RecentOrderCard(order: o),
-                                    ),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-                    ),
-
                   _NearbySection(
                     nearbyKey: _nearbyKey,
                     pharmacies: _pharmacies,
@@ -508,226 +449,87 @@ class _CategoryChips extends StatelessWidget {
   }
 }
 
-// ---- Quick actions --------------------------------------------------------
-class _QuickActions extends StatelessWidget {
-  final VoidCallback onOrderMedicine;
-  final VoidCallback onUploadRx;
-  const _QuickActions({required this.onOrderMedicine, required this.onUploadRx});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: onOrderMedicine,
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppTheme.primary, AppTheme.primaryDark],
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                        color: AppTheme.primary.withOpacity(0.25),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.22),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child:
-                          const Icon(Icons.medication, size: 22, color: Colors.white),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text('Order Medicine',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white)),
-                    const SizedBox(height: 2),
-                    const Text('Find & order drugs nearby',
-                        style: TextStyle(fontSize: 10, color: Colors.white70)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: GestureDetector(
-              onTap: onUploadRx,
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFEEF1F0)),
-                  boxShadow: const [
-                    BoxShadow(
-                        color: Color(0x0D0F172A), blurRadius: 8, offset: Offset(0, 2)),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(Icons.upload_file,
-                          size: 22, color: AppTheme.primaryDark),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text('Upload Rx',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textDark)),
-                    const SizedBox(height: 2),
-                    const Text('Submit prescription',
-                        style: TextStyle(fontSize: 10, color: AppTheme.textMuted)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---- Section header wrapper ----------------------------------------------
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final String actionLabel;
-  final VoidCallback onAction;
-  final Widget child;
-  const _SectionHeader({
-    required this.title,
-    required this.actionLabel,
-    required this.onAction,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-              GestureDetector(
-                onTap: onAction,
-                child: const Row(
-                  children: [
-                    Text('See all',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primaryDark)),
-                    Icon(Icons.chevron_right, size: 14, color: AppTheme.primaryDark),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-// ---- Active order card ----------------------------------------------------
-class _ActiveOrderCard extends StatelessWidget {
-  final Order order;
+// ---- Doctor banner ---------------------------------------------------------
+class _DoctorBanner extends StatelessWidget {
   final VoidCallback onTap;
-  const _ActiveOrderCard({required this.order, required this.onTap});
+  const _DoctorBanner({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          height: 128,
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppTheme.primary, width: 1.2),
-            boxShadow: const [
-              BoxShadow(color: Color(0x0D0F172A), blurRadius: 10, offset: Offset(0, 3)),
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF1A7F37), AppTheme.primaryDark],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryDark.withOpacity(0.3),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
             ],
           ),
-          child: Row(
+          child: Stack(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppTheme.primary,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(Icons.inventory_2_outlined,
-                    size: 20, color: Colors.white),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
+              // Text column
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 16, 110, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Active Order',
-                        style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                    Text('#${order.orderCode ?? order.id}',
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF111827))),
+                    const Text('Talk to a Doctor',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white)),
+                    const SizedBox(height: 5),
+                    Text('Video consultation with\npharmacists & doctors',
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.white.withOpacity(0.85),
+                            height: 1.4)),
+                    const SizedBox(height: 9),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.videocam, size: 13, color: AppTheme.primaryDark),
+                          SizedBox(width: 5),
+                          Text('Start call now',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.primaryDark)),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  children: [
-                    Text('Track',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white)),
-                    SizedBox(width: 4),
-                    Icon(Icons.navigation, size: 13, color: Colors.white),
-                  ],
+              // Decorative doctor illustration
+              Positioned(
+                right: 2,
+                top: 14,
+                width: 120,
+                bottom: 0,
+                child: Image.network(
+                  'https://img.freepik.com/free-vector/doctor-character-background_1270-84.jpg',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => _doctorFallback(),
                 ),
               ),
             ],
@@ -736,75 +538,17 @@ class _ActiveOrderCard extends StatelessWidget {
       ),
     );
   }
-}
 
-// ---- Recent order card ----------------------------------------------------
-class _RecentOrderCard extends StatelessWidget {
-  final Order order;
-  const _RecentOrderCard({required this.order});
-
-  // Fixed dimensions so the card tiles nicely in a horizontal scroll row.
-  static const double cardHeight = 128;
-  static const double cardWidth = 174;
-
-  @override
-  Widget build(BuildContext context) {
-    final status = order.orderStatus ?? '';
-    final statusColor = AppHelpers.statusColor(status);
-    return SizedBox(
-      width: cardWidth,
-      height: cardHeight,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEEF1F0)),
-          boxShadow: const [
-            BoxShadow(color: Color(0x0D0F172A), blurRadius: 8, offset: Offset(0, 2)),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _Pill(
-              label: AppHelpers.statusLabel(status).toUpperCase(),
-              color: statusColor,
-              textColor: statusColor,
-            ),
-            const SizedBox(height: 8),
-            Text(order.pharmacyName ?? 'Pharmacy',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textDark)),
-            const SizedBox(height: 4),
-            Text('#${order.orderCode ?? order.id}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
-            const Spacer(),
-            Row(
-              children: [
-                const Icon(Icons.inventory_2_outlined,
-                    size: 15, color: Color(0xFF94A3B8)),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(AppHelpers.formatTZS(order.total),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textDark)),
-                ),
-              ],
-            ),
-          ],
-        ),
+  Widget _doctorFallback() {
+    return Container(
+      width: 104,
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white24,
       ),
+      child: const Icon(Icons.medical_services,
+          size: 56, color: Colors.white),
     );
   }
 }
@@ -1118,46 +862,6 @@ class _NearbyPharmacyCard extends StatelessWidget {
       ),
       child: const Center(
         child: Icon(Icons.local_pharmacy, size: 42, color: Colors.white70),
-      ),
-    );
-  }
-}
-
-// ---- Pill (tinted badge, M-TAI Badge) -------------------------------------
-class _Pill extends StatelessWidget {
-  final String label;
-  final Color color;
-  final Color textColor;
-  final IconData? icon;
-  const _Pill({
-    required this.label,
-    required this.color,
-    required this.textColor,
-    this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 10, color: textColor),
-            const SizedBox(width: 4),
-          ],
-          Text(label,
-              style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
-                  fontFamily: 'Poppins')),
-        ],
       ),
     );
   }

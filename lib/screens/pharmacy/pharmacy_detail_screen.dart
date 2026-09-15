@@ -9,6 +9,7 @@ import '../../state/cart_state.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
 import '../cart/cart_screen.dart';
+import '../barcode/barcode_scan_screen.dart';
 import 'drug_detail_screen.dart';
 import 'pharmacy_map_screen.dart';
 import 'pharmacy_reviews_screen.dart';
@@ -46,6 +47,16 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
   void _clearSearch() {
     _searchController.clear();
     setState(() => _search = null);
+    _load();
+  }
+
+  Future<void> _scanBarcode() async {
+    final code = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const BarcodeScanScreen()),
+    );
+    if (code == null || !mounted) return;
+    _searchController.text = code;
+    setState(() => _search = code);
     _load();
   }
 
@@ -301,7 +312,10 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                 decoration: InputDecoration(
                   hintText: 'Search drugs...',
                   hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
-                  prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF9CA3AF)),
+                  prefixIcon: IconButton(
+                    icon: const Icon(Icons.qr_code_scanner, size: 18, color: Color(0xFF0FD452)),
+                    onPressed: _scanBarcode,
+                  ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, size: 18, color: Color(0xFF9CA3AF)),

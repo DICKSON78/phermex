@@ -138,8 +138,8 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppTheme.bgLight,
       body: Column(
         children: [
-          _HomeHeader(
-            topPadding: topInset + 8,
+          _BannerHeader(
+            topPadding: topInset,
             greeting: _greeting(),
             name: _userName.trim().isNotEmpty ? _userName.trim() : 'Shopper',
             tagline: AppStrings.tagline,
@@ -148,15 +148,12 @@ class _HomeScreenState extends State<HomeScreen> {
             onNotifications: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const NotificationsScreen()),
             ),
-          ),
-
-          _SearchBox(
-            controller: _searchController,
-            onSubmitted: (v) {
+            searchController: _searchController,
+            onSearchSubmitted: (v) {
               setState(() => _search = v.isEmpty ? null : v);
               _load();
             },
-            onClear: _clearSearch,
+            onSearchClear: _clearSearch,
           ),
 
           _DoctorBanner(
@@ -198,166 +195,223 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _nearbyKey = GlobalKey();
 }
 
-// ---- Header ---------------------------------------------------------------
-class _HomeHeader extends StatelessWidget {
+// ---- Banner header (movie-app style) --------------------------------------
+// The greeting, avatar, name, notification, subtitle and search input all sit
+// on a dark gradient hero banner with a big decorative doctor image peeking
+// from the right — like a movie app's featured backdrop.
+class _BannerHeader extends StatefulWidget {
+  final double topPadding;
   final String greeting;
   final String name;
   final String tagline;
   final String initial;
   final int unreadNotifications;
-  final double topPadding;
   final VoidCallback onNotifications;
+  final TextEditingController searchController;
+  final ValueChanged<String> onSearchSubmitted;
+  final VoidCallback onSearchClear;
 
-  const _HomeHeader({
+  const _BannerHeader({
+    required this.topPadding,
     required this.greeting,
     required this.name,
     required this.tagline,
     required this.initial,
     required this.unreadNotifications,
-    required this.topPadding,
     required this.onNotifications,
+    required this.searchController,
+    required this.onSearchSubmitted,
+    required this.onSearchClear,
   });
 
+  @override
+  State<_BannerHeader> createState() => _BannerHeaderState();
+}
+
+class _BannerHeaderState extends State<_BannerHeader> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppTheme.bgLight,
-      padding: EdgeInsets.fromLTRB(20, topPadding, 20, 8),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.12),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              initial,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.primaryDark,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(greeting,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 1),
-                Text(name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-                const SizedBox(height: 1),
-                Text(tagline,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: onNotifications,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.12),
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Stack(
-                clipBehavior: Clip.none,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0A2B1C), AppTheme.dark],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, widget.topPadding + 10, 20, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Greeting / name / notification row + doctor art
+              Stack(
                 children: [
-                  const Icon(Icons.notifications_none, size: 22, color: AppTheme.primaryDark),
-                  if (unreadNotifications > 0)
-                    Positioned(
-                      right: 2,
-                      top: 2,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFDC2626),
-                          shape: BoxShape.circle,
-                        ),
+                  // Decorative doctor image on the right (like a movie backdrop)
+                  Positioned(
+                    right: -14,
+                    top: -4,
+                    width: 150,
+                    height: 150,
+                    child: Opacity(
+                      opacity: 0.9,
+                      child: Image.network(
+                        'https://img.freepik.com/free-vector/doctor-character-background_1270-84.jpg',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                       ),
                     ),
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.6),
+                          color: Colors.white24,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          widget.initial,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(widget.greeting,
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.w500)),
+                            const SizedBox(height: 2),
+                            Text(widget.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 21,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white)),
+                            const SizedBox(height: 2),
+                            Text(widget.tagline,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.white60)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: widget.onNotifications,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.14),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(Icons.notifications_none,
+                                  size: 23, color: Colors.white),
+                              if (widget.unreadNotifications > 0)
+                                Positioned(
+                                  right: 1,
+                                  top: 1,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(3),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFDC2626),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-// ---- Search ---------------------------------------------------------------
-class _SearchBox extends StatefulWidget {
-  final TextEditingController controller;
-  final ValueChanged<String> onSubmitted;
-  final VoidCallback onClear;
-  const _SearchBox({
-    required this.controller,
-    required this.onSubmitted,
-    required this.onClear,
-  });
+              const SizedBox(height: 18),
 
-  @override
-  State<_SearchBox> createState() => _SearchBoxState();
-}
-
-class _SearchBoxState extends State<_SearchBox> {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-      child: Container(
-        height: 44,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 12),
-            const Icon(Icons.search, size: 20, color: Color(0xFF94A3B8)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: TextField(
-                controller: widget.controller,
-                onChanged: (_) => setState(() {}),
-                onSubmitted: widget.onSubmitted,
-                decoration: const InputDecoration(
-                  hintText: 'Search medicines or pharmacies...',
-                  hintStyle:
-                      TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+              // Search input on the banner (frosted style)
+              Container(
+                height: 46,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white24),
                 ),
-                style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
-                textInputAction: TextInputAction.search,
+                child: Row(
+                  children: [
+                    const SizedBox(width: 14),
+                    const Icon(Icons.search, size: 20, color: Colors.white70),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: widget.searchController,
+                        onChanged: (_) => setState(() {}),
+                        onSubmitted: widget.onSearchSubmitted,
+                        decoration: const InputDecoration(
+                          hintText: 'Search medicines or pharmacies...',
+                          hintStyle:
+                              TextStyle(fontSize: 14, color: Colors.white60),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'Poppins',
+                            color: Colors.white),
+                        textInputAction: TextInputAction.search,
+                      ),
+                    ),
+                    if (widget.searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.clear,
+                            size: 18, color: Colors.white70),
+                        onPressed: widget.onSearchClear,
+                      ),
+                  ],
+                ),
               ),
-            ),
-            if (widget.controller.text.isNotEmpty)
-              IconButton(
-                icon: const Icon(Icons.clear, size: 18, color: Color(0xFF94A3B8)),
-                onPressed: widget.onClear,
+
+              // Soft fade into the light body content below
+              const SizedBox(
+                height: 22,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, AppTheme.bgLight],
+                    ),
+                  ),
+                ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

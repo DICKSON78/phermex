@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { useAuth } from '../../contexts/AuthContext'
 import {
   Check,
   CheckCircle2,
@@ -77,6 +78,7 @@ export default function SubscriptionPlansPage() {
   const [error, setError] = useState('')
   const pollRef = useRef(null)
   const navigate = useNavigate()
+  const { setSubscription, setUser } = useAuth()
 
   const fetchPlans = useCallback(async () => {
     try {
@@ -134,6 +136,20 @@ export default function SubscriptionPlansPage() {
     }
   }
 
+  const refreshAndGoToDashboard = async () => {
+    try {
+      const [subRes, userRes] = await Promise.all([
+        api.get('/subscriptions/status'),
+        api.get('/user'),
+      ])
+      setSubscription(subRes.data)
+      setUser(userRes.data.data || userRes.data)
+    } catch {
+      // best effort — dashboard reconciles state on next load
+    }
+    navigate('/dashboard')
+  }
+
   const startPolling = (reference) => {
     clearInterval(pollRef.current)
     pollRef.current = setInterval(async () => {
@@ -144,7 +160,7 @@ export default function SubscriptionPlansPage() {
         if (res.data?.status === 'paid' || res.data?.paid) {
           clearInterval(pollRef.current)
           setPaymentStep('success')
-          setTimeout(() => navigate('/dashboard/subscriptions'), 1500)
+          setTimeout(refreshAndGoToDashboard, 1500)
         } else if (res.data?.gateway_status?.includes('FAILED')) {
           clearInterval(pollRef.current)
           setPaymentStep('manual')
@@ -163,7 +179,7 @@ export default function SubscriptionPlansPage() {
         payment_method: 'manual',
       })
       setPaymentStep('success')
-      setTimeout(() => navigate('/dashboard/subscriptions'), 1200)
+      setTimeout(refreshAndGoToDashboard, 1200)
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to confirm payment.')
     }

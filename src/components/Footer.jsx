@@ -48,7 +48,7 @@ export default function Footer() {
             </ul>
             <div className="flex gap-3 mt-5">
               <a
-                href="https://www.linkedin.com/in/pharmex-co-ltd-part-of-allos-holding-co-ltd-299605359"
+                href="https://www.linkedin.com/company/helix"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] transition-all"
@@ -56,7 +56,7 @@ export default function Footer() {
                 <FontAwesomeIcon icon={faLinkedinIn} className="text-xs" />
               </a>
               <a
-                href="https://www.instagram.com/pharmex_co.ltd?igsh=YW1qNDI0YmtibXAz"
+                href="https://www.instagram.com/helix_co.ltd"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] transition-all"
@@ -64,7 +64,7 @@ export default function Footer() {
                 <FontAwesomeIcon icon={faInstagram} className="text-xs" />
               </a>
               <a
-                href="https://www.youtube.com/@pharmex_co.ltd"
+                href="https://www.youtube.com/@helix_co.ltd"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] transition-all"

@@ -304,7 +304,7 @@ export default function SubscriptionPlansPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F7F5] px-4 sm:px-6 py-8 sm:py-12">
+    <div className="h-[100dvh] overflow-y-auto bg-[#F5F7F5] px-4 sm:px-6 py-8 sm:py-12" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-[#0FD452] rounded-2xl mb-4">

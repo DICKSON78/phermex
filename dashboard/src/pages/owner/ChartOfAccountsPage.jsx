@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
   BookOpen, Plus, Search, ChevronRight, ChevronDown, Edit, Trash2,
-  DollarSign, Filter, X, Layers, ArrowUpRight, ArrowDownRight, Loader2,
+  X, ArrowUpRight, ArrowDownRight, Loader2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
@@ -15,11 +15,11 @@ const ACCOUNT_TYPES = [
 ]
 
 const TYPE_COLORS = {
-  asset: { bg: 'bg-blue-500/10', text: 'text-blue-400', badge: 'bg-blue-500/20 text-blue-300', border: 'border-blue-500/20' },
-  liability: { bg: 'bg-red-500/10', text: 'text-red-400', badge: 'bg-red-500/20 text-red-300', border: 'border-red-500/20' },
-  equity: { bg: 'bg-purple-500/10', text: 'text-purple-400', badge: 'bg-purple-500/20 text-purple-300', border: 'border-purple-500/20' },
-  revenue: { bg: 'bg-green-500/10', text: 'text-green-400', badge: 'bg-green-500/20 text-green-300', border: 'border-green-500/20' },
-  expense: { bg: 'bg-orange-500/10', text: 'text-orange-400', badge: 'bg-orange-500/20 text-orange-300', border: 'border-orange-500/20' },
+  asset: { bg: 'bg-blue-50', text: 'text-blue-600', badge: 'bg-blue-100 text-blue-700', border: 'border-blue-200' },
+  liability: { bg: 'bg-red-50', text: 'text-red-600', badge: 'bg-red-100 text-red-700', border: 'border-red-200' },
+  equity: { bg: 'bg-purple-50', text: 'text-purple-600', badge: 'bg-purple-100 text-purple-700', border: 'border-purple-200' },
+  revenue: { bg: 'bg-green-50', text: 'text-green-600', badge: 'bg-green-100 text-green-700', border: 'border-green-200' },
+  expense: { bg: 'bg-orange-50', text: 'text-orange-600', badge: 'bg-orange-100 text-orange-700', border: 'border-orange-200' },
 }
 
 
@@ -37,31 +37,31 @@ function AccountTreeItem({ account, depth = 0, onEdit, onDelete }) {
   return (
     <>
       <div
-        className={`flex items-center gap-2 px-4 py-3 hover:bg-gray-700/30 transition-colors border-b border-gray-700/30`}
+        className={`flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100`}
         style={{ paddingLeft: `${16 + depth * 24}px` }}
       >
         {hasChildren ? (
-          <button onClick={() => setExpanded(!expanded)} className="text-gray-400 hover:text-white">
+          <button onClick={() => setExpanded(!expanded)} className="text-gray-400 hover:text-gray-700">
             {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
         ) : (
           <div className="w-4" />
         )}
         <span className="font-mono text-xs text-gray-400 w-16">{account.account_code}</span>
-        <span className="flex-1 text-sm text-white font-medium">{account.account_name}</span>
+        <span className="flex-1 text-sm text-gray-900 font-medium">{account.account_name}</span>
         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${colors.badge}`}>
           {account.account_type}
         </span>
         
-        <span className={`text-sm font-mono tabular-nums w-32 text-right ${isDebitNormal ? 'text-white' : 'text-green-400'}`}>
+        <span className={`text-sm font-mono tabular-nums w-32 text-right ${isDebitNormal ? 'text-gray-900' : 'text-green-600'}`}>
           {formatCurrency(balance)}
         </span>
         
         <div className="flex items-center gap-1 ml-2">
-          <button onClick={() => onEdit(account)} className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors">
+          <button onClick={() => onEdit(account)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
             <Edit className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => onDelete(account)} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-lg transition-colors">
+          <button onClick={() => onDelete(account)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -205,15 +205,15 @@ export default function ChartOfAccountsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
             <BookOpen className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Chart of Accounts</h1>
-            <p className="text-sm text-gray-400 mt-1">Manage the accounting ledger structure.</p>
+            <h1 className="text-2xl font-bold text-gray-900">Chart of Accounts</h1>
+            <p className="text-sm text-gray-500 mt-1">Manage the accounting ledger structure.</p>
           </div>
         </div>
         <button onClick={openNewForm} className="btn-primary">
@@ -224,17 +224,17 @@ export default function ChartOfAccountsPage() {
 
       {balances && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          <div className={`bg-gray-800/50 backdrop-blur border border-gray-700/50 rounded-xl p-4 ${!balances.is_balanced ? 'border-red-500/50' : ''}`}>
-            <p className="text-xs text-gray-400 mb-1">Total Debit</p>
-            <p className="text-lg font-bold text-white font-mono tabular-nums">{formatCurrency(balances.total_debit)}</p>
+          <div className={`bg-white border border-gray-200 rounded-xl p-4 ${!balances.is_balanced ? 'border-red-300' : ''}`}>
+            <p className="text-xs text-gray-500 mb-1">Total Debit</p>
+            <p className="text-lg font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(balances.total_debit)}</p>
           </div>
-          <div className={`bg-gray-800/50 backdrop-blur border border-gray-700/50 rounded-xl p-4 ${!balances.is_balanced ? 'border-red-500/50' : ''}`}>
-            <p className="text-xs text-gray-400 mb-1">Total Credit</p>
-            <p className="text-lg font-bold text-white font-mono tabular-nums">{formatCurrency(balances.total_credit)}</p>
+          <div className={`bg-white border border-gray-200 rounded-xl p-4 ${!balances.is_balanced ? 'border-red-300' : ''}`}>
+            <p className="text-xs text-gray-500 mb-1">Total Credit</p>
+            <p className="text-lg font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(balances.total_credit)}</p>
           </div>
           {ACCOUNT_TYPES.map((t) => (
-            <div key={t.id} className="bg-gray-800/50 backdrop-blur border border-gray-700/50 rounded-xl p-4">
-              <p className="text-xs text-gray-400 mb-1">{t.label}</p>
+            <div key={t.id} className="bg-white border border-gray-200 rounded-xl p-4">
+              <p className="text-xs text-gray-500 mb-1">{t.label}</p>
               <p className={`text-lg font-bold font-mono tabular-nums ${TYPE_COLORS[t.id].text}`}>{formatCurrency(totalByType[t.id])}</p>
             </div>
           ))}
@@ -242,31 +242,31 @@ export default function ChartOfAccountsPage() {
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <button onClick={() => setActiveType('all')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeType === 'all' ? 'bg-[#0FD452] text-[#000F14]' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+        <button onClick={() => setActiveType('all')} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${activeType === 'all' ? 'bg-[#0FD452] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
           All
         </button>
         {ACCOUNT_TYPES.map((t) => (
-          <button key={t.id} onClick={() => setActiveType(t.id)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${activeType === t.id ? `${TYPE_COLORS[t.id].bg} ${TYPE_COLORS[t.id].text}` : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+          <button key={t.id} onClick={() => setActiveType(t.id)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 ${activeType === t.id ? `${TYPE_COLORS[t.id].bg} ${TYPE_COLORS[t.id].text}` : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
             <div className={`w-2 h-2 rounded-full bg-current`} />
             {t.label}
           </button>
         ))}
       </div>
 
-      <div className="bg-gray-800/50 backdrop-blur border border-gray-700/50 rounded-xl">
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-700/50">
-          <div className="flex-1 flex items-center gap-2 bg-gray-700/50 rounded-lg px-3 py-2">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
+          <div className="flex-1 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
             <Search className="w-4 h-4 text-gray-400" />
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search accounts..." className="bg-transparent text-sm text-white placeholder-gray-400 outline-none w-full" />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search accounts..." className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
           </div>
           {search && (
-            <button onClick={() => setSearch('')} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+            <button onClick={() => setSearch('')} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        <div className="px-4 py-2 bg-gray-700/20 flex items-center text-xs text-gray-400 font-medium">
+        <div className="px-4 py-2 bg-gray-50 flex items-center text-xs text-gray-500 font-medium border-b border-gray-100">
           <div className="w-4 mx-2" />
           <div className="w-16">Code</div>
           <div className="flex-1">Account Name</div>
@@ -280,8 +280,8 @@ export default function ChartOfAccountsPage() {
             <Loader2 className="w-8 h-8 text-[#0FD452] animate-spin" />
           </div>
         ) : filteredTree.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <div className="text-center py-16 text-gray-500">
+            <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-40" />
             <p>No accounts found</p>
           </div>
         ) : (
@@ -293,33 +293,33 @@ export default function ChartOfAccountsPage() {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0F1A24] border border-gray-700/50 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700/50">
-              <h2 className="text-lg font-bold text-white">{editAccount ? 'Edit Account' : 'New Account'}</h2>
-              <button onClick={() => { setShowForm(false); setEditAccount(null) }} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900">{editAccount ? 'Edit Account' : 'New Account'}</h2>
+              <button onClick={() => { setShowForm(false); setEditAccount(null) }} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5">Account Code</label>
-                  <input type="text" value={formData.account_code} onChange={(e) => setFormData({ ...formData, account_code: e.target.value })} className="w-full bg-gray-800/50 border border-gray-700/50 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#0FD452] transition-colors" placeholder="e.g. 1000" required />
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Account Code</label>
+                  <input type="text" value={formData.account_code} onChange={(e) => setFormData({ ...formData, account_code: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-primary transition-colors" placeholder="e.g. 1000" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5">Account Type</label>
-                  <select value={formData.account_type} onChange={(e) => setFormData({ ...formData, account_type: e.target.value })} className="w-full bg-gray-800/50 border border-gray-700/50 rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-[#0FD452] transition-colors">
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Account Type</label>
+                  <select value={formData.account_type} onChange={(e) => setFormData({ ...formData, account_type: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-primary transition-colors">
                     {ACCOUNT_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Account Name</label>
-                <input type="text" value={formData.account_name} onChange={(e) => setFormData({ ...formData, account_name: e.target.value })} className="w-full bg-gray-800/50 border border-gray-700/50 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#0FD452] transition-colors" placeholder="e.g. Cash in Hand" required />
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Account Name</label>
+                <input type="text" value={formData.account_name} onChange={(e) => setFormData({ ...formData, account_name: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-primary transition-colors" placeholder="e.g. Cash in Hand" required />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Parent Account</label>
-                <select value={formData.parent_id} onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })} className="w-full bg-gray-800/50 border border-gray-700/50 rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-[#0FD452] transition-colors">
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Parent Account</label>
+                <select value={formData.parent_id} onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-primary transition-colors">
                   <option value="">None (Top Level)</option>
                   {accounts.filter((a) => a.id !== editAccount?.id).map((a) => (
                     <option key={a.id} value={a.id}>{a.account_code} - {a.account_name}</option>
@@ -327,8 +327,8 @@ export default function ChartOfAccountsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Description</label>
-                <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full bg-gray-800/50 border border-gray-700/50 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#0FD452] transition-colors resize-none" rows={2} placeholder="Optional description" />
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Description</label>
+                <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-primary transition-colors resize-none" rows={2} placeholder="Optional description" />
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => { setShowForm(false); setEditAccount(null) }} className="btn-secondary">Cancel</button>

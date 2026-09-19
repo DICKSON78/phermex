@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   ChevronDown,
   Barcode,
+  Download,
 } from 'lucide-react'
 
 const CATEGORIES = ['All', 'Tablets', 'Capsules', 'Bottles', 'Inhalers', 'Creams', 'Packets']
@@ -40,6 +41,10 @@ function formatCurrency(amount) {
     currency: 'TZS',
     minimumFractionDigits: 2,
   }).format(amount)
+}
+
+function fmt(amount) {
+  return Number(amount || 0).toFixed(2)
 }
 
 export default function POSPage() {
@@ -170,6 +175,26 @@ export default function POSPage() {
   const completeSale = async () => {
     if (!canCompleteSale) return
     setProcessing(true)
+    const paymentLabel = PAYMENT_METHODS.find((m) => m.key === paymentMethod)?.label || paymentMethod || 'Cash'
+    const receiptBase = {
+      subtotal: cartSubtotal,
+      discount: discountAmount,
+      tax: taxAmount,
+      total: grandTotal,
+      items: cart.map((item) => ({
+        name: item.name,
+        qty: item.quantity,
+        price: item.price,
+        line: item.price * item.quantity,
+      })),
+      payment: paymentLabel,
+      tendered: paymentMethod === 'cash' ? tenderedAmount : grandTotal,
+      change: paymentMethod === 'cash' ? changeDue : 0,
+      customer: customer?.name || 'Walk-in Customer',
+      pharmacy: user?.current_pharmacy?.pharmacy_name || user?.currentPharmacy?.pharmacy_name || 'Helix Pharmacy',
+      cashier: user?.name || 'Cashier',
+      date: new Date().toLocaleString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    }
     try {
       const orderData = {
         items: cart.map((item) => ({
@@ -184,15 +209,33 @@ export default function POSPage() {
       }
       const res = await api.post('/orders', orderData)
       const orderCode = res.data?.order?.order_code || res.data?.order?.code || res.data?.code || `ORD-${Date.now().toString().slice(-4)}`
-      setSaleComplete({ code: orderCode, total: grandTotal, items: cart.length })
+      setSaleComplete({ ...receiptBase, code: orderCode })
       resetCart()
     } catch {
       const orderCode = `ORD-${Date.now().toString().slice(-4)}`
-      setSaleComplete({ code: orderCode, total: grandTotal, items: cart.length })
+      setSaleComplete({ ...receiptBase, code: orderCode })
       resetCart()
     } finally {
       setProcessing(false)
     }
+  }
+
+  const printReceipt = () => {
+    const el = document.getElementById('pos-receipt')
+    if (!el) return
+    const win = window.open('', '_blank', 'width=420,height=640')
+    if (!win) return
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${saleComplete?.code || ''}</title>
+<style>
+  @media print { @page { size: 80mm auto; margin: 4mm; } }
+  html, body { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', monospace; }
+</style></head><body>${el.outerHTML}</body></html>`)
+    win.document.close()
+    win.focus()
+    setTimeout(() => {
+      win.print()
+      setTimeout(() => win.close(), 200)
+    }, 250)
   }
 
   const resetCart = () => {
@@ -435,39 +478,120 @@ export default function POSPage() {
       {saleComplete && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ margin: 0, padding: 0, top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
           <div className="absolute inset-0 bg-black/50" onClick={() => { setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }} />
-          <div className="relative bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center animate-fadeIn z-10">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-primary" />
-            </div>
-            <h2 className="text-xl font-bold text-dark mb-1">Sale Complete!</h2>
-            <p className="text-sm text-gray-400 mb-4">Transaction processed successfully</p>
-            <div className="bg-gray-50 rounded-xl p-4 mb-4">
-              <p className="text-xs text-gray-400 mb-1">Order Code</p>
-              <p className="text-lg font-bold text-dark">{saleComplete.code}</p>
-              <p className="text-xs text-gray-400 mt-2">{saleComplete.items} item(s)</p>
-              <p className="text-xl font-bold text-primary">{formatCurrency(saleComplete.total)}</p>
-            </div>
-            <div className="flex gap-3">
+          <div className="relative bg-white rounded-2xl p-5 w-[92%] max-w-[340px] animate-fadeIn z-10 max-h-[92vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-dark leading-tight">Sale Complete</h2>
+                  <p className="text-[11px] text-gray-400">Transaction processed successfully</p>
+                </div>
+              </div>
               <button
-                onClick={() => {
-                  setSaleComplete(null)
-                  if (searchInputRef.current) searchInputRef.current.focus()
-                }}
-                className="btn-secondary"
+                onClick={() => { setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
+                className="text-gray-300 hover:text-gray-500 transition-colors"
               >
-                New Sale
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Receipt Preview */}
+            <div
+              id="pos-receipt"
+              className="bg-white rounded-lg border border-gray-100 px-4 py-4 mb-4"
+              style={{ fontFamily: "'Courier New', monospace", fontSize: 12, color: '#222' }}
+            >
+              {/* Header */}
+              <div style={{ textAlign: 'center', marginBottom: 10 }}>
+                <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: 1.5, margin: 0 }}>HELIX PHARMACY</p>
+                <p style={{ fontSize: 11, color: '#555', margin: 0 }}>{saleComplete.pharmacy || 'Helix Pharmacy'}</p>
+                <p style={{ fontSize: 11, color: '#555', margin: '2px 0 0' }}>{saleComplete.date || ''}</p>
+              </div>
+              <div style={{ borderTop: '1px dashed #999', borderBottom: '1px dashed #999', padding: '6px 0', marginBottom: 8, fontSize: 11, color: '#444' }}>
+                <p style={{ margin: 0 }}>Receipt No: <strong>{saleComplete.code}</strong></p>
+                <p style={{ margin: '2px 0 0' }}>Cashier: {saleComplete.cashier || '—'}</p>
+                <p style={{ margin: '2px 0 0' }}>Customer: {saleComplete.customer || 'Walk-in'}</p>
+              </div>
+
+              {/* Items */}
+              {(saleComplete.items || []).map((item, index) => (
+                <div key={index} style={{ marginBottom: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, fontSize: 11, color: '#333' }}>
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
+                    <span style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>{item.qty} x {fmt(item.price)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: '#000' }}>
+                    <span style={{ flex: 1, borderBottom: '1px dotted #ccc', minWidth: 12 }} />
+                    <span style={{ whiteSpace: 'nowrap' }}>{fmt(item.line)}</span>
+                  </div>
+                </div>
+              ))}
+              {(saleComplete.items || []).length === 0 && (
+                <p style={{ fontSize: 11, color: '#888', margin: '4px 0' }}>No items</p>
+              )}
+
+              {/* Totals */}
+              <div style={{ borderTop: '1px dashed #999', paddingTop: 8, fontSize: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                  <span>Subtotal</span><span>{fmt(saleComplete.subtotal)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                  <span>Discount</span><span>-{fmt(saleComplete.discount)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                  <span>VAT (18%)</span><span>{fmt(saleComplete.tax)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 700, color: '#000', padding: '6px 0', borderTop: '1px solid #999', borderBottom: '1px solid #999', marginTop: 4 }}>
+                  <span>TOTAL</span><span>{fmt(saleComplete.total)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555', marginTop: 6 }}>
+                  <span>Payment: {saleComplete.payment || 'Cash'}</span>
+                </div>
+                {saleComplete.payment === 'Cash' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                      <span>Tendered</span><span>{fmt(saleComplete.tendered)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                      <span>Change</span><span>{fmt(saleComplete.change)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: '#444' }}>
+                <p style={{ margin: 0, fontWeight: 700 }}>Thank you for your patronage!</p>
+                <p style={{ margin: '2px 0 0' }}>Powered by Helix Pharmacy Systems</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => { printReceipt(); setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
+                className="py-2.5 border border-gray-200 text-gray-600 rounded-lg text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1.5"
+              >
+                <Download className="w-4 h-4" />
+                Download PDF
               </button>
               <button
-                onClick={() => {
-                  setSaleComplete(null)
-                  window.print()
-                }}
-                className="flex-1 py-2.5 bg-primary rounded-lg text-sm font-semibold text-white hover:bg-[#0bc246] transition flex items-center justify-center gap-2"
+                onClick={() => { printReceipt(); setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
+                className="py-2.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-[#0bc246] transition flex items-center justify-center gap-1.5"
               >
                 <Printer className="w-4 h-4" />
                 Print Receipt
               </button>
             </div>
+            <button
+              onClick={() => { setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
+              className="w-full mt-2 py-2.5 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-50 transition"
+            >
+              New Sale
+            </button>
           </div>
         </div>
       )}

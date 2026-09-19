@@ -4,6 +4,7 @@ import api from '../../services/api'
 import {
   Check,
   CheckCircle2,
+  ChevronDown,
   Clock,
   CreditCard,
   Loader2,
@@ -15,10 +16,10 @@ import {
   X,
 } from 'lucide-react'
 
-const PLAN_ACCENTS = [
-  { badge: 'bg-emerald-500', ring: 'ring-emerald-200', check: 'text-emerald-500' },
-  { badge: 'bg-blue-500', ring: 'ring-blue-200', check: 'text-blue-500' },
-  { badge: 'bg-amber-400', ring: 'ring-amber-200', check: 'text-amber-500' },
+const PLAN_META = [
+  { key: 's', popular: false, capLabel: 'pharmacies', capValue: 'Up to 3' },
+  { key: 'p', popular: true, capLabel: 'pharmacies', capValue: 'Unlimited' },
+  { key: 'e', popular: false, capLabel: 'pharmacies', capValue: 'Unlimited' },
 ]
 
 const COLUMNS = [
@@ -27,8 +28,12 @@ const COLUMNS = [
   { key: 'e', name: 'ENTERPRISE', price: '$250/year' },
 ]
 
-function CellValue({ value, checkColor }) {
-  if (value === true) return <Check className={`w-4 h-4 mx-auto ${checkColor}`} strokeWidth={3} />
+const CHECK_COLOR = 'text-[#0FD452]'
+
+const MAX_BULLETS = 6
+
+function CellValue({ value }) {
+  if (value === true) return <Check className={`w-4 h-4 mx-auto ${CHECK_COLOR}`} strokeWidth={3} />
   if (value === false) return <span className="block w-2.5 h-px bg-gray-300 mx-auto" />
   return <span className="text-xs font-bold text-gray-700">{value}</span>
 }
@@ -38,6 +43,26 @@ function normalizePhone(phone) {
   if (p.startsWith('0')) p = '255' + p.slice(1)
   if (!p.startsWith('255')) p = '255' + p
   return p
+}
+
+function buildBullets(plan, idx, features) {
+  if (!features?.length) return []
+  const key = PLAN_META[idx]?.key || 's'
+  const lessKey = key === 'p' ? 's' : key === 'e' ? 'p' : null
+
+  const differs = []
+  const common = []
+  features.forEach((section) => {
+    section.rows.forEach((row) => {
+      if (row[key] !== true) return
+      if (lessKey && row[lessKey] === false) differs.push(row.name)
+      else common.push(row.name)
+    })
+  })
+
+  const picked = differs.slice(0, Math.min(4, MAX_BULLETS)).concat(common)
+  const chain = idx === 0 ? 'Everything you need to run a modern pharmacy:' : `Everything in ${plan.chainFrom || 'the previous plan'}, plus:`
+  return { head: chain, items: picked.slice(0, MAX_BULLETS) }
 }
 
 export default function SubscriptionPlansPage() {
@@ -306,7 +331,7 @@ export default function SubscriptionPlansPage() {
   return (
     <div className="h-[100dvh] overflow-y-auto bg-[#F5F7F5] px-4 sm:px-6 py-8 sm:py-12" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-10">
+        <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-[#0FD452] rounded-2xl mb-4">
             <Pill className="w-9 h-9 text-[#000F14]" />
           </div>
@@ -318,68 +343,118 @@ export default function SubscriptionPlansPage() {
         </div>
 
         {/* Plan cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 mb-10">
           {plans.map((plan, idx) => {
-            const accent = PLAN_ACCENTS[idx % PLAN_ACCENTS.length]
+            const meta = PLAN_META[idx] || { key: 's', popular: false, capLabel: 'pharmacies', capValue: 'Unlimited' }
+            const popular = meta.popular || plan.slug === 'professional'
+            const chainPlan = plans[idx - 1]
+            const bullets = buildBullets({ chainFrom: chainPlan?.name }, idx, matrix)
+            const capRow = matrix.flatMap((s) => s.rows).find((r) => r.name === 'Manage Multiple Pharmacies')
+            const capValue = capRow ? capRow[meta.key] : meta.capValue
             return (
-              <div
+              <article
                 key={plan.id}
-                className="relative rounded-2xl bg-white border-2 border-gray-100 p-6 flex flex-col transition-all hover:shadow-xl hover:border-[#0FD452]/40"
+                className={`relative flex flex-col rounded-2xl p-6 transition-all duration-300 ${
+                  popular
+                    ? 'bg-[#000F14] text-white shadow-2xl shadow-[#0FD452]/10 ring-1 ring-[#0FD452]/40'
+                    : 'bg-white ring-1 ring-gray-200 shadow-sm hover:shadow-xl hover:ring-[#0FD452]/50'
+                }`}
               >
-                <div className="flex items-center gap-2.5 mb-4">
-                  <span className={`w-3 h-3 rounded-full ${accent.badge} inline-block`} />
-                  <h3 className="text-xl font-extrabold text-gray-900">{plan.name}</h3>
+                {popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0FD452] px-3 py-1 text-xs font-bold text-[#000F14]">
+                    Most Popular
+                  </span>
+                )}
+                <h3 className="text-xl font-extrabold tracking-tight">{plan.name}</h3>
+                <p className={`mt-1 min-h-[2.5rem] text-sm leading-relaxed ${popular ? 'text-white/55' : 'text-gray-500'}`}>
+                  {plan.description}
+                </p>
+
+                <div className="mt-5 flex items-baseline gap-1">
+                  <span className={`text-sm font-bold ${popular ? 'text-white/55' : 'text-gray-400'}`}>
+                    {plan.currency === 'USD' ? '$' : plan.currency || ''}
+                  </span>
+                  <span className="rp-plan-price text-4xl font-black tabular-nums tracking-tight">
+                    {Number(plan.price).toLocaleString()}
+                  </span>
                 </div>
-                <div className="mb-4">
-                  <span className="text-3xl font-black text-gray-900">${Number(plan.price).toLocaleString()}</span>
-                  <span className="text-sm text-gray-400 ml-1">/ year</span>
+                <p className={`mt-1 text-sm ${popular ? 'text-white/55' : 'text-gray-400'}`}>
+                  / {plan.duration_months} month{plan.duration_months > 1 ? 's' : ''}
+                </p>
+
+                <div className={`mt-5 rounded-xl px-4 py-3 text-sm ${popular ? 'bg-white/10' : 'bg-gray-50 border border-gray-100'}`}>
+                  <span className={`font-bold tabular-nums ${popular ? 'text-[#0FD452]' : 'text-gray-900'}`}>{capValue}</span>
+                  <span className={popular ? 'text-white/55' : 'text-gray-500'}> {meta.capLabel}</span>
                 </div>
-                <p className="text-sm text-gray-400 mb-6 leading-relaxed flex-1">{plan.description}</p>
+
+                <ul className="mt-6 space-y-3 flex-1">
+                  <li className="flex items-start gap-3 text-sm font-bold">
+                    <Check className={`mt-0.5 h-4 w-4 shrink-0 ${popular ? 'text-[#0FD452]' : CHECK_COLOR}`} strokeWidth={3} />
+                    <span>{bullets.head}</span>
+                  </li>
+                  {bullets.items.map((label, fi) => (
+                    <li key={fi} className="flex items-start gap-3 text-sm">
+                      <Check className={`mt-0.5 h-4 w-4 shrink-0 ${popular ? 'text-[#0FD452]' : CHECK_COLOR}`} strokeWidth={3} />
+                      <span className={popular ? 'text-white/70' : 'text-gray-600'}>{label}</span>
+                    </li>
+                  ))}
+                </ul>
+
                 <button
                   onClick={() => openCart(plan)}
-                  className="w-full py-3 rounded-xl bg-[#0FD452] text-[#000F14] font-bold text-sm hover:bg-[#0cb843] transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                  className={`mt-8 flex items-center justify-center gap-2 w-full h-12 rounded-xl text-sm font-bold transition-all active:scale-[0.98] ${
+                    popular
+                      ? 'bg-[#0FD452] text-[#000F14] hover:bg-[#0cb843]'
+                      : 'border border-[#0FD452]/60 text-[#0FD452] hover:bg-[#0FD452] hover:text-[#000F14]'
+                  }`}
                 >
                   Choose Plan <ShoppingCart className="w-4 h-4" />
                 </button>
-              </div>
+              </article>
             )
           })}
         </div>
 
+        <p className="mx-auto max-w-3xl text-center text-sm leading-7 text-gray-500">
+          All plans are billed yearly and activated instantly via secure M-PESA payment (ClickPesa). No hidden fees —
+          upgrade or renew anytime from your dashboard.
+        </p>
+
         {/* Feature comparison matrix */}
         {matrix.length > 0 && (
-          <div className="rounded-2xl bg-white border border-gray-100 overflow-hidden">
-            <div className="p-6 sm:p-7 border-b border-gray-100">
-              <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-1">Feature</p>
-              <h2 className="text-xl sm:text-2xl font-black text-gray-900">Compare All Features</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-sm">
-                <thead>
-                  <tr className="bg-gray-50/80">
-                    <th className="text-left px-6 py-4 font-bold text-gray-800 text-xs uppercase tracking-wider w-1/2">Feature</th>
-                    {COLUMNS.map((col) => (
-                      <th key={col.key} className="px-3 py-4 text-center">
-                        <span className="text-xs font-black text-gray-900 block">{col.name}</span>
-                        <span className="text-xs text-[#0FD452] font-extrabold block mt-1">{col.price}</span>
-                      </th>
+          <details className="group mt-8 rounded-2xl bg-white ring-1 ring-gray-200 overflow-hidden">
+            <summary className="flex items-center justify-center gap-2 px-5 py-4 cursor-pointer font-extrabold text-sm text-gray-800 list-none hover:bg-gray-50">
+              Compare all features
+              <ChevronDown className="w-4 h-4 text-[#0FD452] transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="p-6 sm:p-7 border-t border-gray-100">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead>
+                    <tr className="bg-gray-50/80">
+                      <th className="text-left px-6 py-4 font-bold text-gray-800 text-xs uppercase tracking-wider w-1/2">Feature</th>
+                      {COLUMNS.map((col) => (
+                        <th key={col.key} className="px-3 py-4 text-center">
+                          <span className="text-xs font-black text-gray-900 block">{col.name}</span>
+                          <span className="text-xs text-[#0FD452] font-extrabold block mt-1">{col.price}</span>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matrix.map((section, si) => (
+                      <SectionRows
+                        key={si}
+                        section={section}
+                        sectionIndex={si}
+                        startIndex={matrix.slice(0, si).reduce((acc, s) => acc + s.rows.length, 0)}
+                      />
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {matrix.map((section, si) => (
-                    <SectionRows
-                      key={si}
-                      section={section}
-                      sectionIndex={si}
-                      accents={PLAN_ACCENTS}
-                      startIndex={matrix.slice(0, si).reduce((acc, s) => acc + s.rows.length, 0)}
-                    />
-                  ))}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          </details>
         )}
 
         {plans.length === 0 && !loading && (
@@ -392,7 +467,7 @@ export default function SubscriptionPlansPage() {
   )
 }
 
-function SectionRows({ section, sectionIndex, accents, startIndex }) {
+function SectionRows({ section, sectionIndex, startIndex }) {
   return (
     <>
       <tr>
@@ -403,9 +478,9 @@ function SectionRows({ section, sectionIndex, accents, startIndex }) {
       {section.rows.map((row, ri) => (
         <tr key={ri} className={(startIndex + ri) % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
           <td className="px-6 py-2.5 text-gray-700 font-medium">{row.name}</td>
-          {COLUMNS.map((col, ci) => (
+          {COLUMNS.map((col) => (
             <td key={col.key} className="px-3 py-2.5 text-center">
-              <CellValue value={row[col.key]} checkColor={accents[ci].check} />
+              <CellValue value={row[col.key]} />
             </td>
           ))}
         </tr>

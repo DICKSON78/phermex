@@ -404,6 +404,10 @@ export default function DashboardLayout({ role }) {
     ?? accessiblePharmacies[0]
   const currentPlan = subscription?.plan || subscription?.subscription_plan || user?.subscription?.plan || currentPharmacy?.subscription_plan || null
   const ownerExpired = role === 'owner' && subscription?.subscription_type === 'expired'
+  const currentPharmacyIsActive =
+    accessiblePharmacies.find(p => p.id === (currentPharmacy?.id ?? pharmacyId))?.is_active ??
+    currentPharmacy?.is_active ??
+    null
   const showPharmacySwitcher = role === 'owner'
 
   const navGroups = role === 'owner' ? ownerNavGroups : role === 'admin' ? adminNavGroups : sellerNavGroups
@@ -498,19 +502,27 @@ export default function DashboardLayout({ role }) {
               <p className="text-[10px] uppercase tracking-wider text-green-200/70 font-semibold">Current Pharmacy</p>
               <p className="text-sm font-semibold text-white truncate">{currentPharmacy?.pharmacy_name || 'Select Pharmacy'}</p>
             </div>
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ background: currentPharmacyIsActive ? '#0FD452' : '#F87171' }}
+              title={currentPharmacyIsActive ? 'Paid' : 'Not paid'}
+            />
             <ChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-200 ${pharmacyDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
           {pharmacyDropdownOpen && (
             <div className="absolute z-20 left-3 right-3 mt-1 rounded-xl bg-dark border border-white/10 shadow-xl overflow-hidden max-h-72 overflow-y-auto">
               {accessiblePharmacies.map((p) => {
                 const isCurrent = p.id === pharmacyId
+                const isPaid = !!p.is_active
                 return (
                   <button
                     key={p.id}
+                    disabled={isCurrent}
                     onClick={async () => {
                       if (!isCurrent) {
                         try {
                           await switchPharmacy(p.id)
+                          navigate(basePath)
                         } catch (e) {
                           // Show error handled by interceptor
                         }
@@ -521,10 +533,21 @@ export default function DashboardLayout({ role }) {
                       isCurrent ? 'bg-primary/20 text-white font-semibold' : 'text-white/70 hover:bg-white/10'
                     }`}
                   >
-                  <span className="w-2 h-2 rounded-full shrink-0"
-                        style={{ background: isCurrent ? '#0FD452' : '#ffffff30' }} />
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0 relative"
+                        style={{
+                          background: isPaid ? '#0FD452' : '#F87171',
+                          boxShadow: isCurrent && isPaid ? '0 0 0 2px rgba(15,212,82,0.4)' : 'none',
+                        }}
+                        title={isPaid ? 'Paid' : 'Not paid'} />
                   <span className="truncate">{p.pharmacy_name}</span>
-                  {isCurrent && <Check className="w-4 h-4 text-primary ml-auto shrink-0" />}
+                  <span
+                    className={`ml-auto shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      isPaid ? 'bg-[#0FD452]/15 text-[#0FD452]' : 'bg-red-500/15 text-red-400'
+                    }`}
+                  >
+                    {isPaid ? 'Paid' : 'Not Paid'}
+                  </span>
+                  {isCurrent && <Check className="w-4 h-4 text-primary shrink-0" />}
                 </button>
               )})}
               <div className="border-t border-white/10 mt-1 pt-1">

@@ -392,6 +392,7 @@ export default function DashboardLayout({ role }) {
   const [pharmacyDropdownOpen, setPharmacyDropdownOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [notifications, setNotifications] = useState(0)
+  const [badgeCounts, setBadgeCounts] = useState({})
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout, pharmacyId, switchPharmacy, subscription } = useAuth()
@@ -424,15 +425,23 @@ export default function DashboardLayout({ role }) {
 
   useEffect(() => {
     let active = true
-    const loadUnread = async () => {
+    const loadCounts = async () => {
       try {
-        const { data } = await api.get('/notifications/unread-count')
-        if (active) setNotifications(data.unread_count || 0)
+        const { data } = await api.get('/dashboard/sidebar-counts')
+        if (active) {
+          setBadgeCounts(data)
+          setNotifications(data.notifications || 0)
+        }
       } catch {
-        if (active) setNotifications(0)
+        try {
+          const { data } = await api.get('/notifications/unread-count')
+          if (active) setNotifications(data.unread_count || 0)
+        } catch {
+          if (active) setNotifications(0)
+        }
       }
     }
-    loadUnread()
+    loadCounts()
     return () => { active = false }
   }, [location.pathname])
 
@@ -460,6 +469,20 @@ export default function DashboardLayout({ role }) {
 
   const isActive = (path, exact) => {
     return exact ? location.pathname === path : (location.pathname.startsWith(path) && location.pathname !== basePath)
+  }
+
+  const badgeFor = (path) => {
+    const map = {
+      [`${basePath}/orders`]: badgeCounts.orders,
+      [`${basePath}/prescriptions`]: badgeCounts.prescriptions,
+      [`${basePath}/low-stock`]: badgeCounts.low_stock,
+      [`${basePath}/expiring-soon`]: badgeCounts.expiring,
+      [`${basePath}/deliveries`]: badgeCounts.deliveries,
+      [`${basePath}/support`]: badgeCounts.support,
+      [`${basePath}/notifications`]: badgeCounts.notifications,
+      [`${basePath}/pending-approvals`]: badgeCounts.pending_approvals,
+    }
+    return Number(map[path]) || 0
   }
 
   const userInitials = (user?.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
@@ -627,6 +650,19 @@ export default function DashboardLayout({ role }) {
                       >
                         <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? 'text-white' : ''}`} />
                         <span>{item.label}</span>
+                        {(() => {
+                          const badge = badgeFor(item.path)
+                          if (badge <= 0) return null
+                          return (
+                            <span
+                              className={`ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold ${
+                                active ? 'bg-dark text-primary' : 'bg-[#0FD452] text-[#000F14]'
+                              }`}
+                            >
+                              {badge > 99 ? '99+' : badge}
+                            </span>
+                          )
+                        })()}
                       </NavLink>
                     )
                   })}

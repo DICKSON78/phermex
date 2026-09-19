@@ -65,14 +65,22 @@ class User extends Authenticatable
 
     public function accessiblePharmacies()
     {
-        if ($this->isOwner()) {
+        $isOwner = $this->isOwner();
+
+        if ($isOwner) {
             $owned = Pharmacy::where('owner_id', $this->id)->pluck('id');
             $pivoted = $this->pharmacy()->pluck('pharmacies.id');
 
-            return Pharmacy::whereIn('id', $owned->merge($pivoted)->unique())->orderBy('pharmacy_name')->get();
+            $pharmacies = Pharmacy::whereIn('id', $owned->merge($pivoted)->unique())->orderBy('pharmacy_name')->get();
+        } else {
+            $pharmacies = $this->pharmacy()->orderBy('pharmacy_name')->get();
         }
 
-        return $this->pharmacy()->orderBy('pharmacy_name')->get();
+        return $pharmacies->map(function (Pharmacy $pharmacy) {
+            $pharmacy->is_active = $pharmacy->isActive();
+            $pharmacy->subscription_type = $pharmacy->subscriptionType();
+            return $pharmacy;
+        });
     }
 
     public function resolveCurrentPharmacyId(): ?int

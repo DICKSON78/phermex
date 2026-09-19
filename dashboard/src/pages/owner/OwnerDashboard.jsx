@@ -71,6 +71,7 @@ function OwnerDashboard() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedWeek, setSelectedWeek] = useState(0)
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -85,13 +86,19 @@ function OwnerDashboard() {
         }))
 
         const revenueBreakdown = (() => {
-          const chunkSize = Math.ceil(revenueChart.length / 4) || 1
           const colors = ['#0FD452', '#3b82f6', '#f59e0b', '#8b5cf6']
-          return Array.from({ length: 4 }, (_, i) => ({
-            name: `Week ${i + 1}`,
-            value: revenueChart.slice(i * chunkSize, (i + 1) * chunkSize).reduce((sum, d) => sum + (d.revenue || 0), 0),
-            color: colors[i],
-          }))
+          const now = new Date()
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+          const values = [0, 0, 0, 0]
+          ;(revenueChart || []).forEach((d) => {
+            const date = new Date(`${(d.day || '').slice(0, 10)}T00:00:00`)
+            if (isNaN(date)) return
+            const daysAgo = Math.floor((today - date) / 86400000)
+            if (daysAgo >= 0 && daysAgo < 28) {
+              values[Math.min(3, Math.floor(daysAgo / 7))] += d.revenue || 0
+            }
+          })
+          return values.map((value, i) => ({ name: `Week ${i + 1}`, value, color: colors[i] }))
         })()
 
         const topSellingDrugs = (apiData.top_selling_drugs || []).map((item) => ({
@@ -292,28 +299,52 @@ function OwnerDashboard() {
 
       {/* Revenue Donut */}
       <div className="card">
-        <div className="px-6 py-4 border-b border-gray-100">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <ChartIcon className="w-5 h-5 text-primary" />
             Revenue — Last 30 Days
           </h3>
+          <div className="flex items-center gap-1 rounded-full bg-gray-100 p-1">
+            <button
+              onClick={() => setSelectedWeek(0)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${selectedWeek === 0 ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
+            >
+              All
+            </button>
+            {[1, 2, 3, 4].map((n) => (
+              <button
+                key={n}
+                onClick={() => setSelectedWeek(n)}
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${selectedWeek === n ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
+              >
+                W{n}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="p-6">
+          {data.revenueBreakdown.filter((w) => w.value > 0).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+              <ChartIcon className="w-10 h-10 opacity-30 mb-2" />
+              <p className="text-sm">No revenue recorded in the last 30 days yet.</p>
+            </div>
+          ) : (
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative flex-shrink-0">
               <ResponsiveContainer width={240} height={240}>
                 <PieChart>
                   <Pie
-                    data={data.revenueBreakdown}
+                    data={data.revenueBreakdown.map((w, i) => ({ ...w, dimmed: selectedWeek !== 0 && i !== selectedWeek - 1 }))}
                     cx="50%"
                     cy="50%"
                     innerRadius={70}
                     outerRadius={105}
                     paddingAngle={4}
                     dataKey="value"
+                    stroke="none"
                   >
                     {data.revenueBreakdown.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
+                      <Cell key={index} fill={entry.color} opacity={selectedWeek !== 0 && index !== selectedWeek - 1 ? 0.25 : 1} />
                     ))}
                   </Pie>
                   <Tooltip
@@ -327,25 +358,51 @@ function OwnerDashboard() {
                   />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-xs text-gray-500">Total</p>
-                <p className="text-lg font-bold text-gray-900">{formatCurrency(data.revenueBreakdown.reduce((s, w) => s + w.value, 0))}</p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <p className="text-xs text-gray-500">{selectedWeek === 0 ? 'Total' : `Week ${selectedWeek}`}</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {formatCurrency(selectedWeek === 0 ? data.revenueBreakdown.reduce((s, w) => s + w.value, 0) : (data.revenueBreakdown[selectedWeek - 1]?.value ?? 0))}
+                </p>
+                <p className="text-[10px] text-gray-400">
+                  {selectedWeek === 0
+                    ? 'Last 30 days'
+                    : (() => {
+                        const total = data.revenueBreakdown.reduce((s, w) => s + w.value, 0)
+                        return total > 0 ? `${Math.round(((data.revenueBreakdown[selectedWeek - 1]?.value ?? 0) / total) * 100)}% of total` : ''
+                      })()}
+                </p>
               </div>
             </div>
-            <div className="flex-1 grid grid-cols-2 gap-4">
-              {data.revenueBreakdown.map((week) => (
-                <div key={week.name} className="flex items-center gap-3 rounded-xl bg-gray-50 p-4">
-                  <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: week.color + '15' }}>
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: week.color }} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">{week.name}</p>
-                    <p className="text-sm font-bold text-gray-900">{formatCurrency(week.value)}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {data.revenueBreakdown.map((week, i) => {
+                const total = data.revenueBreakdown.reduce((s, w) => s + w.value, 0)
+                const pct = total > 0 ? Math.round((week.value / total) * 100) : 0
+                const active = selectedWeek === 0 || selectedWeek === i + 1
+                return (
+                  <button
+                    key={week.name}
+                    onClick={() => setSelectedWeek(i + 1 === selectedWeek ? 0 : i + 1)}
+                    className={`text-left rounded-xl p-4 transition-all ${
+                      active ? 'bg-gray-50 border border-gray-200' : 'border border-transparent hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: week.color, opacity: active ? 1 : 0.25 }} />
+                        {week.name}
+                      </span>
+                      <span className={`text-sm font-bold ${active ? 'text-gray-900' : 'text-gray-700'}`}>{formatCurrency(week.value)}</span>
+                    </div>
+                    <div className="h-1.5 mt-2.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: week.color, opacity: active ? 1 : 0.25 }} />
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1.5">{pct}% of total</p>
+                  </button>
+                )
+              })}
             </div>
           </div>
+          )}
         </div>
       </div>
 

@@ -91,6 +91,9 @@ Route::get('/jobs', [JobController::class, 'index']);
 Route::get('/jobs/{id}', [JobController::class, 'show']);
 Route::post('/jobs/{id}/apply', [JobController::class, 'apply']);
 
+// Public subscription plans — visible on /subscribe without login and for the marketing site.
+Route::get('/subscriptions/plans', [SubscriptionController::class, 'plans']);
+
 Route::prefix('customer-app')->group(function () {
     Route::post('/register', [CustomerAppController::class, 'register'])->middleware('throttle:5,1');
     Route::post('/login', [CustomerAppController::class, 'login'])->middleware('throttle:10,1');
@@ -581,7 +584,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('subscriptions')->group(function () {
-        Route::get('/plans', [SubscriptionController::class, 'plans']);
         Route::get('/status', [SubscriptionController::class, 'status']);
         Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
         Route::post('/checkout', [SubscriptionController::class, 'checkout']);

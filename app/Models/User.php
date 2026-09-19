@@ -29,6 +29,8 @@ class User extends Authenticatable
         'is_active',
         'is_verified',
         'current_pharmacy_id',
+        'language',
+        'notification_preferences',
         'password',
     ];
 
@@ -42,6 +44,7 @@ class User extends Authenticatable
         'is_active' => 'boolean',
         'is_verified' => 'boolean',
         'password' => 'hashed',
+        'notification_preferences' => 'array',
     ];
 
     public static function generateUserCode(): string

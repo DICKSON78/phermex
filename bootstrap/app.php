@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AutoScopePharmacy;
+use App\Http\Middleware\EnsurePlanAccess;
 use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\PharmacyScopeMiddleware;
 use App\Http\Middleware\RoleMiddleware;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'pharmacy.scope' => PharmacyScopeMiddleware::class,
             'auto.scope' => AutoScopePharmacy::class,
             'subscription.active' => EnsureSubscriptionActive::class,
+            'plan' => EnsurePlanAccess::class,
         ]);
 
         $middleware->statefulApi();

@@ -47,13 +47,20 @@ class PharmacyController extends Controller
             }
 
             $existingCount = Pharmacy::where('owner_id', $user->id)->count();
+            // Trial and starter get 3 pharmacies, professional/enterprise unlimited,
+            // owners without a plan (legacy) get 1 until they subscribe.
             $cap = 1;
             $ownerPlan = \App\Models\Subscription::whereIn('pharmacy_id', $user->accessiblePharmacyIds())
                 ->latest('id')
                 ->value('plan');
-            if (in_array($ownerPlan, ['professional', 'enterprise'], true)) {
+            // Also check the pharmacy's own plan slug or trial window
+            if (!$ownerPlan) {
+                $currentPharmacy = $user->resolveCurrentPharmacyId() ? \App\Models\Pharmacy::find($user->resolveCurrentPharmacyId()) : null;
+                $ownerPlan = $currentPharmacy?->subscriptionPlan?->slug ?? ($currentPharmacy?->trial_ends_at?->isFuture() ? 'trial' : null);
+            }
+            if (in_array($ownerPlan, ['professional', 'enterprise', 'pro'], true)) {
                 $cap = PHP_INT_MAX;
-            } elseif ($ownerPlan === 'starter') {
+            } elseif (in_array($ownerPlan, ['starter', 'trial'], true)) {
                 $cap = 3;
             }
 

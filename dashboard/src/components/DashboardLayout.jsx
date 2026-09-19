@@ -47,6 +47,7 @@ import {
   Video,
   Gift,
   ShieldCheck,
+  Lock,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -83,6 +84,7 @@ import PatientInsurancesPage from '../pages/owner/PatientInsurancesPage'
 import InsuranceClaimsPage from '../pages/owner/InsuranceClaimsPage'
 import ConsolidatedFinancialReportPage from '../pages/owner/ConsolidatedFinancialReportPage'
 import PlanGate from '../components/PlanGate'
+import { hasPlanAccess, requiredPlanForPath, PLAN_LABELS } from '../utils/planConfig'
 
 import SupplierListPage from '../pages/owner/SupplierListPage'
 import SupplierDetailPage from '../pages/owner/SupplierDetailPage'
@@ -180,18 +182,18 @@ const ownerNavGroups = [
       { path: '/dashboard/orders', icon: ClipboardList, label: 'Orders' },
       { path: '/dashboard/prescriptions', icon: FileText, label: 'Prescriptions' },
       { path: '/dashboard/customers', icon: Users, label: 'Customers' },
-      { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages' },
-      { path: '/dashboard/reviews', icon: Star, label: 'Reviews' },
-      { path: '/dashboard/telemedicine', icon: Video, label: 'Telemedicine' },
-      { path: '/dashboard/loyalty', icon: Gift, label: 'Loyalty Program' },
+      { path: '/dashboard/chats', icon: MessageCircle, label: 'Messages', requiredPlan: 'professional' },
+      { path: '/dashboard/reviews', icon: Star, label: 'Reviews', requiredPlan: 'professional' },
+      { path: '/dashboard/telemedicine', icon: Video, label: 'Telemedicine', requiredPlan: 'professional' },
+      { path: '/dashboard/loyalty', icon: Gift, label: 'Loyalty Program', requiredPlan: 'professional' },
     ],
   },
   {
     label: 'INSURANCE',
     items: [
-      { path: '/dashboard/insurance/providers', icon: ShieldCheck, label: 'Insurance Providers' },
-      { path: '/dashboard/insurance/patients', icon: ShieldCheck, label: 'Patient Insurance' },
-      { path: '/dashboard/insurance/claims', icon: ShieldCheck, label: 'Claims' },
+      { path: '/dashboard/insurance/providers', icon: ShieldCheck, label: 'Insurance Providers', requiredPlan: 'professional' },
+      { path: '/dashboard/insurance/patients', icon: ShieldCheck, label: 'Patient Insurance', requiredPlan: 'professional' },
+      { path: '/dashboard/insurance/claims', icon: ShieldCheck, label: 'Claims', requiredPlan: 'professional' },
     ],
   },
   {
@@ -204,29 +206,29 @@ const ownerNavGroups = [
   {
     label: 'ACCOUNTING',
     items: [
-      { path: '/dashboard/chart-of-accounts', icon: BookOpen, label: 'Chart of Accounts' },
-      { path: '/dashboard/journal-entries', icon: FileText, label: 'Journal Entries' },
-      { path: '/dashboard/bank-management', icon: Building2, label: 'Bank Management' },
-      { path: '/dashboard/budgets', icon: DollarSign, label: 'Budgets' },
-      { path: '/dashboard/tax-management', icon: Receipt, label: 'Tax Management' },
-      { path: '/dashboard/financial-reports', icon: BarChart3, label: 'Financial Reports' },
-      { path: '/dashboard/consolidated-reports', icon: BarChart3, label: 'Consolidated Reports' },
+      { path: '/dashboard/chart-of-accounts', icon: BookOpen, label: 'Chart of Accounts', requiredPlan: 'professional' },
+      { path: '/dashboard/journal-entries', icon: FileText, label: 'Journal Entries', requiredPlan: 'professional' },
+      { path: '/dashboard/bank-management', icon: Building2, label: 'Bank Management', requiredPlan: 'professional' },
+      { path: '/dashboard/budgets', icon: DollarSign, label: 'Budgets', requiredPlan: 'professional' },
+      { path: '/dashboard/tax-management', icon: Receipt, label: 'Tax Management', requiredPlan: 'professional' },
+      { path: '/dashboard/financial-reports', icon: BarChart3, label: 'Financial Reports', requiredPlan: 'professional' },
+      { path: '/dashboard/consolidated-reports', icon: BarChart3, label: 'Consolidated Reports', requiredPlan: 'enterprise' },
     ],
   },
   {
     label: 'HR / TEAM',
     items: [
       { path: '/dashboard/employees', icon: Users, label: 'Employees' },
-      { path: '/dashboard/attendance', icon: Clock, label: 'Attendance' },
-      { path: '/dashboard/leaves', icon: FileText, label: 'Leaves' },
-      { path: '/dashboard/payroll', icon: DollarSign, label: 'Payroll' },
-      { path: '/dashboard/performance', icon: BarChart3, label: 'Performance' },
+      { path: '/dashboard/attendance', icon: Clock, label: 'Attendance', requiredPlan: 'professional' },
+      { path: '/dashboard/leaves', icon: FileText, label: 'Leaves', requiredPlan: 'professional' },
+      { path: '/dashboard/payroll', icon: DollarSign, label: 'Payroll', requiredPlan: 'professional' },
+      { path: '/dashboard/performance', icon: BarChart3, label: 'Performance', requiredPlan: 'enterprise' },
     ],
   },
   {
     label: 'DELIVERIES',
     items: [
-      { path: '/dashboard/deliveries', icon: Truck, label: 'Deliveries' },
+      { path: '/dashboard/deliveries', icon: Truck, label: 'Deliveries', requiredPlan: 'professional' },
     ],
   },
   {
@@ -235,18 +237,18 @@ const ownerNavGroups = [
       { path: '/dashboard/suppliers', icon: Users, label: 'Suppliers' },
       { path: '/dashboard/purchase-orders', icon: ShoppingCart, label: 'Purchase Orders' },
       { path: '/dashboard/goods-received', icon: Package, label: 'Goods Received' },
-      { path: '/dashboard/stock-transfers', icon: Truck, label: 'Stock Transfers' },
-      { path: '/dashboard/stock-returns', icon: RotateCcw, label: 'Stock Returns' },
-      { path: '/dashboard/damaged-goods', icon: AlertTriangle, label: 'Damaged Goods' },
+      { path: '/dashboard/stock-transfers', icon: Truck, label: 'Stock Transfers', requiredPlan: 'professional' },
+      { path: '/dashboard/stock-returns', icon: RotateCcw, label: 'Stock Returns', requiredPlan: 'professional' },
+      { path: '/dashboard/damaged-goods', icon: AlertTriangle, label: 'Damaged Goods', requiredPlan: 'professional' },
     ],
   },
   {
     label: 'COMPLIANCE',
     items: [
-      { path: '/dashboard/controlled-substances', icon: ShieldAlert, label: 'Controlled Substances' },
-      { path: '/dashboard/licenses', icon: BadgeCheck, label: 'Licenses' },
-      { path: '/dashboard/drug-recalls', icon: BadgeAlert, label: 'Drug Recalls' },
-      { path: '/dashboard/regulatory-reports', icon: FileCheck, label: 'Regulatory Reports' },
+      { path: '/dashboard/controlled-substances', icon: ShieldAlert, label: 'Controlled Substances', requiredPlan: 'professional' },
+      { path: '/dashboard/licenses', icon: BadgeCheck, label: 'Licenses', requiredPlan: 'professional' },
+      { path: '/dashboard/drug-recalls', icon: BadgeAlert, label: 'Drug Recalls', requiredPlan: 'professional' },
+      { path: '/dashboard/regulatory-reports', icon: FileCheck, label: 'Regulatory Reports', requiredPlan: 'enterprise' },
     ],
   },
   {
@@ -325,6 +327,12 @@ const adminNavGroups = [
       { path: '/dashboard/settings', icon: Settings, label: 'Platform Settings' },
     ],
   },
+  {
+    label: 'NOTIFICATIONS',
+    items: [
+      { path: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
+    ],
+  },
 ]
 
 const sellerNavGroups = [
@@ -385,7 +393,7 @@ export default function DashboardLayout({ role }) {
   const [notifications, setNotifications] = useState(0)
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, logout, pharmacyId, switchPharmacy } = useAuth()
+  const { user, logout, pharmacyId, switchPharmacy, subscription } = useAuth()
 
   const accessiblePharmacies = user?.accessible_pharmacies && user.accessible_pharmacies.length > 0
     ? user.accessible_pharmacies
@@ -393,6 +401,7 @@ export default function DashboardLayout({ role }) {
   const currentPharmacy = user?.current_pharmacy ?? user?.currentPharmacy
     ?? accessiblePharmacies.find(p => p.id === pharmacyId)
     ?? accessiblePharmacies[0]
+  const currentPlan = subscription?.plan || subscription?.subscription_plan || user?.subscription?.plan || currentPharmacy?.subscription_plan || null
   const showPharmacySwitcher = role === 'owner'
 
   const navGroups = role === 'owner' ? ownerNavGroups : role === 'admin' ? adminNavGroups : sellerNavGroups
@@ -553,6 +562,26 @@ export default function DashboardLayout({ role }) {
                   {group.items.map((item) => {
                     const Icon = item.icon
                     const active = isActive(item.path, item.exact)
+                    const required = item.requiredPlan || requiredPlanForPath(item.path)
+                    const locked = !!required && !hasPlanAccess(currentPlan, required)
+                    if (locked) {
+                      const label = PLAN_LABELS[required] || required
+                      return (
+                        <Link
+                          key={item.path}
+                          to="/subscribe"
+                          onClick={() => setSidebarOpen(false)}
+                          title={`${item.label} — requires ${label}`}
+                          className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/40 hover:text-white/70 hover:bg-white/5 transition-all duration-200"
+                        >
+                          <Icon className="w-[18px] h-[18px] shrink-0 opacity-60" />
+                          <span>{item.label}</span>
+                          <span className="ml-auto flex items-center gap-1 text-[10px] font-bold bg-white/10 px-1.5 py-0.5 rounded">
+                            <Lock className="w-3 h-3" /> {label}
+                          </span>
+                        </Link>
+                      )
+                    }
                     return (
                       <NavLink
                         key={item.path}
@@ -762,49 +791,48 @@ export default function DashboardLayout({ role }) {
               <Route path="expenses/new" element={<ExpenseFormPage />} />
               <Route path="expenses/:id/edit" element={<ExpenseFormPage />} />
               <Route path="reports" element={<ReportsPage />} />
-              <Route path="chart-of-accounts" element={<ChartOfAccountsPage />} />
-              <Route path="journal-entries" element={<JournalEntriesPage />} />
-              <Route path="bank-management" element={<BankManagementPage />} />
-              <Route path="budgets" element={<BudgetPage />} />
-              <Route path="tax-management" element={<TaxManagementPage />} />
+              <Route path="chart-of-accounts" element={<PlanGate requiredPlan="professional"><ChartOfAccountsPage /></PlanGate>} />
+              <Route path="journal-entries" element={<PlanGate requiredPlan="professional"><JournalEntriesPage /></PlanGate>} />
+              <Route path="bank-management" element={<PlanGate requiredPlan="professional"><BankManagementPage /></PlanGate>} />
+              <Route path="budgets" element={<PlanGate requiredPlan="professional"><BudgetPage /></PlanGate>} />
+              <Route path="tax-management" element={<PlanGate requiredPlan="professional"><TaxManagementPage /></PlanGate>} />
               <Route path="financial-reports" element={<PlanGate requiredPlan="professional"><FinancialReportsPage /></PlanGate>} />
-              <Route path="consolidated-reports" element={<PlanGate requiredPlan="professional"><ConsolidatedFinancialReportPage /></PlanGate>} />
+              <Route path="consolidated-reports" element={<PlanGate requiredPlan="enterprise"><ConsolidatedFinancialReportPage /></PlanGate>} />
               <Route path="employees" element={<EmployeeListPage />} />
               <Route path="employees/new" element={<EmployeeFormPage />} />
               <Route path="employees/:id" element={<EmployeeDetailPage />} />
               <Route path="employees/:id/edit" element={<EmployeeFormPage />} />
-              <Route path="attendance" element={<AttendancePage />} />
-              <Route path="leaves" element={<LeavePage />} />
-              <Route path="payroll" element={<PayrollPage />} />
-              <Route path="performance" element={<PerformancePage />} />
-              <Route path="deliveries" element={<DeliveryListPage />} />
+              <Route path="attendance" element={<PlanGate requiredPlan="professional"><AttendancePage /></PlanGate>} />
+              <Route path="leaves" element={<PlanGate requiredPlan="professional"><LeavePage /></PlanGate>} />
+              <Route path="payroll" element={<PlanGate requiredPlan="professional"><PayrollPage /></PlanGate>} />
+              <Route path="performance" element={<PlanGate requiredPlan="enterprise"><PerformancePage /></PlanGate>} />
+              <Route path="deliveries" element={<PlanGate requiredPlan="professional"><DeliveryListPage /></PlanGate>} />
               <Route path="suppliers" element={<SupplierListPage />} />
               <Route path="suppliers/:id" element={<SupplierDetailPage />} />
               <Route path="purchase-orders" element={<PurchaseOrderListPage />} />
               <Route path="purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
               <Route path="goods-received" element={<GoodsReceivedPage />} />
-              <Route path="stock-transfers" element={<StockTransferPage />} />
-              <Route path="stock-returns" element={<StockReturnsPage />} />
-              <Route path="damaged-goods" element={<DamagedGoodsPage />} />
-              <Route path="controlled-substances" element={<ControlledSubstancePage />} />
-              <Route path="licenses" element={<LicenseManagementPage />} />
-              <Route path="drug-recalls" element={<DrugRecallPage />} />
-              <Route path="regulatory-reports" element={<RegulatoryReportsPage />} />
+              <Route path="stock-returns" element={<PlanGate requiredPlan="professional"><StockReturnsPage /></PlanGate>} />
+              <Route path="damaged-goods" element={<PlanGate requiredPlan="professional"><DamagedGoodsPage /></PlanGate>} />
+              <Route path="controlled-substances" element={<PlanGate requiredPlan="professional"><ControlledSubstancePage /></PlanGate>} />
+              <Route path="licenses" element={<PlanGate requiredPlan="professional"><LicenseManagementPage /></PlanGate>} />
+              <Route path="drug-recalls" element={<PlanGate requiredPlan="professional"><DrugRecallPage /></PlanGate>} />
+              <Route path="regulatory-reports" element={<PlanGate requiredPlan="enterprise"><RegulatoryReportsPage /></PlanGate>} />
               <Route path="barcode" element={<BarcodePage />} />
               <Route path="export" element={<ExportPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="reviews" element={<PharmacyReviewsPage />} />
+              <Route path="reviews" element={<PlanGate requiredPlan="professional"><PharmacyReviewsPage /></PlanGate>} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="settings/pharmacies/new" element={<AddPharmacyPage />} />
               <Route path="subscriptions" element={<SubscriptionsPage />} />
-              <Route path="chats" element={<PharmacyChatListPage />} />
-              <Route path="chats/:customerId" element={<PharmacyChatPage />} />
-              <Route path="telemedicine" element={<TelemedicinePage />} />
-              <Route path="loyalty" element={<LoyaltyPage />} />
-              <Route path="insurance/providers" element={<InsuranceProvidersPage />} />
-              <Route path="insurance/patients" element={<PatientInsurancesPage />} />
-              <Route path="insurance/claims" element={<InsuranceClaimsPage />} />
+              <Route path="chats" element={<PlanGate requiredPlan="professional"><PharmacyChatListPage /></PlanGate>} />
+              <Route path="chats/:customerId" element={<PlanGate requiredPlan="professional"><PharmacyChatPage /></PlanGate>} />
+              <Route path="telemedicine" element={<PlanGate requiredPlan="professional"><TelemedicinePage /></PlanGate>} />
+              <Route path="loyalty" element={<PlanGate requiredPlan="professional"><LoyaltyPage /></PlanGate>} />
+              <Route path="insurance/providers" element={<PlanGate requiredPlan="professional"><InsuranceProvidersPage /></PlanGate>} />
+              <Route path="insurance/patients" element={<PlanGate requiredPlan="professional"><PatientInsurancesPage /></PlanGate>} />
+              <Route path="insurance/claims" element={<PlanGate requiredPlan="professional"><InsuranceClaimsPage /></PlanGate>} />
               <Route path="support" element={<OwnerSupportPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
@@ -856,6 +884,7 @@ export default function DashboardLayout({ role }) {
               <Route path="audit-logs" element={<AdminAuditLogsPage />} />
               <Route path="platform-settings" element={<AdminPlatformSettingsPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="pharmacies/new" element={<AdminPharmacyFormPage />} />
               <Route path="pharmacies/:id" element={<AdminPharmacyShowPage />} />
               <Route path="pharmacies/:id/approval" element={<AdminPharmacyApprovalPage />} />

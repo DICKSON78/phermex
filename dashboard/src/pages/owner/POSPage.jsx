@@ -693,8 +693,8 @@ export default function POSPage() {
 
               {/* QR Code */}
               {receiptQr && (
-                <div style={{ textAlign: 'center', marginTop: 12 }}>
-                  <img src={receiptQr} alt="QR Code" style={{ width: 94, height: 94 }} />
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+                  <img src={receiptQr} alt="QR Code" style={{ width: 94, height: 94, display: 'block' }} />
                   <p style={{ margin: '2px 0 0', fontSize: 9, color: '#888' }}>Scan to verify</p>
                 </div>
               )}

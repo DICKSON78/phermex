@@ -8,16 +8,28 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+node_modules/
+vendor/
 dist
 dist-ssr
+dist/
 *.local
 
 # Environment files
 .env
-.env.local
 .env.*.local
+.env.backup
 !.env.example
 !.env.production
+
+# Laravel runtime output
+public/website/
+storage/*.key
+storage/framework/sessions/*
+storage/framework/cache/*
+storage/framework/views/*
+storage/logs/*
+!storage/.gitkeep
 
 # Editor directories and files
 .vscode/*

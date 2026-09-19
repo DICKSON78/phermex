@@ -1,0 +1,591 @@
+<?php
+
+use App\Http\Controllers\Api\AccountController;
+use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\AdminContentController;
+use App\Http\Controllers\Api\AdminDrugDatabaseController;
+use App\Http\Controllers\Api\AdminReportController;
+use App\Http\Controllers\Api\AdminRevenueController;
+use App\Http\Controllers\Api\AdminSettingController;
+use App\Http\Controllers\Api\AdminSubscriptionController;
+use App\Http\Controllers\Api\AdminSupportController;
+use App\Http\Controllers\Api\AdminUserController;
+use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BankController;
+use App\Http\Controllers\Api\BroadcastController;
+use App\Http\Controllers\Api\BudgetController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\TelemedicineController;
+use App\Http\Controllers\Api\CustomerAppController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DrugController;
+use App\Http\Controllers\Api\DrugMovementController;
+use App\Http\Middleware\AutoScopePharmacy;
+use App\Http\Middleware\EnsureSubscriptionActive;
+use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\PharmacistController;
+use App\Http\Controllers\Api\JournalController;
+use App\Http\Controllers\Api\LeaveController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PayrollController;
+use App\Http\Controllers\Api\PerformanceController;
+use App\Http\Controllers\Api\PharmacyController;
+use App\Http\Controllers\Api\PharmacyReviewController;
+use App\Http\Controllers\Api\PrescriptionController;
+use App\Http\Controllers\Api\TaxController;
+use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\PurchaseOrderController;
+use App\Http\Controllers\Api\GoodsReceivedController;
+use App\Http\Controllers\Api\StockTransferController;
+use App\Http\Controllers\Api\StockReturnController;
+use App\Http\Controllers\Api\DamagedGoodsController;
+use App\Http\Controllers\Api\ControlledSubstanceController;
+use App\Http\Controllers\Api\LicenseController;
+use App\Http\Controllers\Api\RegulatoryReportController;
+use App\Http\Controllers\Api\DrugRecallController;
+use App\Http\Controllers\Api\DemoRequestController;
+use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\InsuranceController;
+use App\Http\Controllers\Api\LoyaltyController;
+use App\Http\Controllers\Api\AdminJobController;
+use App\Http\Controllers\Api\AdminMarketingController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\UploadController;
+use App\Http\Controllers\Api\SubscriptionController;
+use App\Http\Controllers\Api\ExpenseController;
+use App\Http\Controllers\Api\DeliveryController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Middleware\PharmacyScopeMiddleware;
+use App\Http\Middleware\RoleMiddleware;
+use Illuminate\Support\Facades\Route;
+
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/forgot-password', [PasswordResetController::class, 'sendCode'])->middleware('throttle:5,1');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:5,1');
+Route::post('/demo-requests', [DemoRequestController::class, 'store']);
+
+Route::post('/contact', function (\Illuminate\Http\Request $request) {
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'subject' => 'required|string|max:255',
+        'message' => 'required|string|max:5000',
+    ]);
+    \App\Models\DemoRequest::create([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'phone' => '',
+        'service' => $validated['subject'],
+        'message' => $validated['message'],
+    ]);
+    return response()->json(['message' => 'Message sent successfully! We will get back to you within 24 hours.']);
+});
+
+Route::get('/jobs', [JobController::class, 'index']);
+Route::get('/jobs/{id}', [JobController::class, 'show']);
+Route::post('/jobs/{id}/apply', [JobController::class, 'apply']);
+
+Route::prefix('customer-app')->group(function () {
+    Route::post('/register', [CustomerAppController::class, 'register'])->middleware('throttle:5,1');
+    Route::post('/login', [CustomerAppController::class, 'login'])->middleware('throttle:10,1');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendCode'])->middleware('throttle:5,1');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:5,1');
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/upload', [UploadController::class, 'store']);
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/user', [AuthController::class, 'me']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/user/password', [AuthController::class, 'changePassword']);
+
+        Route::post('/email/verify/send', [App\Http\Controllers\Api\VerifyEmailController::class, 'send'])->middleware('throttle:3,1');
+    Route::post('/email/verify', [App\Http\Controllers\Api\VerifyEmailController::class, 'verify']);
+
+    Route::prefix('customer-app')->group(function () {
+        Route::get('/me', [CustomerAppController::class, 'me']);
+        Route::put('/me', [CustomerAppController::class, 'updateProfile']);
+        Route::get('/nearby', [CustomerAppController::class, 'nearbyPharmacies']);
+        Route::get('/pharmacies/{id}', [CustomerAppController::class, 'pharmacyDetail']);
+        Route::get('/pharmacies/{id}/drugs', [CustomerAppController::class, 'pharmacyDrugs']);
+        Route::get('/pharmacies/{id}/categories', [CustomerAppController::class, 'pharmacyCategories']);
+        Route::get('/pharmacies/{id}/reviews', [PharmacyReviewController::class, 'index']);
+        Route::post('/pharmacies/{id}/reviews', [PharmacyReviewController::class, 'store']);
+        Route::get('/broadcasts', [BroadcastController::class, 'customerBroadcasts']);
+        Route::post('/orders', [CustomerAppController::class, 'placeOrder']);
+        Route::get('/orders', [CustomerAppController::class, 'myOrders']);
+        Route::get('/orders/{id}', [CustomerAppController::class, 'orderDetail']);
+        Route::post('/orders/{id}/cancel', [CustomerAppController::class, 'cancelOrder']);
+        Route::post('/prescriptions', [CustomerAppController::class, 'uploadPrescription']);
+        Route::get('/prescriptions', [CustomerAppController::class, 'myPrescriptions']);
+
+        Route::get('/notifications/unread-count', [CustomerAppController::class, 'unreadNotificationCount']);
+        Route::get('/notifications', [CustomerAppController::class, 'myNotifications']);
+        Route::put('/notifications/read-all', [CustomerAppController::class, 'markAllNotificationsRead']);
+        Route::put('/notifications/{id}/read', [CustomerAppController::class, 'markNotificationRead']);
+
+        Route::get('/chats', [ChatController::class, 'customerConversations']);
+        Route::get('/chats/{pharmacyId}', [ChatController::class, 'customerMessages']);
+        Route::post('/chats/{pharmacyId}', [ChatController::class, 'customerSend']);
+        Route::put('/chats/{pharmacyId}/read', [ChatController::class, 'customerMarkRead']);
+
+        Route::post('/telemedicine/request', [TelemedicineController::class, 'requestConsult']);
+        Route::post('/telemedicine/book', [TelemedicineController::class, 'bookConsult']);
+        Route::get('/telemedicine/active', [TelemedicineController::class, 'activeConsult']);
+        Route::get('/telemedicine/appointments', [TelemedicineController::class, 'appointments']);
+        Route::get('/telemedicine/schedule', [TelemedicineController::class, 'scheduleSlots']);
+        Route::post('/telemedicine/{id}/cancel', [TelemedicineController::class, 'cancelConsult']);
+
+        Route::get('/loyalty', [LoyaltyController::class, 'myLoyalty']);
+
+        Route::post('/chatbot', [ChatbotController::class, 'respond']);
+
+        Route::get('/insurance', [InsuranceController::class, 'myInsurance']);
+        Route::get('/insurance/providers', [InsuranceController::class, 'availableProviders']);
+        Route::post('/insurance', [InsuranceController::class, 'storeMyInsurance']);
+        Route::delete('/insurance/{id}', [InsuranceController::class, 'destroyMyInsurance']);
+
+        Route::get('/support', [CustomerAppController::class, 'mySupportTickets']);
+        Route::post('/support', [CustomerAppController::class, 'createSupportTicket']);
+        Route::post('/support/{id}/reply', [CustomerAppController::class, 'replySupportTicket']);
+        Route::post('/payments/device-token', [PaymentController::class, 'registerDeviceToken']);
+        Route::get('/payments/{order_id}/status', [PaymentController::class, 'queryPaymentStatus']);
+    });
+
+    Route::post('/payments/webhook', [PaymentController::class, 'handleWebhook']);
+
+    Route::middleware([EnsureSubscriptionActive::class, AutoScopePharmacy::class, PharmacyScopeMiddleware::class])->group(function () {
+        Route::get('/pharmacies', [PharmacyController::class, 'index']);
+        Route::post('/pharmacies', [PharmacyController::class, 'store']);
+        Route::post('/pharmacies/{id}/switch', [PharmacyController::class, 'switchPharmacy']);
+        Route::get('/pharmacies/current', [PharmacyController::class, 'current']);
+        Route::get('/pharmacies/{pharmacy}', [PharmacyController::class, 'show']);
+        Route::put('/pharmacies/{pharmacy}', [PharmacyController::class, 'update']);
+        Route::get('/pharmacies/{pharmacy}/stats', [PharmacyController::class, 'stats']);
+        Route::get('/pharmacies/{pharmacy}/reviews', [PharmacyReviewController::class, 'pharmacyReviews']);
+        Route::get('/broadcasts', [BroadcastController::class, 'pharmacyBroadcasts']);
+
+        Route::get('/drugs/search', [DrugController::class, 'search']);
+        Route::get('/drug-categories', [DrugController::class, 'categories']);
+        Route::get('/drugs', [DrugController::class, 'index']);
+        Route::get('/drugs/{pharmacyId}/low-stock', [DrugController::class, 'lowStock']);
+        Route::get('/drugs/{pharmacyId}/expiring-soon', [DrugController::class, 'expiringSoon']);
+        Route::get('/drugs/{id}', [DrugController::class, 'show']);
+
+        // Inventory writes are limited to owners and pharmacists —
+        // cashiers/delivery staff keep read + POS access only.
+        Route::middleware('role:owner,pharmacist')->group(function () {
+            Route::post('/drugs', [DrugController::class, 'store']);
+            Route::put('/drugs/{id}', [DrugController::class, 'update']);
+            Route::delete('/drugs/{id}', [DrugController::class, 'destroy']);
+            Route::post('/drug-categories', [DrugController::class, 'storeCategory']);
+            Route::put('/drug-categories/{id}', [DrugController::class, 'updateCategory']);
+            Route::delete('/drug-categories/{id}', [DrugController::class, 'destroyCategory']);
+        });
+
+        Route::get('/drug-movements', [DrugMovementController::class, 'index']);
+        Route::post('/drug-movements', [DrugMovementController::class, 'store'])->middleware('role:owner,pharmacist');
+        Route::get('/drug-movements/{id}', [DrugMovementController::class, 'show']);
+        Route::get('/drug-movements/monthly-summary', [DrugMovementController::class, 'monthlySummary']);
+
+        Route::get('/orders/daily-report/{pharmacyId}', [OrderController::class, 'dailyReport'])->middleware('role:owner,pharmacist');
+        Route::get('/orders', [OrderController::class, 'index']);
+        Route::post('/orders', [OrderController::class, 'store']);
+        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->middleware('role:owner,pharmacist');
+        Route::get('/orders/{id}', [OrderController::class, 'show']);
+
+        Route::get('/prescriptions/search-by-doctor', [PrescriptionController::class, 'searchByDoctor']);
+        Route::get('/prescriptions', [PrescriptionController::class, 'index']);
+        Route::post('/prescriptions', [PrescriptionController::class, 'store']);
+        Route::post('/prescriptions/{id}/dispense', [PrescriptionController::class, 'dispense']);
+        Route::post('/prescriptions/{id}/process', [PrescriptionController::class, 'process']);
+        Route::post('/prescriptions/{id}/cancel', [PrescriptionController::class, 'cancel']);
+        Route::get('/prescriptions/{id}', [PrescriptionController::class, 'show']);
+
+        Route::get('/customers', [CustomerController::class, 'index']);
+        Route::post('/customers', [CustomerController::class, 'store']);
+        Route::get('/customers/{id}/purchase-history', [CustomerController::class, 'purchaseHistory']);
+        Route::get('/customers/{id}/prescriptions', [CustomerController::class, 'prescriptions']);
+        Route::get('/customers/{id}', [CustomerController::class, 'show']);
+        Route::put('/customers/{id}', [CustomerController::class, 'update']);
+        Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+
+        Route::get('/loyalty/settings', [LoyaltyController::class, 'settings']);
+        Route::put('/loyalty/settings', [LoyaltyController::class, 'updateSettings']);
+        Route::get('/loyalty/members', [LoyaltyController::class, 'members']);
+        Route::get('/loyalty/customers/{customerUserId}/transactions', [LoyaltyController::class, 'transactions']);
+        Route::post('/loyalty/adjust', [LoyaltyController::class, 'adjust']);
+        Route::post('/loyalty/redeem', [LoyaltyController::class, 'redeem']);
+
+        Route::get('/insurance/stats', [InsuranceController::class, 'stats']);
+        Route::get('/insurance/providers', [InsuranceController::class, 'providers']);
+        Route::post('/insurance/providers', [InsuranceController::class, 'storeProvider'])->middleware('role:owner,pharmacist');
+        Route::put('/insurance/providers/{id}', [InsuranceController::class, 'updateProvider'])->middleware('role:owner,pharmacist');
+        Route::delete('/insurance/providers/{id}', [InsuranceController::class, 'destroyProvider'])->middleware('role:owner,pharmacist');
+        Route::get('/insurance/patients', [InsuranceController::class, 'patients']);
+        Route::get('/insurance/users/search', [InsuranceController::class, 'searchUsers']);
+        Route::post('/insurance/patients', [InsuranceController::class, 'storePatient'])->middleware('role:owner,pharmacist');
+        Route::put('/insurance/patients/{id}', [InsuranceController::class, 'updatePatient'])->middleware('role:owner,pharmacist');
+        Route::delete('/insurance/patients/{id}', [InsuranceController::class, 'destroyPatient'])->middleware('role:owner,pharmacist');
+        Route::get('/insurance/claims', [InsuranceController::class, 'claims']);
+        Route::post('/insurance/claims', [InsuranceController::class, 'storeClaim'])->middleware('role:owner,pharmacist');
+        Route::put('/insurance/claims/{id}', [InsuranceController::class, 'updateClaim'])->middleware('role:owner,pharmacist');
+        Route::get('/insurance/claims/{id}', [InsuranceController::class, 'showClaim']);
+
+        Route::get('/employees/stats', [EmployeeController::class, 'getStats']);
+        Route::patch('/employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);
+        Route::get('/employees', [EmployeeController::class, 'index']);
+        Route::post('/employees', [EmployeeController::class, 'store'])->middleware('role:owner,pharmacist');
+        Route::get('/employees/{id}', [EmployeeController::class, 'show']);
+        Route::put('/employees/{id}', [EmployeeController::class, 'update']);
+        Route::delete('/employees/{id}', [EmployeeController::class, 'destroy']);
+
+        Route::get('/pharmacists', [PharmacistController::class, 'index']);
+        Route::post('/pharmacists', [PharmacistController::class, 'store'])->middleware('role:owner,pharmacist');
+        Route::get('/pharmacists/{id}', [PharmacistController::class, 'show']);
+        Route::put('/pharmacists/{id}', [PharmacistController::class, 'update']);
+        Route::delete('/pharmacists/{id}', [PharmacistController::class, 'destroy']);
+        Route::patch('/pharmacists/{id}/toggle-active', [PharmacistController::class, 'toggleActive']);
+
+        Route::get('/attendance/report', [AttendanceController::class, 'getReport']);
+        Route::post('/attendance/clock-in', [AttendanceController::class, 'clockIn']);
+        Route::post('/attendance/clock-out', [AttendanceController::class, 'clockOut']);
+        Route::get('/attendance', [AttendanceController::class, 'index']);
+        Route::post('/attendance', [AttendanceController::class, 'store']);
+        Route::put('/attendance/{id}', [AttendanceController::class, 'update']);
+        Route::delete('/attendance/{id}', [AttendanceController::class, 'destroy']);
+
+        Route::get('/leaves/balance', [LeaveController::class, 'getBalance']);
+        Route::get('/leaves/calendar', [LeaveController::class, 'getCalendar']);
+        Route::post('/leaves/{id}/approve', [LeaveController::class, 'approve'])->middleware('role:owner,pharmacist');
+        Route::post('/leaves/{id}/reject', [LeaveController::class, 'reject'])->middleware('role:owner,pharmacist');
+        Route::post('/leaves/{id}/cancel', [LeaveController::class, 'cancel']);
+        Route::get('/leaves', [LeaveController::class, 'index']);
+        Route::post('/leaves', [LeaveController::class, 'store']);
+        Route::get('/leaves/{id}', [LeaveController::class, 'show']);
+
+        Route::get('/payroll/summary', [PayrollController::class, 'getSummary']);
+        Route::post('/payroll', [PayrollController::class, 'store']);
+        Route::get('/payroll/{id}', [PayrollController::class, 'show']);
+        Route::get('/payroll/{id}/payslip', [PayrollController::class, 'getPayslip']);
+        Route::post('/payroll/{id}/approve', [PayrollController::class, 'approve']);
+        Route::post('/payroll/{id}/pay', [PayrollController::class, 'pay']);
+        Route::post('/payroll/{id}/cancel', [PayrollController::class, 'cancel']);
+        Route::get('/payroll', [PayrollController::class, 'index']);
+
+        Route::get('/performance/summary', [PerformanceController::class, 'getSummary']);
+        Route::post('/performance/{id}/submit', [PerformanceController::class, 'submit'])->middleware('role:owner,pharmacist');
+        Route::post('/performance/{id}/acknowledge', [PerformanceController::class, 'acknowledge'])->middleware('role:owner,pharmacist');
+        Route::get('/performance', [PerformanceController::class, 'index']);
+        Route::post('/performance', [PerformanceController::class, 'store']);
+        Route::get('/performance/{id}', [PerformanceController::class, 'show']);
+        Route::put('/performance/{id}', [PerformanceController::class, 'update']);
+
+        Route::get('/accounts/tree', [AccountController::class, 'getTree']);
+        Route::get('/accounts/balances', [AccountController::class, 'getBalances']);
+        Route::get('/accounts', [AccountController::class, 'index']);
+        Route::post('/accounts', [AccountController::class, 'store']);
+        Route::get('/accounts/{id}', [AccountController::class, 'show']);
+        Route::put('/accounts/{id}', [AccountController::class, 'update']);
+        Route::delete('/accounts/{id}', [AccountController::class, 'destroy']);
+
+        Route::get('/journal/trial-balance', [JournalController::class, 'getTrialBalance']);
+        Route::get('/journal/general-ledger', [JournalController::class, 'getGeneralLedger']);
+        Route::get('/journal', [JournalController::class, 'index']);
+        Route::post('/journal', [JournalController::class, 'store']);
+        Route::get('/journal/{id}', [JournalController::class, 'show']);
+        Route::post('/journal/{id}/post', [JournalController::class, 'post']);
+        Route::post('/journal/{id}/reverse', [JournalController::class, 'reverse']);
+
+        Route::get('/bank/summary', [BankController::class, 'getSummary']);
+        Route::get('/bank', [BankController::class, 'index']);
+        Route::post('/bank', [BankController::class, 'store']);
+        Route::get('/bank/{id}', [BankController::class, 'show']);
+        Route::get('/bank/{id}/transactions', [BankController::class, 'getTransactions']);
+        Route::post('/bank/{id}/reconcile', [BankController::class, 'reconcile']);
+        Route::post('/bank/transfer', [BankController::class, 'transfer']);
+
+        Route::get('/budgets/summary', [BudgetController::class, 'getSummary']);
+        Route::get('/budgets/variance', [BudgetController::class, 'getVarianceReport']);
+        Route::get('/budgets', [BudgetController::class, 'index']);
+        Route::post('/budgets', [BudgetController::class, 'store']);
+        Route::get('/budgets/{id}', [BudgetController::class, 'show']);
+
+        Route::get('/tax/calendar', [TaxController::class, 'getCalendar']);
+        Route::get('/tax/summary', [TaxController::class, 'getSummary']);
+        Route::post('/tax/calculate', [TaxController::class, 'calculate']);
+        Route::get('/tax', [TaxController::class, 'index']);
+        Route::post('/tax', [TaxController::class, 'store']);
+        Route::post('/tax/{id}/file', [TaxController::class, 'file']);
+        Route::post('/tax/{id}/pay', [TaxController::class, 'markPaid']);
+
+        Route::get('/suppliers/stats', [SupplierController::class, 'getStats']);
+        Route::get('/suppliers/top', [SupplierController::class, 'getTopSuppliers']);
+        Route::get('/suppliers', [SupplierController::class, 'index']);
+        Route::post('/suppliers', [SupplierController::class, 'store']);
+        Route::get('/suppliers/{id}', [SupplierController::class, 'show']);
+        Route::put('/suppliers/{id}', [SupplierController::class, 'update']);
+        Route::delete('/suppliers/{id}', [SupplierController::class, 'destroy']);
+
+        Route::get('/purchase-orders/stats', [PurchaseOrderController::class, 'getStats']);
+        Route::get('/purchase-orders', [PurchaseOrderController::class, 'index']);
+        Route::post('/purchase-orders', [PurchaseOrderController::class, 'store']);
+        Route::get('/purchase-orders/{id}', [PurchaseOrderController::class, 'show']);
+        Route::post('/purchase-orders/{id}/approve', [PurchaseOrderController::class, 'approve']);
+        Route::post('/purchase-orders/{id}/receive', [PurchaseOrderController::class, 'receive']);
+        Route::post('/purchase-orders/{id}/cancel', [PurchaseOrderController::class, 'cancel']);
+
+        Route::get('/goods-received', [GoodsReceivedController::class, 'index']);
+        Route::post('/goods-received', [GoodsReceivedController::class, 'store']);
+        Route::get('/goods-received/{id}', [GoodsReceivedController::class, 'show']);
+        Route::post('/goods-received/{id}/quality-check', [GoodsReceivedController::class, 'qualityCheck']);
+
+        Route::get('/stock-transfers', [StockTransferController::class, 'index']);
+        Route::post('/stock-transfers', [StockTransferController::class, 'store']);
+        Route::get('/stock-transfers/{id}', [StockTransferController::class, 'show']);
+        Route::post('/stock-transfers/{id}/approve', [StockTransferController::class, 'approve']);
+        Route::post('/stock-transfers/{id}/ship', [StockTransferController::class, 'ship']);
+        Route::post('/stock-transfers/{id}/receive', [StockTransferController::class, 'receive']);
+        Route::post('/stock-transfers/{id}/cancel', [StockTransferController::class, 'cancel']);
+
+        Route::get('/stock-returns', [StockReturnController::class, 'index']);
+        Route::post('/stock-returns', [StockReturnController::class, 'store']);
+        Route::get('/stock-returns/{id}', [StockReturnController::class, 'show']);
+        Route::post('/stock-returns/{id}/approve', [StockReturnController::class, 'approve']);
+        Route::post('/stock-returns/{id}/ship', [StockReturnController::class, 'ship']);
+        Route::post('/stock-returns/{id}/refund', [StockReturnController::class, 'refund']);
+
+        Route::get('/damaged-goods/report', [DamagedGoodsController::class, 'getReport']);
+        Route::get('/damaged-goods', [DamagedGoodsController::class, 'index']);
+        Route::post('/damaged-goods', [DamagedGoodsController::class, 'store']);
+        Route::get('/damaged-goods/{id}', [DamagedGoodsController::class, 'show']);
+        Route::post('/damaged-goods/{id}/process', [DamagedGoodsController::class, 'process']);
+
+        Route::get('/controlled-substances/register', [ControlledSubstanceController::class, 'getRegister']);
+        Route::get('/controlled-substances/audit-trail', [ControlledSubstanceController::class, 'getAuditTrail']);
+        Route::get('/controlled-substances/balance-report', [ControlledSubstanceController::class, 'getBalanceReport']);
+        Route::get('/controlled-substances', [ControlledSubstanceController::class, 'index']);
+        Route::post('/controlled-substances', [ControlledSubstanceController::class, 'store']);
+        Route::get('/controlled-substances/{id}', [ControlledSubstanceController::class, 'show']);
+        Route::post('/controlled-substances/{id}/issue', [ControlledSubstanceController::class, 'issue']);
+
+        Route::get('/licenses/expiry-alert', [LicenseController::class, 'getExpiryAlert']);
+        Route::get('/licenses', [LicenseController::class, 'index']);
+        Route::post('/licenses', [LicenseController::class, 'store']);
+        Route::put('/licenses/{id}', [LicenseController::class, 'update']);
+        Route::post('/licenses/{id}/renew', [LicenseController::class, 'renew']);
+
+        Route::get('/regulatory-reports/templates', [RegulatoryReportController::class, 'getTemplates']);
+        Route::get('/regulatory-reports', [RegulatoryReportController::class, 'index']);
+        Route::post('/regulatory-reports', [RegulatoryReportController::class, 'store']);
+        Route::get('/regulatory-reports/{id}', [RegulatoryReportController::class, 'show']);
+        Route::post('/regulatory-reports/{id}/submit', [RegulatoryReportController::class, 'submit']);
+
+        Route::get('/drug-recalls/active', [DrugRecallController::class, 'getActive']);
+        Route::get('/drug-recalls', [DrugRecallController::class, 'index']);
+        Route::post('/drug-recalls', [DrugRecallController::class, 'store']);
+        Route::get('/drug-recalls/{id}', [DrugRecallController::class, 'show']);
+        Route::post('/drug-recalls/{id}/acknowledge', [DrugRecallController::class, 'acknowledge']);
+        Route::post('/drug-recalls/{id}/process', [DrugRecallController::class, 'process']);
+
+        Route::get('/expenses/monthly-summary', [ExpenseController::class, 'monthlySummary']);
+        Route::get('/expenses/categories', [ExpenseController::class, 'categories']);
+        Route::get('/expenses', [ExpenseController::class, 'index']);
+        Route::post('/expenses', [ExpenseController::class, 'store']);
+        Route::get('/expenses/{id}', [ExpenseController::class, 'show']);
+        Route::put('/expenses/{id}', [ExpenseController::class, 'update']);
+        Route::delete('/expenses/{id}', [ExpenseController::class, 'destroy']);
+
+        Route::get('/deliveries', [DeliveryController::class, 'index']);
+        Route::get('/deliveries/drivers', [DeliveryController::class, 'drivers']);
+        Route::post('/deliveries', [DeliveryController::class, 'store'])->middleware('role:owner,pharmacist');
+        Route::get('/deliveries/{id}', [DeliveryController::class, 'show']);
+        Route::patch('/deliveries/{id}', [DeliveryController::class, 'update']);
+        Route::put('/deliveries/{id}/status', [DeliveryController::class, 'updateStatus']);
+        Route::post('/deliveries/{id}/assign-driver', [DeliveryController::class, 'assignDriver']);
+
+        Route::get('/reports/sales', [ReportController::class, 'salesReport']);
+        Route::get('/reports/inventory', [ReportController::class, 'inventoryReport']);
+        Route::get('/reports/financial', [ReportController::class, 'financialReport']);
+        Route::get('/reports/consolidated-financial', [ReportController::class, 'consolidatedFinancialReport']);
+        Route::get('/reports/customers', [ReportController::class, 'customerReport']);
+
+        Route::get('/chats', [ChatController::class, 'pharmacyConversations']);
+        Route::get('/chats/{customerId}', [ChatController::class, 'pharmacyMessages']);
+        Route::post('/chats/{customerId}', [ChatController::class, 'pharmacySend']);
+        Route::put('/chats/{customerId}/read', [ChatController::class, 'pharmacyMarkRead']);
+
+        Route::get('/telemedicine/pending', [TelemedicineController::class, 'pendingConsults']);
+        Route::get('/telemedicine/live', [TelemedicineController::class, 'liveConsults']);
+        Route::get('/telemedicine/scheduled', [TelemedicineController::class, 'scheduledAppointments']);
+        Route::get('/telemedicine/history', [TelemedicineController::class, 'history']);
+        Route::get('/telemedicine/slot-settings', [TelemedicineController::class, 'slotSettings']);
+        Route::put('/telemedicine/slot-settings', [TelemedicineController::class, 'updateSlotSettings']);
+        Route::get('/telemedicine/slots', [TelemedicineController::class, 'slotIndex']);
+        Route::post('/telemedicine/slots', [TelemedicineController::class, 'storeSlot']);
+        Route::put('/telemedicine/slots/{id}', [TelemedicineController::class, 'updateSlot']);
+        Route::delete('/telemedicine/slots/{id}', [TelemedicineController::class, 'destroySlot']);
+        Route::put('/telemedicine/{id}/notes', [TelemedicineController::class, 'saveNotes']);
+        Route::post('/telemedicine/{id}/notify', [TelemedicineController::class, 'notifyPatientBeforeCall']);
+        Route::post('/telemedicine/{id}/accept', [TelemedicineController::class, 'acceptConsult']);
+        Route::post('/telemedicine/{id}/end', [TelemedicineController::class, 'endConsult']);
+
+        // Owner support tickets
+        Route::get('/support/tickets', [AdminSupportController::class, 'ownerIndex'])
+            ->middleware(RoleMiddleware::class . ':owner');
+        Route::post('/support/tickets', [AdminSupportController::class, 'ownerStore'])
+            ->middleware(RoleMiddleware::class . ':owner');
+        Route::post('/support/tickets/{id}/reply', [AdminSupportController::class, 'ownerReply'])
+            ->middleware(RoleMiddleware::class . ':owner');
+    });
+
+    Route::middleware('subscription.active')->group(function () {
+        Route::get('/dashboard/owner', [DashboardController::class, 'ownerDashboard'])
+            ->middleware(RoleMiddleware::class . ':owner');
+        Route::get('/dashboard/admin', [DashboardController::class, 'adminDashboard'])
+            ->middleware(RoleMiddleware::class . ':admin');
+        Route::get('/dashboard/pharmacist', [DashboardController::class, 'pharmacistDashboard'])
+            ->middleware(RoleMiddleware::class . ':pharmacist');
+        Route::get('/dashboard/staff', [DashboardController::class, 'staffDashboard'])
+            ->middleware(RoleMiddleware::class . ':pharmacist,cashier,delivery');
+    });
+
+    Route::middleware(RoleMiddleware::class . ':admin')->prefix('admin')->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'dashboard']);
+        Route::get('/pharmacies', [AdminController::class, 'listPharmacies']);
+        Route::post('/pharmacies', [AdminController::class, 'storePharmacy']);
+        Route::get('/pharmacies/{id}', [AdminController::class, 'pharmacyDetail']);
+        Route::put('/pharmacies/{id}', [PharmacyController::class, 'update']);
+        Route::delete('/pharmacies/{id}', [AdminController::class, 'destroyPharmacy']);
+        Route::patch('/pharmacies/{id}/status', [AdminController::class, 'updatePharmacyStatus']);
+        Route::get('/users', [AdminController::class, 'listUsers']);
+        Route::patch('/users/{id}/toggle-active', [AdminController::class, 'toggleUserActive']);
+        Route::get('/audit-logs', [AdminController::class, 'auditLogs']);
+        Route::patch('/pharmacies/{id}/approve', [AdminController::class, 'approvePharmacy']);
+        Route::patch('/pharmacies/{id}/reject', [AdminController::class, 'rejectPharmacy']);
+        Route::patch('/pharmacies/{id}/confirm-payment', [AdminController::class, 'confirmPayment']);
+        Route::get('/pending-pharmacies', [AdminController::class, 'listPendingPharmacies']);
+        Route::get('/reviews', [AdminController::class, 'reviews']);
+
+        // Admin per-pharmacy drill-down
+        Route::get('/pharmacies/{id}/orders', [AdminController::class, 'pharmacyOrders']);
+        Route::get('/pharmacies/{id}/drugs', [AdminController::class, 'pharmacyDrugs']);
+        Route::get('/pharmacies/{id}/expenses', [AdminController::class, 'pharmacyExpenses']);
+        Route::get('/pharmacies/{id}/prescriptions', [AdminController::class, 'pharmacyPrescriptions']);
+
+        // Admin Broadcasts
+        Route::get('/broadcasts', [BroadcastController::class, 'index']);
+        Route::post('/broadcasts', [BroadcastController::class, 'store']);
+        Route::patch('/broadcasts/{id}/toggle-active', [BroadcastController::class, 'toggleActive']);
+        Route::delete('/broadcasts/{id}', [BroadcastController::class, 'destroy']);
+
+        // Admin User Management
+        Route::get('/users/list', [AdminUserController::class, 'index']);
+        Route::get('/users/{id}', [AdminUserController::class, 'show']);
+        Route::post('/users', [AdminUserController::class, 'store']);
+        Route::get('/users/{id}/stats', [AdminUserController::class, 'show']);
+        Route::put('/users/{id}', [AdminUserController::class, 'update']);
+        Route::patch('/users/{id}', [AdminUserController::class, 'updateStatus']);
+        Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
+        Route::post('/users/{id}/message', [AdminUserController::class, 'sendMessage']);
+
+        // Admin Settings
+        Route::get('/settings', [AdminSettingController::class, 'index']);
+        Route::put('/settings/platform', [AdminSettingController::class, 'updatePlatform']);
+        Route::put('/settings/notifications', [AdminSettingController::class, 'updateNotifications']);
+        Route::put('/settings/retention', [AdminSettingController::class, 'updateRetention']);
+
+        // Admin Content Management
+        Route::get('/content', [AdminContentController::class, 'index']);
+        Route::post('/content', [AdminContentController::class, 'store']);
+        Route::get('/content/{id}', [AdminContentController::class, 'show']);
+        Route::put('/content/{id}', [AdminContentController::class, 'update']);
+        Route::delete('/content/{id}', [AdminContentController::class, 'destroy']);
+        Route::patch('/content/{id}/toggle-status', [AdminContentController::class, 'toggleStatus']);
+        Route::post('/content/{id}/duplicate', [AdminContentController::class, 'duplicate']);
+
+        // Admin Support Tickets
+        Route::get('/support/tickets', [AdminSupportController::class, 'index']);
+        Route::post('/support/tickets', [AdminSupportController::class, 'store']);
+        Route::get('/support/tickets/{id}', [AdminSupportController::class, 'show']);
+        Route::delete('/support/tickets/{id}', [AdminSupportController::class, 'destroy']);
+        Route::post('/support/tickets/{id}/resolve', [AdminSupportController::class, 'resolve']);
+        Route::post('/support/tickets/{id}/close', [AdminSupportController::class, 'close']);
+        Route::post('/support/tickets/{id}/reply', [AdminSupportController::class, 'reply']);
+
+        // Admin Revenue
+        Route::get('/revenue', [AdminRevenueController::class, 'index']);
+        Route::post('/revenue', [AdminRevenueController::class, 'store']);
+        Route::get('/revenue/{id}', [AdminRevenueController::class, 'show']);
+        Route::delete('/revenue/{id}', [AdminRevenueController::class, 'destroy']);
+        Route::patch('/revenue/{id}', [AdminRevenueController::class, 'update']);
+        Route::post('/revenue/{id}/reminder', [AdminRevenueController::class, 'reminder']);
+
+        // Admin Drug Database
+        Route::get('/drug-database', [AdminDrugDatabaseController::class, 'index']);
+        Route::post('/drug-database', [AdminDrugDatabaseController::class, 'store']);
+        Route::get('/drug-database/{id}', [AdminDrugDatabaseController::class, 'show']);
+        Route::put('/drug-database/{id}', [AdminDrugDatabaseController::class, 'update']);
+        Route::delete('/drug-database/{id}', [AdminDrugDatabaseController::class, 'destroy']);
+        Route::patch('/drug-database/{id}/toggle-status', [AdminDrugDatabaseController::class, 'toggleStatus']);
+
+        // Admin Reports
+        Route::get('/reports', [AdminReportController::class, 'index']);
+
+        // Admin Subscriptions
+        Route::get('/subscriptions', [AdminSubscriptionController::class, 'index']);
+        Route::post('/subscriptions', [AdminSubscriptionController::class, 'store']);
+        Route::get('/subscriptions/{id}', [AdminSubscriptionController::class, 'show']);
+        Route::put('/subscriptions/{id}', [AdminSubscriptionController::class, 'update']);
+        Route::delete('/subscriptions/{id}', [AdminSubscriptionController::class, 'destroy']);
+        Route::post('/subscriptions/{id}/{action}', [AdminSubscriptionController::class, 'action']);
+
+        // Admin Marketing Campaigns
+        Route::get('/marketing', [AdminMarketingController::class, 'index']);
+        Route::post('/marketing', [AdminMarketingController::class, 'store']);
+        Route::get('/marketing/{id}', [AdminMarketingController::class, 'show']);
+        Route::put('/marketing/{id}', [AdminMarketingController::class, 'update']);
+        Route::patch('/marketing/{id}', [AdminMarketingController::class, 'toggleStatus']);
+        Route::delete('/marketing/{id}', [AdminMarketingController::class, 'destroy']);
+        Route::post('/marketing/{id}/duplicate', [AdminMarketingController::class, 'duplicate']);
+
+        // Admin Job Listings
+        Route::get('/jobs', [AdminJobController::class, 'index']);
+        Route::post('/jobs', [AdminJobController::class, 'store']);
+        Route::get('/jobs/{id}', [AdminJobController::class, 'show']);
+        Route::put('/jobs/{id}', [AdminJobController::class, 'update']);
+        Route::delete('/jobs/{id}', [AdminJobController::class, 'destroy']);
+        Route::patch('/jobs/{id}/toggle-status', [AdminJobController::class, 'toggleStatus']);
+        Route::get('/jobs/{id}/applications', [AdminJobController::class, 'applications']);
+        Route::patch('/job-applications/{id}', [AdminJobController::class, 'updateApplication']);
+        Route::get('/job-applications', [AdminJobController::class, 'allApplications']);
+    });
+
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::get('/pharmacy', [NotificationController::class, 'pharmacy']);
+        Route::put('/pharmacy/read-all', [NotificationController::class, 'pharmacyReadAll']);
+        Route::get('/{id}', [NotificationController::class, 'show']);
+        Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::put('/read-all', [NotificationController::class, 'markAllRead']);
+        Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    });
+
+    Route::prefix('subscriptions')->group(function () {
+        Route::get('/plans', [SubscriptionController::class, 'plans']);
+        Route::get('/status', [SubscriptionController::class, 'status']);
+        Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
+        Route::post('/checkout', [SubscriptionController::class, 'checkout']);
+        Route::get('/payment-status', [SubscriptionController::class, 'paymentStatus']);
+        Route::post('/confirm-payment', [SubscriptionController::class, 'confirmPayment']);
+    });
+});

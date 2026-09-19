@@ -180,7 +180,7 @@ export default function SubscriptionPlansPage() {
   const matrix = plans[0]?.features || []
 
   const renderCart = () => {
-    if (!selectedPlan) return null
+    if (!cartOpen || !selectedPlan) return null
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { if (!paying && paymentStep !== 'success') setCartOpen(false) }} />

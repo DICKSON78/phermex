@@ -134,51 +134,62 @@ class DashboardController extends Controller
 
     public function sidebarCounts(Request $request): JsonResponse
     {
+        $safe = function (callable $fn): int {
+            try {
+                return (int) $fn();
+            } catch (\Exception $e) {
+                return 0;
+            }
+        };
+
         try {
             $user = $request->user();
             $pharmacyIds = $user->accessiblePharmacyIds();
 
             $pendingApprovals = $user->isAdmin()
-                ? Pharmacy::where('application_status', 'pending')->count()
+                ? (int) $safe(fn () => Pharmacy::where('application_status', 'pending')->count())
                 : null;
 
-            $orders = 0;
-            $prescriptions = 0;
-            $lowStock = 0;
-            $expiring = 0;
-            $deliveries = 0;
-
-            if (!empty($pharmacyIds)) {
-                $orders = Order::whereIn('pharmacy_id', $pharmacyIds)
+            $orders = $safe(function () use ($pharmacyIds) {
+                return empty($pharmacyIds) ? 0 : Order::whereIn('pharmacy_id', $pharmacyIds)
                     ->whereIn('order_status', ['pending', 'confirmed', 'preparing'])
                     ->count();
+            });
 
-                $prescriptions = Prescription::whereIn('pharmacy_id', $pharmacyIds)
+            $prescriptions = $safe(function () use ($pharmacyIds) {
+                return empty($pharmacyIds) ? 0 : Prescription::whereIn('pharmacy_id', $pharmacyIds)
                     ->where('status', 'pending')
                     ->count();
+            });
 
-                $lowStock = Drug::whereIn('pharmacy_id', $pharmacyIds)
+            $lowStock = $safe(function () use ($pharmacyIds) {
+                return empty($pharmacyIds) ? 0 : Drug::whereIn('pharmacy_id', $pharmacyIds)
                     ->whereColumn('quantity', '<=', 'reorder_level')
                     ->count();
+            });
 
-                $expiring = Drug::whereIn('pharmacy_id', $pharmacyIds)
+            $expiring = $safe(function () use ($pharmacyIds) {
+                return empty($pharmacyIds) ? 0 : Drug::whereIn('pharmacy_id', $pharmacyIds)
                     ->whereBetween('expiry_date', [now(), now()->addDays(30)])
                     ->count();
+            });
 
-                $deliveries = Delivery::whereIn('pharmacy_id', $pharmacyIds)
+            $deliveries = $safe(function () use ($pharmacyIds) {
+                return empty($pharmacyIds) ? 0 : Delivery::whereIn('pharmacy_id', $pharmacyIds)
                     ->whereNotIn('status', ['delivered', 'cancelled'])
                     ->count();
-            }
+            });
 
-            $support = $user->isAdmin()
-                ? SupportTicket::where('status', 'open')->count()
-                : SupportTicket::where(function ($q) use ($user, $pharmacyIds) {
+            $support = $safe(function () use ($user, $pharmacyIds) {
+                if ($user->isAdmin()) {
+                    return SupportTicket::where('status', 'open')->count();
+                }
+                return SupportTicket::where(function ($q) use ($user, $pharmacyIds) {
                     $q->where('user_id', $user->id)->orWhereIn('pharmacy_id', $pharmacyIds);
                 })->where('status', 'open')->count();
+            });
 
-            $notifications = Notification::where('user_id', $user->id)
-                ->where('is_read', false)
-                ->count();
+            $notifications = $safe(fn () => Notification::where('user_id', $user->id)->where('is_read', false)->count());
 
             return response()->json([
                 'orders' => $orders,
@@ -192,9 +203,15 @@ class DashboardController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to fetch sidebar counts.',
-                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
-            ], 500);
+                'orders' => 0,
+                'prescriptions' => 0,
+                'low_stock' => 0,
+                'expiring' => 0,
+                'deliveries' => 0,
+                'support' => 0,
+                'notifications' => 0,
+                'pending_approvals' => null,
+            ]);
         }
     }
 

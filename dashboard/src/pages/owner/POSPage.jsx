@@ -202,6 +202,7 @@ export default function POSPage() {
           quantity: item.quantity,
         })),
         customer_id: customer.id,
+        order_type: 'counter',
         payment_method: paymentMethod,
         discount: discountAmount,
         tax: taxAmount,

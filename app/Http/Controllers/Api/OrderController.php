@@ -61,10 +61,16 @@ class OrderController extends Controller
                 'items.*.quantity' => 'required|integer|min:1',
                 'discount' => 'sometimes|numeric|min:0',
                 'tax' => 'sometimes|numeric|min:0',
-                'payment_method' => 'sometimes|in:cash,card,mobile,bank',
+                'payment_method' => 'sometimes|in:cash,card,mobile,bank,mobile_money,bank_transfer',
                 'payment_status' => 'sometimes|in:unpaid,partial,paid',
                 'notes' => 'nullable|string',
             ]);
+
+            // Normalize SPA payment labels to the DB enum values.
+            $methodMap = ['mobile_money' => 'mobile', 'bank_transfer' => 'bank'];
+            if (isset($validated['payment_method']) && isset($methodMap[$validated['payment_method']])) {
+                $validated['payment_method'] = $methodMap[$validated['payment_method']];
+            }
 
             $orderCode = 'ORD-' . now()->format('Y') . strtoupper(substr(uniqid(), -5));
 
@@ -122,7 +128,7 @@ class OrderController extends Controller
                 'total' => $total,
                 'payment_method' => $validated['payment_method'] ?? 'cash',
                 'payment_status' => $validated['payment_status'] ?? 'unpaid',
-                'order_status' => 'pending',
+                'order_status' => ($validated['order_type'] ?? 'counter') === 'counter' ? 'dispensed' : 'pending',
                 'notes' => $validated['notes'] ?? null,
                 'processed_by' => Auth::id(),
             ]);

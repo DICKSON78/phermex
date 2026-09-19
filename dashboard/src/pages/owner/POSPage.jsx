@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { toArray } from '../../utils/safeData';
 import { useAuth } from '../../contexts/AuthContext'
 import api from '../../services/api'
+import QRCode from 'qrcode'
+import { jsPDF } from 'jspdf'
 import {
   Search,
   ShoppingCart,
@@ -64,6 +66,7 @@ export default function POSPage() {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [saleComplete, setSaleComplete] = useState(null)
+  const [receiptQr, setReceiptQr] = useState('')
   const [mobileCartOpen, setMobileCartOpen] = useState(false)
   const [heldSales, setHeldSales] = useState([])
 
@@ -169,6 +172,22 @@ export default function POSPage() {
     }
   }, [paymentMethod, grandTotal, amountTendered])
 
+  useEffect(() => {
+    if (!saleComplete) {
+      setReceiptQr('')
+      return
+    }
+    const payload = [
+      `PHARMACY: ${saleComplete.pharmacy || ''}`,
+      `ORDER: ${saleComplete.code || ''}`,
+      `TOTAL: ${formatCurrency(saleComplete.total)}`,
+      `DATE: ${saleComplete.date || ''}`,
+    ].join('\n')
+    QRCode.toDataURL(payload, { errorCorrectionLevel: 'M', margin: 1, width: 256 })
+      .then(setReceiptQr)
+      .catch(() => setReceiptQr(''))
+  }, [saleComplete])
+
   const canCompleteSale =
     paymentMethod && cart.length > 0 && (paymentMethod !== 'cash' || tenderedAmount >= grandTotal)
 
@@ -237,6 +256,116 @@ export default function POSPage() {
       win.print()
       setTimeout(() => win.close(), 200)
     }, 250)
+  }
+
+  const downloadPdf = () => {
+    const receipt = saleComplete
+    if (!receipt) return
+    const items = receipt.items || []
+    const pageH = Math.max(120, 46 + items.length * 7.5 + 104)
+    const doc = new jsPDF({ unit: 'mm', format: [80, pageH] })
+    const font = 'courier'
+    const W = 80
+    const L = 5
+    const R = 75
+    const CX = 40
+    let y = 10
+
+    const dashedLine = () => {
+      doc.setDrawColor(120)
+      doc.setLineWidth(0.3)
+      doc.setLineDashPattern([1, 1], 0)
+      doc.line(L, y, R, y)
+      y += 3
+    }
+
+    doc.setFont(font, 'bold')
+    doc.setFontSize(11)
+    doc.text(receipt.pharmacy || 'Helix Pharmacy', CX, y, { align: 'center' })
+    y += 5
+    doc.setFont(font, 'normal')
+    doc.setFontSize(8)
+    doc.text(receipt.date || '', CX, y, { align: 'center' })
+    y += 3.5
+    doc.setFont(font, 'bold')
+    doc.text('SALE RECEIPT', CX, y, { align: 'center' })
+    y += 2.5
+    dashedLine()
+    doc.setFont(font, 'normal')
+    doc.text(`Receipt No: ${receipt.code}`, L, y)
+    y += 4
+    doc.text(`Cashier: ${receipt.cashier || '-'}`, L, y)
+    y += 4
+    doc.text(`Customer: ${receipt.customer || 'Walk-in'}`, L, y)
+    y += 3
+    dashedLine()
+
+    items.forEach((item) => {
+      const name = (item.name || '').length > 30 ? (item.name || '').slice(0, 29) + '…' : (item.name || '')
+      doc.text(name, L, y)
+      doc.text(`${item.qty} x ${fmt(item.price)}`, R, y, { align: 'right' })
+      y += 4
+      doc.setLineDashPattern([0.5, 1], 0)
+      doc.setDrawColor(180)
+      doc.line(L, y - 1, R - 10, y - 1)
+      doc.setFont(font, 'bold')
+      doc.text(fmt(item.line), R, y, { align: 'right' })
+      doc.setFont(font, 'normal')
+      y += 5.5
+    })
+    doc.setDrawColor(120)
+    doc.setFontSize(9)
+
+    doc.setFont(font, 'normal')
+    doc.text('Subtotal', L, y)
+    doc.text(fmt(receipt.subtotal), R, y, { align: 'right' })
+    y += 5
+    doc.text('Discount', L, y)
+    doc.text(`-${fmt(receipt.discount)}`, R, y, { align: 'right' })
+    y += 5
+    doc.text('VAT (18%)', L, y)
+    doc.text(fmt(receipt.tax), R, y, { align: 'right' })
+    y += 5
+    doc.setFont(font, 'bold')
+    doc.setDrawColor(0)
+    doc.setLineWidth(0.4)
+    doc.line(L, y, R, y)
+    doc.setFontSize(11)
+    doc.text('TOTAL', L, y + 4)
+    doc.text(fmt(receipt.total), R, y + 4, { align: 'right' })
+    doc.setFontSize(9)
+    doc.setFont(font, 'normal')
+    y += 8
+    doc.line(L, y, R, y)
+    doc.setLineWidth(0.3)
+    y += 5
+    doc.text(`Payment: ${receipt.payment || 'Cash'}`, L, y)
+    if ((receipt.payment || '') === 'Cash') {
+      y += 5
+      doc.text('Tendered', L, y)
+      doc.text(fmt(receipt.tendered), R, y, { align: 'right' })
+      y += 5
+      doc.text('Change', L, y)
+      doc.text(fmt(receipt.change), R, y, { align: 'right' })
+      y += 3
+    }
+
+    if (receiptQr) {
+      y += 3
+      doc.addImage(receiptQr, 'PNG', CX - 14, y, 28, 28)
+      y += 31
+    }
+
+    y += 2
+    dashedLine()
+    doc.setFont(font, 'bold')
+    doc.setFontSize(8)
+    doc.text('Thank you for your patronage!', CX, y, { align: 'center' })
+    y += 3.5
+    doc.setFont(font, 'normal')
+    doc.text('Powered by Helix Pharmacy Systems', CX, y, { align: 'center' })
+
+    doc.save(`${receipt.code || 'receipt'}.pdf`)
   }
 
   const resetCart = () => {
@@ -507,8 +636,7 @@ export default function POSPage() {
             >
               {/* Header */}
               <div style={{ textAlign: 'center', marginBottom: 10 }}>
-                <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: 1.5, margin: 0 }}>HELIX PHARMACY</p>
-                <p style={{ fontSize: 11, color: '#555', margin: 0 }}>{saleComplete.pharmacy || 'Helix Pharmacy'}</p>
+                <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: 1.5, margin: 0 }}>{saleComplete.pharmacy || 'Helix Pharmacy'}</p>
                 <p style={{ fontSize: 11, color: '#555', margin: '2px 0 0' }}>{saleComplete.date || ''}</p>
               </div>
               <div style={{ borderTop: '1px dashed #999', borderBottom: '1px dashed #999', padding: '6px 0', marginBottom: 8, fontSize: 11, color: '#444' }}>
@@ -563,6 +691,14 @@ export default function POSPage() {
                 )}
               </div>
 
+              {/* QR Code */}
+              {receiptQr && (
+                <div style={{ textAlign: 'center', marginTop: 12 }}>
+                  <img src={receiptQr} alt="QR Code" style={{ width: 94, height: 94 }} />
+                  <p style={{ margin: '2px 0 0', fontSize: 9, color: '#888' }}>Scan to verify</p>
+                </div>
+              )}
+
               {/* Footer */}
               <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: '#444' }}>
                 <p style={{ margin: 0, fontWeight: 700 }}>Thank you for your patronage!</p>
@@ -573,7 +709,7 @@ export default function POSPage() {
             {/* Actions */}
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => { printReceipt(); setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
+                onClick={() => { downloadPdf(); setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
                 className="py-2.5 border border-gray-200 text-gray-600 rounded-lg text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1.5"
               >
                 <Download className="w-4 h-4" />

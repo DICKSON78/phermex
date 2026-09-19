@@ -51,7 +51,7 @@ export default function POSPage() {
   const [cart, setCart] = useState([])
   const [discount, setDiscount] = useState(0)
   const [tax, setTax] = useState(TAX_RATE * 100)
-  const [paymentMethod, setPaymentMethod] = useState(null)
+  const [paymentMethod, setPaymentMethod] = useState('cash')
   const [amountTendered, setAmountTendered] = useState('')
   const [customer, setCustomer] = useState({ name: 'Walk-in Customer', id: null })
   const [showCustomerInput, setShowCustomerInput] = useState(false)
@@ -156,6 +156,14 @@ export default function POSPage() {
   const tenderedAmount = parseFloat(amountTendered) || 0
   const changeDue = Math.max(0, tenderedAmount - grandTotal)
 
+  // For cash sales, default the tendered amount to the exact total so the
+  // Complete Sale button is immediately actionable (Change = 0).
+  useEffect(() => {
+    if (paymentMethod === 'cash' && amountTendered === '' && grandTotal > 0) {
+      setAmountTendered(String(grandTotal.toFixed(2)))
+    }
+  }, [paymentMethod, grandTotal, amountTendered])
+
   const canCompleteSale =
     paymentMethod && cart.length > 0 && (paymentMethod !== 'cash' || tenderedAmount >= grandTotal)
 
@@ -190,7 +198,7 @@ export default function POSPage() {
   const resetCart = () => {
     setCart([])
     setDiscount(0)
-    setPaymentMethod(null)
+    setPaymentMethod('cash')
     setAmountTendered('')
     setCustomer({ name: 'Walk-in Customer', id: null })
     setMobileCartOpen(false)

@@ -59,7 +59,7 @@ class DashboardController extends Controller
 
             $revenueChart = Order::whereIn('pharmacy_id', $pharmacyIds)
                 ->where('payment_status', 'paid')
-                ->where('created_at', '>=', now()->subDays(7))
+                ->where('created_at', '>=', now()->subDays(30))
                 ->select(
                     DB::raw('DATE(created_at) as date'),
                     DB::raw('SUM(total) as revenue')

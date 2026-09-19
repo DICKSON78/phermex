@@ -33,11 +33,6 @@ export default function LoginPage() {
         return
       }
 
-      if (subData?.subscription_type === 'expired' && userData.role === 'owner') {
-        navigate('/subscribe')
-        return
-      }
-
       if (result.email_verified === false) {
         navigate('/verify-email')
         return

@@ -42,20 +42,41 @@ class EnsureSubscriptionActive
         }
 
         if (!$pharmacy->isActive()) {
-            return response()->json([
-                'message' => 'Your subscription has expired. Please choose a plan to continue.',
-                'subscription' => [
-                    'expired' => true,
-                    'subscription_type' => $pharmacy->subscriptionType(),
-                    'days_remaining' => $pharmacy->daysRemaining(),
-                    'trial_ends_at' => $pharmacy->trial_ends_at?->toISOString(),
-                    'subscription_end_date' => $pharmacy->subscription_end_date?->toISOString(),
-                    'payment_status' => $pharmacy->payment_status,
-                    'renewal_url' => '/subscribe',
-                ],
-            ], 402);
+            // Locked-down accounts can still access essential account/settings
+            // endpoints (pharmacy profile, subscription status, plans) while
+            // they renew. Every other pharmacy-scoped API stays blocked.
+            if (!$this->isAllowedWhileExpired($request)) {
+                return response()->json([
+                    'message' => 'Your subscription has expired. Please choose a plan to continue.',
+                    'subscription' => [
+                        'expired' => true,
+                        'subscription_type' => $pharmacy->subscriptionType(),
+                        'days_remaining' => $pharmacy->daysRemaining(),
+                        'trial_ends_at' => $pharmacy->trial_ends_at?->toISOString(),
+                        'subscription_end_date' => $pharmacy->subscription_end_date?->toISOString(),
+                        'payment_status' => $pharmacy->payment_status,
+                        'renewal_url' => '/subscribe',
+                    ],
+                ], 402);
+            }
         }
 
         return $next($request);
+    }
+
+    protected function isAllowedWhileExpired(Request $request): bool
+    {
+        $uri = $request->path();
+        $method = $request->method();
+
+        if ($request->is('api/subscriptions/*')) return true;
+
+        if ($uri === 'api/pharmacies') return true;
+        if ($uri === 'api/pharmacies/current') return true;
+        if ($request->is('api/pharmacies/*/switch')) return true;
+        if ($request->is('api/pharmacies/*/stats')) return true;
+        if ($request->is('api/pharmacies/*') && in_array($method, ['GET', 'PUT'], true)) return true;
+
+        return false;
     }
 }

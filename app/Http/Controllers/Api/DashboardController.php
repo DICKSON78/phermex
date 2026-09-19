@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\Delivery;
 use App\Models\Drug;
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Pharmacy;
 use App\Models\Prescription;
 use App\Models\Subscription;
+use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -124,6 +127,72 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch owner dashboard.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function sidebarCounts(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $pharmacyIds = $user->accessiblePharmacyIds();
+
+            $pendingApprovals = $user->isAdmin()
+                ? Pharmacy::where('application_status', 'pending')->count()
+                : null;
+
+            $orders = 0;
+            $prescriptions = 0;
+            $lowStock = 0;
+            $expiring = 0;
+            $deliveries = 0;
+
+            if (!empty($pharmacyIds)) {
+                $orders = Order::whereIn('pharmacy_id', $pharmacyIds)
+                    ->whereIn('order_status', ['pending', 'confirmed', 'preparing'])
+                    ->count();
+
+                $prescriptions = Prescription::whereIn('pharmacy_id', $pharmacyIds)
+                    ->where('status', 'pending')
+                    ->count();
+
+                $lowStock = Drug::whereIn('pharmacy_id', $pharmacyIds)
+                    ->whereColumn('quantity', '<=', 'reorder_level')
+                    ->count();
+
+                $expiring = Drug::whereIn('pharmacy_id', $pharmacyIds)
+                    ->whereBetween('expiry_date', [now(), now()->addDays(30)])
+                    ->count();
+
+                $deliveries = Delivery::whereIn('pharmacy_id', $pharmacyIds)
+                    ->whereNotIn('status', ['delivered', 'cancelled'])
+                    ->count();
+            }
+
+            $support = $user->isAdmin()
+                ? SupportTicket::where('status', 'open')->count()
+                : SupportTicket::where(function ($q) use ($user, $pharmacyIds) {
+                    $q->where('user_id', $user->id)->orWhereIn('pharmacy_id', $pharmacyIds);
+                })->where('status', 'open')->count();
+
+            $notifications = Notification::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->count();
+
+            return response()->json([
+                'orders' => $orders,
+                'prescriptions' => $prescriptions,
+                'low_stock' => $lowStock,
+                'expiring' => $expiring,
+                'deliveries' => $deliveries,
+                'support' => $support,
+                'notifications' => $notifications,
+                'pending_approvals' => $pendingApprovals,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch sidebar counts.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }

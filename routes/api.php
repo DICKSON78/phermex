@@ -583,6 +583,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [NotificationController::class, 'destroy']);
     });
 
+    Route::get('/dashboard/sidebar-counts', [DashboardController::class, 'sidebarCounts']);
+
     Route::prefix('subscriptions')->group(function () {
         Route::get('/status', [SubscriptionController::class, 'status']);
         Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);

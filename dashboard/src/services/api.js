@@ -29,11 +29,6 @@ api.interceptors.response.use(
       localStorage.removeItem('pharmex_user')
       window.location.href = '/login'
     }
-    if (error.response?.status === 402 && error.response?.data?.subscription?.expired) {
-      if (!window.location.pathname.startsWith('/subscribe')) {
-        window.location.href = '/subscribe'
-      }
-    }
     return Promise.reject(error)
   }
 )

@@ -307,7 +307,7 @@ export default function SubscriptionPlansPage() {
 
               <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
                 <Lock className="w-3.5 h-3.5" />
-                Secure mobile money payment via ClickPesa
+                Secure mobile money payment
               </div>
 
               <button
@@ -338,7 +338,7 @@ export default function SubscriptionPlansPage() {
           <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">Choose Your Plan</p>
           <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Subscription Plans</h1>
           <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto">
-            Pick a plan, add it to your cart and pay securely via M-PESA. Your subscription activates instantly.
+            Pick a plan, add it to your cart and pay securely. Your subscription activates instantly.
           </p>
         </div>
 
@@ -416,7 +416,7 @@ export default function SubscriptionPlansPage() {
         </div>
 
         <p className="mx-auto max-w-3xl text-center text-sm leading-7 text-gray-500">
-          All plans are billed yearly and activated instantly via secure M-PESA payment (ClickPesa). No hidden fees —
+          All plans are billed yearly and activated instantly after payment. No hidden fees —
           upgrade or renew anytime from your dashboard.
         </p>
 

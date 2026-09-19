@@ -84,6 +84,7 @@ import PatientInsurancesPage from '../pages/owner/PatientInsurancesPage'
 import InsuranceClaimsPage from '../pages/owner/InsuranceClaimsPage'
 import ConsolidatedFinancialReportPage from '../pages/owner/ConsolidatedFinancialReportPage'
 import PlanGate from '../components/PlanGate'
+import UpgradeWall from '../components/UpgradeWall'
 import { hasPlanAccess, requiredPlanForPath, PLAN_LABELS } from '../utils/planConfig'
 
 import SupplierListPage from '../pages/owner/SupplierListPage'
@@ -402,6 +403,7 @@ export default function DashboardLayout({ role }) {
     ?? accessiblePharmacies.find(p => p.id === pharmacyId)
     ?? accessiblePharmacies[0]
   const currentPlan = subscription?.plan || subscription?.subscription_plan || user?.subscription?.plan || currentPharmacy?.subscription_plan || null
+  const ownerExpired = role === 'owner' && subscription?.subscription_type === 'expired'
   const showPharmacySwitcher = role === 'owner'
 
   const navGroups = role === 'owner' ? ownerNavGroups : role === 'admin' ? adminNavGroups : sellerNavGroups
@@ -526,16 +528,18 @@ export default function DashboardLayout({ role }) {
                 </button>
               )})}
               <div className="border-t border-white/10 mt-1 pt-1">
-                <button
-                  onClick={() => {
-                    setPharmacyDropdownOpen(false)
-                    navigate('/dashboard/settings/pharmacies/new')
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-primary hover:bg-white/10 transition-colors font-semibold"
-                >
-                  <Plus className="w-4 h-4 shrink-0" />
-                  Add Pharmacy
-                </button>
+                {!ownerExpired && (
+                  <button
+                    onClick={() => {
+                      setPharmacyDropdownOpen(false)
+                      navigate('/dashboard/settings/pharmacies/new')
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-primary hover:bg-white/10 transition-colors font-semibold"
+                  >
+                    <Plus className="w-4 h-4 shrink-0" />
+                    Add Pharmacy
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -563,9 +567,11 @@ export default function DashboardLayout({ role }) {
                     const Icon = item.icon
                     const active = isActive(item.path, item.exact)
                     const required = item.requiredPlan || requiredPlanForPath(item.path)
-                    const locked = !!required && !hasPlanAccess(currentPlan, required)
+                    const locked = ownerExpired
+                      ? item.path !== `${basePath}/settings`
+                      : !!required && !hasPlanAccess(currentPlan, required)
                     if (locked) {
-                      const label = PLAN_LABELS[required] || required
+                      const label = ownerExpired ? 'Upgrade' : (PLAN_LABELS[required] || required)
                       return (
                         <Link
                           key={item.path}
@@ -692,6 +698,16 @@ export default function DashboardLayout({ role }) {
           </div>
 
           <div className="flex items-center gap-2">
+            {ownerExpired && (
+              <button
+                onClick={() => navigate('/subscribe')}
+                className="hidden sm:inline-flex items-center gap-2 px-4 h-9 rounded-full bg-[#0FD452] text-[#000F14] text-sm font-bold hover:bg-[#0cb843] transition-all active:scale-[0.98]"
+              >
+                <CreditCard className="w-4 h-4" />
+                Upgrade Plan
+              </button>
+            )}
+
             {/* Notifications */}
             <button
               onClick={() => navigate(`${basePath}/notifications`)}
@@ -767,6 +783,13 @@ export default function DashboardLayout({ role }) {
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-surface p-4 md:p-6 content-area">
           {role === 'owner' ? (
+            ownerExpired ? (
+              location.pathname === `${basePath}/settings` ? (
+                <SettingsPage />
+              ) : (
+                <UpgradeWall />
+              )
+            ) : (
             <Routes>
               <Route index element={<OwnerDashboard />} />
               <Route path="pos" element={<POSPage />} />
@@ -836,6 +859,7 @@ export default function DashboardLayout({ role }) {
               <Route path="support" element={<OwnerSupportPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
+            )
           ) : role === 'seller' ? (
             <Routes>
               <Route index element={<SellerDashboard />} />

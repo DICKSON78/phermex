@@ -71,9 +71,6 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
     ).then((_) => _load());
   }
 
-  Color _statusBg(String status) => status == 'Pending' ? AppColors.amber50 : AppColors.mint50;
-  Color _statusFg(String status) => status == 'Pending' ? AppColors.amber600 : AppColors.brand700;
-
   @override
   Widget build(BuildContext context) {
     final L = AppLocalizations.of(context);
@@ -81,11 +78,7 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
       appBar: AppBar(
         title: Text(L.t('oh.myPrescriptions')),
         backgroundColor: Colors.white,
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Color(0xFF0F2A1E),
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-        ),
+        systemOverlayStyle: AppUi.statusBar,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openUpload,

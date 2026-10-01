@@ -31,7 +31,7 @@ class AppDrawer extends StatelessWidget {
           Container(
             width: double.infinity,
             padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 22),
-            decoration: const BoxDecoration(gradient: AppColors.darkHeaderGradient),
+            decoration: const BoxDecoration(color: AppColors.header),
             child: Row(
               children: [
                 CircleAvatar(
@@ -152,10 +152,17 @@ class AppDrawer extends StatelessWidget {
   }
 
   Future<void> _trackLiveOrder(BuildContext context) async {
-    Navigator.pop(context);
+    // Grab the navigator and root context before closing the drawer. Once the
+    // drawer route is popped this widget's context is unmounted, so any
+    // navigation after an await would be silently dropped.
+    final navigator = Navigator.of(context);
+    final rootContext = navigator.context;
+    navigator.pop();
+
+    Order? active;
+    String? error;
     try {
       final orders = await CustomerRepository.myOrders();
-      Order? active;
       for (final o in orders) {
         final s = (o.orderStatus ?? '').toLowerCase();
         if (s == 'processing' || s == 'shipped' || s == 'in_transit') {
@@ -163,29 +170,21 @@ class AppDrawer extends StatelessWidget {
           break;
         }
       }
-      if (active == null) {
-        if (!context.mounted) return;
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const OrdersListScreen()),
-        );
-        return;
-      }
-      if (!context.mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => DeliveryTrackingScreen(orderId: active!.id),
-        ),
-      );
     } catch (e) {
-      if (!context.mounted) return;
-      final L = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
+      error = e.toString();
+    }
+
+    if (!navigator.mounted) return;
+    if (error != null && rootContext.mounted) {
+      final L = AppLocalizations.of(rootContext);
+      ScaffoldMessenger.of(rootContext).showSnackBar(
         SnackBar(content: Text(L.t('couldNotLoadOrder'), style: const TextStyle(fontFamily: 'Poppins'))),
       );
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const OrdersListScreen()),
-      );
     }
+    final target = active != null
+        ? DeliveryTrackingScreen(orderId: active.id)
+        : const OrdersListScreen();
+    navigator.push(MaterialPageRoute(builder: (_) => target));
   }
 
   Future<void> _confirmLogout(BuildContext context) async {

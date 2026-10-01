@@ -103,7 +103,7 @@ class _ReelSlide extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: AppColors.doctorBannerGradient,
+        color: AppColors.promo,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(

@@ -221,7 +221,7 @@ class _LiveCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: AppColors.doctorBannerGradient,
+          color: AppColors.promo,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(

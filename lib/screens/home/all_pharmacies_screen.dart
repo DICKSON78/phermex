@@ -9,7 +9,14 @@ import '../../widgets/ad_story_bar.dart';
 import '../pharmacy/pharmacy_detail_screen.dart';
 import 'ad_reel_screen.dart';
 
-const kAllPharmacyFilters = <String>['All', 'Pain Relief', 'Antibiotics', 'Vitamins'];
+const kAllPharmacyFilters = <String>[
+  'All',
+  'Pain Relief',
+  'Antibiotics',
+  'Vitamins',
+  'Cough',
+  'First Aid',
+];
 
 class AllPharmaciesScreen extends StatefulWidget {
   final String? initialCategory;
@@ -166,30 +173,36 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
           Container(
             width: double.infinity,
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
-            child: Row(
-              children: List.generate(kAllPharmacyFilters.length, (i) {
-                final active = i == _filter;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(kAllPharmacyFilters[i]),
-                    selected: active,
-                    onSelected: (_) => _selectFilter(i),
-                    selectedColor: AppColors.brand600,
-                    backgroundColor: Colors.white,
-                    labelStyle: TextStyle(
-                      color: active ? Colors.white : AppColors.muted,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
+            padding: const EdgeInsets.fromLTRB(24, 4, 0, 16),
+            child: SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.only(right: 24),
+                itemCount: kAllPharmacyFilters.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, i) {
+                  final active = i == _filter;
+                  return Center(
+                    child: ChoiceChip(
+                      label: Text(kAllPharmacyFilters[i]),
+                      selected: active,
+                      onSelected: (_) => _selectFilter(i),
+                      selectedColor: AppColors.brand600,
+                      backgroundColor: Colors.white,
+                      labelStyle: TextStyle(
+                        color: active ? Colors.white : AppColors.muted,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(99),
+                        side: BorderSide(color: active ? AppColors.brand600 : AppColors.line),
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(99),
-                      side: BorderSide(color: active ? AppColors.brand600 : AppColors.line),
-                    ),
-                  ),
-                );
-              }),
+                  );
+                },
+              ),
             ),
           ),
           Expanded(

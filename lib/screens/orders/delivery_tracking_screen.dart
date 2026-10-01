@@ -219,7 +219,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    gradient: AppColors.doctorBannerGradient,
+                    color: AppColors.promo,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(

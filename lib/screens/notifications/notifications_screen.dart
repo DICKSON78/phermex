@@ -210,7 +210,7 @@ class _BroadcastCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: AppColors.darkHeaderGradient,
+        color: AppColors.header,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(

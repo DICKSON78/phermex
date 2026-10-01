@@ -254,7 +254,7 @@ class _HeroHeaderState extends State<_HeroHeader> {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(24, topPad + 12, 24, 22),
-      decoration: const BoxDecoration(gradient: AppColors.darkHeaderGradient),
+      decoration: const BoxDecoration(color: AppColors.header),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -386,7 +386,7 @@ class _DoctorBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          gradient: AppColors.doctorBannerGradient,
+          color: AppColors.promo,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -436,13 +436,13 @@ class _DoctorBanner extends StatelessWidget {
 }
 
 // ---- Category row ---------------------------------------------------------
-const kHomeCategories = <String>['Pain Relief', 'Antibiotics', 'Vitamins', 'Cough & Cold', 'First Aid'];
+const kHomeCategories = <String>['Pain Relief', 'Antibiotics', 'Vitamins', 'Cough', 'First Aid'];
 
 const kCategoryIcons = <String, IconData>{
   'Pain Relief': Icons.healing_rounded,
   'Antibiotics': Icons.medication_rounded,
   'Vitamins': Icons.shield_rounded,
-  'Cough & Cold': Icons.child_care_rounded,
+  'Cough': Icons.child_care_rounded,
   'First Aid': Icons.medical_services_rounded,
 };
 
@@ -533,7 +533,7 @@ class _NearbyPharmacyCard extends StatelessWidget {
           children: [
             Container(
               height: 112,
-              decoration: const BoxDecoration(gradient: AppColors.pharmacyPhotoGradient),
+              decoration: const BoxDecoration(color: AppColors.promo),
               child: Stack(
                 children: [
                   Positioned(

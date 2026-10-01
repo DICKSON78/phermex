@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppColors {
   AppColors._();
@@ -22,22 +23,29 @@ class AppColors {
   static const violet50 = Color(0xFFF1ECFB);
   static const violet600 = Color(0xFF7C4FE0);
 
-  static const darkHeaderGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF0F2A1E), brand900, Color(0xFF060F0B)],
-  );
+  /// Flat header/banner green, matching the status bar colour.
+  static const header = Color(0xFF0F2A1E);
 
-  static const doctorBannerGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [brand500, brand700],
-  );
+  /// Flat promotional green used by the Talk to a Doctor banner and the
+  /// Nearby Pharmacies card.
+  static const promo = brand600;
+}
 
-  static const pharmacyPhotoGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFF25B57E), Color(0xFF0C5C40)],
+class AppUi {
+  const AppUi._();
+
+  /// Deep green used by the My Prescriptions screen header.
+  static const Color statusBarColor = AppColors.header;
+
+  /// Green status bar with white content, applied to every screen.
+  static const statusBar = SystemUiOverlayStyle(
+    statusBarColor: statusBarColor,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+    systemStatusBarContrastEnforced: false,
+    systemNavigationBarColor: Colors.white,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarDividerColor: AppColors.line,
   );
 }
 
@@ -78,6 +86,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
+        systemOverlayStyle: AppUi.statusBar,
         titleTextStyle: TextStyle(
           color: AppColors.ink,
           fontSize: 18,

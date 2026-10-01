@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
@@ -14,6 +15,9 @@ import 'screens/profile/settings_screen.dart' as profile;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Every screen keeps the My Prescriptions green status bar with white
+  // content, including routes pushed without an AppBar of their own.
+  SystemChrome.setSystemUIOverlayStyle(AppUi.statusBar);
   OfflineService.init();
   final appPreferences = AppPreferences();
   await appPreferences.init();
@@ -40,6 +44,18 @@ class HelixApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       navigatorKey: ApiService.navigatorKey,
+      // Cap OS font scaling so large system text cannot overflow the fixed
+      // padding and sizing the layouts rely on.
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        return MediaQuery(
+          data: mq.copyWith(
+            textScaler:
+                mq.textScaler.clamp(minScaleFactor: 0.85, maxScaleFactor: 1.25),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       locale: appPreferences.locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [

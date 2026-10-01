@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/api_service.dart';
+import '../theme.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/offline_banner.dart';
 import '../widgets/app_drawer.dart';
@@ -57,13 +58,7 @@ class _HomeShellState extends State<HomeShell> {
       AppTab.settings => 4,
     };
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: Colors.white,
-        systemNavigationBarIconBrightness: Brightness.dark,
-      ),
+      value: AppUi.statusBar,
       child: Scaffold(
         drawer: const AppDrawer(),
         body: Column(

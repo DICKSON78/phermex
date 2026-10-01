@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
+import '../../theme.dart';
 import '../home_shell.dart';
 import 'forgot_password_screen.dart';
 
@@ -396,11 +397,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: _bg,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: const SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-        ),
+        value: AppUi.statusBar,
         child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -600,11 +597,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: _bg,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: const SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-        ),
+        value: AppUi.statusBar,
         child: SafeArea(
         child: Center(
           child: SingleChildScrollView(

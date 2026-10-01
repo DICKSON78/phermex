@@ -1,7 +1,7 @@
-const CACHE_NAME = 'helix-cache-v1';
-const SHELL_CACHE = 'helix-shell-v1';
-const API_CACHE = 'helix-api-v1';
-const STATIC_CACHE = 'helix-static-v1';
+const CACHE_NAME = 'helix-cache-v2';
+const SHELL_CACHE = 'helix-shell-v2';
+const API_CACHE = 'helix-api-v2';
+const STATIC_CACHE = 'helix-static-v2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

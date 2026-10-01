@@ -86,6 +86,9 @@ import ConsolidatedFinancialReportPage from '../pages/owner/ConsolidatedFinancia
 import PlanGate from '../components/PlanGate'
 import UpgradeWall from '../components/UpgradeWall'
 import { hasPlanAccess, requiredPlanForPath, PLAN_LABELS } from '../utils/planConfig'
+import { navKeyForPath, groupKeyForLabel } from '../utils/navI18n'
+import { useLanguage } from '../contexts/LanguageContext'
+import LanguageSwitcher from './LanguageSwitcher'
 
 import SupplierListPage from '../pages/owner/SupplierListPage'
 import SupplierDetailPage from '../pages/owner/SupplierDetailPage'
@@ -396,6 +399,15 @@ export default function DashboardLayout({ role }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout, pharmacyId, switchPharmacy, subscription } = useAuth()
+  const { t } = useLanguage()
+  const labelFor = (item) => {
+    const key = navKeyForPath(item.path)
+    return key ? t(key, item.label) : item.label
+  }
+  const groupLabelFor = (group) => {
+    const key = groupKeyForLabel(group.label)
+    return key ? t(key, group.label) : group.label
+  }
 
   const accessiblePharmacies = user?.accessible_pharmacies && user.accessible_pharmacies.length > 0
     ? user.accessible_pharmacies
@@ -603,7 +615,7 @@ export default function DashboardLayout({ role }) {
                   onClick={() => toggleGroup(gi)}
                   className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-green-300/80 hover:text-white transition-colors rounded-lg group"
                 >
-                  <span>{group.label}</span>
+                  <span>{groupLabelFor(group)}</span>
                   <ChevronRight
                     className={`w-4 h-4 text-green-400/60 group-hover:text-white transition-all duration-200 ${collapsed ? '' : 'rotate-90'}`}
                   />
@@ -623,11 +635,11 @@ export default function DashboardLayout({ role }) {
                           key={item.path}
                           to="/subscribe"
                           onClick={() => setSidebarOpen(false)}
-                          title={`${item.label} — requires ${label}`}
+                          title={`${labelFor(item)} — requires ${label}`}
                           className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/40 hover:text-white/70 hover:bg-white/5 transition-all duration-200"
                         >
                           <Icon className="w-[18px] h-[18px] shrink-0 opacity-60" />
-                          <span>{item.label}</span>
+                          <span>{labelFor(item)}</span>
                           <span className="ml-auto flex items-center gap-1 text-[10px] font-bold bg-white/10 px-1.5 py-0.5 rounded">
                             <Lock className="w-3 h-3" /> {label}
                           </span>
@@ -640,7 +652,7 @@ export default function DashboardLayout({ role }) {
                         to={item.path}
                         end={item.exact}
                         onClick={() => setSidebarOpen(false)}
-                        title={item.label}
+                        title={labelFor(item)}
                         className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                           active
                             ? 'text-white'
@@ -649,7 +661,7 @@ export default function DashboardLayout({ role }) {
                         style={active ? { background: ACTIVE_GRADIENT } : undefined}
                       >
                         <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? 'text-white' : ''}`} />
-                        <span>{item.label}</span>
+                        <span>{labelFor(item)}</span>
                         {(() => {
                           const badge = badgeFor(item.path)
                           if (badge <= 0) return null
@@ -763,9 +775,11 @@ export default function DashboardLayout({ role }) {
                 className="hidden sm:inline-flex items-center gap-2 px-4 h-9 rounded-full bg-[#0FD452] text-[#000F14] text-sm font-bold hover:bg-[#0cb843] transition-all active:scale-[0.98]"
               >
                 <CreditCard className="w-4 h-4" />
-                Upgrade Plan
+                {t('subscription.upgrade')}
               </button>
             )}
+
+            <LanguageSwitcher compact />
 
             {/* Notifications */}
             <button
@@ -811,7 +825,7 @@ export default function DashboardLayout({ role }) {
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         <User className="w-4 h-4" />
-                        My Profile
+                        {t('profile.title')}
                       </NavLink>
                       {role !== 'seller' && (
                         <NavLink
@@ -820,7 +834,7 @@ export default function DashboardLayout({ role }) {
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         >
                           <Settings className="w-4 h-4" />
-                          Settings
+                          {t('common.settings')}
                         </NavLink>
                       )}
                     </div>
@@ -830,7 +844,7 @@ export default function DashboardLayout({ role }) {
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 w-full transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      {t('auth.logout')}
                     </button>
                   </div>
                 </>

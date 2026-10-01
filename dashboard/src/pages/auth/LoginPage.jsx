@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
+import LanguageSwitcher from '../../components/LanguageSwitcher'
 import { Pill, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import api from '../../services/api'
 
@@ -11,6 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { login } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -45,7 +48,7 @@ export default function LoginPage() {
       if (data?.application_status === 'rejected') {
         setError('Your application has been rejected. ' + (data.rejection_reason || ''))
       } else {
-        setError(data?.message || 'Invalid credentials. Please try again.')
+        setError(data?.message || t('auth.invalidCredentials'))
       }
     } finally {
       setLoading(false)
@@ -62,9 +65,13 @@ export default function LoginPage() {
             </div>
             <span className="text-gray-600 font-black text-3xl">HELIX</span>
           </div>
-          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">Login</p>
-          <h1 className="text-4xl font-black text-gray-600 mb-3">Welcome Back</h1>
-          <p className="text-gray-500 text-lg">Sign in to your account to continue</p>
+          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">{t('auth.login')}</p>
+          <h1 className="text-4xl font-black text-gray-600 mb-3">{t('auth.loginTitle')}</h1>
+          <p className="text-gray-500 text-lg">{t('auth.loginSubtitle')}</p>
+        </div>
+
+        <div className="flex justify-end mb-6">
+          <LanguageSwitcher compact />
         </div>
 
         {error && (
@@ -75,7 +82,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1.5">Email / Phone Number</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('auth.email')} / {t('common.phone')}</label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -90,7 +97,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1.5">Password</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('auth.password')}</label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -109,7 +116,7 @@ export default function LoginPage() {
 
           <div className="flex items-center justify-end">
             <Link to="/forgot-password" className="text-sm text-[#0FD452] hover:text-[#0cb843] font-medium transition-colors">
-              Forgot Password?
+              {t('auth.forgotPassword')}
             </Link>
           </div>
 
@@ -118,7 +125,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
           >
-            {loading ? 'Signing in...' : 'SIGN IN'}
+            {loading ? `${t('common.loading')}` : t('auth.signIn').toUpperCase()}
           </button>
         </form>
 
@@ -146,9 +153,9 @@ export default function LoginPage() {
 
         <div className="mt-10 text-center">
           <p className="text-gray-500 text-sm">
-            Don't have an account?{' '}
+{t('auth.noAccount')}{' '}
             <Link to="/register" className="text-[#0FD452] font-semibold hover:text-[#0cb843] transition-colors">
-              Sign Up
+              {t('auth.signUp')}
             </Link>
           </p>
         </div>

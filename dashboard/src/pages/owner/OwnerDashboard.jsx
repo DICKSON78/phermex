@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import {
   DollarSign,
   TrendingUp,
@@ -43,11 +44,11 @@ const DEFAULT_DATA = {
   lowStockDrugs: [],
 }
 
-function getGreeting() {
+function getGreeting(t) {
   const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
+  if (hour < 12) return t('dashboard.greetingMorning')
+  if (hour < 17) return t('dashboard.greetingAfternoon')
+  return t('dashboard.greetingEvening')
 }
 
 function formatCurrency(amount) {
@@ -165,7 +166,8 @@ function OwnerDashboard() {
 
   if (!data) return null
 
-  const greeting = getGreeting()
+  const { t } = useLanguage()
+  const greeting = getGreeting(t)
   const { subscription } = useAuth()
 
   return (
@@ -302,14 +304,14 @@ function OwnerDashboard() {
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <ChartIcon className="w-5 h-5 text-primary" />
-            Revenue — Last 30 Days
+            {t('dashboard.revenueLast30')}
           </h3>
           <div className="flex items-center gap-1 rounded-full bg-gray-100 p-1">
             <button
               onClick={() => setSelectedWeek(0)}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${selectedWeek === 0 ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}
             >
-              All
+              {t('common.all')}
             </button>
             {[1, 2, 3, 4].map((n) => (
               <button
@@ -326,7 +328,7 @@ function OwnerDashboard() {
           {data.revenueBreakdown.filter((w) => w.value > 0).length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-gray-400">
               <ChartIcon className="w-10 h-10 opacity-30 mb-2" />
-              <p className="text-sm">No revenue recorded in the last 30 days yet.</p>
+              <p className="text-sm">{t('dashboard.noRevenue')}</p>
             </div>
           ) : (
           <div className="flex flex-col md:flex-row items-center gap-8">
@@ -389,14 +391,14 @@ function OwnerDashboard() {
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-2 text-xs font-medium text-gray-500">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ background: week.color, opacity: active ? 1 : 0.25 }} />
-                        {week.name}
+                        {t('dashboard.week')} {i + 1}
                       </span>
                       <span className={`text-sm font-bold ${active ? 'text-gray-900' : 'text-gray-700'}`}>{formatCurrency(week.value)}</span>
                     </div>
                     <div className="h-1.5 mt-2.5 bg-gray-200 rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: week.color, opacity: active ? 1 : 0.25 }} />
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-1.5">{pct}% of total</p>
+                    <p className="text-[10px] text-gray-400 mt-1.5">{pct}% {t('dashboard.ofTotal')}</p>
                   </button>
                 )
               })}

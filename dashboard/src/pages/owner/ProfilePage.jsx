@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
+import { useLanguage } from '../../contexts/LanguageContext'
+import LanguageSwitcher from '../../components/LanguageSwitcher'
 import {
   User,
   Mail,
@@ -139,8 +141,11 @@ export default function ProfilePage() {
           <User className="w-5 h-5 text-[#0FD452]" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-sm text-gray-500">View and update your personal information.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('profile.title')}</h1>
+          <p className="text-sm text-gray-500">{t('profile.personalInfo')}</p>
+        </div>
+        <div className="ml-auto w-56">
+          <LanguageSwitcher />
         </div>
       </div>
 
@@ -205,12 +210,12 @@ export default function ProfilePage() {
           <div className="bg-white rounded-2xl border border-gray-200 p-6">
             <h3 className="text-md font-bold text-[#000F14] mb-5 flex items-center gap-2">
               <User className="w-4 h-4 text-[#0FD452]" />
-              Profile Information
+              {t('profile.personalInfo')}
             </h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('common.name')}</label>
                 <input
                   type="text"
                   name="name"
@@ -221,7 +226,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('common.email')}</label>
                 <input
                   type="email"
                   value={form.email}
@@ -232,7 +237,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('common.phone')}</label>
                 <input
                   type="tel"
                   name="phone"
@@ -276,12 +281,12 @@ export default function ProfilePage() {
                 {savingProfile ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Saving...
+                    {t('common.saving')}
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    Save Profile
+                    {t('profile.updateProfile')}
                   </>
                 )}
               </button>
@@ -292,7 +297,7 @@ export default function ProfilePage() {
           <div className="bg-white rounded-2xl border border-gray-200 p-6">
             <h3 className="text-md font-bold text-[#000F14] mb-5 flex items-center gap-2">
               <Lock className="w-4 h-4 text-[#0FD452]" />
-              Change Password
+              {t('profile.changePassword')}
             </h3>
 
             <div className="space-y-4">

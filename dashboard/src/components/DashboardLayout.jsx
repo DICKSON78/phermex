@@ -894,6 +894,7 @@ export default function DashboardLayout({ role }) {
               <Route path="purchase-orders" element={<PurchaseOrderListPage />} />
               <Route path="purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
               <Route path="goods-received" element={<GoodsReceivedPage />} />
+              <Route path="stock-transfers" element={<PlanGate requiredPlan="professional"><StockTransferPage /></PlanGate>} />
               <Route path="stock-returns" element={<PlanGate requiredPlan="professional"><StockReturnsPage /></PlanGate>} />
               <Route path="damaged-goods" element={<PlanGate requiredPlan="professional"><DamagedGoodsPage /></PlanGate>} />
               <Route path="controlled-substances" element={<PlanGate requiredPlan="professional"><ControlledSubstancePage /></PlanGate>} />

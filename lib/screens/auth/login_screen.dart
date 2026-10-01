@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../home_shell.dart';
@@ -257,6 +258,7 @@ class _GoogleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return SizedBox(
       height: 54,
       width: double.infinity,
@@ -274,7 +276,7 @@ class _GoogleButton extends StatelessWidget {
           children: [
             const _GoogleG(size: 20),
             const SizedBox(width: 10),
-            const Text('Continue with Google'),
+            Text(L.t('auth.continueWithGoogle')),
           ],
         ),
       ),
@@ -342,27 +344,30 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _googleSignIn() {
+    final L = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Google sign-in coming soon. Use email/password for now.'),
+      SnackBar(
+        content: Text(L.t('auth.googleSignInComingSoon')),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   String? _validateEmailOrPhone(String? value) {
+    final L = AppLocalizations.of(context);
     final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Email or phone is required';
+    if (v.isEmpty) return L.t('auth.emailOrPhoneRequired');
     final isEmail = v.contains('@');
     final isPhone = RegExp(r'^\+?[0-9]{7,15}$').hasMatch(v);
-    if (!isEmail && !isPhone) return 'Enter a valid email or phone number';
+    if (!isEmail && !isPhone) return L.t('auth.validEmailOrPhone');
     return null;
   }
 
   String? _validatePassword(String? value) {
+    final L = AppLocalizations.of(context);
     final v = value ?? '';
-    if (v.isEmpty) return 'Password is required';
-    if (v.length < 6) return 'Password must be at least 6 characters';
+    if (v.isEmpty) return L.t('auth.passwordRequired');
+    if (v.length < 6) return L.t('auth.passwordMin6');
     return null;
   }
 
@@ -387,6 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: _bg,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -404,9 +410,9 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const _BrandHeader(
-                    title: 'Welcome Back',
-                    subtitle: 'Sign in to your account',
+                  _BrandHeader(
+                    title: L.t('auth.welcomeBack'),
+                    subtitle: L.t('auth.signInToAccount'),
                   ),
                   const SizedBox(height: 30),
                   if (_error != null) ...[
@@ -423,7 +429,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _loginCtrl,
                           keyboardType: TextInputType.emailAddress,
                           validator: _validateEmailOrPhone,
-                          decoration: _fieldDecoration(hint: 'Email or phone number', icon: Icons.mail_outline),
+                          decoration: _fieldDecoration(hint: L.t('auth.emailOrPhoneHint'), icon: Icons.mail_outline),
                         ),
                         const SizedBox(height: 14),
                         TextFormField(
@@ -432,7 +438,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           validator: _validatePassword,
                           onFieldSubmitted: (_) => _submit(),
                           decoration: _fieldDecoration(
-                            hint: 'Password',
+                            hint: L.t('auth.passwordHint'),
                             icon: Icons.lock_outline,
                             suffix: IconButton(
                               icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, size: 20, color: _gray400),
@@ -453,27 +459,27 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       },
                       style: TextButton.styleFrom(foregroundColor: _green, padding: EdgeInsets.zero),
-                      child: const Text('Forgot Password?', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500)),
+                      child: Text(L.t('auth.forgotPassword'), style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500)),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _PrimaryButton(loading: _loading, label: 'SIGN IN', onPressed: _submit),
+                  _PrimaryButton(loading: _loading, label: L.t('auth.signIn'), onPressed: _submit),
                   const SizedBox(height: 20),
-                  const _Divider('OR'),
+                  _Divider(L.t('auth.or')),
                   const SizedBox(height: 20),
                   _GoogleButton(onPressed: _googleSignIn),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Don't have an account?", style: TextStyle(color: _gray500, fontSize: 14)),
+                      Text(L.t('auth.noAccount'), style: TextStyle(color: _gray500, fontSize: 14)),
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const RegisterScreen()),
                           );
                         },
-                        child: const Text('Sign Up', style: TextStyle(fontWeight: FontWeight.w700, color: _green, fontSize: 14)),
+                        child: Text(L.t('auth.signUp'), style: TextStyle(fontWeight: FontWeight.w700, color: _green, fontSize: 14)),
                       ),
                     ],
                   ),
@@ -517,42 +523,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _googleSignIn() {
+    final L = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Google sign-in coming soon. Use email/password for now.'),
+      SnackBar(
+        content: Text(L.t('auth.googleSignInComingSoon')),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   String? _validateName(String? value) {
-    if (value == null || value.trim().isEmpty) return 'Name is required';
+    final L = AppLocalizations.of(context);
+    if (value == null || value.trim().isEmpty) return L.t('auth.nameRequired');
     return null;
   }
 
   String? _validateEmail(String? value) {
+    final L = AppLocalizations.of(context);
     final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Email is required';
-    if (!v.contains('@')) return 'Enter a valid email address';
+    if (v.isEmpty) return L.t('auth.emailRequired');
+    if (!v.contains('@')) return L.t('auth.validEmail');
     return null;
   }
 
   String? _validatePhone(String? value) {
+    final L = AppLocalizations.of(context);
     final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Phone is required';
+    if (v.isEmpty) return L.t('auth.phoneRequired');
     return null;
   }
 
   String? _validatePassword(String? value) {
+    final L = AppLocalizations.of(context);
     final v = value ?? '';
-    if (v.isEmpty) return 'Password is required';
-    if (v.length < 8) return 'Password must be at least 8 characters';
+    if (v.isEmpty) return L.t('auth.passwordRequired');
+    if (v.length < 8) return L.t('auth.passwordMin8');
     return null;
   }
 
   String? _validateConfirm(String? value) {
-    if (value == null || value.isEmpty) return 'Please confirm your password';
-    if (value != _passwordCtrl.text) return 'Passwords do not match';
+    final L = AppLocalizations.of(context);
+    if (value == null || value.isEmpty) return L.t('auth.pleaseConfirmPassword');
+    if (value != _passwordCtrl.text) return L.t('auth.passwordsMismatch');
     return null;
   }
 
@@ -584,6 +596,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: _bg,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -601,9 +614,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const _BrandHeader(
-                    title: 'Create Account',
-                    subtitle: 'Create your account to start ordering',
+                  _BrandHeader(
+                    title: L.t('auth.createAccount'),
+                    subtitle: L.t('auth.createAccountSubtitle'),
                   ),
                   const SizedBox(height: 30),
                   if (_error != null) ...[
@@ -619,21 +632,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         TextFormField(
                           controller: _nameCtrl,
                           validator: _validateName,
-                          decoration: _fieldDecoration(hint: 'Full name', icon: Icons.person_outline),
+                          decoration: _fieldDecoration(hint: L.t('auth.fullName'), icon: Icons.person_outline),
                         ),
                         const SizedBox(height: 14),
                         TextFormField(
                           controller: _emailCtrl,
                           keyboardType: TextInputType.emailAddress,
                           validator: _validateEmail,
-                          decoration: _fieldDecoration(hint: 'Email address', icon: Icons.mail_outline),
+                          decoration: _fieldDecoration(hint: L.t('auth.emailAddress'), icon: Icons.mail_outline),
                         ),
                         const SizedBox(height: 14),
                         TextFormField(
                           controller: _phoneCtrl,
                           keyboardType: TextInputType.phone,
                           validator: _validatePhone,
-                          decoration: _fieldDecoration(hint: 'Phone number', icon: Icons.phone_outlined),
+                          decoration: _fieldDecoration(hint: L.t('auth.phoneNumber'), icon: Icons.phone_outlined),
                         ),
                         const SizedBox(height: 14),
                         TextFormField(
@@ -641,7 +654,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           obscureText: _obscure,
                           validator: _validatePassword,
                           decoration: _fieldDecoration(
-                            hint: 'Password (min 8 chars)',
+                            hint: L.t('auth.passwordMin8Hint'),
                             icon: Icons.lock_outline,
                             suffix: IconButton(
                               icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, size: 20, color: _gray400),
@@ -655,25 +668,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           obscureText: _obscure,
                           validator: _validateConfirm,
                           onFieldSubmitted: (_) => _submit(),
-                          decoration: _fieldDecoration(hint: 'Confirm password', icon: Icons.lock_outline),
+                          decoration: _fieldDecoration(hint: L.t('auth.confirmPassword'), icon: Icons.lock_outline),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _PrimaryButton(loading: _loading, label: 'CREATE ACCOUNT', onPressed: _submit),
+                  _PrimaryButton(loading: _loading, label: L.t('auth.createAccount'), onPressed: _submit),
                   const SizedBox(height: 20),
-                  const _Divider('OR'),
+                  _Divider(L.t('auth.or')),
                   const SizedBox(height: 20),
                   _GoogleButton(onPressed: _googleSignIn),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Already have an account?", style: TextStyle(color: _gray500, fontSize: 14)),
+                      Text(L.t('auth.haveAccount'), style: TextStyle(color: _gray500, fontSize: 14)),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.w700, color: _green, fontSize: 14)),
+                        child: Text(L.t('auth.signIn'), style: TextStyle(fontWeight: FontWeight.w700, color: _green, fontSize: 14)),
                       ),
                     ],
                   ),

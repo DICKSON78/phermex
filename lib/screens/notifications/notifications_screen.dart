@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
@@ -77,17 +78,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     final hasUnread = _notifications.any((n) => !n.isRead);
     return Scaffold(
-      backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: const Text('Notifications'),
-        backgroundColor: Colors.white,
+        leading: const BackButton(color: AppColors.ink),
+        title: Text(AppLocalizations.of(context).t('notifications')),
         actions: [
           if (hasUnread)
-            TextButton(onPressed: _markAllRead, child: const Text('Mark all read')),
+            TextButton(
+              onPressed: _markAllRead,
+              child: Text(AppLocalizations.of(context).t('misc.markAllRead'),
+                  style: const TextStyle(
+                      color: AppColors.brand600,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700)),
+            ),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppColors.brand600))
           : _error != null
               ? Center(
                   child: Padding(
@@ -98,7 +105,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         Text(_error!, textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
                         const SizedBox(height: 12),
-                        OutlinedButton(onPressed: _load, child: const Text('Retry')),
+                        OutlinedButton(
+                            onPressed: _load,
+                            child: Text(
+                                AppLocalizations.of(context).t('misc.retry'))),
                       ],
                     ),
                   ),
@@ -108,99 +118,83 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       onRefresh: _load,
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        children: const [
-                          SizedBox(height: 120),
-                          Icon(Icons.notifications_none, size: 48, color: Color(0xFFD1D5DB)),
-                          SizedBox(height: 12),
+                        children: [
+                          const SizedBox(height: 140),
+                          const Icon(Icons.notifications_none,
+                              size: 44, color: AppColors.line),
+                          const SizedBox(height: 12),
                           Center(
-                            child: Text('No notifications yet',
-                                style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
+                            child: Text(
+                                AppLocalizations.of(context)
+                                    .t('misc.noNotificationsYet'),
+                                style:
+                                    const TextStyle(fontSize: 13, color: AppColors.muted)),
                           ),
                         ],
                       ),
                     )
                   : RefreshIndicator(
                       onRefresh: _load,
-                      child: ListView(
-                        padding: const EdgeInsets.all(20),
-                        children: [
-                          if (_broadcasts.isNotEmpty) ...[
-                            const Text('Announcements',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B7280))),
-                            const SizedBox(height: 10),
-                            ..._broadcasts.map((b) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: _BroadcastCard(broadcast: b),
-                                )),
-                            if (_notifications.isNotEmpty) ...[
-                              const SizedBox(height: 6),
-                              const Divider(height: 24),
-                              const Text('Recent',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B7280))),
-                              const SizedBox(height: 10),
-                            ],
-                          ],
-                          ..._notifications.map((n) => Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: GestureDetector(
-                                  onTap: () => _markRead(n),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.all(24),
+                        itemCount: _broadcasts.length + _notifications.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, i) {
+                          if (i < _broadcasts.length) {
+                            return _BroadcastCard(broadcast: _broadcasts[i]);
+                          }
+                          final n = _notifications[i - _broadcasts.length];
+                          return GestureDetector(
+                            onTap: () => _markRead(n),
+                            child: Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(
+                                  color: n.isRead ? AppColors.line : AppColors.brand500,
+                                  width: n.isRead ? 1 : 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 36,
+                                    height: 36,
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: n.isRead
-                                            ? const Color(0xFFEEF1F0)
-                                            : AppTheme.primary.withOpacity(0.4),
-                                      ),
+                                      color: n.isRead ? AppColors.sand : AppColors.mint50,
+                                      borderRadius: BorderRadius.circular(11),
                                     ),
-                                    child: Row(
+                                    child: Icon(Icons.notifications_none_rounded,
+                                        size: 16,
+                                        color: n.isRead ? AppColors.muted : AppColors.brand600),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            color: n.isRead
-                                                ? const Color(0xFFF3F4F6)
-                                                : AppTheme.primary.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Icon(Icons.notifications_none,
-                                              size: 18,
-                                              color: n.isRead ? const Color(0xFF9CA3AF) : AppTheme.primary),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(n.title ?? '',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: n.isRead ? FontWeight.w600 : FontWeight.w700,
-                                                    color: const Color(0xFF111827),
-                                                  )),
-                                              if (n.message != null && n.message!.isNotEmpty) ...[
-                                                const SizedBox(height: 4),
-                                                Text(n.message!,
-                                                    maxLines: 3,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                                              ],
-                                              const SizedBox(height: 6),
-                                              Text(AppHelpers.formatDate(n.createdAt),
-                                                  style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
-                                            ],
-                                          ),
-                                        ),
+                                        Text(n.title ?? '',
+                                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                                        if (n.message != null && n.message!.isNotEmpty) ...[
+                                          const SizedBox(height: 2),
+                                          Text(n.message!,
+                                              maxLines: 3,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontSize: 11.5, color: AppColors.muted, height: 1.35)),
+                                        ],
+                                        const SizedBox(height: 4),
+                                        Text(AppHelpers.formatDate(n.createdAt),
+                                            style: const TextStyle(fontSize: 10.5, color: AppColors.muted)),
                                       ],
                                     ),
                                   ),
-                                ),
-                              )),
-                        ],
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
     );
@@ -216,11 +210,7 @@ class _BroadcastCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0a1f14), Color(0xFF14532d)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: AppColors.darkHeaderGradient,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -230,18 +220,22 @@ class _BroadcastCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.15),
+              color: AppColors.brand600.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.campaign_outlined, size: 18, color: AppTheme.primary),
+            child: const Icon(Icons.campaign_outlined, size: 18, color: AppColors.brand600),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(broadcast.title ?? 'Announcement',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text(broadcast.title ??
+                        AppLocalizations.of(context).t('misc.announcement'),
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white)),
                 if (broadcast.message != null && broadcast.message!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(broadcast.message!,

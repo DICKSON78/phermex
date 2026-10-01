@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 import '../../theme.dart';
 
@@ -63,8 +64,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
     if (_passwordController.text != _confirmController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Passwords do not match'),
+      final L = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(L.t('auth.passwordsMismatch')),
         backgroundColor: Color(0xFFDC2626),
         behavior: SnackBarBehavior.floating,
       ));
@@ -96,10 +98,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(_step == 3 ? '' : 'Reset Password'),
+        title: Text(_step == 3 ? '' : L.t('auth.resetPassword')),
         backgroundColor: Colors.white,
       ),
       body: SafeArea(
@@ -112,6 +115,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildForm() {
+    final L = AppLocalizations.of(context);
     return Form(
       key: _formKey,
       child: Column(
@@ -119,26 +123,27 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         children: [
           const SizedBox(height: 16),
           Text(
-            _step == 1 ? 'Forgot Password?' : 'Enter Reset Code',
+            _step == 1 ? L.t('auth.forgotPassword') : L.t('auth.enterResetCode'),
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.dark),
           ),
           const SizedBox(height: 8),
           Text(
             _step == 1
-                ? "Enter your email or phone number and we'll send you a 6-digit reset code."
-                : 'We sent a code to ${_maskedDestination ?? 'your email'}. Enter it below with your new password.',
+                ? L.t('auth.enterEmailOrPhone')
+                : L.t('auth.codeSentTo')
+                    .replaceFirst('%s', _maskedDestination ?? L.t('auth.yourEmail')),
             style: const TextStyle(fontSize: 13.5, color: _gray500, height: 1.5),
           ),
           const SizedBox(height: 28),
           if (_step == 1)
             TextFormField(
               controller: _identifierController,
-              decoration: const InputDecoration(
-                labelText: 'Email or phone',
+              decoration: InputDecoration(
+                labelText: L.t('auth.emailOrPhone'),
                 hintText: 'johndoe@example.com',
               ),
               validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Please enter your email or phone' : null,
+                  v == null || v.trim().isEmpty ? L.t('auth.enterEmailOrPhone') : null,
             )
           else ...[
             TextFormField(
@@ -147,28 +152,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 20, letterSpacing: 10, fontWeight: FontWeight.w800),
-              decoration: const InputDecoration(labelText: '6-digit code', hintText: '••••••'),
-              validator: (v) => (v == null || v.trim().length != 6) ? 'Enter the 6-digit code' : null,
+              decoration: InputDecoration(labelText: L.t('auth.sixDigitCode'), hintText: '••••••'),
+              validator: (v) => (v == null || v.trim().length != 6) ? L.t('auth.enterSixDigitCode') : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _passwordController,
               obscureText: _obscure,
               decoration: InputDecoration(
-                labelText: 'New password',
+                labelText: L.t('auth.newPassword'),
                 suffixIcon: IconButton(
                   icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, size: 20),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
-              validator: (v) => (v == null || v.length < 6) ? 'At least 6 characters' : null,
+              validator: (v) => (v == null || v.length < 6) ? L.t('auth.atLeast6Chars') : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _confirmController,
               obscureText: _obscure,
-              decoration: const InputDecoration(labelText: 'Confirm new password'),
-              validator: (v) => (v == null || v.isEmpty) ? 'Confirm your password' : null,
+              decoration: InputDecoration(labelText: L.t('auth.confirmNewPassword')),
+              validator: (v) => (v == null || v.isEmpty) ? L.t('auth.confirmYourPassword') : null,
             ),
           ],
           const SizedBox(height: 28),
@@ -183,7 +188,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text(_step == 1 ? 'Send Reset Code' : 'Reset Password',
+                  : Text(_step == 1 ? L.t('auth.sendResetCode') : L.t('auth.resetPassword'),
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
             ),
           ),
@@ -197,7 +202,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           _step = 1;
                           _codeController.clear();
                         }),
-                child: const Text('Wrong number or email? Go back',
+                child: Text(L.t('auth.wrongNumberGoBack'),
                     style: TextStyle(fontSize: 12.5, color: _gray500)),
               ),
             ),
@@ -207,6 +212,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildSuccess() {
+    final L = AppLocalizations.of(context);
     return Column(
       children: [
         const SizedBox(height: 60),
@@ -217,11 +223,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: const Icon(Icons.check_circle_outline, size: 48, color: AppTheme.primary),
         ),
         const SizedBox(height: 24),
-        const Text('Password Reset!',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.dark)),
+        Text(L.t('auth.passwordReset'),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.dark)),
         const SizedBox(height: 8),
-        const Text('You can now sign in with your new password.',
-            style: TextStyle(fontSize: 13.5, color: _gray500)),
+        Text(L.t('auth.passwordResetSuccess'),
+            style: const TextStyle(fontSize: 13.5, color: _gray500)),
         const SizedBox(height: 32),
         SizedBox(
           width: double.infinity,
@@ -229,8 +235,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: ElevatedButton(
             onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-            child: const Text('Back to Sign In',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: Text(L.t('auth.backToSignIn'),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ),
       ],

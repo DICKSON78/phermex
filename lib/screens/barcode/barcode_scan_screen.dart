@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Camera-based barcode scanner. Pops with the decoded code when recognized.
 class BarcodeScanScreen extends StatefulWidget {
@@ -26,10 +27,11 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Scan Barcode'),
+        title: Text(L.t('auth.scanBarcode')),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
       ),
@@ -53,10 +55,10 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
             left: 0,
             right: 0,
             bottom: MediaQuery.paddingOf(context).bottom + 24,
-            child: const Text(
-              'Point the camera at the medicine barcode',
+            child: Text(
+              L.t('auth.pointCameraAtBarcode'),
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: Colors.white, fontSize: 13),
             ),
           ),
         ],

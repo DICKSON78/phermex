@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jitsi_meet_flutter_sdk/jitsi_meet_flutter_sdk.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 import '../../theme.dart';
 
@@ -32,9 +33,10 @@ class _VideoConsultViewState extends State<VideoConsultView> {
 
   String get _userName => ApiService.userName?.isNotEmpty == true
       ? ApiService.userName!
-      : 'Patient';
+      : AppLocalizations.tr('oh.patient');
 
   Future<void> _joinInApp() async {
+    final L = AppLocalizations.of(context);
     setState(() => _joining = true);
     try {
       final options = JitsiMeetConferenceOptions(
@@ -62,7 +64,7 @@ class _VideoConsultViewState extends State<VideoConsultView> {
       setState(() => _joining = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Could not start video. ${ApiService.friendlyError(e)}'),
+          content: Text('${L.t('oh.couldNotStartVideo')} ${ApiService.friendlyError(e)}'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -70,19 +72,20 @@ class _VideoConsultViewState extends State<VideoConsultView> {
   }
 
   Future<void> _openInBrowser() async {
+    final L = AppLocalizations.of(context);
     try {
       final uri = Uri.parse(widget.roomUrl);
       final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open browser'),
+          SnackBar(content: Text(L.t('oh.couldNotOpenBrowser')),
               behavior: SnackBarBehavior.floating),
         );
       }
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open browser'),
+        SnackBar(content: Text(L.t('oh.couldNotOpenBrowser')),
             behavior: SnackBarBehavior.floating),
       );
     }
@@ -90,14 +93,15 @@ class _VideoConsultViewState extends State<VideoConsultView> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.darkSurface,
       appBar: AppBar(
         backgroundColor: AppTheme.darkSurface,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Video Consult',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+        title: Text(L.t('oh.videoConsult'),
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
       ),
       body: SafeArea(
         child: Column(
@@ -116,13 +120,13 @@ class _VideoConsultViewState extends State<VideoConsultView> {
                   : const Icon(Icons.video_call, size: 56, color: Colors.white),
             ),
             const SizedBox(height: 20),
-            const Text('Live Consultation',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+            Text(L.t('oh.liveConsultation'),
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
             Text(widget.pharmacyName,
                 style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13)),
             const SizedBox(height: 4),
-            Text(widget.isLive ? 'Call is ready for you' : 'Waiting for pharmacist',
+            Text(widget.isLive ? L.t('oh.callReady') : L.t('oh.waitingForPharmacist'),
                 style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12)),
             const Spacer(),
             if (_joining) ...[
@@ -139,7 +143,7 @@ class _VideoConsultViewState extends State<VideoConsultView> {
                     child: ElevatedButton.icon(
                       onPressed: _joining ? null : _joinInApp,
                       icon: const Icon(Icons.videocam, size: 20, color: Colors.white),
-                      label: Text(_joining ? 'Joining…' : 'Open In-App Video',
+                      label: Text(_joining ? L.t('oh.joining') : L.t('oh.openInAppVideo'),
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                       style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
                     ),
@@ -151,8 +155,8 @@ class _VideoConsultViewState extends State<VideoConsultView> {
                     child: OutlinedButton.icon(
                       onPressed: _openInBrowser,
                       icon: const Icon(Icons.public, size: 20, color: Colors.white),
-                      label: const Text('Continue in Web Browser',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      label: Text(L.t('oh.continueWebBrowser'),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
                         side: const BorderSide(color: Color(0xFF4B5563)),

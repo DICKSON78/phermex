@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme.dart';
 
 /// In-app (Uber-style) map showing the pharmacy location with the user's
@@ -76,18 +77,19 @@ class _PharmacyMapScreenState extends State<PharmacyMapScreen> {
   }
 
   Future<void> _launch(Uri url) async {
+    final L = AppLocalizations.of(context);
     try {
       final ok = await launchUrl(url, mode: LaunchMode.externalApplication);
       if (!ok && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open maps'),
+          SnackBar(content: Text(L.t('shop.couldNotOpenMaps')),
               behavior: SnackBarBehavior.floating),
         );
       }
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open maps'),
+          SnackBar(content: Text(L.t('shop.couldNotOpenMaps')),
               behavior: SnackBarBehavior.floating),
         );
       }
@@ -96,11 +98,12 @@ class _PharmacyMapScreenState extends State<PharmacyMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final distance = _distance;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Map'),
+        title: Text(L.t('shop.map')),
         backgroundColor: Colors.white,
       ),
       body: Stack(
@@ -206,7 +209,9 @@ class _PharmacyMapScreenState extends State<PharmacyMapScreen> {
                         onPressed: _openExternalNavigation,
                         icon: const Icon(Icons.navigation, size: 18, color: Colors.white),
                         label: Text(
-                          distance == null ? 'Get Directions' : 'Navigate (${distance.toStringAsFixed(1)} km)',
+                          distance == null
+                              ? L.t('shop.getDirections')
+                              : L.t('shop.navigateKm').replaceAll('{{km}}', distance.toStringAsFixed(1)),
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
                         ),
                       ),

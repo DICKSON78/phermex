@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
@@ -74,7 +75,9 @@ class _SupportScreenState extends State<SupportScreen> {
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: Text(_selected == null ? 'Support' : 'Ticket #${_selected!.id}'),
+        title: Text(_selected == null
+            ? AppLocalizations.of(context).t('helpSupport')
+            : '${AppLocalizations.of(context).t('misc.ticket')} #${_selected!.id}'),
         backgroundColor: Colors.white,
         leading: _selected == null
             ? null
@@ -107,7 +110,10 @@ class _SupportScreenState extends State<SupportScreen> {
               Text(_error!, textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
               const SizedBox(height: 12),
-              OutlinedButton(onPressed: _load, child: const Text('Retry')),
+              OutlinedButton(
+                  onPressed: _load,
+                  child: Text(
+                      AppLocalizations.of(context).t('misc.retry'))),
             ],
           ),
         ),
@@ -118,15 +124,22 @@ class _SupportScreenState extends State<SupportScreen> {
         onRefresh: _load,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          children: const [
-            SizedBox(height: 120),
-            Icon(Icons.support_agent, size: 56, color: Color(0xFFD1D5DB)),
-            SizedBox(height: 16),
-            Center(child: Text('No support tickets yet',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827)))),
-            SizedBox(height: 6),
-            Center(child: Text('Tap + to contact the Helix team',
-                style: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)))),
+          children: [
+            const SizedBox(height: 120),
+            const Icon(Icons.support_agent, size: 56, color: Color(0xFFD1D5DB)),
+            const SizedBox(height: 16),
+            Center(
+                child: Text(
+                    AppLocalizations.of(context).t('misc.noSupportTickets'),
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827)))),
+            const SizedBox(height: 6),
+            Center(
+                child: Text(
+                    AppLocalizations.of(context).t('misc.tapPlusContactHelix'),
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)))),
           ],
         ),
       );
@@ -147,6 +160,7 @@ class _SupportScreenState extends State<SupportScreen> {
   }
 
   Widget _buildDetail(SupportTicket ticket) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Expanded(
@@ -166,33 +180,47 @@ class _SupportScreenState extends State<SupportScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(ticket.subject ?? 'Ticket #${ticket.id}',
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                          child: Text(
+                              ticket.subject ??
+                                  '${l10n.t('misc.ticket')} #${ticket.id}',
+                              style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF111827))),
                         ),
                         _StatusBadge(status: ticket.status),
                       ],
                     ),
                     const SizedBox(height: 10),
                     Text(ticket.description ?? '',
-                        style: const TextStyle(fontSize: 14, height: 1.5, color: Color(0xFF374151))),
+                        style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.5,
+                            color: Color(0xFF374151))),
                     const SizedBox(height: 12),
-                    Text('Opened ${_date(ticket.createdAt)}',
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                    Text('${l10n.t('misc.opened')} ${_date(ticket.createdAt)}',
+                        style: const TextStyle(
+                            fontSize: 11, color: Color(0xFF9CA3AF))),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text('Conversation',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(l10n.t('misc.conversation'),
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827))),
               ),
               const SizedBox(height: 10),
               if (ticket.replies.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: Text('No replies yet. The team will respond soon.',
-                      style: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)))),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                      child: Text(l10n.t('misc.noRepliesYet'),
+                          style: const TextStyle(
+                              fontSize: 13, color: Color(0xFF9CA3AF)))),
                 ),
               ...ticket.replies.map((r) => _ReplyBubble(reply: r)),
             ],
@@ -218,7 +246,9 @@ class _SupportScreenState extends State<SupportScreen> {
           await _load();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Ticket submitted. We will get back to you.')),
+              SnackBar(
+                  content:
+                      Text(AppLocalizations.of(context).t('misc.ticketSubmitted'))),
             );
           }
         },
@@ -264,7 +294,8 @@ class _TicketCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 13, height: 1.4, color: Color(0xFF6B7280))),
             const SizedBox(height: 10),
-            Text('${_label(ticket.priority)} priority',
+            Text(
+                '${AppLocalizations.of(context).t('misc.priorityLabel')}: ${_label(ticket.priority, context)}',
                 style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
           ],
         ),
@@ -272,9 +303,15 @@ class _TicketCard extends StatelessWidget {
     );
   }
 
-  String _label(String? value) {
+  String _label(String? value, BuildContext context) {
     if (value == null) return '';
-    final map = {'low': 'Low', 'medium': 'Medium', 'high': 'High', 'urgent': 'Urgent'};
+    final l10n = AppLocalizations.of(context);
+    final map = {
+      'low': l10n.t('misc.priorityLow'),
+      'medium': l10n.t('misc.priorityMedium'),
+      'high': l10n.t('misc.priorityHigh'),
+      'urgent': l10n.t('misc.priorityUrgent'),
+    };
     return map[value.toLowerCase()] ?? value;
   }
 }
@@ -286,6 +323,7 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = status ?? '';
+    final l10n = AppLocalizations.of(context);
     Color bg = const Color(0xFFF3F4F6);
     Color fg = const Color(0xFF6B7280);
     String label = s;
@@ -293,22 +331,22 @@ class _StatusBadge extends StatelessWidget {
       case 'open':
         bg = const Color(0xFFDBEAFE);
         fg = const Color(0xFF1D4ED8);
-        label = 'Open';
+        label = l10n.t('misc.statusOpen');
         break;
       case 'in_progress':
         bg = const Color(0xFFFEF3C7);
         fg = const Color(0xFFB45309);
-        label = 'In Progress';
+        label = l10n.t('misc.statusInProgress');
         break;
       case 'resolved':
         bg = const Color(0xFFD1FAE5);
         fg = const Color(0xFF047857);
-        label = 'Resolved';
+        label = l10n.t('misc.statusResolved');
         break;
       case 'closed':
         bg = const Color(0xFFF3F4F6);
         fg = const Color(0xFF4B5563);
-        label = 'Closed';
+        label = l10n.t('misc.statusClosed');
         break;
     }
     return Container(
@@ -338,7 +376,9 @@ class _ReplyBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(reply.fromAdmin ? 'Helix Team' : 'You',
+            Text(reply.fromAdmin
+                ? AppLocalizations.of(context).t('misc.helixTeam')
+                : AppLocalizations.of(context).t('misc.you'),
                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF374151))),
             const SizedBox(height: 4),
             Text(reply.message ?? '',
@@ -398,7 +438,9 @@ class _ReplyBarState extends State<_ReplyBar> {
                 enabled: !_sending,
                 minLines: 1,
                 maxLines: 4,
-                decoration: const InputDecoration(hintText: 'Type your reply...'),
+                decoration: InputDecoration(
+                    hintText:
+                        AppLocalizations.of(context).t('misc.typeYourReply')),
               ),
             ),
             const SizedBox(width: 10),
@@ -447,6 +489,18 @@ class _CreateTicketSheetState extends State<_CreateTicketSheet> {
     'Other',
   ];
 
+  String _categoryLabel(String c) {
+    final l10n = AppLocalizations.of(context);
+    final map = {
+      'Technical Issue': l10n.t('misc.catTechnical'),
+      'Order & Delivery': l10n.t('misc.catOrderDelivery'),
+      'Payment': l10n.t('misc.catPayment'),
+      'Account & Login': l10n.t('misc.catAccountLogin'),
+      'Other': l10n.t('misc.catOther'),
+    };
+    return map[c] ?? c;
+  }
+
   @override
   void dispose() {
     _subject.dispose();
@@ -456,7 +510,8 @@ class _CreateTicketSheetState extends State<_CreateTicketSheet> {
 
   Future<void> _submit() async {
     if (_subject.text.trim().isEmpty || _description.text.trim().isEmpty) {
-      setState(() => _error = 'Subject and description are required.');
+      setState(() =>
+          _error = AppLocalizations.of(context).t('misc.subjectDescriptionRequired'));
       return;
     }
     setState(() {
@@ -484,6 +539,7 @@ class _CreateTicketSheetState extends State<_CreateTicketSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
@@ -507,39 +563,41 @@ class _CreateTicketSheetState extends State<_CreateTicketSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('New Support Ticket',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+            Text(l10n.t('misc.newSupportTicket'),
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
             const SizedBox(height: 4),
-            const Text('Describe your issue and the Helix team will help.',
-                style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+            Text(l10n.t('misc.describeIssueHelix'),
+                style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
             const SizedBox(height: 16),
             TextField(
               controller: _subject,
-              decoration: const InputDecoration(labelText: 'Subject'),
+              decoration: InputDecoration(labelText: l10n.t('misc.subject')),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _description,
               minLines: 3,
               maxLines: 5,
-              decoration: const InputDecoration(labelText: 'Description'),
+              decoration: InputDecoration(labelText: l10n.t('misc.description')),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _category,
-              decoration: const InputDecoration(labelText: 'Category'),
-              items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+              decoration: InputDecoration(labelText: l10n.t('misc.category')),
+              items: _categories
+                  .map((c) => DropdownMenuItem(value: c, child: Text(_categoryLabel(c))))
+                  .toList(),
               onChanged: (v) => setState(() => _category = v ?? _category),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _priority,
-              decoration: const InputDecoration(labelText: 'Priority'),
-              items: const [
-                DropdownMenuItem(value: 'low', child: Text('Low')),
-                DropdownMenuItem(value: 'medium', child: Text('Medium')),
-                DropdownMenuItem(value: 'high', child: Text('High')),
-                DropdownMenuItem(value: 'urgent', child: Text('Urgent')),
+              decoration: InputDecoration(labelText: l10n.t('misc.priorityLabel')),
+              items: [
+                DropdownMenuItem(value: 'low', child: Text(l10n.t('misc.priorityLow'))),
+                DropdownMenuItem(value: 'medium', child: Text(l10n.t('misc.priorityMedium'))),
+                DropdownMenuItem(value: 'high', child: Text(l10n.t('misc.priorityHigh'))),
+                DropdownMenuItem(value: 'urgent', child: Text(l10n.t('misc.priorityUrgent'))),
               ],
               onChanged: (v) => setState(() => _priority = v ?? _priority),
             ),
@@ -558,7 +616,7 @@ class _CreateTicketSheetState extends State<_CreateTicketSheet> {
                         height: 22,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Submit Ticket'),
+                    : Text(l10n.t('misc.submitTicket')),
               ),
             ),
           ],

@@ -1,13 +1,32 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
+
+String _rxStatusKey(String status) {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return 'oh.statusPending';
+    case 'processing':
+      return 'oh.statusProcessing';
+    case 'approved':
+      return 'oh.statusApproved';
+    case 'rejected':
+      return 'oh.statusRejected';
+    case 'cancelled':
+      return 'oh.statusCancelled';
+    default:
+      return 'oh.statusPending';
+  }
+}
 
 class PrescriptionsScreen extends StatefulWidget {
   const PrescriptionsScreen({super.key});
@@ -52,77 +71,87 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
     ).then((_) => _load());
   }
 
+  Color _statusBg(String status) => status == 'Pending' ? AppColors.amber50 : AppColors.mint50;
+  Color _statusFg(String status) => status == 'Pending' ? AppColors.amber600 : AppColors.brand700;
+
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: const Text('My Prescriptions'),
+        title: Text(L.t('oh.myPrescriptions')),
         backgroundColor: Colors.white,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Color(0xFF0F2A1E),
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openUpload,
-        backgroundColor: AppTheme.primary,
+        backgroundColor: AppColors.brand600,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Icon(Icons.upload_file, size: 22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: const Icon(Icons.upload_file_rounded, color: Colors.white),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(_error!, textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
-                        const SizedBox(height: 12),
-                        OutlinedButton(onPressed: _load, child: const Text('Retry')),
-                      ],
-                    ),
-                  ),
-                )
-              : _prescriptions.isEmpty
-                  ? RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: const [
-                          SizedBox(height: 120),
-                          Icon(Icons.upload_file, size: 48, color: Color(0xFFD1D5DB)),
-                          SizedBox(height: 12),
-                          Center(
-                            child: Text('No prescriptions yet',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF6B7280))),
-                          ),
-                          SizedBox(height: 4),
-                          Center(
-                            child: Text('Upload your prescription to get started',
-                                style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
-                          ),
-                        ],
+      body: Stack(
+        children: [
+          _loading
+              ? const Center(child: CircularProgressIndicator(color: AppColors.brand600))
+              : _error != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_error!, textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
+                            const SizedBox(height: 12),
+                            OutlinedButton(onPressed: _load, child: Text(L.t('oh.retry'))),
+                          ],
+                        ),
                       ),
                     )
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.all(20),
-                        itemCount: _prescriptions.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (context, i) {
-                          final p = _prescriptions[i];
-                          return GestureDetector(
-                            onTap: () => showDialog(
-                              context: context,
-                              builder: (_) => _PrescriptionDetailDialog(prescription: p),
-                            ),
-                            child: _PrescriptionCard(prescription: p),
-                          );
-                        },
-                      ),
-                    ),
+                  : _prescriptions.isEmpty
+                      ? RefreshIndicator(
+                          onRefresh: _load,
+                          child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              const SizedBox(height: 140),
+                              const Icon(Icons.upload_file_rounded, size: 44, color: AppColors.line),
+                              const SizedBox(height: 12),
+                              Center(
+                                child: Text(L.t('oh.noPrescriptionsYet'),
+                                    style: const TextStyle(fontSize: 13, color: AppColors.muted)),
+                              ),
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _load,
+                          child: ListView.separated(
+                            padding: const EdgeInsets.all(24),
+                            itemCount: _prescriptions.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 12),
+                            itemBuilder: (context, i) {
+                              final p = _prescriptions[i];
+                              return InkWell(
+                                onTap: () => showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (_) => _PrescriptionDetailSheet(prescription: p),
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                child: _PrescriptionCard(prescription: p),
+                              );
+                            },
+                          ),
+                        ),
+        ],
+      ),
     );
   }
 }
@@ -133,66 +162,62 @@ class _PrescriptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = prescription.status ?? '';
+    final L = AppLocalizations.of(context);
+    final rawStatus = prescription.status ?? '';
+    final pending = rawStatus.toLowerCase() == 'pending';
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
+        border: Border.all(color: AppColors.line),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEF1F0)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFFF3E8FF),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.violet50,
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.description_outlined, size: 20, color: Color(0xFFA855F7)),
+            child: const Icon(Icons.description_rounded,
+                color: AppColors.violet600, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text('#${prescription.prescriptionCode ?? prescription.id}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppHelpers.statusColor(status).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(status.toUpperCase(),
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppHelpers.statusColor(status))),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(prescription.pharmacyName ?? 'Pharmacy',
+                Text('#${prescription.prescriptionCode ?? prescription.id}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                const SizedBox(height: 2),
+                Text(prescription.pharmacyName ?? L.t('oh.pharmacy'),
+                    style: const TextStyle(fontSize: 12, color: AppColors.muted)),
                 if (prescription.doctorName != null && prescription.doctorName!.isNotEmpty)
                   Text('Dr. ${prescription.doctorName}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                const SizedBox(height: 4),
+                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                const SizedBox(height: 2),
                 Text(AppHelpers.formatDate(prescription.createdAt),
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                    style: const TextStyle(fontSize: 10.5, color: AppColors.muted)),
               ],
             ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+                color: pending ? AppColors.amber50 : AppColors.mint50,
+                borderRadius: BorderRadius.circular(99)),
+            child: Text(L.t(_rxStatusKey(rawStatus)).toUpperCase(),
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: pending ? AppColors.amber600 : AppColors.brand700)),
           ),
         ],
       ),
@@ -200,114 +225,124 @@ class _PrescriptionCard extends StatelessWidget {
   }
 }
 
-class _PrescriptionDetailDialog extends StatelessWidget {
+class _PrescriptionDetailSheet extends StatelessWidget {
   final Prescription prescription;
-  const _PrescriptionDetailDialog({required this.prescription});
+  const _PrescriptionDetailSheet({required this.prescription});
 
   @override
   Widget build(BuildContext context) {
-    final status = prescription.status ?? '';
-    final photo = prescription.photo;
-    final notes = prescription.notes;
-    return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+    final L = AppLocalizations.of(context);
+    final rx = prescription;
+    final rawStatus = rx.status ?? '';
+    final pending = rawStatus.toLowerCase() == 'pending';
+    final photo = rx.photo;
+    final notes = rx.notes;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(22, 14, 22, 26),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration:
+                    BoxDecoration(color: AppColors.line, borderRadius: BorderRadius.circular(99)),
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text('#${prescription.prescriptionCode ?? prescription.id}',
+                  child: Text('#${rx.prescriptionCode ?? rx.id}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink)),
                 ),
-                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppHelpers.statusColor(status).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(status.toUpperCase(),
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppHelpers.statusColor(status))),
+                      color: pending ? AppColors.amber50 : AppColors.mint50,
+                      borderRadius: BorderRadius.circular(99)),
+                  child: Text(L.t(_rxStatusKey(rawStatus)).toUpperCase(),
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: pending ? AppColors.amber600 : AppColors.brand700)),
                 ),
               ],
             ),
-            if (prescription.pharmacyName != null) ...[
-              const SizedBox(height: 4),
-              Text(prescription.pharmacyName!,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
-            ],
+            const SizedBox(height: 4),
+            Text(rx.pharmacyName ?? L.t('oh.pharmacy'),
+                style: const TextStyle(fontSize: 12.5, color: AppColors.muted)),
             const SizedBox(height: 16),
-            if (photo != null && photo.isNotEmpty)
-              ClipRRect(
+            Container(
+              height: 128,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: AppColors.line),
                 borderRadius: BorderRadius.circular(16),
-                child: CachedNetworkImage(
-                  imageUrl: photo,
-                  height: 220,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    height: 220,
-                    color: const Color(0xFFF3F4F6),
-                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    height: 220,
-                    color: const Color(0xFFF3F4F6),
-                    child: const Icon(Icons.broken_image_outlined, color: Color(0xFF9CA3AF)),
-                  ),
-                ),
-              )
-            else
-              Container(
-                height: 140,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                alignment: Alignment.center,
-                child: const Icon(Icons.description_outlined, size: 32, color: Color(0xFFD1D5DB)),
               ),
+              clipBehavior: Clip.antiAlias,
+              child: photo != null && photo.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: photo,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: AppColors.line.withOpacity(0.4),
+                        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                      ),
+                      errorWidget: (context, url, error) => const Center(
+                        child: Icon(Icons.description_outlined, color: AppColors.muted, size: 26),
+                      ),
+                    )
+                  : const Center(
+                      child: Icon(Icons.description_outlined, color: AppColors.muted, size: 26)),
+            ),
             const SizedBox(height: 16),
             _DetailRow(
-              icon: Icons.medical_services_outlined,
-              label: 'Doctor',
-              value: prescription.doctorName != null && prescription.doctorName!.isNotEmpty
-                  ? 'Dr. ${prescription.doctorName}'
-                  : '',
-            ),
-            const SizedBox(height: 10),
+                icon: Icons.medical_services_outlined,
+                label: L.t('oh.doctor'),
+                value: rx.doctorName != null && rx.doctorName!.isNotEmpty
+                    ? 'Dr. ${rx.doctorName}'
+                    : '—'),
+            const SizedBox(height: 12),
             _DetailRow(
-              icon: Icons.local_hospital_outlined,
-              label: 'Hospital',
-              value: prescription.hospitalName ?? '',
-            ),
-            const SizedBox(height: 10),
+                icon: Icons.local_hospital_outlined,
+                label: L.t('oh.hospital'),
+                value: rx.hospitalName ?? '—'),
+            const SizedBox(height: 12),
             _DetailRow(
-              icon: Icons.event_note_outlined,
-              label: 'Submitted',
-              value: AppHelpers.formatDate(prescription.createdAt),
-            ),
+                icon: Icons.calendar_month_rounded,
+                label: L.t('oh.submitted'),
+                value: AppHelpers.formatDate(rx.createdAt)),
             if (notes != null && notes.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              const Text('Notes',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-              const SizedBox(height: 6),
-              Text(notes, style: const TextStyle(fontSize: 13, height: 1.5, color: Color(0xFF374151))),
+              const SizedBox(height: 16),
+              Text(L.t('oh.notes'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
+              const SizedBox(height: 4),
+              Text(notes, style: const TextStyle(fontSize: 12.5, color: AppColors.muted)),
             ],
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.ink,
+                  side: const BorderSide(color: AppColors.line),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: Text(L.t('oh.close'), style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
           ],
@@ -326,29 +361,24 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: 34,
+          height: 34,
           decoration: BoxDecoration(
-            color: AppTheme.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.mint50,
+            border: Border.all(color: AppColors.line),
+            borderRadius: BorderRadius.circular(11),
           ),
-          child: Icon(icon, size: 16, color: AppTheme.primary),
+          child: Icon(icon, size: 15, color: AppColors.brand600),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF9CA3AF))),
-              const SizedBox(height: 2),
-              Text(value.isEmpty ? '—' : value,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
-            ],
-          ),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 10.5, color: AppColors.muted)),
+            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          ],
         ),
       ],
     );
@@ -426,12 +456,13 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
   }
 
   Future<void> _submit() async {
+    final L = AppLocalizations.of(context);
     if (_pharmacyId == null) {
-      _showError('Please select a pharmacy');
+      _showError(L.t('oh.selectPharmacyError'));
       return;
     }
     if (_doctorController.text.trim().isEmpty) {
-      _showError('Please enter the doctor name');
+      _showError(L.t('oh.doctorNameError'));
       return;
     }
     setState(() => _submitting = true);
@@ -449,8 +480,8 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
       if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Prescription uploaded successfully'),
+        SnackBar(
+          content: Text(L.t('oh.prescriptionUploaded')),
           backgroundColor: AppTheme.dark,
           behavior: SnackBarBehavior.floating,
         ),
@@ -470,6 +501,7 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
       padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -488,7 +520,7 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                 width: 42,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
+                  color: AppColors.line,
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -500,26 +532,26 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.12),
+                    color: AppColors.mint50,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(Icons.description_outlined,
-                      color: AppTheme.primaryDark, size: 22),
+                  child: const Icon(Icons.description_rounded,
+                      color: AppColors.brand600, size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Upload Prescription',
-                          style: TextStyle(
+                      Text(L.t('oh.uploadPrescription'),
+                          style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF111827))),
+                              color: AppColors.ink)),
                       const SizedBox(height: 2),
-                      Text('The pharmacy will review and confirm your order.',
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade500)),
+                      Text(L.t('oh.pharmacyWillReview'),
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.muted)),
                     ],
                   ),
                 ),
@@ -535,12 +567,12 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                 height: 148,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
+                  color: AppColors.sand,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
                     color: _photoPath != null
-                        ? AppTheme.primary
-                        : const Color(0xFFE5E7EB),
+                        ? AppColors.brand600
+                        : AppColors.line,
                     width: 1.4,
                   ),
                 ),
@@ -551,13 +583,13 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                           fit: StackFit.expand,
                           children: [
                             Image.file(File(_photoPath!), fit: BoxFit.cover),
-                            const Positioned(
+                            Positioned(
                               right: 10,
                               top: 10,
                               child: CircleAvatar(
                                 radius: 16,
-                                backgroundColor: AppTheme.primary,
-                                child: Icon(Icons.check,
+                                backgroundColor: AppColors.brand600,
+                                child: const Icon(Icons.check,
                                     size: 18, color: Colors.white),
                               ),
                             ),
@@ -571,18 +603,18 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                             width: 52,
                             height: 52,
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withOpacity(0.12),
+                              color: AppColors.mint50,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.add_a_photo_outlined,
-                                size: 24, color: AppTheme.primaryDark),
+                                size: 24, color: AppColors.brand600),
                           ),
                           const SizedBox(height: 10),
-                          const Text('Tap to add prescription photo (optional)',
-                              style: TextStyle(
+                          Text(L.t('oh.tapAddPhoto'),
+                              style: const TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w500,
-                                  color: Color(0xFF9CA3AF))),
+                                  color: AppColors.muted)),
                         ],
                       ),
               ),
@@ -592,26 +624,26 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
             TextField(
               controller: _doctorController,
               decoration: InputDecoration(
-                labelText: 'Doctor Name',
+                labelText: L.t('oh.doctorName'),
                 hintText: 'Dr. John Doe',
                 prefixIcon: const Icon(Icons.person_outline,
-                    size: 20, color: Color(0xFF9CA3AF)),
+                    size: 20, color: AppColors.muted),
                 filled: true,
-                fillColor: Colors.grey.shade50,
+                fillColor: AppColors.sand,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                  borderSide: const BorderSide(color: AppColors.line),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                  borderSide: const BorderSide(color: AppColors.line),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: const BorderSide(
-                      color: AppTheme.primary, width: 1.8),
+                      color: AppColors.brand600, width: 1.8),
                 ),
               ),
             ),
@@ -620,42 +652,42 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
               controller: _notesController,
               maxLines: 3,
               decoration: InputDecoration(
-                labelText: 'Notes (optional)',
-                hintText: 'Medicines needed, dosage, etc.',
+                labelText: L.t('oh.notesOptional'),
+                hintText: L.t('oh.medicinesHint'),
                 prefixIcon: const Icon(Icons.edit_note,
-                    size: 20, color: Color(0xFF9CA3AF)),
+                    size: 20, color: AppColors.muted),
                 filled: true,
-                fillColor: Colors.grey.shade50,
+                fillColor: AppColors.sand,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                  borderSide: const BorderSide(color: AppColors.line),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                  borderSide: const BorderSide(color: AppColors.line),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: const BorderSide(
-                      color: AppTheme.primary, width: 1.8),
+                      color: AppColors.brand600, width: 1.8),
                 ),
               ),
             ),
             const SizedBox(height: 16),
 
-            Text('Select Pharmacy',
+            Text(L.t('oh.selectPharmacy'),
                 style:
-                    TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.grey.shade700)),
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
             const SizedBox(height: 8),
             _loadingPharmacies
                 ? const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2)))
                 : _pharmacies.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Text('No pharmacies available. Check your connection.',
-                            style: TextStyle(fontSize: 12, color: Color(0xFFDC2626))),
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(L.t('oh.noPharmacies'),
+                            style: const TextStyle(fontSize: 12, color: Color(0xFFDC2626))),
                       )
                     : Container(
                         height: 112,
@@ -673,13 +705,13 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: selected
-                                      ? AppTheme.primary.withOpacity(0.1)
-                                      : const Color(0xFFF9FAFB),
+                                      ? AppColors.mint50
+                                      : AppColors.sand,
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: selected
-                                        ? AppTheme.primary
-                                        : const Color(0xFFE5E7EB),
+                                        ? AppColors.brand600
+                                        : AppColors.line,
                                     width: selected ? 1.6 : 1,
                                   ),
                                 ),
@@ -691,23 +723,23 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                                       height: 34,
                                       decoration: BoxDecoration(
                                         color: selected
-                                            ? AppTheme.primary
-                                            : AppTheme.primary.withOpacity(0.12),
+                                            ? AppColors.brand600
+                                            : AppColors.mint50,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: const Icon(Icons.local_pharmacy,
                                           size: 18,
-                                          color: AppTheme.primaryDark),
+                                          color: AppColors.brand700),
                                     ),
                                     const SizedBox(height: 8),
                                     Expanded(
-                                      child: Text(p.name ?? 'Pharmacy',
+                                      child: Text(p.name ?? L.t('oh.pharmacy'),
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                               fontSize: 12.5,
                                               fontWeight: FontWeight.w600,
-                                              color: Color(0xFF111827))),
+                                              color: AppColors.ink)),
                                     ),
                                   ],
                                 ),
@@ -724,8 +756,8 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
               child: ElevatedButton(
                 onPressed: _submitting ? null : _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  disabledBackgroundColor: AppTheme.primary.withOpacity(0.5),
+                  backgroundColor: AppColors.brand600,
+                  disabledBackgroundColor: AppColors.brand600.withOpacity(0.5),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -738,8 +770,8 @@ class _UploadPrescriptionSheetState extends State<_UploadPrescriptionSheet> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Submit Prescription',
-                        style: TextStyle(
+                    : Text(L.t('oh.submitPrescription'),
+                        style: const TextStyle(
                             color: Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.w700)),

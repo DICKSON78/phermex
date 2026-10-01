@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../l10n/app_localizations.dart';
 import '../screens/auth/login_screen.dart';
 
 class ApiException implements Exception {
@@ -88,6 +89,15 @@ class ApiService {
 
   static String? get userName => _cachedUser?['name'];
 
+  static String? get userEmail => _cachedUser?['email'];
+
+  static String? get userCustomerId {
+    final id = _cachedUser?['id'];
+    if (id is String && id.isNotEmpty) return id;
+    if (id is num) return id.round().toString();
+    return null;
+  }
+
   static Future<void> logout() async {
     _token = null;
     _cachedUser = null;
@@ -130,7 +140,7 @@ class ApiService {
 
   static dynamic _decode(http.Response res) {    if (res.statusCode == 401) {
       clearSession();
-      throw ApiException('Session expired. Please log in again.');
+      throw ApiException(AppLocalizations.tr('misc.sessionExpired'));
     }
     dynamic body;
     try {
@@ -141,7 +151,8 @@ class ApiService {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return body;
     }
-    String message = 'Request failed (${res.statusCode})';
+    String message =
+        '${AppLocalizations.tr('misc.requestFailed')} (${res.statusCode})';
     if (body is Map && body['message'] != null) {
       message = body['message'].toString();
     }
@@ -176,7 +187,7 @@ class ApiService {
       return ApiException(friendlyError(e));
     }
     // Unknown/other exceptions: never echo raw internals to the customer.
-    return ApiException('Something went wrong. Please try again.');
+    return ApiException(AppLocalizations.tr('misc.somethingWrong'));
   }
 
   static Future<dynamic> get(String path) async {
@@ -251,28 +262,28 @@ class ApiService {
 
   static String friendlyError(Object e) {
     final msg = e.toString();
-    if (msg.contains('timed out')) return 'Connection timed out. Please check your connection and try again.';
+    if (msg.contains('timed out')) return AppLocalizations.tr('misc.timeoutError');
     if (msg.contains('SocketException') ||
         msg.contains('Connection refused') ||
         msg.contains('Connection closed') ||
         msg.contains('Connection reset')) {
-      return 'No internet connection. Please check your connection and try again.';
+      return AppLocalizations.tr('misc.noInternet');
     }
     if (msg.contains('HandshakeException') ||
         msg.contains('TlsException') ||
         msg.contains('certificate') ||
         msg.contains('SSL')) {
-      return 'We could not securely connect to our servers. Please try again in a moment.';
+      return AppLocalizations.tr('misc.secureConnectionFailed');
     }
     if (msg.contains('ClientException') || msg.contains('Bad state')) {
-      return 'No internet connection. Please check your connection and try again.';
+      return AppLocalizations.tr('misc.noInternet');
     }
-    if (msg.contains('500') || msg.contains('503')) return 'Server error. Please try again later.';
-    if (msg.contains('429')) return 'Too many attempts. Please wait a moment and try again.';
-    if (msg.contains('422')) return 'Invalid data. Please check your input.';
-    if (msg.contains('401')) return 'Session expired. Please log in again.';
-    if (msg.contains('403')) return "You don't have permission for this action.";
-    if (msg.contains('404')) return 'Not found.';
+    if (msg.contains('500') || msg.contains('503')) return AppLocalizations.tr('misc.serverError');
+    if (msg.contains('429')) return AppLocalizations.tr('misc.tooManyAttempts');
+    if (msg.contains('422')) return AppLocalizations.tr('misc.invalidData');
+    if (msg.contains('401')) return AppLocalizations.tr('misc.sessionExpired');
+    if (msg.contains('403')) return AppLocalizations.tr('misc.noPermission');
+    if (msg.contains('404')) return AppLocalizations.tr('misc.notFound');
     if (msg.contains('ApiException') || msg.contains('Exception')) {
       // Return the sanitized, trimmed message produced by ApiService (already
       // customer-safe), otherwise a generic fallback.
@@ -281,6 +292,6 @@ class ApiService {
         return trimmed;
       }
     }
-    return 'Something went wrong. Please try again.';
+    return AppLocalizations.tr('misc.somethingWrong');
   }
 }

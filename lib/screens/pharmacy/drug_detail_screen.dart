@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../state/cart_state.dart';
 import '../../theme.dart';
@@ -13,10 +14,11 @@ class DrugDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final outOfStock = (drug.quantity ?? 0) <= 0;
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
-      appBar: AppBar(title: Text(drug.name ?? 'Drug Details')),
+      appBar: AppBar(title: Text(drug.name ?? L.t('shop.drugDetails'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         children: [
@@ -42,24 +44,24 @@ class DrugDetailScreen extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('Price', style: TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                  Text(L.t('shop.price'), style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
                   Text(AppHelpers.formatTZS(drug.price), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primary)),
                 ])),
                 Container(width: 1, height: 36, color: const Color(0xFFEEF1F0)),
                 Expanded(child: Center(child: Column(children: [
-                  const Text('Stock', style: TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                  Text(L.t('shop.stock'), style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
                   Text('${drug.quantity ?? 0}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: (drug.quantity ?? 0) > 0 ? const Color(0xFF059669) : const Color(0xFFDC2626))),
                 ]))),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          _detail('Manufacturer', drug.manufacturer),
-          _detail('Category', drug.categoryName),
-          _detail('Unit', drug.unit),
+          _detail(L.t('shop.manufacturer'), drug.manufacturer),
+          _detail(L.t('shop.category'), drug.categoryName),
+          _detail(L.t('shop.unit'), drug.unit),
           if (drug.description != null && drug.description!.isNotEmpty) ...[
             const SizedBox(height: 12),
-            const Text('Description', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+            Text(L.t('shop.description'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
             const SizedBox(height: 6),
             Text(drug.description!, style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280), height: 1.5)),
           ],
@@ -76,23 +78,24 @@ class DrugDetailScreen extends StatelessWidget {
             child: outOfStock
                 ? OutlinedButton(
                     onPressed: null,
-                    child: const Text('Out of Stock', style: TextStyle(color: Color(0xFF9CA3AF))),
+                    child: Text(L.t('shop.outOfStock'), style: const TextStyle(color: Color(0xFF9CA3AF))),
                   )
                 : ElevatedButton(
                     onPressed: () {
                       context.read<CartState>().add(
                             drug,
                             pharmacyId: pharmacy.id,
-                            pharmacyName: pharmacy.name ?? 'Pharmacy',
+                            pharmacyName: pharmacy.name ?? L.t('shop.pharmacy'),
                           );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${drug.name ?? 'Item'} added to cart'),
+                          content: Text(L.t('shop.addedToCart').replaceAll(
+                              '{{name}}', drug.name ?? L.t('shop.item'))),
                           backgroundColor: AppTheme.dark,
                           behavior: SnackBarBehavior.floating,
                           duration: const Duration(milliseconds: 1200),
                           action: SnackBarAction(
-                            label: 'View Cart',
+                            label: L.t('shop.viewCart'),
                             textColor: AppTheme.primary,
                             onPressed: () => Navigator.of(context).push(
                               MaterialPageRoute(builder: (_) => const CartScreen()),
@@ -106,7 +109,7 @@ class DrugDetailScreen extends StatelessWidget {
                       children: [
                         const Icon(Icons.add_shopping_cart, size: 18, color: Colors.white),
                         const SizedBox(width: 8),
-                        const Text('Add to Cart', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                        Text(L.t('shop.addToCart'), style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
                       ],
                     ),
                   ),

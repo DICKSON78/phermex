@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/customer_repository.dart';
 import '../../services/offline_service.dart';
 import '../../theme.dart';
@@ -22,21 +23,18 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final _scroll = ScrollController();
   final List<_Message> _messages = [];
   List<String> _suggestions = [
-    'How do I order medicines?',
-    'How do I track my order?',
-    'What payment methods are accepted?',
-    'Do you offer delivery?',
+    'misc.howOrderMedicines',
+    'misc.howTrackOrder',
+    'misc.paymentMethodsAccepted',
+    'misc.offeredDelivery',
   ];
   bool _sending = false;
-
-  static const _starter = [
-    'Hello! 👋 I can help you with orders, prescriptions, payments, telemedicine, loyalty, and insurance. What would you like to know?',
-  ];
 
   @override
   void initState() {
     super.initState();
-    _messages.add(_Message(_starter.first, fromUser: false));
+    _messages.add(_Message(AppLocalizations.tr('misc.chatbotStarter'),
+        fromUser: false));
     _scrollAfterFrame();
   }
 
@@ -72,7 +70,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     try {
       final res = await CustomerRepository.chatbotReply(text);
-      final reply = res['reply']?.toString() ?? 'Sorry, I could not process that.';
+      final reply = res['reply']?.toString() ??
+          AppLocalizations.tr('misc.chatbotProcessFailed');
       final suggestions = res['suggestions'] is List ? res['suggestions'].map((s) => s.toString()).toList() : <String>[];
       if (mounted) {
         setState(() {
@@ -85,7 +84,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       if (mounted) {
         setState(() {
           _messages.add(_Message(
-            'I could not reach the server right now. Please check your connection and try again.',
+            AppLocalizations.tr('misc.chatbotConnectionFailed'),
             fromUser: false,
           ));
           _sending = false;
@@ -97,11 +96,12 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final isOffline = OfflineService.isOffline.value;
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: const Text('Assistant'),
+        title: Text(L.t('misc.assistant')),
         backgroundColor: Colors.white,
         centerTitle: false,
         actions: [
@@ -135,11 +135,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 runSpacing: 4,
                 children: _suggestions.map((s) {
                   return ActionChip(
-                    label: Text(s, style: const TextStyle(fontSize: 12)),
+                    label: Text(L.t(s), style: const TextStyle(fontSize: 12)),
                     backgroundColor: AppTheme.primary.withOpacity(0.06),
                     side: BorderSide(color: AppTheme.primary.withOpacity(0.4)),
                     shape: StadiumBorder(side: BorderSide(color: AppTheme.primary.withOpacity(0.3))),
-                    onPressed: _sending ? null : () => _send(s),
+                    onPressed: _sending ? null : () => _send(L.t(s)),
                   );
                 }).toList(),
               ),
@@ -163,7 +163,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         maxLines: 4,
                         onSubmitted: _send,
                         decoration: InputDecoration(
-                          hintText: 'Ask me anything…',
+                          hintText: L.t('misc.askMeAnything'),
                           filled: true,
                           fillColor: AppTheme.bgLight,
                           isDense: true,

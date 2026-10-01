@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../state/cart_state.dart';
@@ -80,19 +81,21 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
   }
 
   void _addToCart(Drug drug) {
+    final L = AppLocalizations.of(context);
     context.read<CartState>().add(
           drug,
           pharmacyId: widget.pharmacy.id,
-          pharmacyName: widget.pharmacy.name ?? 'Pharmacy',
+          pharmacyName: widget.pharmacy.name ?? L.t('shop.pharmacy'),
         );
+    final name = drug.name ?? L.t('shop.item');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${drug.name ?? 'Item'} added to cart'),
+        content: Text(L.t('shop.addedToCart').replaceAll('{{name}}', name)),
         backgroundColor: AppTheme.dark,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(milliseconds: 1200),
         action: SnackBarAction(
-          label: 'View Cart',
+          label: L.t('shop.viewCart'),
           textColor: AppTheme.primary,
           onPressed: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const CartScreen()),
@@ -104,11 +107,12 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final distance = widget.pharmacy.distance;
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: Text(widget.pharmacy.name ?? 'Pharmacy'),
+        title: Text(widget.pharmacy.name ?? L.t('shop.pharmacy')),
       ),
       body: Column(
         children: [
@@ -133,13 +137,13 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.pharmacy.locationLabel.isEmpty ? 'Location on request' : widget.pharmacy.locationLabel,
+                        widget.pharmacy.locationLabel.isEmpty ? L.t('shop.locationOnRequest') : widget.pharmacy.locationLabel,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                       ),
                       if (distance != null)
-                        Text('${distance.toStringAsFixed(1)} km away',
+                        Text(L.t('shop.kmAway').replaceAll('{{km}}', distance.toStringAsFixed(1)),
                             style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primary)),
                     ],
                   ),
@@ -192,7 +196,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                     const SizedBox(height: 12),
                     _DetailRow(
                       icon: Icons.schedule,
-                      title: 'Opening Hours',
+                      title: L.t('shop.openingHours'),
                       value: widget.pharmacy.openLabel,
                     ),
                   ],
@@ -200,14 +204,14 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                       widget.pharmacy.workingDays!.isNotEmpty)
                     _DetailRow(
                       icon: Icons.calendar_today_outlined,
-                      title: 'Working Days',
+                      title: L.t('shop.workingDays'),
                       value: widget.pharmacy.workingDays!.join(', '),
                     ),
                   if (widget.pharmacy.street != null &&
                       widget.pharmacy.street!.isNotEmpty)
                     _DetailRow(
                       icon: Icons.place_outlined,
-                      title: 'Location',
+                      title: L.t('shop.location'),
                       value: [
                         widget.pharmacy.street,
                         if (widget.pharmacy.locationLabel.isNotEmpty)
@@ -218,7 +222,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                       widget.pharmacy.email!.isNotEmpty)
                     _DetailRow(
                       icon: Icons.email_outlined,
-                      title: 'Email',
+                      title: L.t('shop.email'),
                       value: widget.pharmacy.email!,
                     ),
                 ],
@@ -234,19 +238,19 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
               children: [
                 _IconAction(
                   icon: Icons.phone_outlined,
-                  label: 'Call',
+                  label: L.t('call'),
                   onTap: () {
                     final phone = widget.pharmacy.phone;
                     if (phone != null && phone.isNotEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Call $phone'), behavior: SnackBarBehavior.floating),
+                        SnackBar(content: Text('${L.t('call')} $phone'), behavior: SnackBarBehavior.floating),
                       );
                     }
                   },
                 ),
                 _IconAction(
                   icon: Icons.directions_outlined,
-                  label: 'Map',
+                  label: L.t('shop.map'),
                   onTap: () {
                     final lat = widget.pharmacy.latitude;
                     final lng = widget.pharmacy.longitude;
@@ -254,7 +258,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => PharmacyMapScreen(
-                            name: widget.pharmacy.name ?? 'Pharmacy',
+                            name: widget.pharmacy.name ?? L.t('shop.pharmacy'),
                             destination: LatLng(lat, lng),
                             address: widget.pharmacy.locationLabel,
                           ),
@@ -262,7 +266,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                       );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Location not available'),
+                        SnackBar(content: Text(L.t('shop.locationNotAvailable')),
                             behavior: SnackBarBehavior.floating),
                       );
                     }
@@ -270,7 +274,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                 ),
                 _IconAction(
                   icon: Icons.star_border_rounded,
-                  label: 'Reviews',
+                  label: L.t('shop.reviews'),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (_) => PharmacyReviewsScreen(pharmacy: widget.pharmacy)),
@@ -278,7 +282,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                 ),
                 _IconAction(
                   icon: Icons.videocam_outlined,
-                  label: 'Telemedicine',
+                  label: L.t('shop.telemedicine'),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => TelemedicineScreen(
@@ -310,7 +314,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                 },
                 style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
                 decoration: InputDecoration(
-                  hintText: 'Search drugs...',
+                  hintText: L.t('shop.searchDrugs'),
                   hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
                   prefixIcon: IconButton(
                     icon: const Icon(Icons.qr_code_scanner, size: 18, color: Color(0xFF0FD452)),
@@ -337,7 +341,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                 scrollDirection: Axis.horizontal,
                 children: [
                   _CategoryChip(
-                    label: 'All',
+                    label: L.t('shop.all'),
                     active: _selectedCategory == null,
                     onTap: () {
                       setState(() => _selectedCategory = null);
@@ -347,7 +351,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                   ..._categories.map((c) => Padding(
                         padding: const EdgeInsets.only(left: 8),
                         child: _CategoryChip(
-                          label: c.name ?? 'Category',
+                          label: c.name ?? L.t('shop.category'),
                           active: _selectedCategory == c.id,
                           onTap: () {
                             setState(() => _selectedCategory = c.id);
@@ -375,20 +379,20 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                               Text(_error!, textAlign: TextAlign.center,
                                   style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
                               const SizedBox(height: 12),
-                              OutlinedButton(onPressed: _load, child: const Text('Retry')),
+                              OutlinedButton(onPressed: _load, child: Text(L.t('shop.retry'))),
                             ],
                           ),
                         ),
                       )
                     : _drugs.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.medication_outlined, size: 40, color: Color(0xFFD1D5DB)),
-                                SizedBox(height: 8),
-                                Text('No drugs found',
-                                    style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
+                                const Icon(Icons.medication_outlined, size: 40, color: Color(0xFFD1D5DB)),
+                                const SizedBox(height: 8),
+                                Text(L.t('shop.noDrugsFound'),
+                                    style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
                               ],
                             ),
                           )

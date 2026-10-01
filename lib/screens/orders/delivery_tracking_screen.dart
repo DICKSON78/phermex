@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
+import 'live_map_screen.dart';
 
 class DeliveryTrackingScreen extends StatefulWidget {
   final int orderId;
@@ -20,10 +24,10 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   String? _error;
 
   static const _steps = [
-    ('Order Placed', 'We received your order'),
-    ('Processing', 'Pharmacy is preparing your items'),
-    ('Shipped', 'Order is on the way'),
-    ('Delivered', 'Order has arrived'),
+    ('oh.stepOrderPlaced', 'oh.stepOrderPlacedSub'),
+    ('oh.stepProcessing', 'oh.stepProcessingSub'),
+    ('oh.stepShipped', 'oh.stepShippedSub'),
+    ('oh.stepDelivered', 'oh.stepDeliveredSub'),
   ];
 
   @override
@@ -64,11 +68,75 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     }
   }
 
+  void _openLiveMap(Order order) {
+    final L = AppLocalizations.of(context);
+    final pharmacyName = order.pharmacyName ?? L.t('oh.pharmacy');
+    final address = order.deliveryAddress ?? '';
+    final distanceKm = _orderDistance(order);
+    final etaText = _estimateEta(distanceKm);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => LiveMapScreen(
+          pharmacyName: pharmacyName,
+          address: address.isEmpty ? L.t('oh.deliveryAddress') : address,
+          distance: '${distanceKm.toStringAsFixed(1)} km',
+          etaText: etaText,
+          onNavigate: _openDeliveryMaps(order),
+        ),
+      ),
+    );
+  }
+
+  double _orderDistance(Order order) {
+    final fromLat = order.pharmacyLatitude;
+    final fromLng = order.pharmacyLongitude;
+    final toLat = order.deliveryLatitude;
+    final toLng = order.deliveryLongitude;
+    if (fromLat == null || fromLng == null || toLat == null || toLng == null) return 0;
+    return Geolocator.distanceBetween(fromLat, fromLng, toLat, toLng) / 1000;
+  }
+
+  String _estimateEta(double distanceKm) {
+    if (distanceKm <= 0) return '~15 min';
+    final minutes = (distanceKm * 3).ceil().clamp(2, 120);
+    return '~$minutes min';
+  }
+
+  VoidCallback? _openDeliveryMaps(Order order) {
+    final L = AppLocalizations.of(context);
+    final toLat = order.deliveryLatitude;
+    final toLng = order.deliveryLongitude;
+    if (toLat == null || toLng == null) return null;
+    return () async {
+      final uri = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1&destination=$toLat,$toLng',
+      );
+      try {
+        final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!ok && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(L.t('oh.couldNotOpenMaps')),
+                behavior: SnackBarBehavior.floating),
+          );
+        }
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(L.t('oh.couldNotOpenMaps')),
+                behavior: SnackBarBehavior.floating),
+          );
+        }
+      }
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
-      appBar: AppBar(title: const Text('Track Delivery')),
+      appBar: AppBar(title: Text(L.t('trackLiveOrder'))),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -81,22 +149,24 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                         Text(_error!, textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
                         const SizedBox(height: 12),
-                        OutlinedButton(onPressed: _load, child: const Text('Retry')),
+                        OutlinedButton(onPressed: _load, child: Text(L.t('oh.retry'))),
                       ],
                     ),
                   ),
                 )
               : _order == null
-                  ? const Center(child: Text('Order not found'))
+                  ? Center(child: Text(L.t('oh.orderNotFound')))
                   : _buildTracking(context),
     );
   }
 
   Widget _buildTracking(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final order = _order!;
     final status = order.orderStatus ?? 'pending';
     final step = _currentStep(status);
     final cancelled = status == 'cancelled';
+    final isLive = !cancelled && (status == 'processing' || status == 'shipped');
 
     return RefreshIndicator(
       onRefresh: _load,
@@ -126,7 +196,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(order.pharmacyName ?? 'Pharmacy',
+                      Text(order.pharmacyName ?? L.t('oh.pharmacy'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
@@ -141,6 +211,48 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
 
           const SizedBox(height: 20),
 
+          if (isLive)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: GestureDetector(
+                onTap: () => _openLiveMap(order),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.doctorBannerGradient,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.navigation_rounded, color: Colors.white, size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(L.t('oh.viewLiveMap'),
+                                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 2),
+                            Text(L.t('oh.followDeliveryRealtime'),
+                                style: const TextStyle(color: Color(0xFFD5F5E3), fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           _buildMap(order),
 
           const SizedBox(height: 20),
@@ -152,13 +264,13 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                 color: const Color(0xFFFEF2F2),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.cancel_outlined, size: 18, color: Color(0xFFDC2626)),
-                  SizedBox(width: 10),
+                  const Icon(Icons.cancel_outlined, size: 18, color: Color(0xFFDC2626)),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: Text('This order was cancelled.',
-                        style: TextStyle(fontSize: 13, color: Color(0xFFDC2626), fontWeight: FontWeight.w600)),
+                    child: Text(L.t('oh.orderCancelledMsg'),
+                        style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626), fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -214,14 +326,14 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(_steps[i].$1,
+                              Text(L.t(_steps[i].$1),
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: current || done ? FontWeight.w700 : FontWeight.w600,
                                     color: current || done ? const Color(0xFF111827) : const Color(0xFF9CA3AF),
                                   )),
                               const SizedBox(height: 2),
-                              Text(_steps[i].$2,
+                              Text(L.t(_steps[i].$2),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: current || done ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF),

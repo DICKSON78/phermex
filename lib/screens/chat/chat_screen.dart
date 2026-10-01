@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
@@ -113,16 +114,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.pharmacyName ?? 'Chat',
+            Text(widget.pharmacyName ?? L.t('misc.chat'),
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-            const Text('Pharmacy',
-                style: TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+            Text(L.t('misc.pharmacy'),
+                style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
           ],
         ),
         backgroundColor: Colors.white,
@@ -142,20 +144,20 @@ class _ChatScreenState extends State<ChatScreen> {
                               Text(_error!, textAlign: TextAlign.center,
                                   style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
                               const SizedBox(height: 12),
-                              OutlinedButton(onPressed: _load, child: const Text('Retry')),
+                              OutlinedButton(onPressed: _load, child: Text(L.t('misc.retry'))),
                             ],
                           ),
                         ),
                       )
                     : _messages.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.chat_bubble_outline, size: 48, color: Color(0xFFD1D5DB)),
-                                SizedBox(height: 12),
-                                Text('Say hello to start chatting',
-                                    style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
+                                const Icon(Icons.chat_bubble_outline, size: 48, color: Color(0xFFD1D5DB)),
+                                const SizedBox(height: 12),
+                                Text(L.t('misc.sayHello'),
+                                    style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
                               ],
                             ),
                           )
@@ -186,7 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _send(),
                       decoration: InputDecoration(
-                        hintText: 'Type a message...',
+                        hintText: L.t('misc.typeMessage'),
                         hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
                         fillColor: const Color(0xFFF9FAFB),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

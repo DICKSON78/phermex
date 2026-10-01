@@ -1,11 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../state/cart_state.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
+import 'delivery_tracking_screen.dart';
+
+String _orderStatusText(AppLocalizations L, String status) {
+  switch (status) {
+    case 'pending':
+    case 'Pending':
+      return L.t('oh.statusPending');
+    case 'processing':
+    case 'Processing':
+      return L.t('oh.statusProcessing');
+    case 'shipped':
+    case 'Shipped':
+      return L.t('oh.statusShipped');
+    case 'delivered':
+    case 'Delivered':
+      return L.t('oh.statusDelivered');
+    case 'completed':
+    case 'Completed':
+      return L.t('oh.statusCompleted');
+    case 'cancelled':
+    case 'Cancelled':
+      return L.t('oh.statusCancelled');
+    case 'in_transit':
+    case 'In Transit':
+      return L.t('oh.statusInTransit');
+    case 'out_for_delivery':
+    case 'Out for Delivery':
+      return L.t('oh.statusOutForDelivery');
+    case 'paid':
+    case 'Paid':
+      return L.t('oh.statusPaid');
+    case 'unpaid':
+    case 'Unpaid':
+      return L.t('oh.statusUnpaid');
+    default:
+      return AppHelpers.statusLabel(status);
+  }
+}
 
 class OrderDetailScreen extends StatefulWidget {
   final int orderId;
@@ -46,21 +85,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool get _canCancel => _order?.orderStatus == 'pending';
 
   Future<void> _cancelOrder() async {
+    final L = AppLocalizations.of(context);
     final order = _order;
     if (order == null || _cancelling) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cancel order?'),
+        title: Text(L.t('oh.cancelOrderTitle')),
         content: Text(
-            'Order #${order.orderCode ?? order.id} will be cancelled and the pharmacy will be notified.'),
+            '${L.t('oh.orderWord')} #${order.orderCode ?? order.id} ${L.t('oh.willBeCancelledNotify')}'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Keep Order')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(L.t('oh.keepOrder'))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: const Color(0xFFDC2626)),
-            child: const Text('Cancel Order'),
+            child: Text(L.t('oh.cancelOrder')),
           ),
         ],
       ),
@@ -75,8 +115,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _order = updated;
         _cancelling = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Order cancelled'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(L.t('oh.orderCancelled')),
         backgroundColor: AppTheme.primary,
         behavior: SnackBarBehavior.floating,
       ));
@@ -92,6 +132,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   void _reorder(Order order) {
+    final L = AppLocalizations.of(context);
     final cart = context.read<CartState>();
     for (final item in order.items) {
       final drugId = item.drugId;
@@ -110,10 +151,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Items added to cart'),
+        content: Text(L.t('oh.itemsAddedToCart')),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
-          label: 'VIEW CART',
+          label: L.t('oh.viewCart'),
           onPressed: () => Navigator.pushNamed(context, '/cart'),
         ),
       ),
@@ -122,10 +163,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: Text(_order != null ? '#${_order!.orderCode ?? _order!.id}' : 'Order Details'),
+        title: Text(_order != null ? '#${_order!.orderCode ?? _order!.id}' : L.t('oh.orderDetails')),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -139,18 +181,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         Text(_error!, textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
                         const SizedBox(height: 12),
-                        OutlinedButton(onPressed: _load, child: const Text('Retry')),
+                        OutlinedButton(onPressed: _load, child: Text(L.t('oh.retry'))),
                       ],
                     ),
                   ),
                 )
               : _order == null
-                  ? const Center(child: Text('Order not found'))
+                  ? Center(child: Text(L.t('oh.orderNotFound')))
                   : _buildOrder(context),
     );
   }
 
   Widget _buildOrder(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final order = _order!;
     final status = order.orderStatus ?? '';
 
@@ -178,7 +221,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(order.pharmacyName ?? 'Pharmacy',
+                          Text(order.pharmacyName ?? L.t('oh.pharmacy'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -195,7 +238,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         color: AppHelpers.statusColor(status).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(status.toUpperCase(),
+                      child: Text(_orderStatusText(L, status).toUpperCase(),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
@@ -210,17 +253,38 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
           const SizedBox(height: 16),
 
+          // Live tracking (shipped/processing orders)
+          if (status == 'processing' || status == 'shipped') ...[
+            SizedBox(
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => DeliveryTrackingScreen(orderId: order.id),
+                  ),
+                ),
+                icon: const Icon(Icons.navigation_rounded, size: 16, color: Colors.white),
+                label: Text(L.t('trackLiveOrder'),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brand600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
           // Reorder button
           if (status == 'delivered' || status == 'completed') ...[
             const SizedBox(height: 12),
-            SizedBox(height: 48, child: _reorderButton(order)),
+            SizedBox(height: 48, child: _reorderButton(context, order)),
           ],
 
           const SizedBox(height: 20),
 
           // Receipt / Items
-          const Text('Receipt',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+          Text(L.t('oh.receipt'),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
@@ -234,10 +298,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               children: [
                 // Items
                 if (order.items.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text('No items recorded',
-                        style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(L.t('oh.noItems'),
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
                   )
                 else
                   ...order.items.map((item) => Padding(
@@ -249,7 +313,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(item.drugName ?? 'Drug',
+                                  Text(item.drugName ?? L.t('oh.drug'),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(fontSize: 13, color: Color(0xFF111827))),
@@ -266,41 +330,41 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         ),
                       )),
                 const Divider(height: 16),
-                _ReceiptRow(label: 'Subtotal', value: AppHelpers.formatTZS(order.subtotal)),
+                _ReceiptRow(label: L.t('oh.subtotal'), value: AppHelpers.formatTZS(order.subtotal)),
                 if (order.discount > 0)
-                  _ReceiptRow(label: 'Discount', value: '− ${AppHelpers.formatTZS(order.discount)}',
+                  _ReceiptRow(label: L.t('oh.discount'), value: '− ${AppHelpers.formatTZS(order.discount)}',
                       valueColor: const Color(0xFFDC2626)),
                 const SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Total',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                    Text(L.t('oh.total'),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
                     Text(AppHelpers.formatTZS(order.total),
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primary)),
                   ],
                 ),
                 const Divider(height: 16),
                 // Order summary details
-                _ReceiptRow(label: 'Order Ref', value: '#${order.orderCode ?? order.id}'),
-                _ReceiptRow(label: 'Date', value: AppHelpers.formatDate(order.createdAt)),
-                _ReceiptRow(label: 'Payment',
+                _ReceiptRow(label: L.t('oh.orderRef'), value: '#${order.orderCode ?? order.id}'),
+                _ReceiptRow(label: L.t('oh.date'), value: AppHelpers.formatDate(order.createdAt)),
+                _ReceiptRow(label: L.t('oh.payment'),
                     value:
-                        '${AppHelpers.statusLabel(order.paymentStatus ?? '')} · ${order.paymentMethod ?? 'cash'}'),
-                _ReceiptRow(label: 'Delivery',
-                    value: AppHelpers.statusLabel(order.deliveryStatus ?? order.orderStatus ?? '')),
+                        '${_orderStatusText(L, order.paymentStatus ?? '')} · ${order.paymentMethod ?? L.t('oh.cash')}'),
+                _ReceiptRow(label: L.t('oh.delivery'),
+                    value: _orderStatusText(L, order.deliveryStatus ?? order.orderStatus ?? '')),
                 if (order.deliveryAddress != null && order.deliveryAddress!.isNotEmpty)
-                  _ReceiptRow(label: 'Deliver to', value: order.deliveryAddress!),
+                  _ReceiptRow(label: L.t('oh.deliverTo'), value: order.deliveryAddress!),
                 if (order.deliveryPhone != null && order.deliveryPhone!.isNotEmpty)
-                  _ReceiptRow(label: 'Contact', value: order.deliveryPhone!),
+                  _ReceiptRow(label: L.t('oh.contact'), value: order.deliveryPhone!),
                 if (order.notes != null && order.notes!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(width: 90, child: Text('Notes',
-                            style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)))),
+                        SizedBox(width: 90, child: Text(L.t('oh.notes'),
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)))),
                         Expanded(
                           child: Text(order.notes!,
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF111827))),
@@ -324,8 +388,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.cancel_outlined, size: 18, color: Colors.white),
-                label: const Text('Cancel Order',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+                label: Text(L.t('oh.cancelOrder'),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFDC2626),
                   disabledBackgroundColor: const Color(0xFFDC2626).withValues(alpha: 0.5),
@@ -338,11 +402,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  Widget _reorderButton(Order order) {
+  Widget _reorderButton(BuildContext context, Order order) {
+    final L = AppLocalizations.of(context);
     return ElevatedButton.icon(
       onPressed: () => _reorder(order),
       icon: const Icon(Icons.refresh, size: 16, color: Colors.white),
-      label: const Text('Reorder', style: TextStyle(color: Colors.white)),
+      label: Text(L.t('oh.reorder'), style: const TextStyle(color: Colors.white)),
     );
   }
 }

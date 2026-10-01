@@ -3,16 +3,13 @@ import 'package:geolocator/geolocator.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme.dart';
-import '../../utils/helpers.dart';
 import '../notifications/notifications_screen.dart';
 import '../pharmacy/pharmacy_detail_screen.dart';
 import '../telemedicine/telemedicine_screen.dart';
+import '../../widgets/app_drawer.dart';
 import 'all_pharmacies_screen.dart';
-
-// M-TAI / Vantage design language adapted to Pharmex.
-// Light surface, white rounded cards with subtle shadow, tinted status pills,
-// rounded icon tiles, section headers with counts.
 
 class HomeScreen extends StatefulWidget {
   final int unreadNotifications;
@@ -71,16 +68,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _greeting() {
+    final L = AppLocalizations.of(context);
     final h = DateTime.now().hour;
-    final name = _userName.isNotEmpty ? ' ${_userName.split(' ').first}' : '';
-    if (h < 12) return 'Good morning$name';
-    if (h < 17) return 'Good afternoon$name';
-    return 'Good evening$name';
-  }
-
-  String get _avatarInitial {
-    final first = _userName.trim().split(RegExp(r'\s+')).first;
-    return first.isNotEmpty ? first[0].toUpperCase() : 'H';
+    if (h < 12) return L.t('shop.goodMorning');
+    if (h < 17) return L.t('shop.goodAfternoon');
+    return L.t('shop.goodEvening');
   }
 
   Future<void> _load() async {
@@ -101,16 +93,16 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       } catch (_) {}
       usedFallbackLocation = pos == null;
+      final L = AppLocalizations.of(context);
       final lat = pos?.latitude ?? -6.7924;
       final lng = pos?.longitude ?? 39.2083;
-      // Fetch pharmacies. Use a wide radius so pharmacies always show.
       List<Pharmacy> pharmacies = const [];
       String? sectionError;
       try {
         pharmacies = await CustomerRepository.nearby(
             latitude: lat, longitude: lng, radiusKm: 100, search: _search);
       } catch (_) {
-        sectionError = 'Could not load pharmacies. Pull to refresh.';
+        sectionError = L.t('shop.pharmaciesLoadError');
       }
       if (!mounted) return;
       setState(() {
@@ -118,10 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
         _error = sectionError;
       });
       if (usedFallbackLocation) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Location unavailable — showing pharmacies in Dar es Salaam. Enable location for results near you.'),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(L.t('shop.locationUnavailableSnackbar')),
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 4),
+          duration: const Duration(seconds: 4),
         ));
       }
     } catch (e) {
@@ -133,568 +125,384 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
+    final L = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppTheme.bgLight,
+      extendBodyBehindAppBar: true,
+      backgroundColor: AppColors.sand,
+      drawer: const AppDrawer(),
       body: Column(
         children: [
-          _BannerHeader(
-            topPadding: topInset,
-            greeting: _greeting(),
-            name: _userName.trim().isNotEmpty ? _userName.trim() : 'Shopper',
-            tagline: AppStrings.tagline,
-            initial: _avatarInitial,
-            unreadNotifications: widget.unreadNotifications,
-            onNotifications: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+          _HeroHeader(
+              customerName: _userName.trim().isNotEmpty ? _userName.trim() : L.t('shop.shopper'),
+              greeting: _greeting(),
+              unreadNotifications: widget.unreadNotifications,
+              onNotifications: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+              ),
+              onMenu: () => Scaffold.of(context).openDrawer(),
+              searchController: _searchController,
+              onSearchSubmitted: (v) {
+                setState(() => _search = v.isEmpty ? null : v);
+                _load();
+              },
+              onSearchClear: _clearSearch,
             ),
-            searchController: _searchController,
-            onSearchSubmitted: (v) {
-              setState(() => _search = v.isEmpty ? null : v);
-              _load();
-            },
-            onSearchClear: _clearSearch,
-          ),
-
-          _DoctorBanner(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const TelemedicineScreen()),
-            ),
-          ),
-
-          _CategoryChips(
-            onSelect: _openCategory,
-          ),
-
-          Expanded(
-            child: RefreshIndicator(
-              color: AppTheme.primary,
-              onRefresh: _load,
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  _NearbySection(
-                    nearbyKey: _nearbyKey,
-                    pharmacies: _pharmacies,
-                    loading: _loading,
-                    error: _error,
-                    onRetry: _load,
-                    onViewAll: _openAllPharmacies,
+            Expanded(
+              child: RefreshIndicator(
+                color: AppColors.brand600,
+                onRefresh: _load,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      _DoctorBanner(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const TelemedicineScreen()),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(L.t('shop.shopByCategory'),
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                      const SizedBox(height: 12),
+                      _CategoryRow(onSelect: _openCategory),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+Text(L.t('shop.nearbyPharmacies'),
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                          GestureDetector(
+                            onTap: _openAllPharmacies,
+                            child: Row(
+                              children: [
+                                Text(L.t('shop.viewAll'),
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.brand600)),
+                                const Icon(Icons.chevron_right, size: 14, color: AppColors.brand600),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      if (_loading)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: Center(child: CircularProgressIndicator(color: AppColors.brand600)),
+                        )
+                      else if (_error != null) ...[
+                        _ErrorBox(message: _error!, onRetry: _load),
+                        const SizedBox(height: 12),
+                      ] else if (_pharmacies.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: Center(
+                            child: Text(L.t('shop.noPharmaciesFoundNearby'),
+                                style: const TextStyle(fontSize: 13, color: AppColors.muted)),
+                          ),
+                        )
+                      else
+                        _NearbyPharmacies(pharmacies: _pharmacies),
+                      const SizedBox(height: 24),
+                    ],
                   ),
-
-                  const SizedBox(height: 28),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
   }
-
-  final GlobalKey _nearbyKey = GlobalKey();
 }
 
-// ---- Banner header (movie-app style) --------------------------------------
-// The greeting, avatar, name, notification, subtitle and search input all sit
-// on a dark gradient hero banner with a big decorative doctor image peeking
-// from the right — like a movie app's featured backdrop.
-class _BannerHeader extends StatefulWidget {
-  final double topPadding;
+// ---- Hero header ----------------------------------------------------------
+class _HeroHeader extends StatefulWidget {
+  final String customerName;
   final String greeting;
-  final String name;
-  final String tagline;
-  final String initial;
   final int unreadNotifications;
   final VoidCallback onNotifications;
+  final VoidCallback onMenu;
   final TextEditingController searchController;
   final ValueChanged<String> onSearchSubmitted;
   final VoidCallback onSearchClear;
 
-  const _BannerHeader({
-    required this.topPadding,
+  const _HeroHeader({
+    required this.customerName,
     required this.greeting,
-    required this.name,
-    required this.tagline,
-    required this.initial,
     required this.unreadNotifications,
     required this.onNotifications,
+    required this.onMenu,
     required this.searchController,
     required this.onSearchSubmitted,
     required this.onSearchClear,
   });
 
   @override
-  State<_BannerHeader> createState() => _BannerHeaderState();
+  State<_HeroHeader> createState() => _HeroHeaderState();
 }
 
-class _BannerHeaderState extends State<_BannerHeader> {
+class _HeroHeaderState extends State<_HeroHeader> {
   @override
   Widget build(BuildContext context) {
+    final topPad = MediaQuery.paddingOf(context).top;
+    final L = AppLocalizations.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0A2B1C), AppTheme.dark],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(20, widget.topPadding + 10, 20, 0),
-          child: Column(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(24, topPad + 12, 24, 22),
+      decoration: const BoxDecoration(gradient: AppColors.darkHeaderGradient),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting / name / notification row + doctor art
-              Stack(
-                children: [
-                  // Decorative doctor image on the right (like a movie backdrop)
-                  Positioned(
-                    right: -14,
-                    top: -4,
-                    width: 150,
-                    height: 150,
-                    child: Opacity(
-                      opacity: 0.9,
-                      child: Image.network(
-                        'https://img.freepik.com/free-vector/doctor-character-background_1270-84.jpg',
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                      ),
-                    ),
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.6),
-                          color: Colors.white24,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          widget.initial,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(widget.greeting,
-                                style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.white70,
-                                    fontWeight: FontWeight.w500)),
-                            const SizedBox(height: 2),
-                            Text(widget.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontSize: 21,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white)),
-                            const SizedBox(height: 2),
-                            Text(widget.tagline,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontSize: 12, color: Colors.white60)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: widget.onNotifications,
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.14),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              const Icon(Icons.notifications_none,
-                                  size: 23, color: Colors.white),
-                              if (widget.unreadNotifications > 0)
-                                Positioned(
-                                  right: 1,
-                                  top: 1,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(3),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFDC2626),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 18),
-
-              // Search input on the banner (frosted style)
-              Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white24),
+              GestureDetector(
+                onTap: widget.onMenu,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(color: AppColors.sand, shape: BoxShape.circle),
+                  child: const Icon(Icons.menu_rounded, color: AppColors.brand600, size: 18),
                 ),
-                child: Row(
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(width: 14),
-                    const Icon(Icons.search, size: 20, color: Colors.white70),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        controller: widget.searchController,
-                        onChanged: (_) => setState(() {}),
-                        onSubmitted: widget.onSearchSubmitted,
-                        decoration: const InputDecoration(
-                          hintText: 'Search medicines or pharmacies...',
-                          hintStyle:
-                              TextStyle(fontSize: 14, color: Colors.white60),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontFamily: 'Poppins',
-                            color: Colors.white),
-                        textInputAction: TextInputAction.search,
-                      ),
+                    Text(widget.greeting,
+                        style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12.5, fontFamily: 'Poppins')),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.customerName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, fontFamily: 'Poppins')),
+                    const SizedBox(height: 6),
+                    Text(
+                      L.t('shop.tagline'),
+                      style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 12.5, fontFamily: 'Poppins'),
                     ),
-                    if (widget.searchController.text.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.clear,
-                            size: 18, color: Colors.white70),
-                        onPressed: widget.onSearchClear,
-                      ),
                   ],
                 ),
               ),
-
-              // Soft fade into the light body content below
-              const SizedBox(
-                height: 22,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, AppTheme.bgLight],
+              const SizedBox(width: 12),
+              GestureDetector(
+                    onTap: widget.onNotifications,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                              color: AppColors.sand, shape: BoxShape.circle),
+                          child: const Icon(Icons.notifications_none_rounded, color: AppColors.brand600, size: 18),
+                        ),
+                        if (widget.unreadNotifications > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFDC2626),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                widget.unreadNotifications > 9 ? '9+' : '${widget.unreadNotifications}',
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  height: 1,
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+              const SizedBox(height: 18),
+          Container(
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+            child: Row(
+              children: [
+                const SizedBox(width: 16),
+                const Icon(Icons.search, size: 18, color: AppColors.muted),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: widget.searchController,
+                    onChanged: (_) => setState(() {}),
+                    onSubmitted: widget.onSearchSubmitted,
+                    decoration: InputDecoration(
+                      hintText: L.t('shop.searchMedicinesOrPharmacies'),
+                      hintStyle: TextStyle(color: AppColors.muted, fontSize: 13.5),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 14),
+                      filled: false,
+                    ),
+                    style: const TextStyle(fontSize: 13.5, fontFamily: 'Poppins', color: AppColors.ink),
+                    textInputAction: TextInputAction.search,
+                  ),
+                ),
+                if (widget.searchController.text.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.clear, size: 18, color: AppColors.muted),
+                    onPressed: widget.onSearchClear,
+                  ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-// ---- Category chips (replaces trust row) ----------------------------------
-const kHomeCategories = <String>[
-  'Pain Relief',
-  'Antibiotics',
-  'Vitamins',
-  'Cough & Cold',
-  'First Aid',
-  'Skin Care',
-  'Baby Care',
-  'Digestive Health',
-];
-
-const kCategoryIcons = <String, IconData>{
-  'Pain Relief': Icons.healing_outlined,
-  'Antibiotics': Icons.medication_outlined,
-  'Vitamins': Icons.health_and_safety_outlined,
-  'Cough & Cold': Icons.face_outlined,
-  'First Aid': Icons.medical_services_outlined,
-  'Skin Care': Icons.spa_outlined,
-  'Baby Care': Icons.child_care_outlined,
-  'Digestive Health': Icons.lunch_dining_outlined,
-};
-
-class _CategoryChips extends StatelessWidget {
-  final ValueChanged<String> onSelect;
-  const _CategoryChips({required this.onSelect});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
-          child: Text('Shop by Category',
-              style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-        ),
-        SizedBox(
-          height: 96,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            scrollDirection: Axis.horizontal,
-            children: kHomeCategories.map((name) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: GestureDetector(
-                  onTap: () => onSelect(name),
-                  child: SizedBox(
-                    width: 64,
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(kCategoryIcons[name] ?? Icons.category_outlined,
-                              size: 24, color: AppTheme.primaryDark),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(name,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontSize: 10,
-                                color: AppTheme.textMuted,
-                                fontWeight: FontWeight.w500,
-                                height: 1.1)),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ---- Doctor banner ---------------------------------------------------------
+// ---- Doctor banner --------------------------------------------------------
 class _DoctorBanner extends StatelessWidget {
   final VoidCallback onTap;
   const _DoctorBanner({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          height: 128,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF1A7F37), AppTheme.primaryDark],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryDark.withOpacity(0.3),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              // Text column
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 16, 110, 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Talk to a Doctor',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white)),
-                    const SizedBox(height: 5),
-                    Text('Video consultation with\npharmacists & doctors',
-                        style: TextStyle(
-                            fontSize: 11.5,
-                            color: Colors.white.withOpacity(0.85),
-                            height: 1.4)),
-                    const SizedBox(height: 9),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.videocam, size: 13, color: AppTheme.primaryDark),
-                          SizedBox(width: 5),
-                          Text('Start call now',
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.primaryDark)),
-                        ],
-                      ),
+    final L = AppLocalizations.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          gradient: AppColors.doctorBannerGradient,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(L.t('shop.talkToADoctor'),
+                      style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 2),
+                  Text(L.t('shop.videoConsultsAnytime'),
+                      style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 11)),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    onPressed: onTap,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.brand800,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      minimumSize: const Size(0, 0),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
                     ),
-                  ],
-                ),
+                    icon: const Icon(Icons.videocam_rounded, size: 14),
+                    label: Text(L.t('shop.startCallNow'),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  ),
+                ],
               ),
-              // Decorative doctor illustration
-              Positioned(
-                right: 2,
-                top: 14,
-                width: 120,
-                bottom: 0,
-                child: Image.network(
-                  'https://img.freepik.com/free-vector/doctor-character-background_1270-84.jpg',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => _doctorFallback(),
-                ),
+            ),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
               ),
-            ],
-          ),
+              child: const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 26),
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _doctorFallback() {
-    return Container(
-      width: 104,
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white24,
-      ),
-      child: const Icon(Icons.medical_services,
-          size: 56, color: Colors.white),
+// ---- Category row ---------------------------------------------------------
+const kHomeCategories = <String>['Pain Relief', 'Antibiotics', 'Vitamins', 'Cough & Cold', 'First Aid'];
+
+const kCategoryIcons = <String, IconData>{
+  'Pain Relief': Icons.healing_rounded,
+  'Antibiotics': Icons.medication_rounded,
+  'Vitamins': Icons.shield_rounded,
+  'Cough & Cold': Icons.child_care_rounded,
+  'First Aid': Icons.medical_services_rounded,
+};
+
+class _CategoryRow extends StatelessWidget {
+  final ValueChanged<String> onSelect;
+  const _CategoryRow({required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: kHomeCategories
+          .map((c) => GestureDetector(
+                onTap: () => onSelect(c),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.mint50,
+                        borderRadius: BorderRadius.circular(13),
+                        border: Border.all(color: AppColors.line),
+                      ),
+                      child: Icon(kCategoryIcons[c] ?? Icons.category_rounded,
+                          size: 20, color: AppColors.brand600),
+                    ),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      width: 56,
+                      child: Text(
+                        c,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                      ),
+                    ),
+                  ],
+                ),
+              ))
+          .toList(),
     );
   }
 }
 
-// ---- Nearby pharmacies section -------------------------------------------
-class _NearbySection extends StatelessWidget {
-  final GlobalKey nearbyKey;
+// ---- Nearby pharmacies ----------------------------------------------------
+class _NearbyPharmacies extends StatelessWidget {
   final List<Pharmacy> pharmacies;
-  final bool loading;
-  final String? error;
-  final VoidCallback onRetry;
-  final VoidCallback onViewAll;
-  const _NearbySection({
-    required this.nearbyKey,
-    required this.pharmacies,
-    required this.loading,
-    required this.error,
-    required this.onRetry,
-    required this.onViewAll,
-  });
+  const _NearbyPharmacies({required this.pharmacies});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      key: nearbyKey,
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Nearby Pharmacies',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-              GestureDetector(
-                onTap: onViewAll,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('View all',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primaryDark)),
-                      SizedBox(width: 4),
-                      Icon(Icons.chevron_right,
-                          size: 14, color: AppTheme.primaryDark),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (loading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 28),
-              child: Center(
-                child: CircularProgressIndicator(color: AppTheme.primary),
-              ),
-            )
-          else if (error != null) ...[
-            _ErrorBox(message: error!, onRetry: onRetry),
-            const SizedBox(height: 12),
-          ] else if (pharmacies.isEmpty)
-            _EmptyBox(
-              icon: Icons.location_on_outlined,
-              message: 'No pharmacies found nearby',
-            )
-          else
-            SizedBox(
-              height: _NearbyPharmacyCard.cardHeight,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: pharmacies
-                    .map((p) => Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: _NearbyPharmacyCard(pharmacy: p),
-                        ))
-                    .toList(),
-              ),
+    return Row(
+      children: pharmacies.take(2).map((p) => Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: _NearbyPharmacyCard(pharmacy: p),
             ),
-        ],
-      ),
+          )).toList(),
     );
   }
 }
@@ -703,247 +511,84 @@ class _NearbyPharmacyCard extends StatelessWidget {
   final Pharmacy pharmacy;
   const _NearbyPharmacyCard({required this.pharmacy});
 
-  // Fixed dimensions for the movie-style horizontal poster row.
-  static const double cardHeight = 214;
-  static const double cardWidth = 164;
-
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final distance = pharmacy.distance != null
         ? '${pharmacy.distance!.toStringAsFixed(1)} km'
-        : '';
+        : '0.0 km';
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-            builder: (_) => PharmacyDetailScreen(pharmacy: pharmacy)),
+        MaterialPageRoute(builder: (_) => PharmacyDetailScreen(pharmacy: pharmacy)),
       ),
-      child: SizedBox(
-        width: cardWidth,
-        height: cardHeight,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: const [
-                BoxShadow(
-                    color: Color(0x12000000), blurRadius: 10, offset: Offset(0, 3)),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Cover image / placeholder
-                SizedBox(
-                  height: 116,
-                  width: double.infinity,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      pharmacy.coverImage != null &&
-                              pharmacy.coverImage!.isNotEmpty
-                          ? Image.network(
-                              pharmacy.coverImage!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _coverFallback(),
-                            )
-                          : _coverFallback(),
-                      // Dark gradient overlay for legibility
-                      const DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Color(0x77000000)],
-                          ),
-                        ),
-                      ),
-                      // Circular pharmacist profile / logo
-                      Positioned(
-                        left: 10,
-                        bottom: 8,
-                        child: _profileAvatar(),
-                      ),
-                      if (distance.isNotEmpty)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 7, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.navigation,
-                                    size: 11, color: Colors.white),
-                                const SizedBox(width: 2),
-                                Text(distance,
-                                    style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white)),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: AppColors.line),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 112,
+              decoration: const BoxDecoration(gradient: AppColors.pharmacyPhotoGradient),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.45),
+                          borderRadius: BorderRadius.circular(99)),
+                      child: Text(distance,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 9, 10, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                      child: const Icon(Icons.local_pharmacy_rounded,
+                          color: AppColors.brand700, size: 20),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(pharmacy.name ?? L.t('shop.pharmacy'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                  const SizedBox(height: 2),
+                  Row(
                     children: [
-                      Text(pharmacy.name ?? 'Pharmacy',
+                      const Icon(Icons.location_on, size: 10, color: AppColors.muted),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          pharmacy.locationLabel.isEmpty ? L.t('shop.pharmacy') : pharmacy.locationLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textDark)),
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          const Icon(Icons.place_outlined,
-                              size: 12, color: Color(0xFF94A3B8)),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              pharmacy.locationLabel.isEmpty
-                                  ? 'Pharmacy'
-                                  : pharmacy.locationLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 11, color: Color(0xFF94A3B8)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          if (pharmacy.hasRating)
-                            Row(
-                              children: [
-                                const Icon(Icons.star,
-                                    size: 12, color: Color(0xFFFBBF24)),
-                                const SizedBox(width: 3),
-                                Text('${pharmacy.rating!.toStringAsFixed(1)}',
-                                    style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFFF59E0B))),
-                              ],
-                            )
-                          else ...[
-                            const Icon(Icons.schedule,
-                                size: 12, color: AppTheme.primaryDark),
-                            const SizedBox(width: 3),
-                            Text(pharmacy.openLabel.isEmpty
-                                ? 'Open'
-                                : pharmacy.openLabel,
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.primaryDark)),
-                          ],
-                        ],
+                          style: const TextStyle(fontSize: 10.5, color: AppColors.muted)),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _profileAvatar() {
-    final avatar = pharmacy.logo != null && pharmacy.logo!.isNotEmpty
-        ? pharmacy.logo!
-        : null;
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-        color: Colors.white,
-      ),
-      child: avatar != null
-          ? ClipOval(
-              child: Image.network(
-                avatar,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _avatarFallback(),
+                ],
               ),
-            )
-          : _avatarFallback(),
-    );
-  }
-
-  Widget _avatarFallback() {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppTheme.primary, AppTheme.primaryDark],
+            ),
+          ],
         ),
-      ),
-      child: const Center(
-        child: Icon(Icons.local_pharmacy, size: 20, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _coverFallback() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppTheme.primary, AppTheme.primaryDark],
-        ),
-      ),
-      child: const Center(
-        child: Icon(Icons.local_pharmacy, size: 42, color: Colors.white70),
-      ),
-    );
-  }
-}
-
-// ---- Empty box ------------------------------------------------------------
-class _EmptyBox extends StatelessWidget {
-  final IconData icon;
-  final String message;
-  const _EmptyBox({required this.icon, required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEF1F0)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 26, color: const Color(0xFFD1D5DB)),
-          const SizedBox(height: 8),
-          Text(message,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
-        ],
       ),
     );
   }
@@ -956,21 +601,22 @@ class _ErrorBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.red.shade200),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.line),
       ),
       child: Column(
         children: [
           Text(message,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.red.shade700, fontSize: 13)),
+              style: const TextStyle(color: AppColors.muted, fontSize: 13)),
           const SizedBox(height: 10),
-          OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          OutlinedButton(onPressed: onRetry, child: Text(L.t('shop.retry'))),
         ],
       ),
     );

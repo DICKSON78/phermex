@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+
 class User {
   final int id;
   final String? name;
@@ -105,7 +107,7 @@ class Pharmacy {
     final open = hours['open'];
     final close = hours['close'];
     if (open == null || close == null) return '';
-    return 'Open ${open} – ${close}';
+    return '${AppLocalizations.tr('misc.open')} $open – $close';
   }
 
   factory Pharmacy.fromJson(Map<String, dynamic> json) {

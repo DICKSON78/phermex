@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../services/offline_service.dart';
 
 /// A thin MaterialBanner shown at the top of the app whenever the device has
@@ -29,19 +30,20 @@ class _OfflineBannerState extends State<OfflineBanner> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     if (!OfflineService.isOffline.value) return const SizedBox.shrink();
     return Container(
       width: double.infinity,
       color: const Color(0xFFFFF4E5),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.wifi_off_rounded, size: 16, color: Color(0xFFB45309)),
-          SizedBox(width: 8),
+          const Icon(Icons.wifi_off_rounded, size: 16, color: Color(0xFFB45309)),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'You are offline. Showing the last saved data.',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFB45309)),
+              L.t('misc.offlineMessage'),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFB45309)),
             ),
           ),
         ],

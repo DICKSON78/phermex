@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../state/cart_state.dart';
 import '../../theme.dart';
@@ -11,23 +12,24 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
-      appBar: AppBar(title: const Text('My Cart')),
+      appBar: AppBar(title: Text(L.t('shop.myCart'))),
       body: Consumer<CartState>(
         builder: (context, cart, _) {
           if (cart.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.shopping_cart_outlined, size: 48, color: Color(0xFFD1D5DB)),
-                  SizedBox(height: 12),
-                  Text('Your cart is empty',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF6B7280))),
-                  SizedBox(height: 4),
-                  Text('Browse pharmacies and add medicines',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                  const Icon(Icons.shopping_cart_outlined, size: 48, color: Color(0xFFD1D5DB)),
+                  const SizedBox(height: 12),
+                  Text(L.t('shop.yourCartIsEmpty'),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF6B7280))),
+                  const SizedBox(height: 4),
+                  Text(L.t('shop.browseAndAdd'),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
                 ],
               ),
             );
@@ -51,7 +53,7 @@ class CartScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(cart.pharmacyName ?? 'Pharmacy',
+                      child: Text(cart.pharmacyName ?? L.t('shop.pharmacy'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
@@ -83,8 +85,8 @@ class CartScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Total',
-                                style: TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                            Text(L.t('shop.total'),
+                                style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
                             Text(AppHelpers.formatTZS(cart.subtotal),
                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF111827))),
                           ],
@@ -97,7 +99,7 @@ class CartScreen extends StatelessWidget {
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                           ),
-                          child: const Text('Checkout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                          child: Text(L.t('shop.checkout'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                         ),
                       ),
                     ],
@@ -119,6 +121,7 @@ class _CartItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -142,7 +145,7 @@ class _CartItemTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.drug.name ?? 'Drug',
+                Text(item.drug.name ?? L.t('shop.drug'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
@@ -38,21 +39,22 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
     }
   }
 
-  String _typeLabel(String? type) {
+  String _typeLabel(AppLocalizations L, String? type) {
     switch (type) {
-      case 'earn': return 'Earned';
-      case 'redeem': return 'Redeemed';
-      case 'adjust': return 'Adjusted';
-      default: return 'Transaction';
+      case 'earn': return L.t('oh.typeEarned');
+      case 'redeem': return L.t('oh.typeRedeemed');
+      case 'adjust': return L.t('oh.typeAdjusted');
+      default: return L.t('oh.transaction');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: const Text('Loyalty & Rewards'),
+        title: Text(L.t('loyaltyRewards')),
         backgroundColor: Colors.white,
       ),
       body: _loading
@@ -66,7 +68,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                       children: [
                         Text(_error!, style: const TextStyle(color: Colors.redAccent), textAlign: TextAlign.center),
                         const SizedBox(height: 12),
-                        TextButton(onPressed: _load, child: const Text('Retry')),
+                        TextButton(onPressed: _load, child: Text(L.t('oh.retry'))),
                       ],
                     ),
                   ),
@@ -91,7 +93,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Earn 1 point for every 1,000 TSH spent. Points can be redeemed on your next purchase.',
+                                L.t('oh.loyaltyHowItWorks'),
                                 style: TextStyle(color: AppTheme.primary, fontSize: 13),
                               ),
                             ),
@@ -104,10 +106,10 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                       if (_pharmacies.isEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Text('No loyalty points yet. Place your first order to start earning!', style: TextStyle(color: Colors.grey[500], fontSize: 14)),
+                          child: Text(L.t('oh.noLoyaltyPoints'), style: TextStyle(color: Colors.grey[500], fontSize: 14)),
                         )
                       else ...[
-                        Text('My Points', style: TextStyle(color: Colors.grey[800], fontSize: 15, fontWeight: FontWeight.w700)),
+                        Text(L.t('oh.myPoints'), style: TextStyle(color: Colors.grey[800], fontSize: 15, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 8),
                         ..._pharmacies.map((p) => Container(
                           margin: const EdgeInsets.only(bottom: 10),
@@ -133,9 +135,9 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(p.pharmacyName ?? 'Pharmacy', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                                    Text(p.pharmacyName ?? L.t('oh.pharmacy'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                                     const SizedBox(height: 2),
-                                    Text('Redeemable: ${(p.points * p.redeemTshPerPoint).toInt().toString()} TSH', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                                    Text('${L.t('oh.redeemable')}: ${(p.points * p.redeemTshPerPoint).toInt().toString()} TSH', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
                                   ],
                                 ),
                               ),
@@ -149,7 +151,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
 
                       // Transaction history
                       if (_transactions.isNotEmpty) ...[
-                        Text('Transaction History', style: TextStyle(color: Colors.grey[800], fontSize: 15, fontWeight: FontWeight.w700)),
+                        Text(L.t('oh.transactionHistory'), style: TextStyle(color: Colors.grey[800], fontSize: 15, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
@@ -161,7 +163,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                             children: [
                               for (int i = 0; i < _transactions.length; i++) ...[
                                 if (i > 0) const Divider(height: 1, indent: 16, endIndent: 16),
-                                _TransactionRow(tx: _transactions[i], label: _typeLabel(_transactions[i].type)),
+                                _TransactionRow(tx: _transactions[i], label: _typeLabel(L, _transactions[i].type)),
                               ],
                             ],
                           ),

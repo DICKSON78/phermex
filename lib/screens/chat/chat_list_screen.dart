@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
@@ -45,7 +46,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: const Text('Chats'),
+        title: Text(AppLocalizations.of(context).t('misc.chats')),
         backgroundColor: Colors.white,
       ),
       body: _loading
@@ -84,8 +85,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                 ),
                             onPressed: _load,
-                            child: const Text('Retry',
-                                style: TextStyle(fontWeight: FontWeight.w700)),
+                            child: Text(
+                                AppLocalizations.of(context).t('misc.retry'),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700)),
                           ),
                         ),
                       ],

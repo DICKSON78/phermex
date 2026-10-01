@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import '../models/models.dart';
 import 'api_service.dart';
 import 'offline_service.dart';
@@ -11,7 +12,7 @@ class CustomerRepository {
     if (data is Map && data['token'] != null && data['user'] is Map) {
       await ApiService.saveSession(data['token'].toString(), data['user']);
     } else {
-      throw ApiException('Invalid login response');
+      throw ApiException(AppLocalizations.tr('misc.invalidLoginResponse'));
     }
   }
 
@@ -33,7 +34,7 @@ class CustomerRepository {
     if (data is Map && data['token'] != null && data['user'] is Map) {
       await ApiService.saveSession(data['token'].toString(), data['user']);
     } else {
-      throw ApiException('Invalid register response');
+      throw ApiException(AppLocalizations.tr('misc.invalidRegisterResponse'));
     }
   }
 

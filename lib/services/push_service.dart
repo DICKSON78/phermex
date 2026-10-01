@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'api_service.dart';
 
 /// Wraps Firebase Cloud Messaging token registration and push handlers.
@@ -38,7 +39,7 @@ class PushService {
 
   static void _setupHandlers(FirebaseMessaging messaging) {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      final title = message.notification?.title ?? 'New notification';
+      final title = message.notification?.title ?? AppLocalizations.tr('misc.newNotification');
       final messenger = ApiService.navigatorKey.currentContext;
       if (messenger == null || !messenger.mounted) return;
       final snack = ScaffoldMessenger.of(messenger);

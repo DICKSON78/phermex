@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/address_book_service.dart';
 import '../../theme.dart';
 
@@ -39,12 +40,13 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
   }
 
   Future<void> _addAddress() async {
+    final L = AppLocalizations.of(context);
     final address = _controller.text.trim();
     if (address.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter an address'),
-          backgroundColor: Color(0xFFDC2626),
+        SnackBar(
+          content: Text(L.t('oh.enterAddressError')),
+          backgroundColor: const Color(0xFFDC2626),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -56,17 +58,18 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
   }
 
   Future<void> _delete(String address) async {
+    final L = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete address?'),
+        title: Text(L.t('oh.deleteAddressQ')),
         content: Text(address),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(L.t('cancel'))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: const Color(0xFFDC2626)),
-            child: const Text('Delete'),
+            child: Text(L.t('oh.delete')),
           ),
         ],
       ),
@@ -83,9 +86,10 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
-      appBar: AppBar(title: const Text('Saved Addresses')),
+      appBar: AppBar(title: Text(L.t('savedAddresses'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
         children: [
@@ -99,17 +103,17 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Add new address',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                Text(L.t('oh.addNewAddress'),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _controller,
                   maxLines: 2,
                   maxLength: 500,
-                  decoration: const InputDecoration(
-                    hintText: 'Street, landmark, house/unit...',
-                    labelText: 'Delivery address *',
-                    fillColor: Color(0xFFF9FAFB),
+                  decoration: InputDecoration(
+                    hintText: L.t('oh.addressHint'),
+                    labelText: '${L.t('oh.deliveryAddress')} *',
+                    fillColor: const Color(0xFFF9FAFB),
                     counterText: '',
                   ),
                 ),
@@ -119,7 +123,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                   child: ElevatedButton(
                     onPressed: _addAddress,
                     style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-                    child: const Text('Save Address', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    child: Text(L.t('oh.saveAddress'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],
@@ -132,11 +136,11 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
               child: Center(child: CircularProgressIndicator()),
             )
           else if (_addresses.isEmpty)
-            const Padding(
-              padding: EdgeInsets.only(top: 40),
+            Padding(
+              padding: const EdgeInsets.only(top: 40),
               child: Center(
-                child: Text('No saved addresses yet',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
+                child: Text(L.t('oh.noSavedAddresses'),
+                    style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
               ),
             )
           else
@@ -166,8 +170,8 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
                           if (isDefault) ...[
                             const SizedBox(height: 4),
-                            const Text('Default',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.primary)),
+                            Text(L.t('oh.defaultTag'),
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.primary)),
                           ],
                         ],
                       ),
@@ -178,12 +182,12 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                         if (!isDefault)
                           IconButton(
                             icon: const Icon(Icons.check_circle_outline, size: 20, color: Color(0xFF9CA3AF)),
-                            tooltip: 'Set as default',
+                            tooltip: L.t('oh.setAsDefault'),
                             onPressed: () => _setDefault(address),
                           ),
                         IconButton(
                           icon: const Icon(Icons.delete_outline, size: 20, color: Color(0xFFDC2626)),
-                          tooltip: 'Delete',
+                          tooltip: L.t('oh.delete'),
                           onPressed: () => _delete(address),
                         ),
                       ],

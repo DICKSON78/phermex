@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
 
@@ -59,9 +60,10 @@ class _PharmacyReviewsScreenState extends State<PharmacyReviewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
-      appBar: AppBar(title: const Text('Reviews')),
+      appBar: AppBar(title: Text(L.t('shop.reviews'))),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -74,7 +76,7 @@ class _PharmacyReviewsScreenState extends State<PharmacyReviewsScreen> {
                         Text(_error!, textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
                         const SizedBox(height: 12),
-                        OutlinedButton(onPressed: _load, child: const Text('Retry')),
+                        OutlinedButton(onPressed: _load, child: Text(L.t('shop.retry'))),
                       ],
                     ),
                   ),
@@ -91,18 +93,19 @@ class _PharmacyReviewsScreenState extends State<PharmacyReviewsScreen> {
                         child: ElevatedButton.icon(
                           onPressed: _openWrite,
                           icon: const Icon(Icons.star_half, size: 18, color: Colors.white),
-                          label: Text(_hasReviewed ? 'Update your review' : 'Write a review',
+                          label: Text(
+                              L.t(_hasReviewed ? 'shop.updateYourReview' : 'shop.writeAReview'),
                               style: const TextStyle(color: Colors.white)),
                         ),
                       ),
                       const SizedBox(height: 20),
                       if (_reviews.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
                           child: Center(
-                            child: Text('No reviews yet. Be the first to rate this pharmacy.',
+                            child: Text(L.t('shop.noReviewsYet'),
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF))),
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF))),
                           ),
                         )
                       else
@@ -117,6 +120,7 @@ class _PharmacyReviewsScreenState extends State<PharmacyReviewsScreen> {
   }
 
   Widget _header() {
+    final L = AppLocalizations.of(context);
     final rating = widget.pharmacy.rating;
     final count = widget.pharmacy.totalReviews ?? 0;
     return Container(
@@ -142,7 +146,7 @@ class _PharmacyReviewsScreenState extends State<PharmacyReviewsScreen> {
                 }),
               ),
               const SizedBox(height: 4),
-              Text('$count reviews',
+              Text(L.t('shop.reviewCount').replaceAll('{{count}}', '$count'),
                   style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
             ],
           ),
@@ -150,7 +154,7 @@ class _PharmacyReviewsScreenState extends State<PharmacyReviewsScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.pharmacy.name ?? 'Pharmacy',
+              Text(widget.pharmacy.name ?? L.t('shop.pharmacy'),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
@@ -171,6 +175,7 @@ class _ReviewTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -186,14 +191,14 @@ class _ReviewTile extends StatelessWidget {
               const Icon(Icons.person_outline, size: 20, color: Color(0xFF9CA3AF)),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(review.userName ?? 'Customer',
+                child: Text(review.userName ?? L.t('shop.customer'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
               ),
               if (review.mine)
-                const Text('You',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.primary)),
+                Text(L.t('shop.you'),
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.primary)),
             ],
           ),
           if (review.rating != null) ...[
@@ -263,6 +268,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
       padding: EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -284,10 +290,10 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Rate this Pharmacy',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+            Text(L.t('shop.rateThisPharmacy'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
             const SizedBox(height: 4),
-            Text(widget.pharmacy.name ?? 'Pharmacy',
+            Text(widget.pharmacy.name ?? L.t('shop.pharmacy'),
                 style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
             const SizedBox(height: 20),
             Row(
@@ -306,16 +312,16 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
             ),
             const SizedBox(height: 6),
             Center(
-              child: Text(['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][_rating],
+              child: Text(['', L.t('shop.poor'), L.t('shop.fair'), L.t('shop.good'), L.t('shop.veryGood'), L.t('shop.excellent')][_rating],
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF6B7280))),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _reviewController,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Your review (optional)',
-                hintText: 'Share your experience with this pharmacy...',
+              decoration: InputDecoration(
+                labelText: L.t('shop.yourReviewOptional'),
+                hintText: L.t('shop.shareExperience'),
                 alignLabelWithHint: true,
               ),
             ),
@@ -332,7 +338,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                         height: 22,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Submit Review', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    : Text(L.t('shop.submitReview'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),
           ],

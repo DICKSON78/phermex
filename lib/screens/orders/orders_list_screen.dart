@@ -1,10 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 import '../../utils/helpers.dart';
 import 'order_detail_screen.dart';
+import 'delivery_tracking_screen.dart';
+
+String _orderStatusText(AppLocalizations L, String status) {
+  switch (status) {
+    case 'pending':
+    case 'Pending':
+      return L.t('oh.statusPending');
+    case 'processing':
+    case 'Processing':
+      return L.t('oh.statusProcessing');
+    case 'shipped':
+    case 'Shipped':
+      return L.t('oh.statusShipped');
+    case 'delivered':
+    case 'Delivered':
+      return L.t('oh.statusDelivered');
+    case 'completed':
+    case 'Completed':
+      return L.t('oh.statusCompleted');
+    case 'cancelled':
+    case 'Cancelled':
+      return L.t('oh.statusCancelled');
+    case 'in_transit':
+    case 'In Transit':
+      return L.t('oh.statusInTransit');
+    case 'out_for_delivery':
+    case 'Out for Delivery':
+      return L.t('oh.statusOutForDelivery');
+    case 'paid':
+    case 'Paid':
+      return L.t('oh.statusPaid');
+    case 'unpaid':
+    case 'Unpaid':
+      return L.t('oh.statusUnpaid');
+    default:
+      return AppHelpers.statusLabel(status);
+  }
+}
+
+String _filterLabelKey(String filter) {
+  switch (filter) {
+    case 'All':
+      return 'oh.filterAll';
+    case 'Active':
+      return 'oh.filterActive';
+    case 'Completed':
+      return 'oh.filterCompleted';
+    case 'Cancelled':
+      return 'oh.filterCancelled';
+    default:
+      return filter;
+  }
+}
 
 class OrdersListScreen extends StatefulWidget {
   final int refreshTick;
@@ -112,73 +167,77 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final filtered = _orders.where(_matchesFilter).toList();
     return Scaffold(
-      backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: const Text('My Orders'),
+        title: Text(L.t('oh.myOrders')),
         backgroundColor: Colors.white,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Color(0xFF0F2A1E),
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
       ),
       body: Column(
         children: [
           Container(
+            width: double.infinity,
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: SizedBox(
-              height: 38,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: _filters.map((f) {
-                  final active = _filter == f;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
-                      onTap: () => setState(() => _filter = f),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: active ? AppTheme.primary : const Color(0xFFF9FAFB),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: active ? AppTheme.primary : const Color(0xFFE5E7EB)),
-                        ),
-                        child: Text(f,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: active ? AppTheme.dark : const Color(0xFF6B7280),
-                            )),
-                      ),
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+            child: Row(
+              children: List.generate(_filters.length, (i) {
+                final active = _filter == _filters[i];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(L.t(_filterLabelKey(_filters[i]))),
+                    selected: active,
+                    onSelected: (_) => setState(() => _filter = _filters[i]),
+                    selectedColor: AppColors.brand600,
+                    backgroundColor: Colors.white,
+                    labelStyle: TextStyle(
+                      color: active ? Colors.white : AppColors.muted,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
                     ),
-                  );
-                }).toList(),
-              ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(99),
+                      side: BorderSide(color: active ? AppColors.brand600 : AppColors.line),
+                    ),
+                  ),
+                );
+              }),
             ),
           ),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator(color: AppColors.brand600))
                 : _error != null
                     ? _ErrorBox(message: _error!, onRetry: _load)
                     : filtered.isEmpty
-                        ? const Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.receipt_long_outlined, size: 48, color: Color(0xFFD1D5DB)),
-                                SizedBox(height: 12),
-                                Text('No orders here yet',
-                                    style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
-                              ],
-                            ),
-                          )
-                        : RefreshIndicator(
+                              ? RefreshIndicator(
+                                  onRefresh: _load,
+                                  child: ListView(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    children: [
+                                      const SizedBox(height: 160),
+                                      const Icon(Icons.receipt_long_rounded, size: 44, color: AppColors.line),
+                                      const SizedBox(height: 12),
+                                      Center(
+                                        child: Text(L.t('oh.noOrdersYet'),
+                                            style: const TextStyle(fontSize: 13, color: AppColors.muted)),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : RefreshIndicator(
                             onRefresh: _load,
                             child: ListView.separated(
                               controller: _scrollController,
-                              padding: const EdgeInsets.all(20),
+                              padding: const EdgeInsets.all(24),
                               itemCount: filtered.length + (_loadingMore ? 1 : 0),
-                              separatorBuilder: (_, __) => const SizedBox(height: 10),
+                              separatorBuilder: (_, __) => const SizedBox(height: 12),
                               itemBuilder: (context, i) {
                                 if (i == filtered.length) {
                                   return const Padding(
@@ -203,14 +262,16 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final L = AppLocalizations.of(context);
+    return InkWell(
       onTap: () => _showOrderSheet(context, order),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
+          border: Border.all(color: AppColors.line),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEEF1F0)),
         ),
         child: Row(
           children: [
@@ -218,29 +279,30 @@ class _OrderCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.mint50,
+                border: Border.all(color: AppColors.line),
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.receipt_long_outlined, size: 18, color: AppTheme.primary),
+              child: const Icon(Icons.receipt_long_rounded,
+                  color: AppColors.brand600, size: 19),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(order.pharmacyName ?? 'Pharmacy',
+                  Text(order.pharmacyName ?? L.t('oh.pharmacy'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
                   const SizedBox(height: 2),
                   Text('#${order.orderCode ?? order.id}',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
+                      style: const TextStyle(fontSize: 11, color: AppColors.muted)),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
             Text(AppHelpers.formatTZS(order.total),
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink)),
           ],
         ),
       ),
@@ -263,130 +325,151 @@ class _OrderDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final status = order.orderStatus ?? '';
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
+      padding: const EdgeInsets.fromLTRB(22, 14, 22, 26),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
       ),
       child: SingleChildScrollView(
-        padding: EdgeInsets.only(bottom: bottomInset),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7EB),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration:
+                    BoxDecoration(color: AppColors.line, borderRadius: BorderRadius.circular(99)),
               ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(order.pharmacyName ?? 'Pharmacy',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppHelpers.statusColor(status).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(status.toUpperCase(),
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppHelpers.statusColor(status))),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text('#${order.orderCode ?? order.id} · ${AppHelpers.formatDate(order.createdAt)}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.circular(16),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(order.pharmacyName ?? L.t('oh.pharmacy'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.ink)),
                 ),
-                child: Column(
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration:
+                      BoxDecoration(color: AppColors.mint50, borderRadius: BorderRadius.circular(99)),
+                  child: Text(_orderStatusText(L, status).toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.brand700)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text('#${order.orderCode ?? order.id} · ${AppHelpers.formatDate(order.createdAt)}',
+                style: const TextStyle(fontSize: 11.5, color: AppColors.muted)),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: AppColors.line),
+                borderRadius: BorderRadius.circular(16),
+              ),
+child: Column(
                   children: [
                     if (order.items.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Text('No items recorded',
-                            style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
-                      )
+                      Text(L.t('oh.noItems'),
+                          style: const TextStyle(fontSize: 12, color: AppColors.muted))
                     else
                       ...order.items.map((item) => Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: Text(item.drugName ?? 'Drug',
+                                  child: Text(item.drugName ?? L.t('oh.drug'),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 13, color: Color(0xFF111827))),
+                                      style: const TextStyle(fontSize: 13, color: AppColors.ink)),
                                 ),
                                 Text('x${item.quantity}',
-                                    style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                                    style: const TextStyle(fontSize: 12, color: AppColors.muted)),
                                 const SizedBox(width: 12),
                                 Text(AppHelpers.formatTZS(item.totalPrice),
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
                               ],
                             ),
                           )),
-                    const Divider(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Payment',
-                            style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                        Text(
-                            '${AppHelpers.statusLabel(order.paymentStatus ?? '')} · ${order.paymentMethod ?? 'cash'}',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Total',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                        Text(AppHelpers.formatTZS(order.total),
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primary)),
-                      ],
-                    ),
-                  ],
-                ),
+                  const Divider(height: 24, color: AppColors.line),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(L.t('oh.payment'), style: const TextStyle(fontSize: 12.5, color: AppColors.muted)),
+                      Text(
+                          '${_orderStatusText(L, order.paymentStatus ?? '')} · ${order.paymentMethod ?? L.t('oh.cash')}',
+                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(L.t('oh.total'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                      Text(AppHelpers.formatTZS(order.total),
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.brand600)),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 16),
+            if (status == 'processing' || status == 'shipped') ...[
               SizedBox(
                 width: double.infinity,
-                height: 50,
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)),
+                      MaterialPageRoute(
+                          builder: (_) => DeliveryTrackingScreen(orderId: order.id)),
                     );
                   },
-                  icon: const Icon(Icons.receipt_long, size: 18, color: Colors.white),
-                  label: const Text('Open Full Details', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.brand600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  icon: const Icon(Icons.navigation_rounded, size: 16),
+                  label: Text(L.t('trackLiveOrder'),
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
+              const SizedBox(height: 12),
             ],
-          ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brand600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                icon: const Icon(Icons.description_outlined, size: 16),
+                label: Text(L.t('oh.openFullDetails'),
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -400,6 +483,7 @@ class _ErrorBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -409,7 +493,7 @@ class _ErrorBox extends StatelessWidget {
             Text(message, textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
             const SizedBox(height: 12),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(onPressed: onRetry, child: Text(L.t('oh.retry'))),
           ],
         ),
       ),

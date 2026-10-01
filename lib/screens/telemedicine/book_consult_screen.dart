@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
@@ -44,32 +45,36 @@ class PharmacyPickScreenState extends State<PharmacyPickScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppTheme.bgLight,
+      backgroundColor: AppColors.sand,
       appBar: AppBar(
-        title: const Text('Choose Pharmacy'),
+        leading: const BackButton(color: AppColors.ink),
+        title: Text(L.t('oh.choosePharmacy')),
         backgroundColor: Colors.white,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppColors.brand600))
           : _error != null && _items.isEmpty
               ? Center(
-                  child: const Text('Could not load pharmacies',
-                      style: TextStyle(color: Color(0xFFDC2626))))
-              : ListView(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: const Text(
-                          'Select the pharmacy you want to consult with a video pharmacist.',
-                          style: TextStyle(fontSize: 13, color: AppTheme.textMuted)),
-                    ),
-                    ..._items.map((p) => _PharmacyRow(
-                          pharmacy: p,
-                          onCall: () => widget.onPick(p, true),
-                          onBook: () => widget.onPick(p, false),
-                        )),
-                  ],
+                  child: Text(L.t('oh.couldNotLoadPharmacies'),
+                      style: const TextStyle(color: Color(0xFFDC2626))))
+              : ListView.separated(
+                  padding: const EdgeInsets.all(24),
+                  itemCount: _items.length + 1,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, i) {
+                    if (i == 0) {
+                      return Text(L.t('oh.selectPharmacyHint'),
+                          style: const TextStyle(fontSize: 12.5, color: AppColors.muted));
+                    }
+                    final p = _items[i - 1];
+                    return _PharmacyRow(
+                      pharmacy: p,
+                      onCall: () => widget.onPick(p, true),
+                      onBook: () => widget.onPick(p, false),
+                    );
+                  },
                 ),
     );
   }
@@ -83,43 +88,36 @@ class _PharmacyRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+    final L = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: AppColors.line),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
         children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFEEF1F0)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.local_pharmacy, size: 20, color: AppTheme.primaryDark),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(pharmacy.name ?? 'Pharmacy',
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-                  ),
-                ],
-              ),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.mint50,
+              border: Border.all(color: AppColors.line),
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: const Icon(Icons.local_pharmacy_rounded, color: AppColors.brand600, size: 18),
           ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(pharmacy.name ?? L.t('oh.pharmacy'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          ),
+          _PickAction(icon: Icons.videocam_rounded, label: L.t('call'), onPressed: onCall),
           const SizedBox(width: 8),
-          _PickAction(icon: Icons.videocam, label: 'Call', onPressed: onCall),
-          const SizedBox(width: 8),
-          _PickAction(icon: Icons.calendar_today, label: 'Book', onPressed: onBook),
+          _PickAction(icon: Icons.calendar_month_rounded, label: L.t('oh.book'), onPressed: onBook),
         ],
       ),
     );
@@ -138,19 +136,19 @@ class _PickAction extends StatelessWidget {
       onTap: onPressed,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 54,
-        height: 54,
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
-          color: AppTheme.primary.withOpacity(0.12),
+          color: AppColors.mint50,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Column(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: AppTheme.primaryDark),
-            const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.primaryDark)),
+            Icon(icon, size: 12, color: AppColors.brand700),
+            const SizedBox(width: 4),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.brand700)),
           ],
         ),
       ),
@@ -218,6 +216,7 @@ class BookConsultScreenState extends State<BookConsultScreen> {
   }
 
   Future<void> _start() async {
+    final L = AppLocalizations.of(context);
     if (_busy) return;
     setState(() {
       _busy = true;
@@ -230,7 +229,7 @@ class BookConsultScreenState extends State<BookConsultScreen> {
       if (!widget.instant && _selectedIndex != null && _selectedIndex! < _slots.length) {
         final scheduledAt = _slots[_selectedIndex!]['start']?.toString();
         if (scheduledAt == null || scheduledAt.isEmpty) {
-          throw Exception('Please choose a time slot.');
+          throw Exception(AppLocalizations.tr('oh.pleaseChooseSlot'));
         }
         data = await CustomerRepository.bookTelemedicine(widget.pharmacyId,
             scheduledAt: scheduledAt, topic: topic, patientNotes: notes);
@@ -249,7 +248,7 @@ class BookConsultScreenState extends State<BookConsultScreen> {
             roomUrl: (data['room_url'] ?? '').toString(),
             jitsiServer: (data['jitsi_server'] ?? 'https://meet.jit.si').toString(),
             roomCode: (data['room_code'] ?? '').toString(),
-            pharmacyName: widget.pharmacyName ?? 'Pharmacy',
+            pharmacyName: widget.pharmacyName ?? L.t('oh.pharmacy'),
             isLive: (data['status'] ?? '').toString() == 'live',
           ),
         ),
@@ -269,10 +268,12 @@ class BookConsultScreenState extends State<BookConsultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppTheme.bgLight,
+      backgroundColor: AppColors.sand,
       appBar: AppBar(
-        title: Text(widget.instant ? 'Start Live Call' : 'Book Appointment'),
+        leading: const BackButton(color: AppColors.ink),
+        title: Text(widget.instant ? L.t('oh.startLiveCall') : L.t('oh.bookAppointment')),
         backgroundColor: Colors.white,
       ),
       body: widget.instant ? _buildInstant() : _buildBook(),
@@ -280,12 +281,13 @@ class BookConsultScreenState extends State<BookConsultScreen> {
   }
 
   Widget _buildInstant() {
+    final L = AppLocalizations.of(context);
     return ListView(
       children: [
         Padding(
           padding: const EdgeInsets.all(20),
-          child: const Text('Start an instant video consultation with the pharmacist. They will be notified to join.',
-              style: TextStyle(fontSize: 13, color: AppTheme.textMuted)),
+          child: Text(L.t('oh.instantConsultHint'),
+              style: const TextStyle(fontSize: 13, color: AppColors.muted)),
         ),
         _NoteInputs(notesController: _notesController),
         if (_error != null) Padding(
@@ -299,10 +301,10 @@ class BookConsultScreenState extends State<BookConsultScreen> {
             height: 52,
             child: ElevatedButton.icon(
               onPressed: _busy ? null : _start,
-              icon: const Icon(Icons.videocam, size: 20, color: Colors.white),
-              label: Text(_busy ? 'Starting…' : 'Start Video Call',
+              icon: const Icon(Icons.videocam_rounded, size: 20, color: Colors.white),
+              label: Text(_busy ? L.t('oh.starting') : L.t('oh.startVideoCall'),
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.brand600),
             ),
           ),
         ),
@@ -311,6 +313,7 @@ class BookConsultScreenState extends State<BookConsultScreen> {
   }
 
   Widget _buildBook() {
+    final L = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -319,12 +322,12 @@ class BookConsultScreenState extends State<BookConsultScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(20),
-                child: const Text('Pick an available time slot, add a note, then confirm.',
-                    style: TextStyle(fontSize: 13, color: AppTheme.textMuted)),
+                child: Text(L.t('oh.pickSlotHint'),
+                    style: const TextStyle(fontSize: 13, color: AppColors.muted)),
               ),
               if (_loadingSlots) ...[
                 const SizedBox(height: 20),
-                const Center(child: CircularProgressIndicator()),
+                const Center(child: CircularProgressIndicator(color: AppColors.brand600)),
                 const SizedBox(height: 20),
               ] else if (_error != null && _slots.isEmpty) ...[
                 Padding(
@@ -332,8 +335,8 @@ class BookConsultScreenState extends State<BookConsultScreen> {
                   child: Text(_error!, style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12)),
                 ),
               ] else if (_slots.isEmpty) ...[
-                const Center(child: const Text('No available slots right now.\nTry again later.',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AppTheme.textMuted))),
+                Center(child: Text(L.t('oh.noSlots'),
+                    textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: AppColors.muted))),
               ] else ...[
                 _SlotsList(slots: _slots, selectedIndex: _selectedIndex, onSelect: (i) => setState(() => _selectedIndex = i)),
                 const SizedBox(height: 14),
@@ -349,9 +352,9 @@ class BookConsultScreenState extends State<BookConsultScreen> {
             height: 52,
             child: ElevatedButton(
               onPressed: _busy || _selectedIndex == null ? null : _start,
-              child: Text(_busy ? 'Booking…' : 'Confirm Appointment',
+              child: Text(_busy ? L.t('oh.booking') : L.t('oh.confirmAppointment'),
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.brand600),
             ),
           ),
         ),
@@ -380,7 +383,7 @@ class _SlotsList extends StatelessWidget {
       if (lastGroup == null || group != lastGroup) {
         lastGroup = group;
         rows.add(Text('  $group',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textMuted)));
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.muted)));
         rows.add(const SizedBox(height: 6));
       }
       final isSelected = selectedIndex == i;
@@ -392,20 +395,20 @@ class _SlotsList extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected ? AppTheme.primary.withOpacity(0.15) : Colors.white,
+              color: isSelected ? AppColors.mint50 : Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: isSelected
-                  ? Border.all(color: AppTheme.primary, width: 1.5)
-                  : Border.all(color: const Color(0xFFE5E7EB)),
+                  ? Border.all(color: AppColors.brand600, width: 1.5)
+                  : Border.all(color: AppColors.line),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: Text(_timeLabel(s),
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
                 ),
                 if (isSelected)
-                  const Icon(Icons.check_circle, size: 18, color: AppTheme.primary),
+                  const Icon(Icons.check_circle_rounded, size: 18, color: AppColors.brand600),
               ],
             ),
           ),
@@ -422,29 +425,30 @@ class _NoteInputs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: TextField(
         controller: notesController,
         maxLines: 2,
         decoration: InputDecoration(
-          labelText: 'Note for the pharmacist (optional)',
-          hintText: 'Symptoms, medicines needed, etc.',
-          prefixIcon: const Icon(Icons.edit_note, size: 20, color: Color(0xFF9CA3AF)),
+          labelText: L.t('oh.noteForPharmacist'),
+          hintText: L.t('oh.symptomsHint'),
+          prefixIcon: const Icon(Icons.edit_note, size: 20, color: AppColors.muted),
           filled: true,
-          fillColor: Colors.grey.shade50,
+          fillColor: Colors.white,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            borderSide: const BorderSide(color: AppColors.line),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            borderSide: const BorderSide(color: AppColors.line),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppTheme.primary, width: 1.8),
+            borderSide: const BorderSide(color: AppColors.brand600, width: 1.8),
           ),
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
@@ -32,16 +33,17 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
   }
 
   Future<void> _remove(Map<String, dynamic> record) async {
+    final L = AppLocalizations.of(context);
     final id = record['id'];
     if (id == null) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Remove insurance?'),
-        content: const Text('This will remove the insurance record from your profile.'),
+        title: Text(L.t('oh.removeInsuranceQ')),
+        content: Text(L.t('oh.removeInsuranceBody')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Remove', style: TextStyle(color: Colors.redAccent))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(L.t('cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(L.t('oh.remove'), style: const TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
@@ -49,7 +51,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     try {
       await CustomerRepository.removeInsurance(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Insurance record removed')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(L.t('oh.insuranceRemoved'))));
         _load();
       }
     } catch (e) {
@@ -68,10 +70,11 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: const Text('Health Insurance'),
+        title: Text(L.t('healthInsurance')),
         backgroundColor: Colors.white,
         actions: [
           IconButton(
@@ -91,7 +94,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                       children: [
                         Text(_error!, style: const TextStyle(color: Colors.redAccent), textAlign: TextAlign.center),
                         const SizedBox(height: 12),
-                        TextButton(onPressed: _load, child: const Text('Retry')),
+                        TextButton(onPressed: _load, child: Text(L.t('oh.retry'))),
                       ],
                     ),
                   ),
@@ -106,22 +109,22 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                             const SizedBox(height: 60),
                             const Icon(Icons.health_and_safety_outlined, size: 64, color: AppTheme.primary),
                             const SizedBox(height: 16),
-                            const Text(
-                              'No insurance policies yet',
+                            Text(
+                              L.t('oh.noInsuranceYet'),
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'Add your NHIF or private insurance policy so pharmacies can apply your coverage.',
+                            Text(
+                              L.t('oh.addInsuranceHint'),
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
+                              style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                             ),
                             const SizedBox(height: 24),
                             OutlinedButton.icon(
                               onPressed: _add,
                               icon: const Icon(Icons.add),
-                              label: const Text('Add Insurance Policy'),
+                              label: Text(L.t('oh.addInsurancePolicy')),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppTheme.primary,
                                 side: const BorderSide(color: AppTheme.primary),
@@ -134,9 +137,9 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.all(16),
                           children: [
-                            const Text(
-                              'Covered plans',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                            Text(
+                              L.t('oh.coveredPlans'),
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                             ),
                             const SizedBox(height: 12),
                             ..._records.map((r) => _InsuranceCard(
@@ -147,7 +150,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                             OutlinedButton.icon(
                               onPressed: _add,
                               icon: const Icon(Icons.add),
-                              label: const Text('Add another policy'),
+                              label: Text(L.t('oh.addAnotherPolicy')),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppTheme.primary,
                                 side: const BorderSide(color: AppTheme.primary),
@@ -169,9 +172,10 @@ class _InsuranceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final provider = (record['provider'] is Map ? record['provider'] : <String, dynamic>{});
     final pharmacy = (record['pharmacy'] is Map ? record['pharmacy'] : <String, dynamic>{});
-    final providerName = provider['name']?.toString() ?? 'Insurance';
+    final providerName = provider['name']?.toString() ?? L.t('oh.insurance');
     final coverage = double.tryParse((record['coverage_percent'] ?? 0).toString()) ?? 0;
     final expiry = record['expiry_date']?.toString() ?? '';
     final isPrimary = record['is_primary'] == true;
@@ -212,7 +216,7 @@ class _InsuranceCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Policy ${record['policy_number']?.toString() ?? ''}',
+                      '${L.t('oh.policy')} ${record['policy_number']?.toString() ?? ''}',
                       style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                     ),
                   ],
@@ -222,12 +226,12 @@ class _InsuranceCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(color: AppTheme.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
-                  child: const Text('Primary', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primary)),
+                  child: Text(L.t('oh.primary'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primary)),
                 ),
               IconButton(
                 onPressed: onRemove,
                 icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
-                tooltip: 'Remove',
+                tooltip: L.t('oh.remove'),
               ),
             ],
           ),
@@ -235,18 +239,18 @@ class _InsuranceCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _InfoCell(label: 'Coverage', value: '${coverage.toStringAsFixed(0)}%'),
+                child: _InfoCell(label: L.t('oh.coverage'), value: '${coverage.toStringAsFixed(0)}%'),
               ),
               if (pharmacy['pharmacy_name']?.toString().isNotEmpty == true)
                 Expanded(
-                  child: _InfoCell(label: 'Registered at', value: pharmacy['pharmacy_name'].toString()),
+                  child: _InfoCell(label: L.t('oh.registeredAt'), value: pharmacy['pharmacy_name'].toString()),
                 ),
             ],
           ),
           if (expiryDate != null) ...[
             const SizedBox(height: 10),
             Text(
-              isExpired ? 'Policy expired ${_fmtDate(expiryDate)}' : 'Valid until ${_fmtDate(expiryDate)}',
+              isExpired ? '${L.t('oh.policyExpired')} ${_fmtDate(expiryDate)}' : '${L.t('oh.validUntil')} ${_fmtDate(expiryDate)}',
               style: TextStyle(fontSize: 12, color: isExpired ? Colors.redAccent : AppTheme.textMuted),
             ),
           ],
@@ -320,7 +324,7 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
       setState(() {
         _pharmacies = pharmacies.map((p) => {
           'id': p.id,
-          'pharmacy_name': p.name ?? 'Pharmacy',
+          'pharmacy_name': p.name ?? AppLocalizations.tr('oh.pharmacy'),
         }).toList();
         _providers = providers;
         _loadingData = false;
@@ -335,10 +339,11 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: const Text('Add Insurance Policy'),
+        title: Text(L.t('oh.addInsurancePolicy')),
         backgroundColor: Colors.white,
       ),
       body: _loadingData
@@ -350,65 +355,65 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _label('Pharmacy *'),
+                    _label('${L.t('oh.pharmacy')} *'),
                     DropdownButtonFormField<String>(
                       value: _pharmacyId,
                       isExpanded: true,
                       decoration: _decoration(),
                       items: _pharmacies.map((p) {
-                        final name = p['pharmacy_name']?.toString() ?? p['name']?.toString() ?? 'Pharmacy';
+                        final name = p['pharmacy_name']?.toString() ?? p['name']?.toString() ?? L.t('oh.pharmacy');
                         return DropdownMenuItem(value: p['id'].toString(), child: Text(name, overflow: TextOverflow.ellipsis));
                       }).toList(),
                       onChanged: (v) => setState(() => _pharmacyId = v),
-                      validator: (v) => v == null ? 'Select a pharmacy' : null,
+                      validator: (v) => v == null ? L.t('oh.selectPharmacyError') : null,
                     ),
                     const SizedBox(height: 14),
-                    _label('Insurance Provider *'),
+                    _label('${L.t('oh.insuranceProvider')} *'),
                     DropdownButtonFormField<String>(
                       value: _providerId,
                       isExpanded: true,
                       decoration: _decoration(),
                       items: _providers.map((p) {
-                        final name = p['name']?.toString() ?? 'Provider';
+                        final name = p['name']?.toString() ?? L.t('oh.provider');
                         return DropdownMenuItem(
                           value: p['id'].toString(),
                           child: Text(name, overflow: TextOverflow.ellipsis),
                         );
                       }).toList(),
                       onChanged: (v) => setState(() => _providerId = v),
-                      validator: (v) => v == null ? 'Select a provider' : null,
+                      validator: (v) => v == null ? L.t('oh.selectProviderError') : null,
                     ),
                     const SizedBox(height: 14),
-                    _label('Policy Number *'),
+                    _label('${L.t('oh.policyNumber')} *'),
                     TextFormField(
                       controller: _policyNumber,
                       decoration: _decoration(hint: 'e.g. 0100-1234567'),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Policy number is required' : null,
+                      validator: (v) => (v == null || v.trim().isEmpty) ? L.t('oh.policyNumberRequired') : null,
                     ),
                     const SizedBox(height: 14),
-                    _label('Holder Name'),
+                    _label(L.t('oh.holderName')),
                     TextFormField(
                       controller: _holderName,
-                      decoration: _decoration(hint: 'Policy holder name'),
+                      decoration: _decoration(hint: L.t('oh.holderNameHint')),
                     ),
                     const SizedBox(height: 14),
-                    _label('Relationship'),
+                    _label(L.t('oh.relationship')),
                     DropdownButtonFormField<String>(
                       value: _relationship,
                       isExpanded: true,
                       decoration: _decoration(),
-                      items: const [
-                        DropdownMenuItem(value: 'self', child: Text('Self')),
-                        DropdownMenuItem(value: 'spouse', child: Text('Spouse')),
-                        DropdownMenuItem(value: 'child', child: Text('Child')),
-                        DropdownMenuItem(value: 'dependent', child: Text('Dependent')),
+                      items: [
+                        DropdownMenuItem(value: 'self', child: Text(L.t('oh.relSelf'))),
+                        DropdownMenuItem(value: 'spouse', child: Text(L.t('oh.relSpouse'))),
+                        DropdownMenuItem(value: 'child', child: Text(L.t('oh.relChild'))),
+                        DropdownMenuItem(value: 'dependent', child: Text(L.t('oh.relDependent'))),
                       ],
                       onChanged: (v) => setState(() => _relationship = v ?? 'self'),
                     ),
                     const SizedBox(height: 14),
-                    _label('Coverage %'),
+                    _label('${L.t('oh.coverage')} %'),
                     Text(
-                      '${_coverage.toStringAsFixed(0)}% of your bill will be covered',
+                      '${_coverage.toStringAsFixed(0)}% ${L.t('oh.ofBillWillBeCovered')}',
                       style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                     ),
                     Slider(
@@ -420,11 +425,11 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
                       onChanged: (v) => setState(() => _coverage = v),
                     ),
                     const SizedBox(height: 8),
-                    _label('Expiry Date'),
+                    _label(L.t('oh.expiryDate')),
                     OutlinedButton.icon(
                       onPressed: _pickExpiry,
                       icon: const Icon(Icons.calendar_today_outlined, size: 18),
-                      label: Text(_expiryDate ?? 'Select expiry date'),
+                      label: Text(_expiryDate ?? L.t('oh.selectExpiryDate')),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.textDark,
                         alignment: Alignment.centerLeft,
@@ -435,7 +440,7 @@ class _AddInsuranceSheetState extends State<_AddInsuranceSheet> {
                     OutlinedButton.icon(
                       onPressed: _saving ? null : _save,
                       icon: const Icon(Icons.check),
-                      label: Text(_saving ? 'Saving…' : 'Save Policy'),
+                      label: Text(_saving ? L.t('oh.saving') : L.t('oh.savePolicy')),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.primary,
                         side: const BorderSide(color: AppTheme.primary),

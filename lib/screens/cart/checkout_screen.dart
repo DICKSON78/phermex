@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/address_book_service.dart';
 import '../../services/api_service.dart';
@@ -66,10 +67,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (pharmacyId == null || cart.isEmpty) return;
 
     if (_addressController.text.trim().isEmpty) {
+      final L = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your delivery address'),
-          backgroundColor: Color(0xFFDC2626),
+        SnackBar(
+          content: Text(L.t('shop.enterDeliveryAddress')),
+          backgroundColor: const Color(0xFFDC2626),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -77,10 +79,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     if (_paymentMethod == 'mobile' && _paymentPhoneController.text.trim().isEmpty) {
+      final L = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your mobile money phone number'),
-          backgroundColor: Color(0xFFDC2626),
+        SnackBar(
+          content: Text(L.t('shop.enterMobileMoneyPhone')),
+          backgroundColor: const Color(0xFFDC2626),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -114,9 +117,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           return;
         }
         // Push couldn't be initiated; pharmacy confirms manually.
+        final L = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pharmacy will confirm your payment manually'),
+          SnackBar(
+            content: Text(L.t('shop.manualPaymentConfirm')),
             backgroundColor: AppTheme.dark,
             behavior: SnackBarBehavior.floating,
           ),
@@ -143,6 +147,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   /// Shows a dialog while polling payment status every 5s until it reaches
   /// `paid` or `failed`.
   Future<void> _showPushPaymentDialog(Order order) async {
+    final L = AppLocalizations.of(context);
     final navigator = Navigator.of(context);
     var paid = false;
 
@@ -173,13 +178,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         // Kick off polling as soon as the dialog opens.
         poll(dialogContext);
         return AlertDialog(
-          title: const Text('Complete Payment'),
-          content: const Column(
+          title: Text(L.t('shop.completePayment')),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Check your phone to complete the M-Pesa/USSD push payment'),
-              SizedBox(height: 16),
-              SizedBox(
+              Text(L.t('shop.checkPhonePush')),
+              const SizedBox(height: 16),
+              const SizedBox(
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(strokeWidth: 2),
@@ -191,7 +196,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
-              child: const Text('Cancel'),
+              child: Text(L.t('cancel')),
             ),
           ],
         );
@@ -201,17 +206,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!mounted) return;
     if (paid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment successful'),
+        SnackBar(
+          content: Text(L.t('shop.paymentSuccessful')),
           backgroundColor: AppTheme.dark,
           behavior: SnackBarBehavior.floating,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment incomplete. The pharmacy will confirm your payment.'),
-          backgroundColor: Color(0xFFD97706),
+        SnackBar(
+          content: Text(L.t('shop.paymentIncomplete')),
+          backgroundColor: const Color(0xFFD97706),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -225,6 +230,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final cart = context.watch<CartState>();
     final user = ApiService.cachedUser;
     final userName = user?['name'] ?? '';
@@ -232,16 +238,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: AppBar(title: Text(L.t('shop.checkout'))),
       body: cart.isEmpty
-          ? const Center(
-              child: Text('Your cart is empty',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))))
+          ? Center(
+              child: Text(L.t('shop.yourCartIsEmpty'),
+                  style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280))))
           : ListView(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
               children: [
                 // Delivery details
-                const _SectionTitle(title: 'Delivery Details'),
+                _SectionTitle(title: L.t('shop.deliveryDetails')),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -251,18 +257,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   child: Column(
                     children: [
-                      _InfoRow(icon: Icons.local_pharmacy, label: 'Pharmacy', value: cart.pharmacyName ?? ''),
+                      _InfoRow(icon: Icons.local_pharmacy, label: L.t('shop.pharmacy'), value: cart.pharmacyName ?? ''),
                       const SizedBox(height: 10),
-                      _InfoRow(icon: Icons.person_outline, label: 'Customer', value: userName),
+                      _InfoRow(icon: Icons.person_outline, label: L.t('shop.customer'), value: userName),
                       const SizedBox(height: 10),
-                      _InfoRow(icon: Icons.phone_outlined, label: 'Phone', value: userPhone),
+                      _InfoRow(icon: Icons.phone_outlined, label: L.t('shop.phone'), value: userPhone),
                       const SizedBox(height: 10),
                       _InfoRow(
                         icon: Icons.payments_outlined,
-                        label: 'Payment',
+                        label: L.t('shop.payment'),
                         value: _paymentMethod == 'cash'
-                            ? 'Cash on Delivery'
-                            : 'Mobile Money (M-Pesa)',
+                            ? L.t('shop.cashOnDelivery')
+                            : L.t('shop.mobileMoney'),
                       ),
                     ],
                   ),
@@ -270,7 +276,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 18),
 
                 // Payment method selection
-                const _SectionTitle(title: 'Payment Method'),
+                _SectionTitle(title: L.t('shop.paymentMethod')),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -281,16 +287,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   child: Column(
                     children: [
                       _PaymentOption(
-                        title: 'Cash on Delivery',
-                        subtitle: 'Pay the pharmacy when your order arrives',
+                        title: L.t('shop.cashOnDelivery'),
+                        subtitle: L.t('shop.payOnArrival'),
                         icon: Icons.payments_outlined,
                         selected: _paymentMethod == 'cash',
                         onTap: () => setState(() => _paymentMethod = 'cash'),
                       ),
                       const SizedBox(height: 10),
                       _PaymentOption(
-                        title: 'Mobile Money (M-Pesa)',
-                        subtitle: 'Pay instantly via mobile money push',
+                        title: L.t('shop.mobileMoney'),
+                        subtitle: L.t('shop.payInstantlyPush'),
                         icon: Icons.phone_android,
                         selected: _paymentMethod == 'mobile',
                         onTap: () => setState(() => _paymentMethod = 'mobile'),
@@ -302,10 +308,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           keyboardType: TextInputType.phone,
                           maxLength: 20,
                           textInputAction: TextInputAction.done,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             hintText: '+255712345678',
-                            labelText: 'Mobile money phone number *',
-                            fillColor: Color(0xFFF9FAFB),
+                            labelText: L.t('shop.mobileMoneyPhoneNumber'),
+                            fillColor: const Color(0xFFF9FAFB),
                             counterText: '',
                           ),
                         ),
@@ -316,7 +322,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 18),
 
                 // Items
-                const _SectionTitle(title: 'Delivery Address'),
+                _SectionTitle(title: L.t('shop.deliveryAddress')),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -331,10 +337,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         maxLines: 2,
                         maxLength: 500,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          hintText: 'Street, landmark, house/unit...',
-                          labelText: 'Delivery address *',
-                          fillColor: Color(0xFFF9FAFB),
+                        decoration: InputDecoration(
+                          hintText: L.t('shop.streetLandmarkHint'),
+                          labelText: L.t('shop.deliveryAddressRequired'),
+                          fillColor: const Color(0xFFF9FAFB),
                           counterText: '',
                         ),
                       ),
@@ -344,10 +350,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         keyboardType: TextInputType.phone,
                         maxLength: 20,
                         textInputAction: TextInputAction.done,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: '+255 7xx xxx xxx',
-                          labelText: 'Contact phone for delivery',
-                          fillColor: Color(0xFFF9FAFB),
+                          labelText: L.t('shop.contactPhoneDelivery'),
+                          fillColor: const Color(0xFFF9FAFB),
                           counterText: '',
                         ),
                       ),
@@ -357,7 +363,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 18),
 
                 // Items
-                const _SectionTitle(title: 'Order Items'),
+                _SectionTitle(title: L.t('shop.orderItems')),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -376,7 +382,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: Text('${item.drug.name ?? 'Drug'} x${item.quantity}',
+                                    child: Text('${item.drug.name ?? L.t('shop.drug')} x${item.quantity}',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(fontSize: 13, color: Color(0xFF111827))),
@@ -386,10 +392,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 ],
                               ),
                               if ((item.drug.quantity ?? 0) <= 0)
-                                const Padding(
-                                  padding: EdgeInsets.only(top: 2),
-                                  child: Text('May be out of stock',
-                                      style: TextStyle(fontSize: 11, color: Colors.orange)),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(L.t('shop.mayBeOutOfStock'),
+                                      style: const TextStyle(fontSize: 11, color: Colors.orange)),
                                 ),
                             ],
                           ),
@@ -399,8 +405,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Subtotal',
-                            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+                        Text(L.t('shop.subtotal'),
+                            style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
                         Text(AppHelpers.formatTZS(cart.subtotal),
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
                       ],
@@ -409,18 +415,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Delivery',
-                            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
-                        const Text('Calculated at confirmation',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF9CA3AF))),
+                        Text(L.t('shop.delivery'),
+                            style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+                        Text(L.t('shop.calculatedAtConfirmation'),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF9CA3AF))),
                       ],
                     ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                        Text(L.t('shop.total'),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
                         Text(AppHelpers.formatTZS(cart.subtotal),
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primary)),
                       ],
@@ -431,13 +437,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 18),
 
                 // Notes
-                const _SectionTitle(title: 'Order Notes (optional)'),
+                _SectionTitle(title: L.t('shop.orderNotesOptional')),
                 TextField(
                   controller: _notesController,
                   maxLines: 3,
                   maxLength: 1000,
-                  decoration: const InputDecoration(
-                    hintText: 'Add delivery instructions or notes for the pharmacy...',
+                  decoration: InputDecoration(
+                    hintText: L.t('shop.notesHint'),
                     fillColor: Colors.white,
                   ),
                 ),
@@ -461,8 +467,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             height: 22,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Place Order',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                        : Text(L.t('shop.placeOrder'),
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
@@ -11,8 +13,9 @@ import 'video_consult_view.dart';
 class TelemedicineScreen extends StatefulWidget {
   final int? pharmacyId;
   final String? pharmacyName;
+  final int refreshTick;
 
-  const TelemedicineScreen({super.key, this.pharmacyId, this.pharmacyName});
+  const TelemedicineScreen({super.key, this.pharmacyId, this.pharmacyName, this.refreshTick = 0});
 
   @override
   State<TelemedicineScreen> createState() => _TelemedicineScreenState();
@@ -31,6 +34,12 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant TelemedicineScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.refreshTick != oldWidget.refreshTick) _load();
   }
 
   Future<void> _load() async {
@@ -72,8 +81,8 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
     if (session['pharmacy'] is Map && session['pharmacy']['pharmacy_name'] != null) {
       return session['pharmacy']['pharmacy_name'].toString();
     }
-    if (session['patient_notes'] != null) return 'Pharmacy';
-    return widget.pharmacyName ?? 'Pharmacy';
+    if (session['patient_notes'] != null) return AppLocalizations.tr('oh.pharmacy');
+    return widget.pharmacyName ?? AppLocalizations.tr('oh.pharmacy');
   }
 
   void _openConsult(Map<String, dynamic> session) {
@@ -126,11 +135,17 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: const Text('Telemedicine'),
+        title: Text(L.t('oh.telemedicine')),
         backgroundColor: Colors.white,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Color(0xFF0F2A1E),
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -141,6 +156,7 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
   }
 
   Widget _buildBody() {
+    final L = AppLocalizations.of(context);
     return ListView(
       children: [
         if (_active != null) ...[
@@ -159,7 +175,7 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
         const SizedBox(height: 22),
 
         if (_upcoming.isNotEmpty) ...[
-          _SectionHeader(title: 'Upcoming Consultations'),
+          _SectionHeader(title: L.t('oh.upcomingConsultations')),
           const SizedBox(height: 10),
           ..._upcoming.map((r) => _AppointmentRow(
                 record: r,
@@ -170,7 +186,7 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
         ],
 
         if (_history.isNotEmpty) ...[
-          _SectionHeader(title: 'Consultation History'),
+          _SectionHeader(title: L.t('oh.consultationHistory')),
           const SizedBox(height: 10),
           ..._history.map((r) => _AppointmentRow(
                 record: r,
@@ -199,41 +215,58 @@ class _LiveCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppTheme.primaryDark,
-          borderRadius: BorderRadius.circular(18),
+          gradient: AppColors.doctorBannerGradient,
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(Icons.videocam, size: 22, color: Colors.white),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: const Text('Live Consultation Now',
-                      style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+                Row(
+                  children: [
+                    const Icon(Icons.videocam_rounded, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Text(L.t('oh.liveConsultationNow'),
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+                  ],
                 ),
-                const _Pill(label: 'LIVE', color: Colors.white, textColor: Colors.white),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.22),
+                      borderRadius: BorderRadius.circular(99)),
+                  child: const Text('LIVE',
+                      style: TextStyle(
+                          color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text('With $pharmacyName',
-                style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 12)),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
+            Text('${L.t('oh.withPharmacy')} $pharmacyName',
+                style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 12.5)),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               height: 48,
               child: ElevatedButton.icon(
                 onPressed: onJoin,
-                icon: const Icon(Icons.videocam, size: 18, color: Colors.white),
-                label: const Text('Join Video Call',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.brand800,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.videocam_rounded, size: 16),
+                label: Text(L.t('oh.joinVideoCall'),
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
           ],
@@ -250,13 +283,26 @@ class _ActionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _ActionButton(icon: Icons.calendar_today, label: 'Book Appointment', onTap: onBook),
-          _ActionButton(icon: Icons.videocam, label: 'Start Live Call', onTap: onCall),
+          Expanded(
+            child: _ActionButton(
+              icon: Icons.calendar_month_rounded,
+              label: L.t('oh.bookAppointment'),
+              onTap: onBook,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _ActionButton(
+              icon: Icons.videocam_rounded,
+              label: L.t('oh.startLiveCall'),
+              onTap: onCall,
+            ),
+          ),
         ],
       ),
     );
@@ -271,37 +317,32 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFEEF1F0)),
-            boxShadow: const [
-              BoxShadow(color: Color(0x0D0F172A), blurRadius: 8, offset: Offset(0, 2)),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, size: 22, color: AppTheme.primaryDark),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: AppColors.line),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.mint50,
+                border: Border.all(color: AppColors.line),
+                borderRadius: BorderRadius.circular(14),
               ),
-              const SizedBox(height: 10),
-              Text(label,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-            ],
-          ),
+              child: Icon(icon, color: AppColors.brand600, size: 19),
+            ),
+            const SizedBox(height: 12),
+            Text(label,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          ],
         ),
       ),
     );
@@ -317,7 +358,7 @@ class _SectionHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: Text(title,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
     );
   }
 }
@@ -331,21 +372,40 @@ class _AppointmentRow extends StatelessWidget {
   IconData get _icon {
     switch ((record['status'] ?? '').toString()) {
       case 'live':
-        return Icons.videocam;
+        return Icons.videocam_rounded;
       case 'scheduled':
       case 'requested':
-        return Icons.schedule;
+        return Icons.schedule_rounded;
       default:
-        return Icons.history;
+        return Icons.history_rounded;
     }
   }
 
-  String get _statusLabel => (record['status'] ?? '').toString().toUpperCase();
-  Color get _statusColor => AppTheme.primary;
+  String _statusKey(String status) {
+    switch (status) {
+      case 'live':
+        return 'oh.statusLive';
+      case 'scheduled':
+        return 'oh.statusScheduled';
+      case 'requested':
+        return 'oh.statusRequested';
+      case 'ended':
+        return 'oh.statusEnded';
+      case 'missed':
+        return 'oh.statusMissed';
+      case 'cancelled':
+        return 'oh.statusCancelled';
+      default:
+        return 'oh.statusScheduled';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     final subtle = onTap == null;
+    final status = (record['status'] ?? '').toString();
+    final statusLabel = L.t(_statusKey(status));
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       child: InkWell(
@@ -356,10 +416,7 @@ class _AppointmentRow extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFEEF1F0)),
-            boxShadow: const [
-              BoxShadow(color: Color(0x0D0F172A), blurRadius: 8, offset: Offset(0, 2)),
-            ],
+            border: Border.all(color: AppColors.line),
           ),
           child: Row(
             children: [
@@ -367,10 +424,11 @@ class _AppointmentRow extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.1),
+                  color: AppColors.mint50,
+                  border: Border.all(color: AppColors.line),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(_icon, size: 17, color: AppTheme.primaryDark),
+                child: Icon(_icon, size: 17, color: AppColors.brand700),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -379,19 +437,19 @@ class _AppointmentRow extends StatelessWidget {
                   children: [
                     Text(pharmacyName,
                         maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
                     const SizedBox(height: 5),
-                    Text(_subtitle(record),
+                    Text(_subtitle(L, statusLabel, record),
                         maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                        style: const TextStyle(fontSize: 12, color: AppColors.muted)),
                   ],
                 ),
               ),
               if (!subtle) ...[
                 const SizedBox(width: 8),
-                _Pill(label: _statusLabel, color: _statusColor, textColor: _statusColor),
+                _Pill(label: statusLabel, color: AppColors.brand600, textColor: AppColors.brand700),
               ] else
-                _Pill(label: _statusLabel, color: Color(0xFF9CA3AF), textColor: Color(0xFF9CA3AF)),
+                _Pill(label: statusLabel, color: AppColors.muted, textColor: AppColors.muted),
             ],
           ),
         ),
@@ -399,13 +457,12 @@ class _AppointmentRow extends StatelessWidget {
     );
   }
 
-  String _subtitle(Map<String, dynamic> r) {
-    final s = _statusLabel;
-    final topic = r['topic'] != null ? r['topic'].toString() : 'Pharmaceutical consultation';
+  String _subtitle(AppLocalizations L, String statusLabel, Map<String, dynamic> r) {
+    final topic = r['topic'] != null ? r['topic'].toString() : L.t('oh.pharmaceuticalConsultation');
     if (r['scheduled_at'] != null) {
-      return '$s • ${r['scheduled_at'].toString()}';
+      return '$statusLabel • ${r['scheduled_at'].toString()}';
     }
-    return '$s • $topic';
+    return '$statusLabel • $topic';
   }
 }
 
@@ -421,7 +478,7 @@ class _Pill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(99),
       ),
       child: Text(label,
           style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: textColor)),
@@ -435,24 +492,25 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.videocam_off_outlined, size: 48, color: const Color(0xFFD1D5DB)),
+          Icon(Icons.videocam_off_outlined, size: 48, color: AppColors.line),
           const SizedBox(height: 14),
-          Text('No consultations yet',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+          Text(L.t('oh.noConsultationsYet'),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.ink)),
           const SizedBox(height: 6),
-          Text('Book a video appointment or start a live call with a pharmacist.',
+          Text(L.t('oh.emptyConsultationsHint'),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              style: const TextStyle(fontSize: 12, color: AppColors.muted)),
           const SizedBox(height: 18),
           ElevatedButton(
             onPressed: onBook,
-            child: const Text('Book an Appointment',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+            child: Text(L.t('oh.bookAnAppointment'),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.brand600),
           ),
         ],
       ),
@@ -467,18 +525,19 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.videocam_off_outlined, size: 48, color: const Color(0xFFD1D5DB)),
+            const Icon(Icons.videocam_off_outlined, size: 48, color: Color(0xFFD1D5DB)),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
+                style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
             const SizedBox(height: 12),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(onPressed: onRetry, child: Text(L.t('oh.retry'))),
           ],
         ),
       ),

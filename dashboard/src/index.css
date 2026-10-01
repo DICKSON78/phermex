@@ -8,6 +8,14 @@
   box-sizing: border-box;
 }
 
+:root {
+  color-scheme: light;
+}
+
+html {
+  color-scheme: light;
+}
+
 body {
   font-family: 'Poppins', sans-serif;
   background-color: #F5F7F5;
@@ -378,10 +386,9 @@ html, body, #root {
 }
 
 body {
-  position: fixed;
   width: 100%;
-  top: 0;
-  left: 0;
+  min-height: 100%;
+  margin: 0;
 }
 
 /* Remove tap highlight on mobile */

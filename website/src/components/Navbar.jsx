@@ -1,37 +1,20 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBars, faTimes, faChevronUp } from '@fortawesome/free-solid-svg-icons'
+import { faBars, faTimes, faChevronUp, faHouse, faLayerGroup, faCompassDrafting, faDiagramProject, faEnvelope, faPhone, faArrowRight } from '@fortawesome/free-solid-svg-icons'
 import { DASHBOARD_URL } from '../config'
 import LanguageSwitcher from './LanguageSwitcher'
 
 const navLinks = [
-  { label: 'HOME', to: '/' },
-  { label: 'ABOUT', to: '/about' },
-  { label: 'PRODUCTS', to: '/products' },
-  { label: 'PACKAGES', to: '/packages' },
-  { label: 'CAREERS', to: '/careers' },
-  { label: 'NEWSROOM', to: '/newsroom' },
-  { label: 'FAQ', to: '/faq' },
-  { label: 'CONTACT', to: '/contact' },
+  { label: 'Home', icon: faHouse, to: '/' },
+  { label: 'About', icon: faCompassDrafting, to: '/about' },
+  { label: 'Products', icon: faLayerGroup, to: '/products' },
+  { label: 'Packages', icon: faDiagramProject, to: '/packages' },
+  { label: 'Careers', icon: faEnvelope, to: '/careers' },
+  { label: 'Newsroom', icon: faLayerGroup, to: '/newsroom' },
+  { label: 'FAQ', icon: faLayerGroup, to: '/faq' },
+  { label: 'Contact', icon: faEnvelope, to: '/contact' },
 ]
-
-function navClass(isActive) {
-  return `relative text-xs font-semibold tracking-[1px] transition-colors duration-300 ${
-    isActive ? 'text-[#0FD452]' : 'text-white/80 hover:text-white'
-  }`
-}
-
-function IconPill() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-      <path d="M8 21h8a2 2 0 0 0 2-2v-3H6v3a2 2 0 0 0 2 2z"/>
-      <path d="M3 14s2 0 2-2V5a2 2 0 0 1 4 0v7"/>
-      <path d="M9 14s2 0 2-2V5a2 2 0 0 1 4 0v7"/>
-      <path d="M15 14s2 0 2-2V5a2 2 0 0 1 4 0v7"/>
-    </svg>
-  )
-}
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
@@ -45,94 +28,103 @@ export default function Navbar() {
 
   return (
     <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 border-b border-white/10 transition-all duration-300 ${
-          scrolled ? 'bg-[#000F14]/90 backdrop-blur-lg shadow-lg' : 'bg-[#000F14]'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-[72px]">
-            <Link to="/" className="flex items-center gap-3 group">
-              <span className="h-10 w-10 rounded-xl bg-[#0FD452] text-[#000F14] flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105">
-                <IconPill />
-              </span>
-              <span className="flex flex-col leading-none">
-                <span className="text-[#0FD452] font-bold text-lg tracking-wide">HELIX</span>
-              </span>
-            </Link>
+      <header className={`fixed inset-x-0 top-0 z-50 overflow-hidden border-b border-white/10 bg-[#000F14]/95 text-white shadow-xl shadow-[#000F14]/10 backdrop-blur-xl transition duration-300 ${scrolled ? 'shadow-lg' : ''}`}>
+        <div className="relative">
+          <div className="container-shell">
+            <div className="flex min-h-[84px] items-center gap-5">
+              <Link to="/" className="flex shrink-0 items-center gap-3" aria-label="Helix home">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#0FD452]/50 bg-[#0A1A22] shadow-lg shadow-black/20">
+                  <img src="/helix-logo.png" alt="" width="36" height="36" className="h-9 w-9 rounded-lg" />
+                </span>
+                <span>
+                  <span className="block text-base font-bold leading-none tracking-[0.14em] text-white">HELIX</span>
+                </span>
+              </Link>
 
-            <div className="hidden lg:flex items-center gap-7">
-              <ul className="flex items-center gap-7">
-                {navLinks.map((link) => (
-                  <li key={link.to}>
-                    <NavLink to={link.to} className={({ isActive }) => navClass(isActive)}>
-                      {({ isActive }) => (
-                        <>
-                          {link.label}
-                          {isActive && (
-                            <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-[#0FD452] rounded-full" />
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  </li>
+              <span className="hidden h-9 w-px bg-white/10 lg:block" aria-hidden="true"></span>
+
+              <nav className="hidden min-w-0 flex-1 items-stretch justify-center gap-1 lg:flex" aria-label="Primary navigation">
+                {navLinks.map((link, idx) => (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    className={({ isActive }) =>
+                      `relative flex items-center gap-2 border border-transparent px-3 py-2.5 text-xs font-medium text-slate-300 transition duration-300 ${
+                        isActive ? 'border-[#0FD452]/30 bg-[#0FD452]/10 text-white' : 'hover:border-white/10 hover:bg-white/5'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span className="hidden text-[9px] font-semibold tracking-[0.18em] text-slate-500 xl:inline">{String(idx+1).padStart(2,'0')}</span>
+                        <FontAwesomeIcon icon={link.icon} className={`text-sm ${isActive ? 'text-[#0FD452]' : 'text-[#0FD452]/80'}`} />
+                        <span>{link.label}</span>
+                        {isActive && (
+                          <span className="absolute inset-x-3 -bottom-px h-px bg-[#0FD452]" />
+                        )}
+                      </>
+                    )}
+                  </NavLink>
                 ))}
-              </ul>
-              <LanguageSwitcher />
-              <a
-                href={DASHBOARD_URL + '/login'}
-                className="text-white/75 hover:text-white px-4 py-2.5 text-xs font-bold tracking-wider transition-all duration-300"
-              >
-                SIGN IN
-              </a>
-              <a
-                href={DASHBOARD_URL + '/register'}
-                className="bg-[#0FD452] hover:bg-emerald-500 text-[#000F14] px-6 py-2.5 text-xs font-bold tracking-wider transition-all duration-300 inline-flex items-center gap-2"
-              >
-                APPLY NOW
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </a>
-            </div>
+              </nav>
 
-            <button className="lg:hidden text-white text-xl p-2" onClick={() => setOpen(!open)}>
-              <FontAwesomeIcon icon={open ? faTimes : faBars} />
-            </button>
+              <div className="ml-auto hidden items-center gap-3 lg:flex">
+                <LanguageSwitcher />
+                <a href={DASHBOARD_URL + '/login'} className="text-white/75 hover:text-white px-4 py-2.5 text-xs font-bold tracking-wider transition-all duration-300">
+                  SIGN IN
+                </a>
+                <a href={DASHBOARD_URL + '/register'} className="group inline-flex min-h-11 items-center gap-3 rounded-[1.25rem] border border-[#0FD452]/50 bg-[#0FD452] px-5 py-3 text-sm font-semibold text-[#000F14] transition duration-300 hover:-translate-y-0.5 hover:border-[#0FD452] hover:bg-emerald-500">
+                  <span>APPLY NOW</span>
+                  <FontAwesomeIcon icon={faArrowRight} className="text-xs transition-transform duration-300 group-hover:translate-x-1" />
+                </a>
+              </div>
+
+              <button type="button" onClick={() => setOpen(!open)} className="ml-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-white transition hover:border-[#0FD452]/50 hover:bg-white/10 lg:hidden">
+                <FontAwesomeIcon icon={open ? faTimes : faBars} className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
 
         {open && (
-          <div className="lg:hidden bg-[#000F14]/98 backdrop-blur-lg px-6 py-6 max-h-[calc(100vh-72px)] overflow-y-auto">
-            <div className="mb-5">
-              <LanguageSwitcher />
-            </div>
-            <ul className="flex flex-col gap-1 mb-6">
-              {navLinks.map((link) => (
-                <li key={link.to}>
+          <div className="border-t border-white/10 bg-[#000F14] lg:hidden">
+            <nav className="container-shell py-5">
+              <div className="grid gap-2">
+                {navLinks.map((link, idx) => (
                   <NavLink
+                    key={link.to}
                     to={link.to}
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
-                      `block py-3 text-sm font-semibold tracking-wider border-b border-white/5 transition-colors ${
+                      `flex items-center gap-4 border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 ${
                         isActive ? 'text-[#0FD452]' : 'text-white/75'
                       }`
                     }
                   >
-                    {link.label}
+                    <span className="w-6 text-[10px] font-semibold tracking-[0.18em] text-[#0FD452]">{String(idx+1).padStart(2,'0')}</span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-[#0FD452]">
+                      <FontAwesomeIcon icon={link.icon} className="text-sm" />
+                    </span>
+                    <span className="flex-1">{link.label}</span>
+                    <FontAwesomeIcon icon={faArrowRight} className="text-xs text-slate-500" />
                   </NavLink>
-                </li>
-              ))}
-            </ul>
-            <a href={DASHBOARD_URL + '/login'} onClick={() => setOpen(false)} className="bg-white/10 text-white px-6 py-3 text-xs font-bold tracking-wider inline-block text-center w-full">
-              SIGN IN
-            </a>
-            <a href={DASHBOARD_URL + '/register'} onClick={() => setOpen(false)} className="bg-[#0FD452] text-[#000F14] px-6 py-3 text-xs font-bold tracking-wider inline-block text-center w-full mt-2">
-              APPLY NOW
-            </a>
+                ))}
+              </div>
+              <div className="mt-5">
+                <LanguageSwitcher />
+              </div>
+              <div className="mt-3 space-y-2">
+                <a href={DASHBOARD_URL + '/login'} onClick={() => setOpen(false)} className="bg-white/10 text-white px-6 py-3 text-xs font-bold tracking-wider inline-block text-center w-full">
+                  SIGN IN
+                </a>
+                <a href={DASHBOARD_URL + '/register'} onClick={() => setOpen(false)} className="bg-[#0FD452] text-[#000F14] px-6 py-3 text-xs font-bold tracking-wider inline-block text-center w-full">
+                  APPLY NOW
+                </a>
+              </div>
+            </nav>
           </div>
         )}
-      </nav>
+      </header>
 
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

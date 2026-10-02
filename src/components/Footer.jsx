@@ -5,6 +5,7 @@ import { faInstagram, faLinkedinIn, faYoutube } from '@fortawesome/free-brands-s
 const companyLinks = [
   { label: 'About Us', to: '/about' },
   { label: 'Products', to: '/products' },
+  { label: 'Packages', to: '/packages' },
   { label: 'Careers', to: '/careers' },
   { label: 'FAQ', to: '/faq' },
   { label: 'Newsroom', to: '/newsroom' },
@@ -40,15 +41,15 @@ export default function Footer() {
             <h4 className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-5">KEEP IN TOUCH</h4>
             <ul className="space-y-3 text-sm text-gray-400">
               <li>
-                <a href="tel:+255625460081" className="hover:text-white transition-colors">+255 625 460 081</a>
+                <a href="tel:+255 669 254 444" className="hover:text-white transition-colors">+255 669 254 444</a>
               </li>
               <li>
-                <a href="mailto:info@helix.com" className="hover:text-white transition-colors">info@helix.com</a>
+                <a href="mailto:support@helix.co.tz" className="hover:text-white transition-colors">support@helix.co.tz</a>
               </li>
             </ul>
             <div className="flex gap-3 mt-5">
               <a
-                href="https://www.linkedin.com/company/helix"
+                href="https://www.linkedin.com/in/helix-co-ltd-part-of-allos-holding-co-ltd-299605359"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] transition-all"
@@ -56,7 +57,7 @@ export default function Footer() {
                 <FontAwesomeIcon icon={faLinkedinIn} className="text-xs" />
               </a>
               <a
-                href="https://www.instagram.com/helix_co.ltd"
+                href="https://www.instagram.com/helix_co.ltd?igsh=YW1qNDI0YmtibXAz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] transition-all"
@@ -76,7 +77,7 @@ export default function Footer() {
 
           <div>
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.jpeg" alt="Helix" className="h-10 w-10 rounded-full object-cover" />
+              <img src="/helix-logo.png" alt="Helix" className="h-10 w-10 rounded-full object-cover" />
               <span className="text-[#0FD452] font-bold text-lg tracking-wide">HELIX</span>
             </Link>
             <p className="text-gray-500 text-xs mt-4 leading-relaxed">

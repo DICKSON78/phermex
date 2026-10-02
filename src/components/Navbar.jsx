@@ -3,11 +3,13 @@ import { NavLink, Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faTimes, faChevronUp } from '@fortawesome/free-solid-svg-icons'
 import { DASHBOARD_URL } from '../config'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const navLinks = [
   { label: 'HOME', to: '/' },
   { label: 'ABOUT', to: '/about' },
   { label: 'PRODUCTS', to: '/products' },
+  { label: 'PACKAGES', to: '/packages' },
   { label: 'CAREERS', to: '/careers' },
   { label: 'NEWSROOM', to: '/newsroom' },
   { label: 'FAQ', to: '/faq' },
@@ -36,7 +38,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-[72px]">
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.jpeg" alt="Helix" className="h-10 w-10 rounded-full object-cover" />
+              <img src="/helix-logo.png" alt="Helix" className="h-10 w-10 rounded-full object-cover" />
               <span className="text-[#0FD452] font-bold text-lg tracking-wide">HELIX</span>
             </Link>
 
@@ -57,6 +59,7 @@ export default function Navbar() {
                   </li>
                 ))}
               </ul>
+              <LanguageSwitcher />
               <a
                 href={DASHBOARD_URL + '/login'}
                 className="text-white/80 hover:text-white px-4 py-2.5 text-xs font-bold tracking-wider transition-all duration-300"
@@ -79,6 +82,9 @@ export default function Navbar() {
 
         {open && (
           <div className="lg:hidden bg-[#0A1A22]/95 backdrop-blur-lg px-6 py-6">
+            <div className="mb-5">
+              <LanguageSwitcher />
+            </div>
             <ul className="flex flex-col gap-4 mb-6">
               {navLinks.map((link) => (
                 <li key={link.to}>

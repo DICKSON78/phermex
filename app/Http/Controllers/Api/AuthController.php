@@ -208,56 +208,24 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            if (!$user->current_pharmacy_id) {
-                $user->update(['current_pharmacy_id' => $user->resolveCurrentPharmacyId()]);
-                $user->refresh();
-            }
+            $session = $this->buildSession($user);
 
-            $pharmacyId = $user->resolveCurrentPharmacyId();
-            $pharmacy = $pharmacyId ? \App\Models\Pharmacy::find($pharmacyId) : null;
-            $appStatus = null;
-            $subscriptionInfo = null;
-
-            if ($pharmacy) {
-                $appStatus = $pharmacy->application_status;
-                $subscriptionPlan = $pharmacy->subscriptions()->latest('id')->value('plan');
-
-                $subscriptionInfo = [
-                    'application_status' => $appStatus,
-                    'subscription_type' => $pharmacy->subscriptionType(),
-                    'days_remaining' => $pharmacy->daysRemaining(),
-                    'trial_ends_at' => $pharmacy->trial_ends_at?->toISOString(),
-                    'subscription_end_date' => $pharmacy->subscription_end_date?->toISOString(),
-                    'payment_status' => $pharmacy->payment_status,
-                    'plan' => $subscriptionPlan,
-                ];
-
-                if ($appStatus === 'rejected') {
-                    return response()->json([
-                        'message' => 'Your application has been rejected.',
-                        'rejection_reason' => $pharmacy->rejection_reason,
-                        'application_status' => 'rejected',
-                    ], 403);
-                }
-
-                if ($appStatus === 'pending' || $appStatus === 'approved') {
-                    if ($pharmacy->payment_status !== 'paid') {
-                        $subscriptionInfo['requires_payment'] = true;
-                    }
-                    if ($appStatus === 'pending') {
-                        $subscriptionInfo['pending_approval'] = true;
-                    }
-                }
+            if (! empty($session['rejected'])) {
+                return response()->json([
+                    'message' => 'Your application has been rejected.',
+                    'rejection_reason' => $session['rejection_reason'],
+                    'application_status' => 'rejected',
+                ], 403);
             }
 
             $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json([
                 'message' => 'Login successful.',
-                'user' => $user->load('pharmacy', 'currentPharmacy'),
+                'user' => $session['user'],
                 'token' => $token,
-                'subscription' => $subscriptionInfo,
-                'email_verified' => $user->email_verified_at !== null,
+                'subscription' => $session['subscription'],
+                'email_verified' => $session['email_verified'],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -270,6 +238,65 @@ class AuthController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
+    }
+
+    /**
+     * Builds the post-login payload for a staff account: the user, their
+     * subscription/approval state and email verification.
+     *
+     * Shared with Google sign-in so both routes gate modules identically.
+     *
+     * @return array{user: mixed, subscription: array|null, email_verified: bool, rejected?: bool, rejection_reason?: ?string}
+     */
+    public function buildSession(\App\Models\User $user): array
+    {
+        if (!$user->current_pharmacy_id) {
+            $user->update(['current_pharmacy_id' => $user->resolveCurrentPharmacyId()]);
+            $user->refresh();
+        }
+
+        $pharmacyId = $user->resolveCurrentPharmacyId();
+        $pharmacy = $pharmacyId ? \App\Models\Pharmacy::find($pharmacyId) : null;
+        $subscriptionInfo = null;
+        $rejected = false;
+        $rejectionReason = null;
+
+        if ($pharmacy) {
+            $appStatus = $pharmacy->application_status;
+            $subscriptionPlan = $pharmacy->subscriptions()->latest('id')->value('plan');
+
+            $subscriptionInfo = [
+                'application_status' => $appStatus,
+                'subscription_type' => $pharmacy->subscriptionType(),
+                'days_remaining' => $pharmacy->daysRemaining(),
+                'trial_ends_at' => $pharmacy->trial_ends_at?->toISOString(),
+                'subscription_end_date' => $pharmacy->subscription_end_date?->toISOString(),
+                'payment_status' => $pharmacy->payment_status,
+                'plan' => $subscriptionPlan,
+            ];
+
+            if ($appStatus === 'rejected') {
+                $rejected = true;
+                $rejectionReason = $pharmacy->rejection_reason;
+            }
+
+            if ($appStatus === 'pending' || $appStatus === 'approved') {
+                if ($pharmacy->payment_status !== 'paid') {
+                    $subscriptionInfo['requires_payment'] = true;
+                }
+                if ($appStatus === 'pending') {
+                    $subscriptionInfo['pending_approval'] = true;
+                }
+            }
+        }
+
+        return [
+            'user' => $user->load('pharmacy', 'currentPharmacy'),
+            'subscription' => $subscriptionInfo,
+            'email_verified' => $user->email_verified_at !== null,
+            'rejected' => $rejected,
+            'rejection_reason' => $rejectionReason,
+        ];
     }
 
     public function logout(Request $request): JsonResponse

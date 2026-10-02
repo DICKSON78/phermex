@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\TelemedicineController;
 use App\Http\Controllers\Api\CustomerAppController;
+use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DrugController;
 use App\Http\Controllers\Api\DrugMovementController;
@@ -66,6 +67,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+// Sign in with Google for existing pharmacy accounts (owner/pharmacist/etc).
+Route::post('/auth/google', [GoogleAuthController::class, 'staffLogin'])->middleware('throttle:10,1');
 Route::post('/forgot-password', [PasswordResetController::class, 'sendCode'])->middleware('throttle:5,1');
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:5,1');
 Route::post('/demo-requests', [DemoRequestController::class, 'store']);
@@ -99,6 +102,8 @@ Route::get('/exchange-rate', [SubscriptionController::class, 'exchangeRate']);
 Route::prefix('customer-app')->group(function () {
     Route::post('/register', [CustomerAppController::class, 'register'])->middleware('throttle:5,1');
     Route::post('/login', [CustomerAppController::class, 'login'])->middleware('throttle:10,1');
+    // Sign in with Google: customers are created on first sign-in.
+    Route::post('/login/google', [GoogleAuthController::class, 'customerLogin'])->middleware('throttle:10,1');
     Route::post('/forgot-password', [PasswordResetController::class, 'sendCode'])->middleware('throttle:5,1');
     Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:5,1');
 });

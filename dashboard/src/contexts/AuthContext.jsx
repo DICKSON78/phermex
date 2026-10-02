@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import api from '../services/api'
+import { loginWithGoogle } from '../services/googleAuth'
 
 const AuthContext = createContext(null)
 
@@ -62,6 +63,20 @@ export function AuthProvider({ children }) {
     return { user: userData, subscription: subData || null }
   }
 
+  // Signs in with Google and adopts the returned Helix session, mirroring
+  // login() so the rest of the app sees a normal authenticated user.
+  const loginWithGoogleAccount = async () => {
+    const data = await loginWithGoogle()
+    const respData = data.data || data
+    const { token: newToken, user: userData, subscription: subData } = respData
+    if (!newToken) throw new Error('Google sign-in did not return a session.')
+    localStorage.setItem('pharmex_token', newToken)
+    setToken(newToken)
+    setUser(userData)
+    setSubscription(subData || null)
+    return { user: userData, subscription: subData || null, emailVerified: respData.email_verified }
+  }
+
   const register = async (data) => {
     const response = await api.post('/register', data)
     const { token: newToken, user: userData } = response.data.data || response.data
@@ -107,7 +122,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, subscription, pharmacyId, setSubscription, login, register, logout, loading, setUser, switchPharmacy }}>
+    <AuthContext.Provider value={{ user, token, subscription, pharmacyId, setSubscription, login, loginWithGoogleAccount, register, logout, loading, setUser, switchPharmacy }}>
       {children}
     </AuthContext.Provider>
   )

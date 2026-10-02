@@ -77,7 +77,7 @@ class DrugController extends Controller
                 'selling_price' => 'required|numeric|min:0',
                 'wholesale_price' => 'sometimes|numeric|min:0',
                 'quantity' => 'required|integer|min:0',
-                'unit' => 'sometimes|in:tablets,capsules,bottles,tubes,vials',
+                'unit' => 'sometimes|string|max:255',
                 'reorder_level' => 'sometimes|integer|min:0',
                 'expiry_date' => 'required|date',
                 'batch_number' => 'nullable|string|max:255',
@@ -85,6 +85,11 @@ class DrugController extends Controller
                 'is_generic' => 'sometimes|boolean',
                 'image' => 'nullable|image|max:2048',
             ]);
+
+            // Normalize SPA unit labels (e.g. "Tablets", "Sachets") to the DB enum.
+            $unit = strtolower(trim($validated['unit'] ?? 'tablets'));
+            $allowedUnits = ['tablets', 'capsules', 'bottles', 'tubes', 'vials'];
+            $validated['unit'] = in_array($unit, $allowedUnits, true) ? $unit : 'tablets';
 
             $slug = Str::slug($validated['name']) . '-' . Str::random(5);
             $barcode = strtoupper(Str::random(12));
@@ -160,7 +165,7 @@ class DrugController extends Controller
                 'selling_price' => 'sometimes|numeric|min:0',
                 'wholesale_price' => 'sometimes|numeric|min:0',
                 'quantity' => 'sometimes|integer|min:0',
-                'unit' => 'sometimes|in:tablets,capsules,bottles,tubes,vials',
+                'unit' => 'sometimes|string|max:255',
                 'reorder_level' => 'sometimes|integer|min:0',
                 'expiry_date' => 'sometimes|date',
                 'batch_number' => 'sometimes|nullable|string|max:255',
@@ -169,6 +174,12 @@ class DrugController extends Controller
                 'is_published' => 'sometimes|boolean',
                 'image' => 'nullable|image|max:2048',
             ]);
+
+            if (isset($validated['unit'])) {
+                $unit = strtolower(trim($validated['unit']));
+                $allowedUnits = ['tablets', 'capsules', 'bottles', 'tubes', 'vials'];
+                $validated['unit'] = in_array($unit, $allowedUnits, true) ? $unit : 'tablets';
+            }
 
             if (isset($validated['name']) && $validated['name'] !== $drug->name) {
                 $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(5);

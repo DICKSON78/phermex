@@ -85,14 +85,23 @@ class AdminReportController extends Controller
                 ->toArray();
 
             $monthlyRevenue = RevenueRecord::where('status', 'paid')
-                ->where('created_at', '>=', now()->subMonths(12))
+                ->where('created_at', '>=', now()->subMonths(12)->startOfMonth())
                 ->select(
-                    DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
+                    DB::raw('DATE(created_at) as day'),
                     DB::raw('SUM(amount) as revenue')
                 )
-                ->groupBy('month')
-                ->orderBy('month')
-                ->get();
+                ->groupBy('day')
+                ->orderBy('day')
+                ->get()
+                ->groupBy(fn ($row) => \Carbon\Carbon::parse($row->day)->format('Y-m'))
+                ->map(function ($days) {
+                    $day = $days->first()->day;
+                    return [
+                        'month' => \Carbon\Carbon::parse($day)->format('Y-m'),
+                        'revenue' => round((float) $days->sum('revenue'), 2),
+                    ];
+                })
+                ->values();
 
             $ordersByStatus = Order::select('order_status', DB::raw('count(*) as count'))
                 ->groupBy('order_status')

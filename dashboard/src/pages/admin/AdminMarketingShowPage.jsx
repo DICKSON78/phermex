@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { formatMoney } from '../../utils/currency'
 
 const TYPE_STYLES = {
   Email: 'badge badge-blue',
@@ -30,11 +31,7 @@ function formatDate(dateStr) {
 }
 
 function formatCurrency(amount) {
-  if (amount == null) return '\u2014'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'TZS',
-    minimumFractionDigits: 0, maximumFractionDigits: 0,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 0 })
 }
 
 function daysRemaining(endDate) {

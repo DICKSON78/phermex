@@ -19,16 +19,13 @@ import {
   Pill,
   X,
 } from 'lucide-react'
+import { formatMoney } from '../../utils/currency'
 
 
 const FREQUENCIES = ['1x daily', '2x daily', '3x daily', '4x daily', 'Once', 'As needed', 'Every 8 hours', 'Every 12 hours']
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 2,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 2 })
 }
 
 function createEmptyItem() {

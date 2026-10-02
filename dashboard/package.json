@@ -14,8 +14,10 @@
     "date-fns": "^3.6.0",
     "express": "^5.2.1",
     "http-proxy-middleware": "^3.0.7",
+    "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.400.0",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-barcode": "^1.6.1",
     "react-dom": "^18.3.1",
@@ -25,6 +27,7 @@
     "recharts": "^2.15.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/react": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.0",

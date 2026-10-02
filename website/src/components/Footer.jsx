@@ -5,6 +5,7 @@ import { faInstagram, faLinkedinIn, faYoutube } from '@fortawesome/free-brands-s
 const companyLinks = [
   { label: 'About Us', to: '/about' },
   { label: 'Products', to: '/products' },
+  { label: 'Packages', to: '/packages' },
   { label: 'Careers', to: '/careers' },
   { label: 'FAQ', to: '/faq' },
   { label: 'Newsroom', to: '/newsroom' },

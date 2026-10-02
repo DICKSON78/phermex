@@ -93,6 +93,8 @@ Route::post('/jobs/{id}/apply', [JobController::class, 'apply']);
 
 // Public subscription plans — visible on /subscribe without login and for the marketing site.
 Route::get('/subscriptions/plans', [SubscriptionController::class, 'plans']);
+// Live USD -> TZS rate for the day (open-source FX API, no key required).
+Route::get('/exchange-rate', [SubscriptionController::class, 'exchangeRate']);
 
 Route::prefix('customer-app')->group(function () {
     Route::post('/register', [CustomerAppController::class, 'register'])->middleware('throttle:5,1');
@@ -119,6 +121,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/nearby', [CustomerAppController::class, 'nearbyPharmacies']);
         Route::get('/pharmacies/{id}', [CustomerAppController::class, 'pharmacyDetail']);
         Route::get('/pharmacies/{id}/drugs', [CustomerAppController::class, 'pharmacyDrugs']);
+        Route::get('/drugs/barcode/{code}', [CustomerAppController::class, 'drugsByBarcode']);
         Route::get('/pharmacies/{id}/categories', [CustomerAppController::class, 'pharmacyCategories']);
         Route::get('/pharmacies/{id}/reviews', [PharmacyReviewController::class, 'index']);
         Route::post('/pharmacies/{id}/reviews', [PharmacyReviewController::class, 'store']);

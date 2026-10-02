@@ -6,6 +6,7 @@ import {
   Hash, ShoppingCart, User, MapIcon, DollarSign, Activity, UserCheck, Calendar,
 } from 'lucide-react'
 import api from '../../services/api'
+import { formatMoney as sharedMoney } from '../../utils/currency'
 
 
 const statusConfig = {
@@ -88,7 +89,7 @@ export default function DeliveryListPage() {
   }
 
   const formatMoney = (amount) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 0 }).format(amount || 0)
+    return sharedMoney(amount || 0, { decimals: 0 })
   }
 
   const formatDate = (value) => {

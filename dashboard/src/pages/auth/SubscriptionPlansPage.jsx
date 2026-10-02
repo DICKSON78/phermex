@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { useCurrency, STORED_CURRENCY } from '../../utils/currency'
 import {
   Check,
   CheckCircle2,
@@ -79,6 +80,22 @@ export default function SubscriptionPlansPage() {
   const pollRef = useRef(null)
   const navigate = useNavigate()
   const { setSubscription, setUser } = useAuth()
+  const { rates, rateDate, refresh: refreshRates } = useCurrency()
+
+  // Plans are priced in USD but paid in shillings, so show the customer the
+  // real cost at the rate of the day instead of a fixed 2500.
+  const tzsRate = Number(rates?.TZS)
+  const hasRate = Number.isFinite(tzsRate) && tzsRate > 0
+  const toTzs = (usd) => (hasRate ? Math.round(Number(usd) * tzsRate) : null)
+  const formatTzs = (usd) => {
+    const value = toTzs(usd)
+    if (value == null) return ''
+    return new Intl.NumberFormat('en-TZ', {
+      style: 'currency',
+      currency: STORED_CURRENCY,
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
 
   const fetchPlans = useCallback(async () => {
     try {
@@ -114,6 +131,8 @@ export default function SubscriptionPlansPage() {
     }
     setPaying(true)
     setError('')
+    // Get the rate for today before charging.
+    await refreshRates()
     try {
       const res = await api.post('/subscriptions/checkout', {
         plan_id: selectedPlan.id,
@@ -287,6 +306,11 @@ export default function SubscriptionPlansPage() {
                   <div>
                     <p className="text-4xl font-black text-gray-900">${Number(selectedPlan.price).toLocaleString()}</p>
                     <p className="text-xs text-gray-400 font-bold mt-0.5">/{selectedPlan.duration_months} month{selectedPlan.duration_months > 1 ? 's' : ''}</p>
+                    {hasRate && (
+                      <p className="text-xs font-extrabold text-emerald-600 mt-1">
+                        ≈ {formatTzs(selectedPlan.price)}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="font-extrabold text-gray-900 text-sm">{selectedPlan.name} Plan</p>
@@ -295,8 +319,21 @@ export default function SubscriptionPlansPage() {
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 mt-4 pt-4">
                   <span className="text-sm font-bold text-gray-600">Total Due</span>
-                  <span className="text-lg font-black text-gray-900">${Number(selectedPlan.price).toLocaleString()}</span>
+                  <span className="text-right">
+                    <span className="block text-lg font-black text-gray-900">${Number(selectedPlan.price).toLocaleString()}</span>
+                    {hasRate && (
+                      <span className="block text-sm font-extrabold text-emerald-600">
+                        {formatTzs(selectedPlan.price)}
+                      </span>
+                    )}
+                  </span>
                 </div>
+                {hasRate && (
+                  <p className="text-[11px] text-gray-400 mt-2 text-right">
+                    Converted at 1 USD = {Math.round(tzsRate).toLocaleString()} TZS
+                    {rateDate ? ` (rate of ${rateDate})` : ''}. You are charged the shilling amount.
+                  </p>
+                )}
               </div>
 
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1.5">
@@ -334,7 +371,10 @@ export default function SubscriptionPlansPage() {
                 {paying ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Sending Payment Prompt…</>
                 ) : (
-                  <>Pay ${Number(selectedPlan.price).toLocaleString()} <CreditCard className="w-4 h-4" /></>
+                  <>
+                    Pay {formatTzs(selectedPlan.price) || `$${Number(selectedPlan.price).toLocaleString()}`}
+                    <CreditCard className="w-4 h-4" />
+                  </>
                 )}
               </button>
             </div>
@@ -397,6 +437,11 @@ export default function SubscriptionPlansPage() {
                 <p className={`mt-1 text-sm ${popular ? 'text-white/55' : 'text-gray-400'}`}>
                   / {plan.duration_months} month{plan.duration_months > 1 ? 's' : ''}
                 </p>
+                {hasRate && (plan.currency || 'USD') === 'USD' && (
+                  <p className={`mt-1 text-sm font-bold ${popular ? 'text-[#0FD452]' : 'text-emerald-600'}`}>
+                    ≈ {formatTzs(plan.price)}
+                  </p>
+                )}
 
                 <div className={`mt-5 rounded-xl px-4 py-3 text-sm ${popular ? 'bg-white/10' : 'bg-gray-50 border border-gray-100'}`}>
                   <span className={`font-bold tabular-nums ${popular ? 'text-[#0FD452]' : 'text-gray-900'}`}>{capValue}</span>

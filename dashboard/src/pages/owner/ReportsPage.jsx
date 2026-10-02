@@ -38,6 +38,7 @@ import {
 } from 'recharts'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const DATE_RANGES = [
   { label: 'This Week', value: 'week' },
@@ -58,11 +59,7 @@ const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b
 
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 2,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 2 })
 }
 
 function SkeletonBlock({ className }) {
@@ -260,9 +257,9 @@ function SalesReport({ data }) {
   if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><BarChart3 className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No sales data available</p></div>
   const stats = [
     { label: 'Total Revenue', value: formatCurrency(data.totalRevenue), icon: DollarSign, color: 'bg-[#0FD452]/10 text-[#0FD452]', trend: data.revenueTrend },
-    { label: 'Total Orders', value: data.totalOrders.toLocaleString(), icon: ShoppingCart, color: 'bg-blue-500/10 text-blue-500', trend: 8.2 },
+    { label: 'Total Orders', value: (data.totalOrders ?? 0).toLocaleString(), icon: ShoppingCart, color: 'bg-blue-500/10 text-blue-500', trend: 8.2 },
     { label: 'Avg Order Value', value: formatCurrency(data.avgOrderValue), icon: TrendingUp, color: 'bg-purple-500/10 text-purple-500', trend: 3.1 },
-    { label: 'Items Sold', value: data.itemsSold.toLocaleString(), icon: Package, color: 'bg-orange-500/10 text-orange-500', trend: -1.2 },
+    { label: 'Items Sold', value: (data.itemsSold ?? 0).toLocaleString(), icon: Package, color: 'bg-orange-500/10 text-orange-500', trend: -1.2 },
   ]
 
   return (
@@ -297,7 +294,7 @@ function SalesReport({ data }) {
         <h3 className="text-lg font-bold text-[#000F14] mb-4">Revenue Trend</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data.revenueChart}>
+            <AreaChart data={data.revenueChart ?? []}>
               <defs>
                 <linearGradient id="reportRevGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#0FD452" stopOpacity={0.3} />
@@ -322,7 +319,7 @@ function SalesReport({ data }) {
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-[#000F14] mb-4">Top Selling Drugs</h3>
           <div className="space-y-4">
-            {data.topSellingDrugs.length > 0 ? data.topSellingDrugs.map((drug, idx) => (
+            {(data.topSellingDrugs ?? []).length > 0 ? (data.topSellingDrugs ?? []).map((drug, idx) => (
               <div key={idx}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-[#000F14]">{drug.name}</span>
@@ -331,7 +328,7 @@ function SalesReport({ data }) {
                 <div className="h-2 w-full rounded-full bg-gray-100">
                   <div
                     className="h-2 rounded-full bg-[#0FD452]"
-                    style={{ width: `${(drug.quantitySold / (data.topSellingDrugs[0]?.quantitySold || 1)) * 100}%` }}
+                    style={{ width: `${(drug.quantitySold / ((data.topSellingDrugs ?? [])[0]?.quantitySold || 1)) * 100}%` }}
                   />
                 </div>
                 <p className="text-xs text-gray-400 mt-0.5">{formatCurrency(drug.revenue)} revenue</p>
@@ -344,7 +341,7 @@ function SalesReport({ data }) {
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-[#000F14] mb-4">Sales by Payment Method</h3>
           <div className="space-y-3">
-            {data.paymentMethods.length > 0 ? data.paymentMethods.map((pm, idx) => (
+            {(data.paymentMethods ?? []).length > 0 ? (data.paymentMethods ?? []).map((pm, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
@@ -366,10 +363,10 @@ function SalesReport({ data }) {
 function InventoryReport({ data }) {
   if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><Package className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No inventory data available</p></div>
   const stats = [
-    { label: 'Total Drugs', value: data.totalDrugs.toLocaleString(), icon: Package, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
+    { label: 'Total Drugs', value: (data.totalDrugs ?? 0).toLocaleString(), icon: Package, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
     { label: 'Stock Value', value: formatCurrency(data.totalStockValue), icon: DollarSign, color: 'bg-blue-500/10 text-blue-500' },
-    { label: 'Low Stock Items', value: data.lowStockItems.length, icon: AlertTriangle, color: 'bg-red-500/10 text-red-500' },
-    { label: 'Expiring Soon', value: data.expiringSoon.length, icon: Clock, color: 'bg-orange-500/10 text-orange-500' },
+    { label: 'Low Stock Items', value: (data.lowStockItems ?? []).length, icon: AlertTriangle, color: 'bg-red-500/10 text-red-500' },
+    { label: 'Expiring Soon', value: (data.expiringSoon ?? []).length, icon: Clock, color: 'bg-orange-500/10 text-orange-500' },
   ]
 
   return (
@@ -393,7 +390,7 @@ function InventoryReport({ data }) {
         <h3 className="text-lg font-bold text-[#000F14] mb-4">Stock Distribution by Category</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.categoryDistribution}>
+            <BarChart data={data.categoryDistribution ?? []}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} angle={-30} textAnchor="end" height={60} />
               <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} />
@@ -411,7 +408,7 @@ function InventoryReport({ data }) {
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-[#000F14] mb-4">Low Stock Items</h3>
           <div className="space-y-3">
-            {data.lowStockItems.length > 0 ? data.lowStockItems.map((item, idx) => (
+            {(data.lowStockItems ?? []).length > 0 ? (data.lowStockItems ?? []).map((item, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-red-50 rounded-xl">
                 <div>
                   <p className="text-sm font-medium text-[#000F14]">{item.name}</p>
@@ -431,7 +428,7 @@ function InventoryReport({ data }) {
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-[#000F14] mb-4">Expiring Soon</h3>
           <div className="space-y-3">
-            {data.expiringSoon.length > 0 ? data.expiringSoon.map((item, idx) => (
+            {(data.expiringSoon ?? []).length > 0 ? (data.expiringSoon ?? []).map((item, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-orange-50 rounded-xl">
                 <div>
                   <p className="text-sm font-medium text-[#000F14]">{item.name}</p>
@@ -451,10 +448,10 @@ function InventoryReport({ data }) {
         <h3 className="text-lg font-bold text-[#000F14] mb-4">Stock Movement Summary</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Received', value: data.stockMovements.received, color: 'text-[#0FD452]' },
-            { label: 'Dispensed', value: data.stockMovements.dispensed, color: 'text-blue-500' },
-            { label: 'Returned', value: data.stockMovements.returned, color: 'text-orange-500' },
-            { label: 'Expired', value: data.stockMovements.expired, color: 'text-red-500' },
+            { label: 'Received', value: data.stockMovements?.received ?? 0, color: 'text-[#0FD452]' },
+            { label: 'Dispensed', value: data.stockMovements?.dispensed ?? 0, color: 'text-blue-500' },
+            { label: 'Returned', value: data.stockMovements?.returned ?? 0, color: 'text-orange-500' },
+            { label: 'Expired', value: data.stockMovements?.expired ?? 0, color: 'text-red-500' },
           ].map((item, idx) => (
             <div key={idx} className="text-center p-4 bg-gray-50 rounded-xl">
               <p className={`text-2xl font-bold ${item.color}`}>{item.value}</p>
@@ -477,7 +474,7 @@ function FinancialReport({ data }) {
           { label: 'Total Revenue', value: formatCurrency(data.revenue), color: 'bg-[#0FD452]/10 text-[#0FD452]', icon: DollarSign },
           { label: 'Total Expenses', value: formatCurrency(data.expenses), color: 'bg-red-500/10 text-red-500', icon: TrendingDown },
           { label: 'Net Profit', value: formatCurrency(data.profit), color: 'bg-blue-500/10 text-blue-500', icon: TrendingUp },
-          { label: 'Profit Margin', value: `${data.profitMargin}%`, color: 'bg-purple-500/10 text-purple-500', icon: BarChart3 },
+          { label: 'Profit Margin', value: `${data.profitMargin ?? 0}%`, color: 'bg-purple-500/10 text-purple-500', icon: BarChart3 },
         ].map((stat, idx) => (
           <div key={idx} className="bg-white rounded-2xl p-5 border border-gray-200">
             <div className="flex items-center justify-between mb-3">
@@ -497,7 +494,7 @@ function FinancialReport({ data }) {
           <h3 className="text-lg font-bold text-[#000F14] mb-4">Revenue vs Expenses</h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.monthlyPL}>
+              <BarChart data={data.monthlyPL ?? []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} tickFormatter={(v) => `TZS ${(v / 1000).toFixed(0)}k`} />
@@ -520,7 +517,7 @@ function FinancialReport({ data }) {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={data.expenseBreakdown}
+                  data={data.expenseBreakdown ?? []}
                   dataKey="amount"
                   nameKey="category"
                   cx="50%"
@@ -529,7 +526,7 @@ function FinancialReport({ data }) {
                   innerRadius={50}
                   paddingAngle={3}
                 >
-                  {data.expenseBreakdown.map((_, idx) => (
+                  {(data.expenseBreakdown ?? []).map((_, idx) => (
                     <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
                   ))}
                 </Pie>
@@ -542,7 +539,7 @@ function FinancialReport({ data }) {
             </ResponsiveContainer>
           </div>
           <div className="mt-2 space-y-2">
-            {data.expenseBreakdown.length > 0 ? data.expenseBreakdown.map((exp, idx) => (
+            {(data.expenseBreakdown ?? []).length > 0 ? (data.expenseBreakdown ?? []).map((exp, idx) => (
               <div key={idx} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
@@ -596,7 +593,7 @@ function FinancialReport({ data }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {data.monthlyPL.length > 0 ? data.monthlyPL.map((row, idx) => {
+                {(data.monthlyPL ?? []).length > 0 ? (data.monthlyPL ?? []).map((row, idx) => {
                   const margin = ((row.profit / row.revenue) * 100).toFixed(1)
                   return (
                     <tr key={idx} className="transition-colors hover:bg-[#0FD452]/5">
@@ -627,10 +624,10 @@ function FinancialReport({ data }) {
 function CustomersReport({ data }) {
   if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><Users className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No customer data available</p></div>
   const stats = [
-    { label: 'Total Customers', value: data.totalCustomers.toLocaleString(), icon: Users, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
-    { label: 'New This Month', value: data.newCustomersThisMonth, icon: TrendingUp, color: 'bg-blue-500/10 text-blue-500' },
-    { label: 'Retention Rate', value: `${data.retentionRate}%`, icon: TrendingUp, color: 'bg-purple-500/10 text-purple-500' },
-    { label: 'Avg Orders/Customer', value: data.avgOrdersPerCustomer.toFixed(1), icon: ShoppingCart, color: 'bg-orange-500/10 text-orange-500' },
+    { label: 'Total Customers', value: (data.totalCustomers ?? 0).toLocaleString(), icon: Users, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
+    { label: 'New This Month', value: data.newCustomersThisMonth ?? 0, icon: TrendingUp, color: 'bg-blue-500/10 text-blue-500' },
+    { label: 'Retention Rate', value: `${data.retentionRate ?? 0}%`, icon: TrendingUp, color: 'bg-purple-500/10 text-purple-500' },
+    { label: 'Avg Orders/Customer', value: (data.avgOrdersPerCustomer ?? 0).toFixed(1), icon: ShoppingCart, color: 'bg-orange-500/10 text-orange-500' },
   ]
 
   return (
@@ -690,7 +687,7 @@ function CustomersReport({ data }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {data.topCustomers.length > 0 ? data.topCustomers.map((customer, idx) => (
+                {(data.topCustomers ?? []).length > 0 ? (data.topCustomers ?? []).map((customer, idx) => (
                   <tr key={idx} className="transition-colors hover:bg-[#0FD452]/5">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -710,7 +707,7 @@ function CustomersReport({ data }) {
                         <div className="h-2 w-full rounded-full bg-gray-100">
                           <div
                             className="h-2 rounded-full bg-[#0FD452]"
-                            style={{ width: `${(customer.totalSpent / (data.topCustomers[0]?.totalSpent || 1)) * 100}%` }}
+                            style={{ width: `${(customer.totalSpent / ((data.topCustomers ?? [])[0]?.totalSpent || 1)) * 100}%` }}
                           />
                         </div>
                       </div>

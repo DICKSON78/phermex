@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { toArray } from '../../utils/safeData'
 import { Loader2, Settings2, Search, Plus, Minus, X, RefreshCcw, Users, Award, Repeat, CheckCircle2 } from 'lucide-react'
 import { loyalty } from '../../services/api'
+import { formatMoney as sharedMoney } from '../../utils/currency'
 
 export default function LoyaltyPage() {
   const [settings, setSettings] = useState({ enabled: false, points_per_tsh: 0.001, redeem_tsh_per_point: 20, summary: {} })
@@ -141,7 +142,7 @@ export default function LoyaltyPage() {
           { label: 'Active Members', value: settings.summary?.active_members ?? 0, icon: Users, color: 'text-blue-600 bg-blue-100' },
           { label: 'Points Earned', value: (settings.summary?.total_earned ?? 0).toLocaleString(), icon: Award, color: 'text-green-600 bg-green-100' },
           { label: 'Points Redeemed', value: (settings.summary?.total_redeemed ?? 0).toLocaleString(), icon: Repeat, color: 'text-purple-600 bg-purple-100' },
-          { label: 'Value Redeemed', value: Number(settings.summary?.redeemed_value ?? 0).toLocaleString('en-TZ', { style: 'currency', currency: 'TZS' }), icon: CheckCircle2, color: 'text-amber-600 bg-amber-100' },
+          { label: 'Value Redeemed', value: sharedMoney(settings.summary?.redeemed_value ?? 0, { decimals: 0 }), icon: CheckCircle2, color: 'text-amber-600 bg-amber-100' },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100">
             <div className="flex items-center gap-3">
@@ -245,7 +246,7 @@ export default function LoyaltyPage() {
                   <td className="px-5 py-3.5 font-medium text-gray-900">{m.name || 'Unknown'}</td>
                   <td className="px-5 py-3.5 text-gray-600">{m.phone || '—'}</td>
                   <td className="px-5 py-3.5 text-center text-gray-600">{m.orders_count}</td>
-                  <td className="px-5 py-3.5 text-right text-gray-900 font-medium">{Number(m.total_value).toLocaleString('en-TZ', { style: 'currency', currency: 'TZS' })}</td>
+                  <td className="px-5 py-3.5 text-right text-gray-900 font-medium">{sharedMoney(Number(m.total_value), { decimals: 0 })}</td>
                   <td className="px-5 py-3.5 text-right font-bold text-[#0FD452]">{m.points}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center justify-center gap-2">

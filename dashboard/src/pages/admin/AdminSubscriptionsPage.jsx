@@ -22,6 +22,7 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const PLAN_STYLES = {
   Trial: 'badge badge-gray',
@@ -42,12 +43,7 @@ const PLANS = ['Trial', 'Basic', 'Starter', 'Pro', 'Professional', 'Enterprise']
 const STATUSES = ['active', 'expired', 'suspended']
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 0 })
 }
 
 export default function AdminSubscriptionsPage() {

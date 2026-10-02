@@ -32,6 +32,7 @@ import api from '../../services/api'
 import toast from 'react-hot-toast'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import Modal from '../../components/Modal'
+import { formatMoney } from '../../utils/currency'
 
 const ROLE_STYLES = {
   admin: 'bg-red-100 text-red-700',
@@ -421,7 +422,7 @@ export default function AdminUserShowPage() {
                     <span className="text-xs text-gray-500">Salary</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">
-                    {user.salary ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 0 }).format(user.salary) : '—'}
+                    {user.salary ? formatMoney(user.salary, { decimals: 0 }) : '—'}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">

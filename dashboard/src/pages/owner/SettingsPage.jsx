@@ -27,6 +27,7 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { currentBase } from '../../utils/roles'
+import { formatMoney } from '../../utils/currency'
 
 const WORKING_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -70,11 +71,7 @@ const PLAN_COLORS = {
 }
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 2,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 2 })
 }
 
 export default function SettingsPage() {

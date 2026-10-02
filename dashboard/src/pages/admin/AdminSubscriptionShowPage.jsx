@@ -25,6 +25,7 @@ import toast from 'react-hot-toast'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const PLAN_STYLES = {
   Trial: 'badge badge-gray',
@@ -42,12 +43,7 @@ const STATUS_STYLES = {
 }
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount || 0)
+  return formatMoney(amount || 0, { decimals: 0 })
 }
 
 function formatDate(dateStr) {

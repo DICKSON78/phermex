@@ -8,6 +8,7 @@ import {
 import { toArray } from '../../utils/safeData'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
+import { formatMoney as sharedMoney } from '../../utils/currency'
 
 const statusColors = {
   completed: 'bg-green-100 text-green-700',
@@ -104,7 +105,7 @@ export default function CustomerDetailPage() {
   }
 
   const formatMoney = (amount) => {
-    return new Intl.NumberFormat('en-TZ', { style: 'currency', currency: 'TZS', minimumFractionDigits: 0 }).format(Number(amount) || 0)
+    return sharedMoney(Number(amount) || 0, { decimals: 0 })
   }
 
   if (loading) {

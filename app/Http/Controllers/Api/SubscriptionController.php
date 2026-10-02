@@ -8,6 +8,7 @@ use App\Models\RevenueRecord;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Services\ClickPesaService;
+use App\Services\ExchangeRateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +16,15 @@ use Illuminate\Support\Str;
 
 class SubscriptionController extends Controller
 {
+    /**
+     * Live USD -> TZS rate, so the customer sees the shillings they will
+     * actually be charged at the rate of the day.
+     */
+    public function exchangeRate(ExchangeRateService $rates): JsonResponse
+    {
+        return response()->json($rates->quote());
+    }
+
     public function plans(): JsonResponse
     {
         $plans = SubscriptionPlan::where('is_active', true)
@@ -137,7 +147,9 @@ class SubscriptionController extends Controller
         }
 
         $plan = SubscriptionPlan::findOrFail($validated['plan_id']);
-        $rate = (float) config('services.subscriptions.tzs_per_usd', 2600);
+        // Price the plan with the USD->TZS rate of the day, not a fixed constant.
+        $exchangeRates = app(ExchangeRateService::class);
+        $rate = $exchangeRates->tzsPerUsd();
         $amountTzs = round((float) $plan->price * $rate);
 
         $startDate = now();
@@ -227,6 +239,8 @@ class SubscriptionController extends Controller
                 'amount_usd' => (float) $plan->price,
                 'amount_tzs' => $amountTzs,
                 'currency' => 'TZS',
+                'exchange_rate' => $rate,
+                'exchange_rate_date' => $exchangeRates->quote()['date'],
                 'phone' => $validated['phone'],
                 'start_date' => $startDate->toISOString(),
                 'end_date' => $endDate->toISOString(),

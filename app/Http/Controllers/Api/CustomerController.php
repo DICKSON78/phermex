@@ -42,17 +42,31 @@ class CustomerController extends Controller
         try {
             $validated = $request->validate([
                 'pharmacy_id' => 'required|exists:pharmacies,id',
-                'full_name' => 'required|string|max:255',
+                'full_name' => 'required_without:name|string|max:255',
+                'name' => 'sometimes|string|max:255',
                 'phone' => 'nullable|string|max:20',
                 'email' => 'nullable|email',
                 'date_of_birth' => 'nullable|date',
-                'gender' => 'nullable|in:male,female,other',
+                'dob' => 'sometimes|nullable|date',
+                'gender' => 'nullable|string|max:255',
                 'allergies' => 'nullable|string',
                 'medical_conditions' => 'nullable|string',
                 'location' => 'nullable|string|max:255',
                 'street' => 'nullable|string|max:255',
                 'is_guest' => 'sometimes|boolean',
             ]);
+
+            // Normalize SPA field aliases and values to the canonical schema.
+            if (empty($validated['full_name']) && !empty($validated['name'])) {
+                $validated['full_name'] = $validated['name'];
+            }
+            if (!isset($validated['date_of_birth']) && isset($validated['dob'])) {
+                $validated['date_of_birth'] = $validated['dob'];
+            }
+            if (isset($validated['gender'])) {
+                $validated['gender'] = strtolower(trim($validated['gender']));
+            }
+            unset($validated['name'], $validated['dob']);
 
             $customerCode = 'CUS-' . strtoupper(Str::random(6));
 
@@ -115,15 +129,29 @@ class CustomerController extends Controller
 
             $validated = $request->validate([
                 'full_name' => 'sometimes|string|max:255',
+                'name' => 'sometimes|string|max:255',
                 'phone' => 'sometimes|nullable|string|max:20',
                 'email' => 'sometimes|nullable|email',
                 'date_of_birth' => 'sometimes|nullable|date',
-                'gender' => 'sometimes|nullable|in:male,female,other',
+                'dob' => 'sometimes|nullable|date',
+                'gender' => 'sometimes|nullable|string|max:255',
                 'allergies' => 'sometimes|nullable|string',
                 'medical_conditions' => 'sometimes|nullable|string',
                 'location' => 'sometimes|nullable|string|max:255',
                 'street' => 'sometimes|nullable|string|max:255',
             ]);
+
+            // Normalize SPA field aliases and values to the canonical schema.
+            if (empty($validated['full_name']) && !empty($validated['name'])) {
+                $validated['full_name'] = $validated['name'];
+            }
+            if (isset($validated['dob']) && !isset($validated['date_of_birth'])) {
+                $validated['date_of_birth'] = $validated['dob'];
+            }
+            if (isset($validated['gender'])) {
+                $validated['gender'] = strtolower(trim($validated['gender']));
+            }
+            unset($validated['name'], $validated['dob']);
 
             $customer->update($validated);
 

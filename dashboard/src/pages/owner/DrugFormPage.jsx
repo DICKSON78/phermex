@@ -73,7 +73,7 @@ export default function DrugFormPage() {
     setFetching(true)
     try {
       const response = await api.get(`/drugs/${id}`)
-      const drug = response.data.data || response.data
+      const drug = response.data?.drug || response.data?.data || response.data || {}
       setForm({
         name: drug.name || '',
         generic_name: drug.generic_name || '',

@@ -38,6 +38,17 @@ export function LanguageProvider({ children }) {
     }
   }, [lang])
 
+  // Keep the dashboard in step when the language is changed on the website.
+  useEffect(() => {
+    function onStorage(event) {
+      if (event.key !== STORAGE_KEY) return
+      const next = event.newValue
+      if (next && dictionaries[next]) setLangState(next)
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   const setLang = useCallback((next) => {
     if (dictionaries[next]) setLangState(next)
   }, [])

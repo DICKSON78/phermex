@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const STATUS_TABS = [
   { id: 'all', label: 'All' },
@@ -22,7 +23,7 @@ const STATUS_COLORS = {
 
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount)
+  return formatMoney(amount, { decimals: 2 })
 }
 
 export default function JournalEntriesPage() {

@@ -9,6 +9,7 @@ import {
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { formatMoney as sharedMoney } from '../../utils/currency'
 
 function normalizeCustomer(c) {
   return {
@@ -74,7 +75,7 @@ export default function CustomerListPage() {
   }
 
   const formatMoney = (amount) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 0 }).format(amount || 0)
+    return sharedMoney(amount || 0, { decimals: 0 })
   }
 
   const statCards = [

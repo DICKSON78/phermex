@@ -75,7 +75,8 @@ export default function CategoryListPage() {
         )
       } else {
         const res = await api.post('/drug-categories', payload)
-        const newCat = toArray(res.data) || { ...payload, id: Date.now(), drug_count: 0 }
+        const created = res.data?.category || toArray(res.data)[0]
+        const newCat = created || { ...payload, id: Date.now(), drug_count: 0 }
         setCategories((prev) => [...prev, newCat])
       }
     } catch {

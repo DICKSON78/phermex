@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { formatMoney } from '../../utils/currency'
 
 const COUNTRIES = ['Zambia', 'Nigeria', 'Kenya', 'Tanzania', 'Uganda', 'Zimbabwe', 'Malawi']
 
@@ -43,12 +44,7 @@ const SUBSCRIPTION_STYLES = {
 }
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 0 })
 }
 
 export default function AdminPharmaciesPage() {

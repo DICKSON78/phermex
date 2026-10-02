@@ -10,9 +10,10 @@ import toast from 'react-hot-toast'
 import { payroll, employees } from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { formatMoney } from '../../utils/currency'
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount || 0)
+  return formatMoney(amount || 0, { decimals: 2 })
 }
 
 const STATUS_COLORS = { draft: 'bg-gray-100 text-gray-600 border-gray-200', pending: 'bg-yellow-100 text-yellow-700 border-yellow-200', approved: 'bg-blue-100 text-blue-700 border-blue-200', paid: 'bg-green-100 text-green-700 border-green-200', cancelled: 'bg-red-100 text-red-700 border-red-200' }

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { formatMoney } from '../../utils/currency'
 
 const STATUS_STYLES = {
   Paid: 'badge badge-green',
@@ -17,11 +18,7 @@ const STATUS_STYLES = {
 }
 
 function formatCurrency(amount) {
-  if (amount == null) return '\u2014'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'TZS',
-    minimumFractionDigits: 0, maximumFractionDigits: 0,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 0 })
 }
 
 function formatDate(dateStr) {

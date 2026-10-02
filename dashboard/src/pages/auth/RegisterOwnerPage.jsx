@@ -504,6 +504,14 @@ export default function RegisterOwnerPage() {
                   {errors.password_confirmation && <p className="text-red-500 text-xs mt-1">{errors.password_confirmation}</p>}
                 </div>
               </div>
+
+              {/* Step 1 had no visible navigation, so users could only advance
+                  by pressing Enter inside a field. */}
+              <div className="flex justify-end">
+                <button type="submit" className="w-full md:w-auto md:min-w-[220px] py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
+                  Continue →
+                </button>
+              </div>
             </div>
           )}
 

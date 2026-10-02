@@ -25,6 +25,7 @@ import {
   Barcode,
   Download,
 } from 'lucide-react'
+import { formatMoney } from '../../utils/currency'
 
 const CATEGORIES = ['All', 'Tablets', 'Capsules', 'Bottles', 'Inhalers', 'Creams', 'Packets']
 
@@ -38,11 +39,7 @@ const PAYMENT_METHODS = [
 const TAX_RATE = 0.18
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 2,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 2 })
 }
 
 function fmt(amount) {

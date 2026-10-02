@@ -7,11 +7,10 @@ import {
   Hash, Package, CheckCircle,
 } from 'lucide-react'
 import { employees } from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'TZS', minimumFractionDigits: 2,
-  }).format(amount || 0)
+  return formatMoney(amount || 0, { decimals: 2 })
 }
 
 const DEPARTMENTS = { pharmacy: 'Pharmacy', management: 'Management', finance: 'Finance', operations: 'Operations', hr: 'HR' }

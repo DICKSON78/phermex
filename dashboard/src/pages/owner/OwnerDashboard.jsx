@@ -28,6 +28,7 @@ import {
   Receipt,
 } from 'lucide-react'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const DEFAULT_DATA = {
   todaySales: 0,
@@ -52,8 +53,7 @@ function getGreeting(t) {
 }
 
 function formatCurrency(amount) {
-  if (amount == null) return 'TZS 0'
-  return 'TZS ' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+  return formatMoney(amount, { decimals: 0 })
 }
 
 const STATUS_MAP = {
@@ -278,10 +278,10 @@ function OwnerDashboard() {
         <div className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'New Sale', desc: 'Open POS', to: '/owner/pos', bg: 'bg-primary-light', color: 'text-primary', icon: <CartIcon /> },
-              { label: 'Add Drug', desc: 'New inventory item', to: '/owner/drugs/new', bg: 'bg-blue-100', color: 'text-blue-600', icon: <PlusIcon /> },
-              { label: 'Prescriptions', desc: 'Manage rx', to: '/owner/prescriptions', bg: 'bg-purple-100', color: 'text-purple-600', icon: <RxIcon /> },
-              { label: 'Reports', desc: 'View analytics', to: '/owner/reports', bg: 'bg-amber-100', color: 'text-amber-600', icon: <ChartIcon /> },
+              { label: 'New Sale', desc: 'Open POS', to: '/dashboard/pos', bg: 'bg-primary-light', color: 'text-primary', icon: <CartIcon /> },
+              { label: 'Add Drug', desc: 'New inventory item', to: '/dashboard/drugs/new', bg: 'bg-blue-100', color: 'text-blue-600', icon: <PlusIcon /> },
+              { label: 'Prescriptions', desc: 'Manage rx', to: '/dashboard/prescriptions', bg: 'bg-purple-100', color: 'text-purple-600', icon: <RxIcon /> },
+              { label: 'Reports', desc: 'View analytics', to: '/dashboard/reports', bg: 'bg-amber-100', color: 'text-amber-600', icon: <ChartIcon /> },
             ].map((action) => (
               <Link key={action.to} to={action.to} className="quick-action">
                 <div className="flex items-center gap-3">

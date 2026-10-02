@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const TAX_TYPES = [
   { id: 'VAT', label: 'VAT', rate: 18, color: 'blue' },
@@ -21,7 +22,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount || 0)
+  return formatMoney(amount || 0, { decimals: 2 })
 }
 
 export default function TaxManagementPage() {

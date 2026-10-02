@@ -9,6 +9,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { formatMoney as sharedMoney } from '../../utils/currency'
 
 
 const categoryColors = {
@@ -98,7 +99,7 @@ export default function ExpenseListPage() {
   }
 
   const formatMoney = (amount) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 0 }).format(amount / 1000)
+    return sharedMoney(amount / 1000, { decimals: 0 })
   }
 
   const statCards = [

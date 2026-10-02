@@ -8,12 +8,13 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(Math.abs(amount))
+  return formatMoney(amount, { decimals: 2, abs: true })
 }
 
 const TX_TYPES = { deposit: { label: 'Deposit', icon: ArrowDownRight, color: 'text-green-600' }, withdrawal: { label: 'Withdrawal', icon: ArrowUpRight, color: 'text-red-600' }, transfer: { label: 'Transfer', icon: ArrowLeftRight, color: 'text-blue-600' }, reconciliation: { label: 'Reconciliation', icon: RefreshCw, color: 'text-purple-600' } }

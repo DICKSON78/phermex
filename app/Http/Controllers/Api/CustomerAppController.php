@@ -250,6 +250,39 @@ class CustomerAppController extends Controller
         }
     }
 
+    /**
+     * Looks up a scanned barcode across every published pharmacy, so the
+     * customer sees the product details (and where it is in stock) straight
+     * after scanning instead of just getting a filtered list.
+     */
+    public function drugsByBarcode(Request $request, string $code): JsonResponse
+    {
+        $code = trim($code);
+        if ($code === '') {
+            return response()->json(['message' => 'Barcode is required.'], 422);
+        }
+
+        $drugs = Drug::where('barcode', $code)
+            ->where('is_published', true)
+            ->with(['category', 'pharmacy'])
+            ->orderByDesc('quantity')
+            ->limit(25)
+            ->get();
+
+        $inStock = $drugs->filter(fn (Drug $drug) => (int) $drug->quantity > 0)->values();
+
+        return response()->json([
+            'message' => $drugs->isEmpty()
+                ? 'No product matched that barcode.'
+                : 'Product found.',
+            'barcode' => $code,
+            'found' => $drugs->isNotEmpty(),
+            // In-stock listings first so the customer sees a place to buy it.
+            'data' => $inStock->isNotEmpty() ? $inStock : $drugs->values(),
+            'total' => $drugs->count(),
+        ]);
+    }
+
     public function pharmacyDrugs(Request $request, string $id): JsonResponse
     {
         try {

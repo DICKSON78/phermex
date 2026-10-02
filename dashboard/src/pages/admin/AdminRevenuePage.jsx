@@ -32,6 +32,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const STATUS_STYLES = {
   Paid: 'badge badge-green',
@@ -43,12 +44,7 @@ const STATUS_STYLES = {
 const STATUSES = ['Paid', 'Pending', 'Overdue', 'Void']
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 0 })
 }
 
 function StatCard({ label, value, icon, iconColor, bg, suffix }) {

@@ -5,6 +5,7 @@ import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import ProductsPage from './pages/ProductsPage'
+import PackagesPage from './pages/PackagesPage'
 import CareersPage from './pages/CareersPage'
 import JobDetailPage from './pages/JobDetailPage'
 import NewsroomPage from './pages/NewsroomPage'
@@ -33,6 +34,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/products" element={<ProductsPage />} />
+          <Route path="/packages" element={<PackagesPage />} />
           <Route path="/careers" element={<CareersPage />} />
           <Route path="/careers/:id" element={<JobDetailPage />} />
           <Route path="/newsroom" element={<NewsroomPage />} />

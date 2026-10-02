@@ -17,6 +17,7 @@ import {
   PackageOpen,
 } from 'lucide-react'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const DEFAULT_DATA = {
   todaySales: 0,
@@ -41,8 +42,7 @@ const STATUS_MAP = {
 }
 
 function formatCurrency(amount) {
-  if (amount == null) return 'TZS 0'
-  return 'TZS ' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+  return formatMoney(amount, { decimals: 0 })
 }
 
 function getGreeting() {
@@ -179,10 +179,10 @@ export default function SellerDashboard() {
         <div className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'New Sale', desc: 'Open POS', to: '/seller/pos', bg: 'bg-primary-light', color: 'text-primary', icon: <ShoppingCart className="w-5 h-5" /> },
-              { label: 'Add Drug', desc: 'New inventory item', to: '/seller/drugs/new', bg: 'bg-blue-100', color: 'text-blue-600', icon: <Pill className="w-5 h-5" /> },
-              { label: 'Prescriptions', desc: 'Manage rx', to: '/seller/prescriptions', bg: 'bg-purple-100', color: 'text-purple-600', icon: <FileText className="w-5 h-5" /> },
-              { label: 'Low Stock', desc: 'View alerts', to: '/seller/low-stock', bg: 'bg-amber-100', color: 'text-amber-600', icon: <AlertTriangle className="w-5 h-5" /> },
+              { label: 'New Sale', desc: 'Open POS', to: '/dashboard/pos', bg: 'bg-primary-light', color: 'text-primary', icon: <ShoppingCart className="w-5 h-5" /> },
+              { label: 'Add Drug', desc: 'New inventory item', to: '/dashboard/drugs/new', bg: 'bg-blue-100', color: 'text-blue-600', icon: <Pill className="w-5 h-5" /> },
+              { label: 'Prescriptions', desc: 'Manage rx', to: '/dashboard/prescriptions', bg: 'bg-purple-100', color: 'text-purple-600', icon: <FileText className="w-5 h-5" /> },
+              { label: 'Low Stock', desc: 'View alerts', to: '/dashboard/low-stock', bg: 'bg-amber-100', color: 'text-amber-600', icon: <AlertTriangle className="w-5 h-5" /> },
             ].map((action) => (
               <Link key={action.to} to={action.to} className="quick-action">
                 <div className="flex items-center gap-3">

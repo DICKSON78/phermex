@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6']
 
@@ -18,7 +19,7 @@ const REPORT_TABS = [
 
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(amount)
+  return formatMoney(amount, { decimals: 2 })
 }
 
 export default function FinancialReportsPage() {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { toArray } from '../../utils/safeData'
 import { Loader2, Plus, X, Search, FileText, Send, CheckCircle2, XCircle, BadgeCheck, Eye, ShieldCheck } from 'lucide-react'
 import { insurance } from '../../services/api'
+import { formatMoney as sharedMoney } from '../../utils/currency'
 
 const STATUS_COLORS = {
   draft: 'bg-gray-100 text-gray-600',
@@ -126,7 +127,7 @@ export default function InsuranceClaimsPage() {
     }
   }
 
-  const formatMoney = (v) => Number(v || 0).toLocaleString('en-TZ', { style: 'currency', currency: 'TZS', maximumFractionDigits: 0 })
+  const formatMoney = (v) => sharedMoney(v, { decimals: 0 })
 
   if (loading) {
     return <div className="flex items-center justify-center h-96"><Loader2 className="w-8 h-8 animate-spin text-[#0FD452]" /></div>

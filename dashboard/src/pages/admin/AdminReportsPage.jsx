@@ -26,6 +26,7 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const REPORT_LINKS = [
   { label: 'Revenue Report', desc: 'Detailed revenue breakdown', to: '/dashboard/revenue', bg: 'bg-primary-light', color: 'text-primary', icon: DollarSign },
@@ -35,12 +36,7 @@ const REPORT_LINKS = [
 ]
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 0 })
 }
 
 export default function AdminReportsPage() {

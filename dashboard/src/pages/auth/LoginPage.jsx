@@ -1,9 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useLanguage } from '../../contexts/LanguageContext'
-import LanguageSwitcher from '../../components/LanguageSwitcher'
-import { Pill, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { Pill, Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react'
 import api from '../../services/api'
 
 export default function LoginPage() {
@@ -15,6 +14,33 @@ export default function LoginPage() {
   const { login } = useAuth()
   const { t } = useLanguage()
   const navigate = useNavigate()
+  const [plans, setPlans] = useState([])
+
+  // Same public endpoint the marketing /packages page uses, so pricing can
+  // never drift between the two.
+  useEffect(() => {
+    let active = true
+    api.get('/subscriptions/plans')
+      .then((res) => {
+        if (!active) return
+        const list = res.data?.data || res.data || []
+        setPlans(Array.isArray(list) ? list : [])
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  const formatPrice = (plan) => {
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: plan.currency || 'USD',
+        maximumFractionDigits: 0,
+      }).format(Number(plan.price ?? 0))
+    } catch {
+      return `${plan.currency || 'USD'} ${Number(plan.price ?? 0).toLocaleString()}`
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -68,10 +94,6 @@ export default function LoginPage() {
           <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">{t('auth.login')}</p>
           <h1 className="text-4xl font-black text-gray-600 mb-3">{t('auth.loginTitle')}</h1>
           <p className="text-gray-500 text-lg">{t('auth.loginSubtitle')}</p>
-        </div>
-
-        <div className="flex justify-end mb-6">
-          <LanguageSwitcher compact />
         </div>
 
         {error && (
@@ -150,6 +172,39 @@ export default function LoginPage() {
           </svg>
           Continue with Google
         </button>
+
+        {plans.length > 0 && (
+          <div className="mt-10">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Sparkles className="w-4 h-4 text-[#0FD452]" />
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[3px]">
+                Packages
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {plans.map((plan) => (
+                <Link
+                  key={plan.id ?? plan.slug}
+                  to="/register/owner"
+                  className="rounded-2xl border border-gray-200 p-4 text-center transition-all duration-200 hover:border-[#0FD452] hover:shadow-md"
+                >
+                  <p className="text-[10px] font-black tracking-widest text-gray-500 truncate">
+                    {plan.name}
+                  </p>
+                  <p className="mt-1.5 text-lg font-black text-[#000F14]">
+                    {formatPrice(plan)}
+                  </p>
+                  <p className="text-[10px] text-gray-400">
+                    /{Number(plan.duration_months ?? 12) === 1 ? 'mo' : 'yr'}
+                  </p>
+                </Link>
+              ))}
+            </div>
+            <p className="mt-3 text-center text-xs text-gray-400">
+              Start your pharmacy on any package
+            </p>
+          </div>
+        )}
 
         <div className="mt-10 text-center">
           <p className="text-gray-500 text-sm">

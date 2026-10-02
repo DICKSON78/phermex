@@ -36,14 +36,10 @@ import {
   User,
 } from 'lucide-react'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return formatMoney(amount, { decimals: 0 })
 }
 
 const STATUS_MAP = {
@@ -179,10 +175,10 @@ export default function AdminDashboard() {
         <div className="p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'All Pharmacies', desc: 'Manage businesses', to: '/admin/pharmacies', bg: 'bg-primary-light', color: 'text-primary', icon: <Building2 className="w-5 h-5" /> },
-              { label: 'All Users', desc: 'Manage users', to: '/admin/users', bg: 'bg-blue-100', color: 'text-blue-600', icon: <Users className="w-5 h-5" /> },
-              { label: 'Audit Logs', desc: 'System logs', to: '/admin/audit-logs', bg: 'bg-purple-100', color: 'text-purple-600', icon: <FileText className="w-5 h-5" /> },
-              { label: 'Settings', desc: 'Platform config', to: '/admin/settings', bg: 'bg-amber-100', color: 'text-amber-600', icon: <Shield className="w-5 h-5" /> },
+              { label: 'All Pharmacies', desc: 'Manage businesses', to: '/dashboard/pharmacies', bg: 'bg-primary-light', color: 'text-primary', icon: <Building2 className="w-5 h-5" /> },
+              { label: 'All Users', desc: 'Manage users', to: '/dashboard/users', bg: 'bg-blue-100', color: 'text-blue-600', icon: <Users className="w-5 h-5" /> },
+              { label: 'Audit Logs', desc: 'System logs', to: '/dashboard/audit-logs', bg: 'bg-purple-100', color: 'text-purple-600', icon: <FileText className="w-5 h-5" /> },
+              { label: 'Settings', desc: 'Platform config', to: '/dashboard/settings', bg: 'bg-amber-100', color: 'text-amber-600', icon: <Shield className="w-5 h-5" /> },
             ].map((link) => (
               <Link key={link.to} to={link.to} className="quick-action">
                 <div className="flex items-center gap-3">

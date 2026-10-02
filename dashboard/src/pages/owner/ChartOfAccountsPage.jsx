@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
+import { formatMoney } from '../../utils/currency'
 
 const ACCOUNT_TYPES = [
   { id: 'asset', label: 'Assets', color: 'blue' },
@@ -24,7 +25,7 @@ const TYPE_COLORS = {
 
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS', minimumFractionDigits: 2 }).format(Math.abs(amount))
+  return formatMoney(amount, { decimals: 2, abs: true })
 }
 
 function AccountTreeItem({ account, depth = 0, onEdit, onDelete }) {

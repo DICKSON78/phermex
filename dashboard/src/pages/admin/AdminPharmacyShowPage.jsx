@@ -36,6 +36,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { formatMoney } from '../../utils/currency'
 
 function Th({ children }) {
   return (
@@ -46,12 +47,7 @@ function Th({ children }) {
 }
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TZS',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount || 0)
+  return formatMoney(amount || 0, { decimals: 0 })
 }
 
 function formatDate(dateStr) {

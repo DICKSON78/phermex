@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useCurrency, usdRate } from '../../utils/currency'
 
 const SECTIONS = [
   { id: 'general', label: 'General', icon: Globe, description: 'Platform name, branding, and contact info' },
@@ -44,6 +45,8 @@ function Field({ label, children }) {
 }
 
 export default function AdminPlatformSettingsPage() {
+  const { rates, rateDate, refresh: refreshRates } = useCurrency()
+  const liveRate = usdRate(rates)
   const [activeSection, setActiveSection] = useState('general')
   const [settings, setSettings] = useState({
     general: {
@@ -53,7 +56,7 @@ export default function AdminPlatformSettingsPage() {
       support_phone: '+255 625 460 081',
       default_currency: 'TZS',
       secondary_currency: 'USD',
-      exchange_rate: 2500,
+      exchange_rate: '',
       default_timezone: 'Africa/Dar_es_Salaam',
       maintenance_mode: false,
     },
@@ -214,8 +217,25 @@ export default function AdminPlatformSettingsPage() {
                   </select>
                 </Field>
                 <Field label="Exchange Rate (Primary → Secondary)">
-                  <input type="number" step="0.01" value={gen.exchange_rate || 2500} onChange={(e) => updateGeneral('exchange_rate', parseFloat(e.target.value))} className="form-input" />
-                  <p className="text-xs text-gray-400 mt-1">1 {gen.default_currency} = {gen.exchange_rate || 2500} {gen.secondary_currency || 'USD'}</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={gen.exchange_rate || ''}
+                      placeholder={liveRate ? String(Math.round(liveRate)) : 'Live rate'}
+                      onChange={(e) => updateGeneral('exchange_rate', e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      className="form-input"
+                    />
+                    <button type="button" onClick={refreshRates} className="px-3 py-2 text-xs font-bold rounded-lg border border-gray-200 hover:border-emerald-500 hover:text-emerald-600 whitespace-nowrap">
+                      Use today's rate
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {liveRate
+                      ? `Live market rate today: 1 USD = ${Math.round(liveRate).toLocaleString()} TZS${rateDate ? ` (rate of ${rateDate})` : ''}.`
+                      : 'Fetching the live market rate…'}
+                    {' '}Payments always use the live rate from the exchange API, not this value.
+                  </p>
                 </Field>
                 <Field label="Timezone">
                   <select value={gen.default_timezone} onChange={(e) => updateGeneral('default_timezone', e.target.value)} className="form-input">

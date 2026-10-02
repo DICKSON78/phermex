@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { Loader2, Building2, TrendingUp, TrendingDown, Percent, ShoppingBag, Users } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { reports } from '../../services/api'
+import { formatMoney as sharedMoney } from '../../utils/currency'
 
 function fmt(amount) {
-  return Number(amount || 0).toLocaleString('en-TZ', { style: 'currency', currency: 'TZS', maximumFractionDigits: 0 })
+  return sharedMoney(amount || 0, { decimals: 0 })
 }
 
 export default function ConsolidatedFinancialReportPage() {

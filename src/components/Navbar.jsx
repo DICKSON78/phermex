@@ -4,9 +4,20 @@ import { IconArrow, IconBars, IconClose, IconMail, IconPhone } from './icons'
 import LanguageSwitcher from './LanguageSwitcher'
 import { DASHBOARD_URL, NAV_LINKS, SITE } from '../config'
 
+function IconPill() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M8 21h8a2 2 0 0 0 2-2v-3H6v3a2 2 0 0 0 2 2z"/>
+      <path d="M3 14s2 0 2-2V5a2 2 0 0 1 4 0v7"/>
+      <path d="M9 14s2 0 2-2V5a2 2 0 0 1 4 0v7"/>
+      <path d="M15 14s2 0 2-2V5a2 2 0 0 1 4 0v7"/>
+    </svg>
+  )
+}
+
 function navClass(isActive) {
   return `relative text-xs font-semibold tracking-[1px] transition-colors duration-300 py-2 ${
-    isActive ? 'text-brand' : 'text-white/75 hover:text-white'
+    isActive ? 'text-[#0FD452]' : 'text-white/75 hover:text-white'
   }`
 }
 
@@ -44,7 +55,7 @@ export default function Navbar() {
                   <a
                     key={phone.number}
                     href={phone.href}
-                    className="flex items-center gap-1.5 text-white/60 hover:text-brand transition-colors"
+                    className="flex items-center gap-1.5 text-white/60 hover:text-[#0FD452] transition-colors"
                   >
                     <IconPhone className="w-3 h-3" />
                     <span className="text-white/40">{phone.label}</span>
@@ -53,7 +64,7 @@ export default function Navbar() {
                 ))}
                 <a
                   href={`mailto:${SITE.contact.email}`}
-                  className="flex items-center gap-1.5 text-white/60 hover:text-brand transition-colors"
+                  className="flex items-center gap-1.5 text-white/60 hover:text-[#0FD452] transition-colors"
                 >
                   <IconMail className="w-3 h-3" />
                   {SITE.contact.email}
@@ -67,11 +78,11 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-[72px]">
             <Link to="/" className="flex items-center gap-3 group">
-              <span className="h-10 w-10 rounded-xl bg-brand p-[3px] flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105">
-                <img src="/helix-logo.png" alt={SITE.name} className="h-full w-full rounded-[9px] object-cover" />
+              <span className="h-10 w-10 rounded-xl bg-[#0FD452] text-[#000F14] flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105">
+                <IconPill />
               </span>
               <span className="flex flex-col leading-none">
-                <span className="text-brand font-bold text-lg tracking-wide whitespace-nowrap">HELIX</span>
+                <span className="text-[#0FD452] font-bold text-lg tracking-wide whitespace-nowrap">HELIX</span>
                 <span className="hidden xl:block text-white/40 text-[9px] font-semibold tracking-[2px] uppercase mt-1 whitespace-nowrap">
                   {SITE.subline}
                 </span>
@@ -87,7 +98,7 @@ export default function Navbar() {
                         <>
                           {link.label}
                           {isActive && (
-                            <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-brand rounded-full" />
+                            <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-[#0FD452] rounded-full" />
                           )}
                         </>
                       )}
@@ -103,7 +114,7 @@ export default function Navbar() {
               </a>
               <a
                 href={DASHBOARD_URL + '/register'}
-                className="bg-brand hover:bg-brand-dark text-[#000F14] px-6 py-2.5 text-xs font-bold tracking-wider transition-all duration-300 inline-flex items-center gap-2"
+                className="bg-[#0FD452] hover:bg-emerald-500 text-[#000F14] px-6 py-2.5 text-xs font-bold tracking-wider transition-all duration-300 inline-flex items-center gap-2"
               >
                 APPLY NOW
                 <IconArrow className="w-3 h-3" />
@@ -134,7 +145,7 @@ export default function Navbar() {
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
                       `block py-3 text-sm font-semibold tracking-wider border-b border-white/5 transition-colors ${
-                        isActive ? 'text-brand' : 'text-white/75'
+                        isActive ? 'text-[#0FD452]' : 'text-white/75'
                       }`
                     }
                   >
@@ -153,7 +164,7 @@ export default function Navbar() {
             <a
               href={DASHBOARD_URL + '/register'}
               onClick={() => setOpen(false)}
-              className="bg-brand text-[#000F14] px-6 py-3 text-xs font-bold tracking-wider inline-block text-center w-full mt-2"
+              className="bg-[#0FD452] text-[#000F14] px-6 py-3 text-xs font-bold tracking-wider inline-block text-center w-full mt-2"
             >
               APPLY NOW
             </a>
@@ -165,7 +176,7 @@ export default function Navbar() {
                   href={phone.href}
                   className="flex items-center gap-2 text-xs text-white/60"
                 >
-                  <IconPhone className="w-3.5 h-3.5 text-brand" />
+                  <IconPhone className="w-3.5 h-3.5 text-[#0FD452]" />
                   <span className="text-white/40">{phone.label}</span>
                   <span className="font-semibold text-white/80">{phone.number}</span>
                 </a>
@@ -174,7 +185,7 @@ export default function Navbar() {
                 href={`mailto:${SITE.contact.email}`}
                 className="flex items-center gap-2 text-xs text-white/60"
               >
-                <IconMail className="w-3.5 h-3.5 text-brand" />
+                <IconMail className="w-3.5 h-3.5 text-[#0FD452]" />
                 {SITE.contact.email}
               </a>
             </div>
@@ -185,7 +196,7 @@ export default function Navbar() {
       <button
         aria-label="Back to top"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed bottom-8 right-8 z-40 w-12 h-12 rounded-full bg-brand text-[#000F14] shadow-lg hover:bg-brand-light transition-all duration-300 flex items-center justify-center ${
+        className={`fixed bottom-8 right-8 z-40 w-12 h-12 rounded-full bg-[#0FD452] text-[#000F14] shadow-lg hover:bg-emerald-500 transition-all duration-300 flex items-center justify-center ${
           scrolled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
       >

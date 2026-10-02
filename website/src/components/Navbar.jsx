@@ -37,9 +37,18 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-[72px]">
-            <Link to="/" className="flex items-center gap-2">
-              <img src="/helix-logo.png" alt="Helix" className="h-10 w-10 rounded-full object-cover" />
-              <span className="text-[#0FD452] font-bold text-lg tracking-wide">HELIX</span>
+            <Link to="/" className="flex items-center gap-3 group">
+              <span className="h-10 w-10 rounded-xl bg-[#0FD452] text-[#000F14] flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                  <path d="M8 21h8a2 2 0 0 0 2-2v-3H6v3a2 2 0 0 0 2 2z"/>
+                  <path d="M3 14s2 0 2-2V5a2 2 0 0 1 4 0v7"/>
+                  <path d="M9 14s2 0 2-2V5a2 2 0 0 1 4 0v7"/>
+                  <path d="M15 14s2 0 2-2V5a2 2 0 0 1 4 0v7"/>
+                </svg>
+              </span>
+              <span className="flex flex-col leading-none">
+                <span className="text-[#0FD452] font-bold text-lg tracking-wide">HELIX</span>
+              </span>
             </Link>
 
             <div className="hidden lg:flex items-center gap-8">

@@ -17,6 +17,7 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
   List<ChatConversation> _conversations = [];
   bool _loading = true;
+  bool _loadedOnce = false;
   String? _error;
 
   @override
@@ -26,13 +27,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() => _loading = !_loadedOnce);
     try {
       final list = await CustomerRepository.conversations();
       if (!mounted) return;
       setState(() {
         _conversations = list;
         _error = null;
+        _loadedOnce = true;
       });
     } catch (e) {
       if (mounted) setState(() => _error = ApiService.friendlyError(e));

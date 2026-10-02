@@ -52,6 +52,12 @@ const Map<String, String> authEnStrings = {
   'auth.backToSignIn': 'Back to Sign In',
   'auth.scanBarcode': 'Scan Barcode',
   'auth.pointCameraAtBarcode': 'Point the camera at the medicine barcode',
+  'auth.barcodeResult': 'Barcode Result',
+  'auth.barcodeSearching': 'Looking up this barcode…',
+  'auth.barcodeNotFound': 'No product matched this barcode',
+  'auth.barcodeNotFoundHint': 'Check the code and try scanning again, or search by name.',
+  'auth.barcodeAvailableAt': 'Available at',
+  'auth.barcodeOutOfStock': 'Out of stock',
 };
 
 const Map<String, String> authSwStrings = {
@@ -110,4 +116,10 @@ const Map<String, String> authSwStrings = {
   'auth.backToSignIn': 'Rudi Kwenye Kuingia',
   'auth.scanBarcode': 'Soma Barcode',
   'auth.pointCameraAtBarcode': 'Elekeza kamera kwenye barcode ya dawa',
+  'auth.barcodeResult': 'Matokeo ya Barcode',
+  'auth.barcodeSearching': 'Inatafuta barcode hii…',
+  'auth.barcodeNotFound': 'Hakuna bidhaa iliyo na barcode hii',
+  'auth.barcodeNotFoundHint': 'Angalia msimbo na uangalie tena, au tafuta kwa jina.',
+  'auth.barcodeAvailableAt': 'Inapatikana',
+  'auth.barcodeOutOfStock': 'Haipatikani',
 };

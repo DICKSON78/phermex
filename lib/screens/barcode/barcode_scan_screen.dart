@@ -31,25 +31,26 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(L.t('auth.scanBarcode')),
+        title: Text(
+          L.t('auth.scanBarcode'),
+          // The theme title style is ink on white, so override for this dark
+          // screen to keep the caption readable.
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            fontFamily: 'Poppins',
+          ),
+        ),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
       ),
       body: Stack(
         children: [
+          // The whole camera frame is the scanning area: no cut-out box, so
+          // the barcode does not have to be lined up with a drawn outline.
           MobileScanner(
             onDetect: _onDetect,
-          ),
-          Center(
-            child: Container(
-              width: 240,
-              height: 160,
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
           ),
           Positioned(
             left: 0,

@@ -3,6 +3,7 @@ import '../l10n/app_localizations.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/customer_repository.dart';
+import '../utils/helpers.dart';
 import '../screens/orders/delivery_tracking_screen.dart';
 import '../screens/orders/orders_list_screen.dart';
 import '../screens/profile/address_book_screen.dart';
@@ -40,7 +41,10 @@ class AppDrawer extends StatelessWidget {
                   child: Text(
                     name.isNotEmpty ? name[0] : '?',
                     style: const TextStyle(
-                        color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -53,9 +57,10 @@ class AppDrawer extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w800),
+                          color: Colors.white,
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       if (email.isNotEmpty) ...[
                         const SizedBox(height: 2),
@@ -64,7 +69,9 @@ class AppDrawer extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              color: Colors.white.withAlpha(140), fontSize: 11.5),
+                            color: Colors.white.withAlpha(140),
+                            fontSize: 11.5,
+                          ),
                         ),
                       ],
                     ],
@@ -121,17 +128,25 @@ class AppDrawer extends StatelessWidget {
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                       child: Row(
                         children: [
-                          const Icon(Icons.logout_rounded, size: 18, color: Color(0xFFC0392B)),
+                          const Icon(
+                            Icons.logout_rounded,
+                            size: 18,
+                            color: Color(0xFFC0392B),
+                          ),
                           const SizedBox(width: 12),
                           Text(
                             L.t('logOut'),
                             style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFFC0392B)),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFC0392B),
+                            ),
                           ),
                         ],
                       ),
@@ -164,8 +179,7 @@ class AppDrawer extends StatelessWidget {
     try {
       final orders = await CustomerRepository.myOrders();
       for (final o in orders) {
-        final s = (o.orderStatus ?? '').toLowerCase();
-        if (s == 'processing' || s == 'shipped' || s == 'in_transit') {
+        if (AppHelpers.isOrderInTransit(o.orderStatus)) {
           active = o;
           break;
         }
@@ -178,7 +192,12 @@ class AppDrawer extends StatelessWidget {
     if (error != null && rootContext.mounted) {
       final L = AppLocalizations.of(rootContext);
       ScaffoldMessenger.of(rootContext).showSnackBar(
-        SnackBar(content: Text(L.t('couldNotLoadOrder'), style: const TextStyle(fontFamily: 'Poppins'))),
+        SnackBar(
+          content: Text(
+            L.t('couldNotLoadOrder'),
+            style: const TextStyle(fontFamily: 'Poppins'),
+          ),
+        ),
       );
     }
     final target = active != null
@@ -192,17 +211,31 @@ class AppDrawer extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(L.t('logOut'), style: const TextStyle(fontFamily: 'Poppins')),
-        content: Text(L.t('logoutConfirm'),
-            style: const TextStyle(fontFamily: 'Poppins')),
+        title: Text(
+          L.t('logOut'),
+          style: const TextStyle(fontFamily: 'Poppins'),
+        ),
+        content: Text(
+          L.t('logoutConfirm'),
+          style: const TextStyle(fontFamily: 'Poppins'),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(L.t('cancel'), style: const TextStyle(fontFamily: 'Poppins'))),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              L.t('cancel'),
+              style: const TextStyle(fontFamily: 'Poppins'),
+            ),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(L.t('logOut'),
-                style: const TextStyle(color: Color(0xFFDC2626), fontFamily: 'Poppins')),
+            child: Text(
+              L.t('logOut'),
+              style: const TextStyle(
+                color: Color(0xFFDC2626),
+                fontFamily: 'Poppins',
+              ),
+            ),
           ),
         ],
       ),
@@ -225,7 +258,11 @@ class _DrawerTile extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _DrawerTile({required this.icon, required this.label, required this.onTap});
+  const _DrawerTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -242,10 +279,17 @@ class _DrawerTile extends StatelessWidget {
               child: Text(
                 label,
                 style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.ink,
+                ),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.muted),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: AppColors.muted,
+            ),
           ],
         ),
       ),

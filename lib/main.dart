@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'services/api_service.dart';
+import 'services/consult_session.dart';
 import 'services/app_preferences.dart';
 import 'services/offline_service.dart';
 import 'services/push_service.dart';
@@ -11,6 +13,9 @@ import 'state/cart_state.dart';
 import 'theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home_shell.dart';
+import 'screens/notifications/notifications_screen.dart';
+import 'screens/orders/orders_list_screen.dart';
+import 'screens/telemedicine/video_consult_view.dart';
 import 'screens/profile/settings_screen.dart' as profile;
 
 Future<void> main() async {
@@ -18,6 +23,18 @@ Future<void> main() async {
   // Every screen keeps the My Prescriptions green status bar with white
   // content, including routes pushed without an AppBar of their own.
   SystemChrome.setSystemUIOverlayStyle(AppUi.statusBar);
+  // The app is portrait-only: the layouts are built for a tall phone and a
+  // landscape reflow leaves fixed-height sections clipped. Updown is allowed so
+  // the app stays usable if the phone is mounted upside down.
+  await SystemChrome.setPreferredOrientations(const [
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  // Real system notifications (orders, incoming consult calls) and the
+  // scheduled-consult reminders, plus the background FCM handler.
+  await PushService.initLocalNotifications();
+  FirebaseMessaging.onBackgroundMessage(
+      firebaseMessagingBackgroundHandler);
   OfflineService.init();
   final appPreferences = AppPreferences();
   await appPreferences.init();
@@ -69,6 +86,9 @@ class HelixApp extends StatelessWidget {
         '/login': (_) => const LoginScreen(),
         '/home': (_) => const HomeShell(),
         '/settings': (_) => const profile.SettingsScreen(),
+        '/notifications': (_) => const NotificationsScreen(),
+        '/orders': (_) => const OrdersListScreen(),
+        '/consult': (args) => ConsultRoute(args: args),
       },
     );
   }
@@ -95,6 +115,10 @@ class _SessionGateState extends State<SessionGate> {
     if (ApiService.isLoggedIn) {
       // Best-effort FCM token registration; never blocks or crashes.
       await PushService.initPushNotifications();
+    } else {
+      // Notifications must be configured before the user signs in, otherwise
+      // the first incoming call would be dropped.
+      await PushService.initPushNotifications();
     }
     if (mounted) setState(() => _ready = true);
   }
@@ -110,5 +134,29 @@ class _SessionGateState extends State<SessionGate> {
       );
     }
     return ApiService.isLoggedIn ? const HomeShell() : const LoginScreen();
+  }
+}
+
+/// Builds the consult screen from a notification tap payload.
+///
+/// A call push carries the room details directly, so the patient lands straight
+/// in the call view without having to find the appointment themselves.
+class ConsultRoute extends StatelessWidget {
+  final Object? args;
+  const ConsultRoute({super.key, this.args});
+
+  @override
+  Widget build(BuildContext context) {
+    final data =
+        args is Map ? Map<String, dynamic>.from(args as Map) : <String, dynamic>{};
+    final session = ConsultSession.from(data);
+    final name = '${data['pharmacy_name'] ?? data['pharmacyName'] ?? ''}';
+    return VideoConsultView(
+      roomUrl: session.roomUrl,
+      jitsiServer: session.jitsiServer,
+      roomCode: session.roomCode,
+      pharmacyName: name,
+      isLive: session.isLive,
+    );
   }
 }

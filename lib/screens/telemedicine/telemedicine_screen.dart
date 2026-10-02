@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
+import '../../services/consult_session.dart';
 import '../../services/customer_repository.dart';
+import '../../services/push_service.dart';
 import '../../theme.dart';
 import 'book_consult_screen.dart';
 import 'video_consult_view.dart';
@@ -23,6 +25,7 @@ class TelemedicineScreen extends StatefulWidget {
 
 class _TelemedicineScreenState extends State<TelemedicineScreen> {
   bool _loading = true;
+  bool _loadedOnce = false;
   String? _error;
   List<Map<String, dynamic>> _records = [];
 
@@ -44,7 +47,7 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
 
   Future<void> _load() async {
     setState(() {
-      _loading = true;
+      _loading = !_loadedOnce;
       _error = null;
     });
     try {
@@ -66,8 +69,12 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
         _active = live.isNotEmpty ? Map<String, dynamic>.from(live.first) : null;
         _upcoming = upcoming;
         _history = history;
+        _loadedOnce = true;
         _loading = false;
       });
+      // Keep the system alerts in step with what is actually on the server:
+      // newly booked appointments get a reminder, cancelled ones stop alerting.
+      _syncScheduledCallAlerts(upcoming);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -85,15 +92,53 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
     return widget.pharmacyName ?? AppLocalizations.tr('oh.pharmacy');
   }
 
+  /// Mirrors the upcoming consultations into the OS notification schedule so
+  /// the patient gets an alert even with the app closed.
+  void _syncScheduledCallAlerts(List<Map<String, dynamic>> upcoming) {
+    final reminders = <({DateTime at, String title, String body, Map<String, dynamic> payload})>[];
+    for (final r in upcoming) {
+      final at = ConsultSession.scheduledAt(r);
+      if (at == null || !at.isAfter(DateTime.now())) continue;
+      final session = ConsultSession.from(r);
+      final name = _pharmacyName(r);
+      reminders.add((
+        at: at,
+        title: AppLocalizations.tr('misc.consultReminderTitle'),
+        body: '${AppLocalizations.tr('oh.videoConsult')} • $name',
+        payload: {
+          'type': 'consult_call',
+          'room_code': session.roomCode,
+          'room_url': session.roomUrl,
+          'jitsi_server': session.jitsiServer,
+          'pharmacy_name': name,
+          'is_live': 'false',
+          'id': '${r['id'] ?? at.millisecondsSinceEpoch}',
+        },
+      ));
+    }
+    PushService.syncConsultReminders(reminders);
+  }
+
   void _openConsult(Map<String, dynamic> session) {
+    final resolved = ConsultSession.from(session);
+    final name = _pharmacyName(session);
+    if (!resolved.isJoinable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.tr('misc.noRoomForCall')),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => VideoConsultView(
-          roomUrl: (session['room_url'] ?? '').toString(),
-          jitsiServer: (session['jitsi_server'] ?? 'https://meet.jit.si').toString(),
-          roomCode: (session['room_code'] ?? '').toString(),
-          pharmacyName: _pharmacyName(session),
-          isLive: (session['status'] ?? '').toString() == 'live',
+          roomUrl: resolved.roomUrl,
+          jitsiServer: resolved.jitsiServer,
+          roomCode: resolved.roomCode,
+          pharmacyName: name,
+          isLive: resolved.isLive,
         ),
       ),
     );

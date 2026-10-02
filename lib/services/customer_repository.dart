@@ -136,6 +136,23 @@ class CustomerRepository {
     }
   }
 
+  /// Looks up a scanned barcode across every published pharmacy and returns the
+  /// product listings (with pharmacy details) so the customer sees what the
+  /// barcode actually is.
+  static Future<List<Drug>> drugsByBarcode(String barcode) async {
+    final res = await ApiService.get('/drugs/barcode/${Uri.encodeComponent(barcode)}');
+    final data = _data(res);
+    List<dynamic> rawList = [];
+    if (data is Map && data['data'] is List) {
+      rawList = data['data'] as List;
+    } else if (data is List) {
+      rawList = data;
+    }
+    return rawList
+        .map((d) => Drug.fromJson(d is Map<String, dynamic> ? d : {}))
+        .toList();
+  }
+
   static Future<List<DrugCategory>> pharmacyCategories(int pharmacyId) async {
     final res = await ApiService.get('/pharmacies/$pharmacyId/categories');
     final data = _data(res);

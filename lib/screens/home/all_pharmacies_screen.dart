@@ -1,10 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../models/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
+import '../../services/pharmacy_cache.dart';
 import '../../theme.dart';
+import '../../utils/helpers.dart';
 import '../../widgets/ad_story_bar.dart';
 import '../pharmacy/pharmacy_detail_screen.dart';
 import 'ad_reel_screen.dart';
@@ -30,6 +33,7 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
   final _searchController = TextEditingController();
   List<Pharmacy> _pharmacies = [];
   bool _loading = true;
+  bool _loadedOnce = false;
   String? _error;
   String? _search;
   int _filter = 0;
@@ -52,8 +56,20 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
+  Future<void> _load({bool silent = false}) async {
+    final cacheKey = PharmacyCache.keyFor(scope: 'all', search: _search);
+    // Paint the cached list immediately so re-entering this screen never spins.
+    final cached = PharmacyCache.has(cacheKey) ? PharmacyCache.cached : null;
+    if (cached != null) {
+      setState(() {
+        _pharmacies = cached;
+        _loadedOnce = true;
+        _loading = false;
+      });
+      _refreshInBackground(cacheKey);
+      return;
+    }
+    setState(() => _loading = silent ? false : !_loadedOnce);
     try {
       var lat = -6.7924;
       var lng = 39.2083;
@@ -79,9 +95,11 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
         search: _search,
       );
       if (!mounted) return;
+      PharmacyCache.store(cacheKey, list);
       setState(() {
         _pharmacies = list;
         _error = null;
+        _loadedOnce = true;
       });
     } catch (e) {
       if (mounted) setState(() => _error = ApiService.friendlyError(e));
@@ -90,9 +108,30 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
     }
   }
 
+  /// Re-fetches without ever showing the spinner, so pull-to-refresh and
+  /// periodic updates stay invisible when data is already on screen.
+  Future<void> _refreshInBackground(String cacheKey) async {
+    try {
+      final list = await CustomerRepository.nearby(
+        latitude: -6.7924,
+        longitude: 39.2083,
+        radiusKm: 100,
+        search: _search,
+      );
+      if (!mounted) return;
+      PharmacyCache.store(cacheKey, list);
+      setState(() => _pharmacies = list);
+    } catch (_) {
+      // Keep showing the cached list when the refresh fails.
+    }
+  }
+
   void _openReel(int index) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AdReelScreen(), fullscreenDialog: true),
+      MaterialPageRoute(
+        builder: (_) => const AdReelScreen(),
+        fullscreenDialog: true,
+      ),
     );
   }
 
@@ -103,7 +142,7 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
       _search = i == 0 ? null : label;
       if (i == 0) _searchController.clear();
     });
-    _load();
+    _load(silent: true);
   }
 
   @override
@@ -142,18 +181,24 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
                           _search = v.isEmpty ? null : v;
                           _filter = 0;
                         });
-                        _load();
+                        _load(silent: true);
                       },
                       decoration: InputDecoration(
                         hintText: L.t('shop.searchPharmaciesOrMedicines'),
-                        hintStyle: TextStyle(color: AppColors.muted, fontSize: 13),
+                        hintStyle: TextStyle(
+                          color: AppColors.muted,
+                          fontSize: 13,
+                        ),
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
                       ),
-                      style: const TextStyle(fontSize: 13, fontFamily: 'Poppins'),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontFamily: 'Poppins',
+                      ),
                       textInputAction: TextInputAction.search,
                     ),
                   ),
@@ -163,7 +208,11 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
                         _searchController.clear();
                         _selectFilter(0);
                       },
-                      child: const Icon(Icons.close_rounded, size: 16, color: AppColors.muted),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 16,
+                        color: AppColors.muted,
+                      ),
                     ),
                 ],
               ),
@@ -197,7 +246,9 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(99),
-                        side: BorderSide(color: active ? AppColors.brand600 : AppColors.line),
+                        side: BorderSide(
+                          color: active ? AppColors.brand600 : AppColors.line,
+                        ),
                       ),
                     ),
                   );
@@ -207,38 +258,63 @@ class _AllPharmaciesScreenState extends State<AllPharmaciesScreen> {
           ),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.brand600))
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.brand600),
+                  )
                 : _error != null && _pharmacies.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(_error!,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
-                              const SizedBox(height: 12),
-                              OutlinedButton(onPressed: _load, child: Text(L.t('shop.retry'))),
-                            ],
-                          ),
-                        ),
-                      )
-                    : _pharmacies.isEmpty
-                        ? const _EmptyListState()
-                        : RefreshIndicator(
-                            onRefresh: _load,
-                            color: AppColors.brand600,
-                            child: ListView.separated(
-                              padding: const EdgeInsets.all(24),
-                              itemCount: _pharmacies.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 12),
-                              itemBuilder: (context, i) =>
-                                  _PharmacyRowCard(pharmacy: _pharmacies[i]),
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFFDC2626),
                             ),
                           ),
+                          const SizedBox(height: 12),
+                          OutlinedButton(
+                            onPressed: _load,
+                            child: Text(L.t('shop.retry')),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : _pharmacies.isEmpty
+                ? const _EmptyListState()
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    color: AppColors.brand600,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(24),
+                      itemCount: _pharmacies.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, i) =>
+                          _PharmacyRowCard(pharmacy: _pharmacies[i]),
+                    ),
+                  ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PharmacyGlyph extends StatelessWidget {
+  const _PharmacyGlyph();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Icon(
+        Icons.local_pharmacy_rounded,
+        color: AppColors.brand600,
+        size: 20,
       ),
     );
   }
@@ -259,7 +335,9 @@ class _PharmacyRowCard extends StatelessWidget {
 
     return InkWell(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PharmacyDetailScreen(pharmacy: pharmacy)),
+        MaterialPageRoute(
+          builder: (_) => PharmacyDetailScreen(pharmacy: pharmacy),
+        ),
       ),
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -271,50 +349,93 @@ class _PharmacyRowCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.mint50,
-                border: Border.all(color: AppColors.line),
-                borderRadius: BorderRadius.circular(14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.mint50,
+                  border: Border.all(color: AppColors.line),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                // Show the uploaded logo when present, else the pharmacy glyph.
+                child:
+                    (AppHelpers.imageUrl(pharmacy.logo) ??
+                            AppHelpers.imageUrl(pharmacy.coverImage)) !=
+                        null
+                    ? CachedNetworkImage(
+                        imageUrl:
+                            AppHelpers.imageUrl(pharmacy.logo) ??
+                            AppHelpers.imageUrl(pharmacy.coverImage)!,
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) => const SizedBox.shrink(),
+                        errorWidget: (_, _, _) => const _PharmacyGlyph(),
+                      )
+                    : const _PharmacyGlyph(),
               ),
-              child: const Icon(Icons.local_pharmacy_rounded, color: AppColors.brand600, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(pharmacy.name ?? L.t('shop.pharmacy'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                  Text(
+                    pharmacy.name ?? L.t('shop.pharmacy'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
                   Text(
                     pharmacy.locationLabel.isEmpty
-                        ? (pharmacy.address?.isNotEmpty == true ? pharmacy.address! : L.t('shop.pharmacy'))
+                        ? (pharmacy.address?.isNotEmpty == true
+                              ? pharmacy.address!
+                              : L.t('shop.pharmacy'))
                         : pharmacy.locationLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11, color: AppColors.muted),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.muted,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(Icons.place, size: 11, color: AppColors.ink),
                       const SizedBox(width: 3),
-                      Text(distance.isEmpty ? L.t('shop.nearby') : distance,
-                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                      Text(
+                        distance.isEmpty ? L.t('shop.nearby') : distance,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.ink,
+                        ),
+                      ),
                       if (hasHours) ...[
                         const SizedBox(width: 10),
-                        Icon(Icons.access_time_filled_rounded,
-                            size: 11, color: hasHours ? AppColors.brand600 : AppColors.muted),
+                        Icon(
+                          Icons.access_time_filled_rounded,
+                          size: 11,
+                          color: hasHours
+                              ? AppColors.brand600
+                              : AppColors.muted,
+                        ),
                         const SizedBox(width: 3),
-                        Text(hoursLabel,
-                            style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
-                                color: hasHours ? AppColors.brand600 : AppColors.muted)),
+                        Text(
+                          hoursLabel,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: hasHours
+                                ? AppColors.brand600
+                                : AppColors.muted,
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -339,10 +460,16 @@ class _EmptyListState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.local_pharmacy_outlined, size: 48, color: AppColors.line),
+          const Icon(
+            Icons.local_pharmacy_outlined,
+            size: 48,
+            color: AppColors.line,
+          ),
           const SizedBox(height: 12),
-          Text(L.t('shop.noPharmaciesFound'),
-              style: const TextStyle(fontSize: 14, color: AppColors.muted)),
+          Text(
+            L.t('shop.noPharmaciesFound'),
+            style: const TextStyle(fontSize: 14, color: AppColors.muted),
+          ),
         ],
       ),
     );

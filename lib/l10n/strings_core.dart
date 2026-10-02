@@ -30,6 +30,9 @@ const Map<String, String> coreEnStrings = {
   'howWeUseData': 'How we use your data',
   'termsOfService': 'Terms of Service',
   'appUsageTerms': 'App usage terms',
+  'privacyIntro':
+      'How Helix collects, uses, and protects your personal information.',
+  'termsIntro': 'The rules that apply when you order medicines through Helix.',
   'signOutOfAccount': 'Sign out of your account',
   'logoutConfirm': 'Are you sure you want to log out?',
   'cancel': 'Cancel',
@@ -74,6 +77,9 @@ const Map<String, String> coreSwStrings = {
   'howWeUseData': 'Jinsi tunavyotumia data yako',
   'termsOfService': 'Masharti ya Huduma',
   'appUsageTerms': 'Masharti ya matumizi ya programu',
+  'privacyIntro':
+      'Jinsi Helix inavyokusanya, inavyotumia, na inavyolinda taarifa zako za faragha.',
+  'termsIntro': 'Kanuni zinazotumika unapotagua dawa kupitia Helix.',
   'signOutOfAccount': 'Toka kwenye akaunti yako',
   'logoutConfirm': 'Una uhakika unataka kutoka kwenye akaunti?',
   'cancel': 'Ghairi',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
+import '../../services/push_service.dart';
 import '../../services/customer_repository.dart';
 import '../../theme.dart';
 import '../home_shell.dart';
@@ -380,6 +381,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       await CustomerRepository.login(_loginCtrl.text.trim(), _passwordCtrl.text);
+      // Register this device with the push backend as soon as a session
+      // exists, otherwise the first order/call update after a fresh login is
+      // never delivered.
+      PushService.initPushNotifications();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeShell()),

@@ -13,6 +13,7 @@ class InsuranceScreen extends StatefulWidget {
 
 class _InsuranceScreenState extends State<InsuranceScreen> {
   bool _loading = true;
+  bool _loadedOnce = false;
   String? _error;
   List<Map<String, dynamic>> _records = [];
 
@@ -23,10 +24,10 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() { _loading = !_loadedOnce; _error = null; });
     try {
       final records = await CustomerRepository.myInsurance();
-      setState(() { _records = records; _loading = false; });
+      setState(() { _records = records; _loading = false; _loadedOnce = true; });
     } catch (e) {
       setState(() { _error = ApiService.friendlyError(e); _loading = false; });
     }

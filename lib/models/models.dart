@@ -94,7 +94,11 @@ class Pharmacy {
   });
 
   String get locationLabel {
-    final parts = [ward, district, region].where((p) => p != null && p.isNotEmpty).toList();
+    final parts = [
+      ward,
+      district,
+      region,
+    ].where((p) => p != null && p.isNotEmpty).toList();
     return parts.isNotEmpty ? parts.join(', ') : (address ?? '');
   }
 
@@ -171,6 +175,11 @@ class Drug {
   final String? categoryName;
   final String? image;
   final String? unit;
+  final bool? requiresPrescription;
+  // Populated when a drug is looked up by barcode, so the result can say which
+  // pharmacy the product was found at.
+  final int? pharmacyId;
+  final String? pharmacyName;
 
   Drug({
     required this.id,
@@ -184,10 +193,14 @@ class Drug {
     this.categoryName,
     this.image,
     this.unit,
+    this.requiresPrescription,
+    this.pharmacyId,
+    this.pharmacyName,
   });
 
   factory Drug.fromJson(Map<String, dynamic> json) {
     final cat = json['category'];
+    final pharmacy = json['pharmacy'];
     return Drug(
       id: json['id'] ?? 0,
       name: json['name'],
@@ -200,22 +213,28 @@ class Drug {
       categoryName: cat is Map ? cat['name'] : null,
       image: json['image'],
       unit: json['unit'],
+      requiresPrescription: json['requires_prescription'] == null
+          ? null
+          : json['requires_prescription'] == true ||
+              json['requires_prescription'] == 1,
+      pharmacyId: pharmacy is Map ? pharmacy['id'] : null,
+      pharmacyName: pharmacy is Map ? pharmacy['pharmacy_name'] : null,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'generic_name': genericName,
-        'manufacturer': manufacturer,
-        'selling_price': price,
-        'buying_price': buyingPrice,
-        'quantity': quantity,
-        'description': description,
-        if (categoryName != null) 'category': {'name': categoryName},
-        'image': image,
-        'unit': unit,
-      };
+    'id': id,
+    'name': name,
+    'generic_name': genericName,
+    'manufacturer': manufacturer,
+    'selling_price': price,
+    'buying_price': buyingPrice,
+    'quantity': quantity,
+    'description': description,
+    if (categoryName != null) 'category': {'name': categoryName},
+    'image': image,
+    'unit': unit,
+  };
 }
 
 class CartItem {
@@ -277,6 +296,11 @@ class Order {
   final String? deliveryPhone;
   final double? deliveryLatitude;
   final double? deliveryLongitude;
+
+  /// Live courier position, when the backend reports one. Falls back to
+  /// animating along the pharmacy → destination route.
+  final double? riderLatitude;
+  final double? riderLongitude;
   final List<OrderItem> items;
 
   Order({
@@ -299,6 +323,8 @@ class Order {
     this.deliveryPhone,
     this.deliveryLatitude,
     this.deliveryLongitude,
+    this.riderLatitude,
+    this.riderLongitude,
     this.items = const [],
   });
 
@@ -322,13 +348,25 @@ class Order {
       createdAt: json['created_at'],
       pharmacyId: pharmacy is Map ? pharmacy['id'] : null,
       pharmacyName: pharmacy is Map ? pharmacy['pharmacy_name'] : null,
-      pharmacyLatitude: pharmacy is Map ? _toDouble(pharmacy['latitude']) : null,
-      pharmacyLongitude: pharmacy is Map ? _toDouble(pharmacy['longitude']) : null,
+      pharmacyLatitude: pharmacy is Map
+          ? _toDouble(pharmacy['latitude'])
+          : null,
+      pharmacyLongitude: pharmacy is Map
+          ? _toDouble(pharmacy['longitude'])
+          : null,
       deliveryStatus: json['delivery_status'],
       deliveryAddress: json['delivery_address'],
       deliveryPhone: json['delivery_phone'],
       deliveryLatitude: _toDouble(json['delivery_latitude']),
       deliveryLongitude: _toDouble(json['delivery_longitude']),
+      riderLatitude:
+          _toDouble(json['rider_latitude']) ??
+          _toDouble(json['courier_latitude']) ??
+          _toDouble(json['driver_latitude']),
+      riderLongitude:
+          _toDouble(json['rider_longitude']) ??
+          _toDouble(json['courier_longitude']) ??
+          _toDouble(json['driver_longitude']),
       items: items,
     );
   }
@@ -417,7 +455,8 @@ class ChatConversation {
   factory ChatConversation.fromJson(Map<String, dynamic> json) {
     final pharmacy = json['pharmacy'];
     return ChatConversation(
-      pharmacyId: json['pharmacy_id'] ?? (pharmacy is Map ? pharmacy['id'] : 0) ?? 0,
+      pharmacyId:
+          json['pharmacy_id'] ?? (pharmacy is Map ? pharmacy['id'] : 0) ?? 0,
       pharmacyName: pharmacy is Map ? pharmacy['pharmacy_name'] : null,
       lastMessage: json['last_message'],
       unreadCount: json['unread_count'] ?? 0,
@@ -444,7 +483,8 @@ class ChatMessage {
   factory ChatMessage.fromJson(Map<String, dynamic> json, {int? myUserId}) {
     final senderRaw = json['sender'];
     final senderName = senderRaw is Map ? senderRaw['name'] : null;
-    final senderId = json['sender_id'] ?? (senderRaw is Map ? senderRaw['id'] : null);
+    final senderId =
+        json['sender_id'] ?? (senderRaw is Map ? senderRaw['id'] : null);
     return ChatMessage(
       id: json['id'] ?? 0,
       message: json['message'],
@@ -547,7 +587,9 @@ class SupportTicket {
       createdAt: json['created_at'],
       pharmacyName: pharmacy is Map ? pharmacy['pharmacy_name'] : null,
       replies: rawReplies is List
-          ? rawReplies.map((r) => TicketReply.fromJson(r as Map<String, dynamic>)).toList()
+          ? rawReplies
+                .map((r) => TicketReply.fromJson(r as Map<String, dynamic>))
+                .toList()
           : const [],
     );
   }

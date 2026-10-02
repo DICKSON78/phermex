@@ -7,6 +7,7 @@ import '../../services/app_preferences.dart';
 import '../../theme.dart';
 import '../auth/login_screen.dart';
 import '../auth/forgot_password_screen.dart';
+import 'legal_document_screen.dart';
 
 const String appVersion = '1.0.0';
 
@@ -26,7 +27,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) {
         final selected = prefs.languageCode;
         return AlertDialog(
-          title: Text(L.t('selectLanguage'), style: const TextStyle(fontFamily: 'Poppins')),
+          title: Text(
+            L.t('selectLanguage'),
+            style: const TextStyle(fontFamily: 'Poppins'),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -43,14 +47,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 4),
               Text(
                 L.t('languageSyncedNote'),
-                style: const TextStyle(fontSize: 11, color: AppColors.muted, fontFamily: 'Poppins'),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.muted,
+                  fontFamily: 'Poppins',
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(L.t('cancel'), style: const TextStyle(fontFamily: 'Poppins')),
+              child: Text(
+                L.t('cancel'),
+                style: const TextStyle(fontFamily: 'Poppins'),
+              ),
             ),
           ],
         );
@@ -63,7 +74,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _toggleNotification(String key, bool value) async {
-    final synced = await context.read<AppPreferences>().setNotificationPref(key, value);
+    final synced = await context.read<AppPreferences>().setNotificationPref(
+      key,
+      value,
+    );
     if (!mounted) return;
     _showSaved(synced);
   }
@@ -73,18 +87,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(L.t('logOut'), style: const TextStyle(fontFamily: 'Poppins')),
-        content: Text(L.t('logoutConfirm'), style: const TextStyle(fontFamily: 'Poppins')),
+        title: Text(
+          L.t('logOut'),
+          style: const TextStyle(fontFamily: 'Poppins'),
+        ),
+        content: Text(
+          L.t('logoutConfirm'),
+          style: const TextStyle(fontFamily: 'Poppins'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(L.t('cancel'), style: const TextStyle(fontFamily: 'Poppins')),
+            child: Text(
+              L.t('cancel'),
+              style: const TextStyle(fontFamily: 'Poppins'),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               L.t('logOut'),
-              style: const TextStyle(color: Color(0xFFDC2626), fontFamily: 'Poppins'),
+              style: const TextStyle(
+                color: Color(0xFFDC2626),
+                fontFamily: 'Poppins',
+              ),
             ),
           ),
         ],
@@ -152,7 +178,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _MenuRow(
                 icon: Icons.language_outlined,
                 label: L.t('language'),
-                subtitle: prefs.languageCode == 'sw' ? L.t('swahili') : L.t('english'),
+                subtitle: prefs.languageCode == 'sw'
+                    ? L.t('swahili')
+                    : L.t('english'),
                 onTap: _changeLanguage,
               ),
             ],
@@ -207,7 +235,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 label: L.t('changePassword'),
                 subtitle: L.t('resetSignInPassword'),
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const ForgotPasswordScreen(),
+                  ),
                 ),
               ),
             ],
@@ -222,14 +252,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.privacy_tip_outlined,
                 label: L.t('privacyPolicy'),
                 subtitle: L.t('howWeUseData'),
-                onTap: () {},
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const LegalDocumentScreen(
+                      document: LegalDocument.privacy,
+                    ),
+                  ),
+                ),
               ),
               const _Divider(),
               _MenuRow(
                 icon: Icons.description_outlined,
                 label: L.t('termsOfService'),
                 subtitle: L.t('appUsageTerms'),
-                onTap: () {},
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const LegalDocumentScreen(
+                      document: LegalDocument.terms,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -251,8 +293,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
           Center(
-            child: Text('v$appVersion',
-                style: const TextStyle(fontSize: 12, color: AppColors.muted, fontFamily: 'Poppins')),
+            child: Text(
+              'v$appVersion',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.muted,
+                fontFamily: 'Poppins',
+              ),
+            ),
           ),
         ],
       ),
@@ -260,9 +308,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _sectionLabel(String text) {
-    return Text(text,
-        style: const TextStyle(
-            fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.muted, fontFamily: 'Poppins'));
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: AppColors.muted,
+        fontFamily: 'Poppins',
+      ),
+    );
   }
 
   Widget _accountCard({required String name, required String email}) {
@@ -286,7 +340,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: const TextStyle(
-                  color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, fontFamily: 'Poppins'),
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                fontFamily: 'Poppins',
+              ),
             ),
           ),
           const SizedBox(width: 14),
@@ -299,7 +357,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      fontSize: 15.5, fontWeight: FontWeight.w800, color: AppColors.ink, fontFamily: 'Poppins'),
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    fontFamily: 'Poppins',
+                  ),
                 ),
                 if (email.isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -307,7 +369,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     email,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11.5, color: AppColors.muted, fontFamily: 'Poppins'),
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.muted,
+                      fontFamily: 'Poppins',
+                    ),
                   ),
                 ],
               ],
@@ -359,8 +425,14 @@ class _MenuRow extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: destructive ? const Color(0xFFFEF2F2) : AppColors.mint50,
-                  border: Border.all(color: destructive ? const Color(0xFFFECACA) : AppColors.line),
+                  color: destructive
+                      ? const Color(0xFFFEF2F2)
+                      : AppColors.mint50,
+                  border: Border.all(
+                    color: destructive
+                        ? const Color(0xFFFECACA)
+                        : AppColors.line,
+                  ),
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(icon, size: 16, color: color),
@@ -370,15 +442,26 @@ class _MenuRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label,
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: destructive ? const Color(0xFFDC2626) : AppColors.ink,
-                            fontFamily: 'Poppins')),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: destructive
+                            ? const Color(0xFFDC2626)
+                            : AppColors.ink,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: const TextStyle(fontSize: 11, color: AppColors.muted, fontFamily: 'Poppins')),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.muted,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -442,14 +525,21 @@ class _ToggleRow extends StatelessWidget {
                 data: Theme.of(context).copyWith(
                   switchTheme: SwitchThemeData(
                     thumbColor: WidgetStateProperty.resolveWith(
-                      (states) => states.contains(WidgetState.selected) ? Colors.white : AppColors.muted,
+                      (states) => states.contains(WidgetState.selected)
+                          ? Colors.white
+                          : AppColors.muted,
                     ),
                     trackColor: WidgetStateProperty.resolveWith(
-                      (states) => states.contains(WidgetState.selected) ? AppColors.brand500 : AppColors.line,
+                      (states) => states.contains(WidgetState.selected)
+                          ? AppColors.brand500
+                          : AppColors.line,
                     ),
                   ),
                 ),
-                child: Switch(value: value, onChanged: enabled ? (v) => onChanged(v) : null),
+                child: Switch(
+                  value: value,
+                  onChanged: enabled ? (v) => onChanged(v) : null,
+                ),
               ),
             ],
           ),
@@ -464,7 +554,11 @@ class _Divider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(height: 1, color: AppColors.line, margin: const EdgeInsets.symmetric(horizontal: 14));
+    return Container(
+      height: 1,
+      color: AppColors.line,
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+    );
   }
 }
 

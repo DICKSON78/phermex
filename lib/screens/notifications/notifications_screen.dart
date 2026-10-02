@@ -17,16 +17,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   List<AppNotification> _notifications = [];
   List<BroadcastMessage> _broadcasts = [];
   bool _loading = true;
+  bool _loadedOnce = false;
+  final _autoRefresh = AutoRefresh();
   String? _error;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _autoRefresh.start(const Duration(seconds: 45), () {
+      if (mounted) _load(silent: true);
+    });
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
+  Future<void> _load({bool silent = false}) async {
+    setState(() => _loading = silent ? false : !_loadedOnce);
     try {
       final results = await Future.wait([
         CustomerRepository.notifications(),
@@ -37,6 +42,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         _notifications = results[0] as List<AppNotification>;
         _broadcasts = results[1] as List<BroadcastMessage>;
         _error = null;
+        _loadedOnce = true;
       });
     } catch (e) {
       if (mounted) setState(() => _error = ApiService.friendlyError(e));
@@ -198,6 +204,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                     ),
     );
+  }
+
+  @override
+  void dispose() {
+    _autoRefresh.stop();
+    super.dispose();
   }
 }
 

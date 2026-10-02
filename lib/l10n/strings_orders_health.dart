@@ -27,7 +27,8 @@ const Map<String, String> ordersHealthEnStrings = {
   'oh.retry': 'Retry',
   'oh.orderDetails': 'Order Details',
   'oh.orderWord': 'Order',
-  'oh.willBeCancelledNotify': 'will be cancelled and the pharmacy will be notified.',
+  'oh.willBeCancelledNotify':
+      'will be cancelled and the pharmacy will be notified.',
   'oh.cancelOrderTitle': 'Cancel order?',
   'oh.keepOrder': 'Keep Order',
   'oh.cancelOrder': 'Cancel Order',
@@ -59,6 +60,8 @@ const Map<String, String> ordersHealthEnStrings = {
   'oh.followDeliveryRealtime': 'Follow your delivery in real time',
   'oh.orderCancelledMsg': 'This order was cancelled.',
   'oh.arriving': 'arriving',
+  'oh.mapUnavailable':
+      'Live map needs a pharmacy location and a delivery pin on your address. You can still open directions below.',
   'oh.navigate': 'Navigate',
   'oh.myPrescriptions': 'My Prescriptions',
   'oh.noPrescriptionsYet': 'No prescriptions yet',
@@ -120,6 +123,12 @@ const Map<String, String> ordersHealthEnStrings = {
   'oh.callReady': 'Call is ready for you',
   'oh.waitingForPharmacist': 'Waiting for pharmacist',
   'oh.joining': 'Joining…',
+  'misc.incomingCall': 'Incoming video call',
+  'misc.callStartingNow': 'Your consultation is starting now. Tap to join.',
+  'misc.consultReminderTitle': 'Consultation reminder',
+  'misc.consultReminderBody':
+      'Your video consultation starts in 10 minutes. Tap to join.',
+  'misc.noRoomForCall': 'No meeting room was provided for this call.',
   'oh.openInAppVideo': 'Open In-App Video',
   'oh.continueWebBrowser': 'Continue in Web Browser',
   'oh.removeInsuranceQ': 'Remove insurance?',
@@ -246,6 +255,8 @@ const Map<String, String> ordersHealthSwStrings = {
   'oh.followDeliveryRealtime': 'Fuata uwasilishaji wako moja kwa moja',
   'oh.orderCancelledMsg': 'Agizo hili limeghairiwa.',
   'oh.arriving': 'Inafika',
+  'oh.mapUnavailable':
+      'Ramani ya moja kwa moja inahitaji eneo la duka la dawa na alama ya eneo lako kwenye anwani. Unaweza bado kufungua njia hapa chini.',
   'oh.navigate': 'Elekeza',
   'oh.myPrescriptions': 'Maagizo Yangu ya Dawa',
   'oh.noPrescriptionsYet': 'Hakuna maagizo ya dawa bado',
@@ -257,8 +268,7 @@ const Map<String, String> ordersHealthSwStrings = {
   'oh.doctorNameError': 'Tafadhali ingiza jina la daktari',
   'oh.prescriptionUploaded': 'Maagizo ya dawa yamewasilishwa kikamilifu',
   'oh.uploadPrescription': 'Pakia Maagizo ya Dawa',
-  'oh.pharmacyWillReview':
-      'Duka la dawa litakagua na kuthibitisha agizo lako.',
+  'oh.pharmacyWillReview': 'Duka la dawa litakagua na kuthibitisha agizo lako.',
   'oh.tapAddPhoto': 'Gusa ili kuongeza picha ya maagizo (si lazima)',
   'oh.doctorName': 'Jina la Daktari',
   'oh.notesOptional': 'Maelezo (si lazima)',
@@ -308,11 +318,17 @@ const Map<String, String> ordersHealthSwStrings = {
   'oh.callReady': 'Simu iko tayari kwako',
   'oh.waitingForPharmacist': 'Tunamsubiri mfamasia',
   'oh.joining': 'Inajiunga…',
+  'misc.incomingCall': 'Simu ya video inaingia',
+  'misc.callStartingNow':
+      'Mashauriano yako yanaanza sasa. Bofya kujiunga.',
+  'misc.consultReminderTitle': 'Ukumbusho wa mashauriano',
+  'misc.consultReminderBody':
+      'Mashauriano yako ya video yanaanza kwa dakika 10. Bofya kujiunga.',
+  'misc.noRoomForCall': 'Hakuna ukumbi wa mikutano uliotolewa kwa simu hii.',
   'oh.openInAppVideo': 'Fungua Video Ndani ya Programu',
   'oh.continueWebBrowser': 'Endelea kwenye Kivinjari',
   'oh.removeInsuranceQ': 'Ondoa bima?',
-  'oh.removeInsuranceBody':
-      'Hii itaondoa rekodi ya bima kwenye wasifu wako.',
+  'oh.removeInsuranceBody': 'Hii itaondoa rekodi ya bima kwenye wasifu wako.',
   'oh.remove': 'Ondoa',
   'oh.insuranceRemoved': 'Rekodi ya bima imeondolewa',
   'oh.noInsuranceYet': 'Hakuna sera za bima bado',

@@ -57,6 +57,7 @@ class OrderDetailScreen extends StatefulWidget {
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Order? _order;
   bool _loading = true;
+  bool _loadedOnce = false;
   String? _error;
   bool _cancelling = false;
 
@@ -67,13 +68,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() => _loading = !_loadedOnce);
     try {
       final order = await CustomerRepository.orderDetail(widget.orderId);
       if (!mounted) return;
       setState(() {
         _order = order;
         _error = null;
+        _loadedOnce = true;
       });
     } catch (e) {
       if (mounted) setState(() => _error = ApiService.friendlyError(e));

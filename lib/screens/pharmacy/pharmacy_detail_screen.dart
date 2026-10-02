@@ -11,6 +11,7 @@ import '../../theme.dart';
 import '../../utils/helpers.dart';
 import '../cart/cart_screen.dart';
 import '../barcode/barcode_scan_screen.dart';
+import '../barcode/barcode_result_screen.dart';
 import 'drug_detail_screen.dart';
 import 'pharmacy_map_screen.dart';
 import 'pharmacy_reviews_screen.dart';
@@ -28,6 +29,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
   List<Drug> _drugs = [];
   List<DrugCategory> _categories = [];
   bool _loading = true;
+  bool _loadedOnce = false;
   String? _error;
   String? _search;
   int? _selectedCategory;
@@ -56,13 +58,15 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
       MaterialPageRoute(builder: (_) => const BarcodeScanScreen()),
     );
     if (code == null || !mounted) return;
-    _searchController.text = code;
-    setState(() => _search = code);
-    _load();
+    // Resolve the barcode to the product itself instead of only filtering this
+    // pharmacy's list.
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => BarcodeResultScreen(barcode: code)),
+    );
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
+  Future<void> _load({bool silent = false}) async {
+    setState(() => _loading = silent ? false : !_loadedOnce);
     try {
       final drugsFuture = CustomerRepository.pharmacyDrugs(widget.pharmacy.id, search: _search, categoryId: _selectedCategory);
       final catsFuture = CustomerRepository.pharmacyCategories(widget.pharmacy.id);
@@ -72,6 +76,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
         _drugs = (results[0] as List).cast<Drug>();
         _categories = (results[1] as List).cast<DrugCategory>();
         _error = null;
+        _loadedOnce = true;
       });
     } catch (e) {
       if (mounted) setState(() => _error = ApiService.friendlyError(e));
@@ -310,7 +315,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                 onChanged: (_) => setState(() {}),
                 onSubmitted: (v) {
                   setState(() => _search = v.isEmpty ? null : v);
-                  _load();
+                  _load(silent: true);
                 },
                 style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
                 decoration: InputDecoration(
@@ -345,7 +350,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                     active: _selectedCategory == null,
                     onTap: () {
                       setState(() => _selectedCategory = null);
-                      _load();
+                      _load(silent: true);
                     },
                   ),
                   ..._categories.map((c) => Padding(
@@ -355,7 +360,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> {
                           active: _selectedCategory == c.id,
                           onTap: () {
                             setState(() => _selectedCategory = c.id);
-                            _load();
+                            _load(silent: true);
                           },
                         ),
                       )),

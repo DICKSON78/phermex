@@ -13,6 +13,7 @@ class LoyaltyScreen extends StatefulWidget {
 
 class _LoyaltyScreenState extends State<LoyaltyScreen> {
   bool _loading = true;
+  bool _loadedOnce = false;
   String? _error;
   List<_PharmacyLoyalty> _pharmacies = [];
   List<_LoyaltyTx> _transactions = [];
@@ -24,7 +25,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() { _loading = !_loadedOnce; _error = null; });
     try {
       final res = await CustomerRepository.myLoyalty();
       final pharmaciesRaw = res['pharmacies'];
@@ -32,6 +33,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
       setState(() {
         _pharmacies = (pharmaciesRaw is List ? pharmaciesRaw : []).map<_PharmacyLoyalty>((p) => _PharmacyLoyalty.fromJson(p)).toList();
         _transactions = (txRaw is List ? txRaw : []).map<_LoyaltyTx>((t) => _LoyaltyTx.fromJson(t)).toList();
+        _loadedOnce = true;
         _loading = false;
       });
     } catch (e) {

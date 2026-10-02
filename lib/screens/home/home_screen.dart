@@ -1,10 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
+import '../../services/pharmacy_cache.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme.dart';
+import '../../utils/helpers.dart';
 import '../notifications/notifications_screen.dart';
 import '../pharmacy/pharmacy_detail_screen.dart';
 import '../telemedicine/telemedicine_screen.dart';
@@ -14,7 +17,11 @@ import 'all_pharmacies_screen.dart';
 class HomeScreen extends StatefulWidget {
   final int unreadNotifications;
   final int refreshTick;
-  const HomeScreen({super.key, this.unreadNotifications = 0, this.refreshTick = 0});
+  const HomeScreen({
+    super.key,
+    this.unreadNotifications = 0,
+    this.refreshTick = 0,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -23,6 +30,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<Pharmacy> _pharmacies = [];
   bool _loading = true;
+  bool _loadedOnce = false;
+  final _autoRefresh = AutoRefresh();
   String? _error;
   String? _search;
   final _searchController = TextEditingController();
@@ -33,24 +42,28 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _userName = ApiService.userName ?? '';
     _load();
+    _autoRefresh.start(const Duration(seconds: 60), () {
+      if (mounted) _load(silent: true);
+    });
   }
 
   @override
   void didUpdateWidget(covariant HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.refreshTick != oldWidget.refreshTick) _load();
+    if (widget.refreshTick != oldWidget.refreshTick) _load(silent: true);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _autoRefresh.stop();
     super.dispose();
   }
 
   void _clearSearch() {
     _searchController.clear();
     setState(() => _search = null);
-    _load();
+    _load(silent: true);
   }
 
   void _openCategory(String category) {
@@ -62,9 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openAllPharmacies() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AllPharmaciesScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const AllPharmaciesScreen()));
   }
 
   String _greeting() {
@@ -75,8 +88,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return L.t('shop.goodEvening');
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
+  Future<void> _load({bool silent = false, bool skipCache = false}) async {
+    final cacheKey = PharmacyCache.keyFor(scope: 'nearby', search: _search);
+    // Nearby renders from cache immediately and refreshes quietly, so the
+    // cards never disappear behind a spinner on repeated visits. The refresh
+    // skips the cache branch, otherwise it would call itself forever.
+    if (!skipCache) {
+      final cached = PharmacyCache.has(cacheKey) ? PharmacyCache.cached : null;
+      if (cached != null) {
+        setState(() {
+          _pharmacies = cached;
+          _loadedOnce = true;
+          _loading = false;
+        });
+        _load(silent: true, skipCache: true);
+        return;
+      }
+    }
+    setState(() => _loading = silent ? false : !_loadedOnce);
     var usedFallbackLocation = false;
     try {
       Position? pos;
@@ -87,7 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
           if (perm == LocationPermission.denied) {
             perm = await Geolocator.requestPermission();
           }
-          if (perm == LocationPermission.whileInUse || perm == LocationPermission.always) {
+          if (perm == LocationPermission.whileInUse ||
+              perm == LocationPermission.always) {
             pos = await Geolocator.getCurrentPosition();
           }
         }
@@ -100,21 +130,29 @@ class _HomeScreenState extends State<HomeScreen> {
       String? sectionError;
       try {
         pharmacies = await CustomerRepository.nearby(
-            latitude: lat, longitude: lng, radiusKm: 100, search: _search);
+          latitude: lat,
+          longitude: lng,
+          radiusKm: 100,
+          search: _search,
+        );
       } catch (_) {
         sectionError = L.t('shop.pharmaciesLoadError');
       }
       if (!mounted) return;
+      PharmacyCache.store(cacheKey, pharmacies);
       setState(() {
         _pharmacies = pharmacies;
         _error = sectionError;
+        _loadedOnce = true;
       });
       if (usedFallbackLocation) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(L.t('shop.locationUnavailableSnackbar')),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L.t('shop.locationUnavailableSnackbar')),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) setState(() => _error = ApiService.friendlyError(e));
@@ -133,90 +171,122 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           _HeroHeader(
-              customerName: _userName.trim().isNotEmpty ? _userName.trim() : L.t('shop.shopper'),
-              greeting: _greeting(),
-              unreadNotifications: widget.unreadNotifications,
-              onNotifications: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-              ),
-              onMenu: () => Scaffold.of(context).openDrawer(),
-              searchController: _searchController,
-              onSearchSubmitted: (v) {
-                setState(() => _search = v.isEmpty ? null : v);
-                _load();
-              },
-              onSearchClear: _clearSearch,
+            customerName: _userName.trim().isNotEmpty
+                ? _userName.trim()
+                : L.t('shop.shopper'),
+            greeting: _greeting(),
+            unreadNotifications: widget.unreadNotifications,
+            onNotifications: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
             ),
-            Expanded(
-              child: RefreshIndicator(
-                color: AppColors.brand600,
-                onRefresh: _load,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      _DoctorBanner(
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const TelemedicineScreen()),
+            onMenu: () => Scaffold.of(context).openDrawer(),
+            searchController: _searchController,
+            onSearchSubmitted: (v) {
+              setState(() => _search = v.isEmpty ? null : v);
+              _load(silent: true);
+            },
+            onSearchClear: _clearSearch,
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              color: AppColors.brand600,
+              onRefresh: _load,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    _DoctorBanner(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const TelemedicineScreen(),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Text(L.t('shop.shopByCategory'),
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      L.t('shop.shopByCategory'),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _CategoryRow(onSelect: _openCategory),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          L.t('shop.nearbyPharmacies'),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: _openAllPharmacies,
+                          child: Row(
+                            children: [
+                              Text(
+                                L.t('shop.viewAll'),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.brand600,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                size: 14,
+                                color: AppColors.brand600,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (_loading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.brand600,
+                          ),
+                        ),
+                      )
+                    else if (_error != null) ...[
+                      _ErrorBox(message: _error!, onRetry: _load),
                       const SizedBox(height: 12),
-                      _CategoryRow(onSelect: _openCategory),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-Text(L.t('shop.nearbyPharmacies'),
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
-                          GestureDetector(
-                            onTap: _openAllPharmacies,
-                            child: Row(
-                              children: [
-                                Text(L.t('shop.viewAll'),
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.brand600)),
-                                const Icon(Icons.chevron_right, size: 14, color: AppColors.brand600),
-                              ],
+                    ] else if (_pharmacies.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        child: Center(
+                          child: Text(
+                            L.t('shop.noPharmaciesFoundNearby'),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.muted,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      if (_loading)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Center(child: CircularProgressIndicator(color: AppColors.brand600)),
-                        )
-                      else if (_error != null) ...[
-                        _ErrorBox(message: _error!, onRetry: _load),
-                        const SizedBox(height: 12),
-                      ] else if (_pharmacies.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 40),
-                          child: Center(
-                            child: Text(L.t('shop.noPharmaciesFoundNearby'),
-                                style: const TextStyle(fontSize: 13, color: AppColors.muted)),
-                          ),
-                        )
-                      else
-                        _NearbyPharmacies(pharmacies: _pharmacies),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                        ),
+                      )
+                    else
+                      _NearbyPharmacies(pharmacies: _pharmacies),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -266,8 +336,15 @@ class _HeroHeaderState extends State<_HeroHeader> {
                 child: Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(color: AppColors.sand, shape: BoxShape.circle),
-                  child: const Icon(Icons.menu_rounded, color: AppColors.brand600, size: 18),
+                  decoration: BoxDecoration(
+                    color: AppColors.sand,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.menu_rounded,
+                    color: AppColors.brand600,
+                    size: 18,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -275,66 +352,92 @@ class _HeroHeaderState extends State<_HeroHeader> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.greeting,
-                        style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12.5, fontFamily: 'Poppins')),
+                    Text(
+                      widget.greeting,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.6),
+                        fontSize: 12.5,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       widget.customerName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, fontFamily: 'Poppins')),
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Text(
                       L.t('shop.tagline'),
-                      style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 12.5, fontFamily: 'Poppins'),
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.55),
+                        fontSize: 12.5,
+                        fontFamily: 'Poppins',
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
               GestureDetector(
-                    onTap: widget.onNotifications,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                              color: AppColors.sand, shape: BoxShape.circle),
-                          child: const Icon(Icons.notifications_none_rounded, color: AppColors.brand600, size: 18),
-                        ),
-                        if (widget.unreadNotifications > 0)
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFDC2626),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                widget.unreadNotifications > 9 ? '9+' : '${widget.unreadNotifications}',
-                                style: const TextStyle(
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  height: 1,
-                                  fontFamily: 'Poppins',
-                                ),
-                              ),
+                onTap: widget.onNotifications,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.sand,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.notifications_none_rounded,
+                        color: AppColors.brand600,
+                        size: 18,
+                      ),
+                    ),
+                    if (widget.unreadNotifications > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFDC2626),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            widget.unreadNotifications > 9
+                                ? '9+'
+                                : '${widget.unreadNotifications}',
+                            style: const TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              height: 1,
+                              fontFamily: 'Poppins',
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 18),
+            ],
+          ),
+          const SizedBox(height: 18),
           Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Row(
               children: [
                 const SizedBox(width: 16),
@@ -347,7 +450,10 @@ class _HeroHeaderState extends State<_HeroHeader> {
                     onSubmitted: widget.onSearchSubmitted,
                     decoration: InputDecoration(
                       hintText: L.t('shop.searchMedicinesOrPharmacies'),
-                      hintStyle: TextStyle(color: AppColors.muted, fontSize: 13.5),
+                      hintStyle: TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 13.5,
+                      ),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -355,13 +461,21 @@ class _HeroHeaderState extends State<_HeroHeader> {
                       contentPadding: EdgeInsets.symmetric(vertical: 14),
                       filled: false,
                     ),
-                    style: const TextStyle(fontSize: 13.5, fontFamily: 'Poppins', color: AppColors.ink),
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontFamily: 'Poppins',
+                      color: AppColors.ink,
+                    ),
                     textInputAction: TextInputAction.search,
                   ),
                 ),
                 if (widget.searchController.text.isNotEmpty)
                   IconButton(
-                    icon: const Icon(Icons.clear, size: 18, color: AppColors.muted),
+                    icon: const Icon(
+                      Icons.clear,
+                      size: 18,
+                      color: AppColors.muted,
+                    ),
                     onPressed: widget.onSearchClear,
                   ),
               ],
@@ -396,25 +510,46 @@ class _DoctorBanner extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(L.t('shop.talkToADoctor'),
-                      style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+                  Text(
+                    L.t('shop.talkToADoctor'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(L.t('shop.videoConsultsAnytime'),
-                      style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 11)),
+                  Text(
+                    L.t('shop.videoConsultsAnytime'),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.75),
+                      fontSize: 11,
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
                     onPressed: onTap,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: AppColors.brand800,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
                       minimumSize: const Size(0, 0),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(99),
+                      ),
                     ),
                     icon: const Icon(Icons.videocam_rounded, size: 14),
-                    label: Text(L.t('shop.startCallNow'),
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                    label: Text(
+                      L.t('shop.startCallNow'),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -426,7 +561,11 @@ class _DoctorBanner extends StatelessWidget {
                 color: Colors.white.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 26),
+              child: const Icon(
+                Icons.local_hospital_rounded,
+                color: Colors.white,
+                size: 26,
+              ),
             ),
           ],
         ),
@@ -436,7 +575,13 @@ class _DoctorBanner extends StatelessWidget {
 }
 
 // ---- Category row ---------------------------------------------------------
-const kHomeCategories = <String>['Pain Relief', 'Antibiotics', 'Vitamins', 'Cough', 'First Aid'];
+const kHomeCategories = <String>[
+  'Pain Relief',
+  'Antibiotics',
+  'Vitamins',
+  'Cough',
+  'First Aid',
+];
 
 const kCategoryIcons = <String, IconData>{
   'Pain Relief': Icons.healing_rounded,
@@ -455,35 +600,44 @@ class _CategoryRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: kHomeCategories
-          .map((c) => GestureDetector(
-                onTap: () => onSelect(c),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppColors.mint50,
-                        borderRadius: BorderRadius.circular(13),
-                        border: Border.all(color: AppColors.line),
-                      ),
-                      child: Icon(kCategoryIcons[c] ?? Icons.category_rounded,
-                          size: 20, color: AppColors.brand600),
+          .map(
+            (c) => GestureDetector(
+              onTap: () => onSelect(c),
+              child: Column(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.mint50,
+                      borderRadius: BorderRadius.circular(13),
+                      border: Border.all(color: AppColors.line),
                     ),
-                    const SizedBox(height: 6),
-                    SizedBox(
-                      width: 56,
-                      child: Text(
-                        c,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                    child: Icon(
+                      kCategoryIcons[c] ?? Icons.category_rounded,
+                      size: 20,
+                      color: AppColors.brand600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    width: 56,
+                    child: Text(
+                      c,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
                       ),
                     ),
-                  ],
-                ),
-              ))
+                  ),
+                ],
+              ),
+            ),
+          )
           .toList(),
     );
   }
@@ -497,12 +651,42 @@ class _NearbyPharmacies extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: pharmacies.take(2).map((p) => Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: _NearbyPharmacyCard(pharmacy: p),
+      children: pharmacies
+          .take(2)
+          .map(
+            (p) => Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: _NearbyPharmacyCard(pharmacy: p),
+              ),
             ),
-          )).toList(),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _PharmacyFallbackArt extends StatelessWidget {
+  const _PharmacyFallbackArt();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.promo,
+      alignment: Alignment.center,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.local_pharmacy_rounded,
+          color: AppColors.brand700,
+          size: 20,
+        ),
+      ),
     );
   }
 }
@@ -517,9 +701,16 @@ class _NearbyPharmacyCard extends StatelessWidget {
     final distance = pharmacy.distance != null
         ? '${pharmacy.distance!.toStringAsFixed(1)} km'
         : '0.0 km';
+    // Prefer the uploaded cover image, then the logo, and only fall back to
+    // the flat green tile when the pharmacy has neither.
+    final imageUrl =
+        AppHelpers.imageUrl(pharmacy.coverImage) ??
+        AppHelpers.imageUrl(pharmacy.logo);
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PharmacyDetailScreen(pharmacy: pharmacy)),
+        MaterialPageRoute(
+          builder: (_) => PharmacyDetailScreen(pharmacy: pharmacy),
+        ),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -534,28 +725,40 @@ class _NearbyPharmacyCard extends StatelessWidget {
             Container(
               height: 112,
               decoration: const BoxDecoration(color: AppColors.promo),
+              // Pharmacies that uploaded artwork show it; the rest keep the
+              // flat green tile with the pharmacy glyph.
               child: Stack(
+                fit: StackFit.expand,
                 children: [
+                  if (imageUrl != null)
+                    CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const SizedBox.shrink(),
+                      errorWidget: (_, __, ___) => _PharmacyFallbackArt(),
+                    )
+                  else
+                    _PharmacyFallbackArt(),
                   Positioned(
                     top: 8,
                     right: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.45),
-                          borderRadius: BorderRadius.circular(99)),
-                      child: Text(distance,
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
-                    ),
-                  ),
-                  Center(
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                      child: const Icon(Icons.local_pharmacy_rounded,
-                          color: AppColors.brand700, size: 20),
+                        color: Colors.black.withOpacity(0.45),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: Text(
+                        distance,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -566,21 +769,37 @@ class _NearbyPharmacyCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(pharmacy.name ?? L.t('shop.pharmacy'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                  Text(
+                    pharmacy.name ?? L.t('shop.pharmacy'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 10, color: AppColors.muted),
+                      const Icon(
+                        Icons.location_on,
+                        size: 10,
+                        color: AppColors.muted,
+                      ),
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
-                          pharmacy.locationLabel.isEmpty ? L.t('shop.pharmacy') : pharmacy.locationLabel,
+                          pharmacy.locationLabel.isEmpty
+                              ? L.t('shop.pharmacy')
+                              : pharmacy.locationLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 10.5, color: AppColors.muted)),
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            color: AppColors.muted,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -612,9 +831,11 @@ class _ErrorBox extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.muted, fontSize: 13)),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.muted, fontSize: 13),
+          ),
           const SizedBox(height: 10),
           OutlinedButton(onPressed: onRetry, child: Text(L.t('shop.retry'))),
         ],

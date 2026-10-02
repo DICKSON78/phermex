@@ -16,6 +16,7 @@ class SupportScreen extends StatefulWidget {
 class _SupportScreenState extends State<SupportScreen> {
   List<SupportTicket> _tickets = [];
   bool _loading = true;
+  bool _loadedOnce = false;
   String? _error;
   SupportTicket? _selected;
 
@@ -26,13 +27,14 @@ class _SupportScreenState extends State<SupportScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() => _loading = !_loadedOnce);
     try {
       final list = await CustomerRepository.supportTickets();
       if (!mounted) return;
       setState(() {
         _tickets = list;
         _error = null;
+        _loadedOnce = true;
       });
     } catch (e) {
       if (mounted) setState(() => _error = ApiService.friendlyError(e));

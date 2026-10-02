@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/api_service.dart';
 import '../../services/customer_repository.dart';
+import '../../utils/helpers.dart';
 import '../../theme.dart';
 import 'live_map_screen.dart';
 
@@ -21,6 +22,8 @@ class DeliveryTrackingScreen extends StatefulWidget {
 class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   Order? _order;
   bool _loading = true;
+  bool _loadedOnce = false;
+  final _autoRefresh = AutoRefresh();
   String? _error;
 
   static const _steps = [
@@ -34,16 +37,27 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   void initState() {
     super.initState();
     _load();
+    // Keep courier progress current without blocking the visible timeline.
+    _autoRefresh.start(const Duration(seconds: 30), () {
+      if (mounted) _load(silent: true);
+    });
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
+  @override
+  void dispose() {
+    _autoRefresh.stop();
+    super.dispose();
+  }
+
+  Future<void> _load({bool silent = false}) async {
+    setState(() => _loading = silent ? false : !_loadedOnce);
     try {
       final order = await CustomerRepository.orderDetail(widget.orderId);
       if (!mounted) return;
       setState(() {
         _order = order;
         _error = null;
+        _loadedOnce = true;
       });
     } catch (e) {
       if (mounted) setState(() => _error = ApiService.friendlyError(e));
@@ -78,10 +92,15 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
       MaterialPageRoute(
         fullscreenDialog: true,
         builder: (_) => LiveMapScreen(
+          orderId: order.id,
           pharmacyName: pharmacyName,
           address: address.isEmpty ? L.t('oh.deliveryAddress') : address,
           distance: '${distanceKm.toStringAsFixed(1)} km',
           etaText: etaText,
+          originLat: order.pharmacyLatitude,
+          originLng: order.pharmacyLongitude,
+          destLat: order.deliveryLatitude,
+          destLng: order.deliveryLongitude,
           onNavigate: _openDeliveryMaps(order),
         ),
       ),
@@ -166,7 +185,8 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     final status = order.orderStatus ?? 'pending';
     final step = _currentStep(status);
     final cancelled = status == 'cancelled';
-    final isLive = !cancelled && (status == 'processing' || status == 'shipped');
+    // Any non-terminal status stays live-trackable, matching the drawer.
+    final isLive = !cancelled && AppHelpers.isOrderInTransit(status);
 
     return RefreshIndicator(
       onRefresh: _load,

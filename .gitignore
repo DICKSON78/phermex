@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase config contains a project API key - keep it out of the repo.
+android/app/google-services.json

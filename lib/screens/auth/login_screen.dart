@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/services.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/api_service.dart';
@@ -345,14 +346,40 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _googleSignIn() {
-    final L = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(L.t('auth.googleSignInComingSoon')),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  /// OAuth client id of the Firebase project's web app. Passing it as the
+  /// server client makes Android return an ID token whose audience the backend
+  /// accepts.
+  static const _googleServerClientId =
+      '841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com';
+
+  Future<void> _googleSignIn() async {
+    if (_loading) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final signIn = GoogleSignIn.instance;
+      await signIn.initialize(serverClientId: _googleServerClientId);
+
+      final account = await signIn.authenticate();
+      final idToken = account.authentication.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw ApiException(AppLocalizations.tr('auth.googleSignInFailed'));
+      }
+
+      await CustomerRepository.loginWithGoogle(idToken);
+      PushService.initPushNotifications();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeShell()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = ApiService.friendlyError(e));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   String? _validateEmailOrPhone(String? value) {
@@ -524,14 +551,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _googleSignIn() {
-    final L = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(L.t('auth.googleSignInComingSoon')),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  /// OAuth client id of the Firebase project's web app. Passing it as the
+  /// server client makes Android return an ID token whose audience the backend
+  /// accepts.
+  static const _googleServerClientId =
+      '841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com';
+
+  Future<void> _googleSignIn() async {
+    if (_loading) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final signIn = GoogleSignIn.instance;
+      await signIn.initialize(serverClientId: _googleServerClientId);
+
+      final account = await signIn.authenticate();
+      final idToken = account.authentication.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw ApiException(AppLocalizations.tr('auth.googleSignInFailed'));
+      }
+
+      await CustomerRepository.loginWithGoogle(idToken);
+      PushService.initPushNotifications();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeShell()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = ApiService.friendlyError(e));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   String? _validateName(String? value) {

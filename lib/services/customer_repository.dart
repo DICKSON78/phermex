@@ -16,6 +16,19 @@ class CustomerRepository {
     }
   }
 
+  /// Signs in with a Google ID token. The backend verifies the token against
+  /// Google's keys, creates the customer account on first sign-in and returns
+  /// a normal Helix session.
+  static Future<void> loginWithGoogle(String idToken) async {
+    final res = await ApiService.post('/login/google', {'id_token': idToken});
+    final data = res['data'];
+    if (data is Map && data['token'] != null && data['user'] is Map) {
+      await ApiService.saveSession(data['token'].toString(), data['user']);
+    } else {
+      throw ApiException(AppLocalizations.tr('misc.invalidLoginResponse'));
+    }
+  }
+
   static Future<void> register({
     required String name,
     required String email,

@@ -24,6 +24,29 @@ use Illuminate\Support\Str;
 
 class CustomerAppController extends Controller
 {
+    private const SUPPORTED_LANGUAGES = ['en', 'sw'];
+
+    private function notificationDefaults(): array
+    {
+        return [
+            'email_notifications' => true,
+            'sms_notifications' => false,
+            'push_notifications' => true,
+            'low_stock_alerts' => true,
+            'expiry_alerts' => true,
+            'new_order_alerts' => true,
+            'subscription_expiry_reminder' => true,
+            'reminder_days_before_expiry' => 3,
+        ];
+    }
+
+    private function defaultLanguage(): string
+    {
+        $lang = strtolower((string) request()->header('Accept-Language', 'en'));
+
+        return in_array($lang, self::SUPPORTED_LANGUAGES, true) ? $lang : 'en';
+    }
+
     public function register(Request $request): JsonResponse
     {
         try {
@@ -119,6 +142,11 @@ class CustomerAppController extends Controller
     {
         try {
             $user = $request->user();
+            $user->notification_preferences = array_merge(
+                $this->notificationDefaults(),
+                is_array($user->notification_preferences) ? $user->notification_preferences : [],
+            );
+            $user->language = empty($user->language) ? $this->defaultLanguage() : $user->language;
 
             return response()->json([
                 'message' => 'Profile retrieved.',
@@ -142,7 +170,25 @@ class CustomerAppController extends Controller
                 'phone' => 'sometimes|string|max:20',
                 'email' => 'sometimes|email|unique:users,email,' . $user->id,
                 'password' => ['sometimes', 'nullable', 'string', 'min:8', 'confirmed'],
+                'language' => 'sometimes|string|in:' . implode(',', self::SUPPORTED_LANGUAGES),
+                'notification_preferences' => 'sometimes|array',
+                'notification_preferences.email_notifications' => 'sometimes|boolean',
+                'notification_preferences.sms_notifications' => 'sometimes|boolean',
+                'notification_preferences.push_notifications' => 'sometimes|boolean',
+                'notification_preferences.low_stock_alerts' => 'sometimes|boolean',
+                'notification_preferences.expiry_alerts' => 'sometimes|boolean',
+                'notification_preferences.new_order_alerts' => 'sometimes|boolean',
+                'notification_preferences.subscription_expiry_reminder' => 'sometimes|boolean',
+                'notification_preferences.reminder_days_before_expiry' => 'sometimes|integer|min:0|max:90',
             ]);
+
+            if (isset($validated['notification_preferences'])) {
+                $validated['notification_preferences'] = array_merge(
+                    $this->notificationDefaults(),
+                    is_array($user->notification_preferences) ? $user->notification_preferences : [],
+                    $validated['notification_preferences'],
+                );
+            }
 
             if (isset($validated['password']) && $validated['password']) {
                 $validated['password'] = Hash::make($validated['password']);

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import LanguageSwitcher from '../../components/LanguageSwitcher'
 import { Pill, Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react'
 import api from '../../services/api'
 
@@ -117,6 +118,10 @@ export default function LoginPage() {
           <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">{t('auth.login')}</p>
           <h1 className="text-4xl font-black text-gray-600 mb-3">{t('auth.loginTitle')}</h1>
           <p className="text-gray-500 text-lg">{t('auth.loginSubtitle')}</p>
+        </div>
+
+        <div className="flex justify-end mb-6">
+          <LanguageSwitcher compact />
         </div>
 
         {error && (

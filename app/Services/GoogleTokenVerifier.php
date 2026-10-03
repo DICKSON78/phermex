@@ -143,7 +143,17 @@ class GoogleTokenVerifier
             $allowed[] = $appId;
         }
 
-        // ID tokens from the Firebase web SDK carry the Web API key as `aud`.
+        // Firebase tokens issued for the project itself carry the project id as
+        // `aud`. This is the audience the Firebase Admin SDK itself checks, so
+        // it has to be allowed, not just the per-client ids above. The issuer
+        // is pinned separately to this project's securetoken url, so accepting
+        // it cannot let a token from another project through.
+        $projectId = (string) config('services.google.firebase_project_id', '');
+        if ($projectId !== '') {
+            $allowed[] = $projectId;
+        }
+
+        // Kept as well: some sign-in flows still mint the Web API key as `aud`.
         $webApiKey = (string) config('services.google.firebase_web_api_key', '');
         if ($webApiKey !== '') {
             $allowed[] = $webApiKey;

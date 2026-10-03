@@ -80,17 +80,23 @@ export default function LoginPage() {
     } catch (err) {
       const data = err?.response?.data
       const code = err?.code
-      if (code === 'auth/popup-closed-by-user') {
+      // Only Firebase errors are named auth/*. Axios sets codes like
+      // ERR_BAD_REQUEST on every 4xx from our own API, so testing for any
+      // truthy code here would swallow the backend's own message, which is the
+      // only thing that explains a 401 from /auth/google.
+      const firebaseCode = typeof code === 'string' && code.startsWith('auth/') ? code : null
+      if (firebaseCode === 'auth/popup-closed-by-user') {
         // User dismissed the Google chooser; not an error worth showing.
       } else if (data?.application_status === 'rejected') {
         setError('Your application has been rejected. ' + (data.rejection_reason || ''))
-      } else if (code) {
-        // Show the Firebase error code, otherwise every Firebase-side problem
+      } else if (firebaseCode) {
+        // Surface the Firebase code, otherwise every Firebase-side problem
         // (unauthorized domain, provider disabled, blocked request) collapses
         // into the same generic message with no way to tell them apart.
-        console.error('Google sign-in failed:', code, err)
-        setError(`Google sign-in failed (${code}).`)
+        console.error('Google sign-in failed:', firebaseCode, err)
+        setError(`Google sign-in failed (${firebaseCode}).`)
       } else {
+        console.error('Google sign-in failed:', code, data, err)
         setError(data?.message || 'Google sign-in failed. Please try again.')
       }
     } finally {

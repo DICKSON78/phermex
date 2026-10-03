@@ -55,16 +55,21 @@ class GoogleTokenVerifier
             throw new \InvalidArgumentException('Google ID token is required.');
         }
 
+        // Outside the try below: failing to fetch the signing keys is a server-side
+        // outage and must stay a 500, not be reported as a bad token.
+        $keys = $this->certs();
+
         try {
             $claims = (array) JWT::decode(
                 $idToken,
-                $this->certs(),
+                $keys,
                 'RS256',
                 self::CLOCK_SKEW_SECONDS
             );
-        } catch (\UnexpectedValueException $e) {
-            // Clock drift or an unknown key id: say which, because the two need
-            // different fixes and both otherwise surface as a bare 401.
+        } catch (\UnexpectedValueException | \InvalidArgumentException | \DomainException $e) {
+            // php-jwt reports an unknown kid, a bad signature and clock drift
+            // as different exception types but all of them land here, and each
+            // needs a different fix. Name it instead of returning a bare 401.
             throw new \InvalidArgumentException('Google ID token could not be verified: '.$e->getMessage(), 0, $e);
         } catch (Throwable $e) {
             throw new \InvalidArgumentException('Google ID token could not be verified.', 0, $e);

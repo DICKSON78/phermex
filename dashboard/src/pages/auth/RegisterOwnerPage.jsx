@@ -27,7 +27,21 @@ import {
   Plus,
   Trash2,
   Pencil,
+  ChevronDown,
 } from 'lucide-react'
+import { TANZANIA_REGIONS } from '../../data/tanzaniaLocations'
+
+// Required fields are marked with this. The browser's own required attribute
+// cannot be used: validation runs per step so the wizard can advance, and these
+// are the fields it actually insists on.
+const Required = () => <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
+
+const findRegion = (name) => TANZANIA_REGIONS.find((r) => r.name === name)
+
+const districtsFor = (region) => findRegion(region)?.districts.map((d) => d.name) ?? []
+
+const wardsFor = (region, district) =>
+  findRegion(region)?.districts.find((d) => d.name === district)?.wards ?? []
 
 const COUNTRIES = [
   { code: 'TZ', name: 'Tanzania', dial: '+255', flag: '🇹🇿' },
@@ -217,9 +231,35 @@ export default function RegisterOwnerPage() {
   }
 
   const updatePharmacy = (index, field, value) => {
-    setPharmacies((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)))
-    const key = `p${index}_${field}`
-    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: '' }))
+    setPharmacies((prev) =>
+      prev.map((p, i) => {
+        if (i !== index) return p
+        // The selects cascade, so a choice higher up invalidates the ones below
+        // it. Leaving a district behind after changing region would submit a
+        // district that does not belong to the chosen region.
+        if (field === 'region') return { ...p, region: value, district: '', ward: '' }
+        if (field === 'district') return { ...p, district: value, ward: '' }
+        return { ...p, [field]: value }
+      })
+    )
+    // Any change to a place name clears its own error, and changing region or
+    // district clears the dependent one so a stale "District is required" does
+    // not survive the pick that fixed it.
+    const cleared = [field]
+    if (field === 'region') cleared.push('district')
+    if (field === 'region' || field === 'district') cleared.push('ward')
+    setErrors((prev) => {
+      const next = { ...prev }
+      let changed = false
+      cleared.forEach((f) => {
+        const key = `p${index}_${f}`
+        if (next[key]) {
+          next[key] = ''
+          changed = true
+        }
+      })
+      return changed ? next : prev
+    })
   }
 
   const addPharmacy = () => {
@@ -444,7 +484,7 @@ export default function RegisterOwnerPage() {
           {step === 1 && (
             <div key={`step1-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1.5">Full Name</label>
+                <label className="block text-sm font-semibold text-gray-600 mb-1.5">Full Name<Required /></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <User className="w-5 h-5 text-gray-400" />
@@ -456,7 +496,7 @@ export default function RegisterOwnerPage() {
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Email Address</label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Email Address<Required /></label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                       <Mail className="w-5 h-5 text-gray-400" />
@@ -466,7 +506,7 @@ export default function RegisterOwnerPage() {
                   {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Phone Number</label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Phone Number<Required /></label>
                   <div className="flex gap-2">
                     <select value={form.countryCode} onChange={(e) => updateForm('countryCode', e.target.value)} className="w-32 px-3 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white">
                       {COUNTRIES.map((c) => (
@@ -481,7 +521,7 @@ export default function RegisterOwnerPage() {
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Password</label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Password<Required /></label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                       <Lock className="w-5 h-5 text-gray-400" />
@@ -494,7 +534,7 @@ export default function RegisterOwnerPage() {
                   {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Confirm Password</label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Confirm Password<Required /></label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                       <Lock className="w-5 h-5 text-gray-400" />
@@ -549,7 +589,7 @@ export default function RegisterOwnerPage() {
                   )}
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Name</label>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Name<Required /></label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <Store className="w-5 h-5 text-gray-400" />
@@ -590,22 +630,43 @@ export default function RegisterOwnerPage() {
 
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Region / State</label>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Region / State<Required /></label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <MapPin className="w-5 h-5 text-gray-400" />
                         </div>
-                        <input type="text" value={p.region} onChange={(e) => updatePharmacy(i, 'region', e.target.value)} className={`${inputClasses} ${errors[`p${i}_region`] ? 'border-red-400' : ''}`} placeholder="e.g. Dar es Salaam" />
+                        <select
+                          value={p.region}
+                          onChange={(e) => updatePharmacy(i, 'region', e.target.value)}
+                          className={`w-full pl-11 pr-10 py-3 border rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] ${errors[`p${i}_region`] ? 'border-red-400' : 'border-gray-200'}`}
+                        >
+                          <option value="">Select region</option>
+                          {TANZANIA_REGIONS.map((r) => (
+                            <option key={r.name} value={r.name}>{r.name}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       </div>
                       {errors[`p${i}_region`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_region`]}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">District / City</label>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">District / City<Required /></label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <MapPin className="w-5 h-5 text-gray-400" />
                         </div>
-                        <input type="text" value={p.district} onChange={(e) => updatePharmacy(i, 'district', e.target.value)} className={`${inputClasses} ${errors[`p${i}_district`] ? 'border-red-400' : ''}`} placeholder="e.g. Kinondoni" />
+                        <select
+                          value={p.district}
+                          onChange={(e) => updatePharmacy(i, 'district', e.target.value)}
+                          disabled={!p.region}
+                          className={`w-full pl-11 pr-10 py-3 border rounded-xl text-sm outline-none bg-white appearance-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed ${errors[`p${i}_district`] ? 'border-red-400' : 'border-gray-200'}`}
+                        >
+                          <option value="">{p.region ? 'Select district' : 'Select region first'}</option>
+                          {districtsFor(p.region).map((d) => (
+                            <option key={d} value={d}>{d}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       </div>
                       {errors[`p${i}_district`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_district`]}</p>}
                     </div>
@@ -614,7 +675,20 @@ export default function RegisterOwnerPage() {
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-sm font-semibold text-gray-600 mb-1.5">Ward</label>
-                      <input type="text" value={p.ward} onChange={(e) => updatePharmacy(i, 'ward', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="e.g. Mikocheni" />
+                      <div className="relative">
+                        <select
+                          value={p.ward}
+                          onChange={(e) => updatePharmacy(i, 'ward', e.target.value)}
+                          disabled={!p.district}
+                          className="w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+                        >
+                          <option value="">{p.district ? 'Select ward' : 'Select district first'}</option>
+                          {wardsFor(p.region, p.district).map((w) => (
+                            <option key={w} value={w}>{w}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-600 mb-1.5">Street</label>
@@ -708,7 +782,7 @@ export default function RegisterOwnerPage() {
             return (
               <div key={`step-hours-${i}-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-2">Working Days</label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-2">Working Days<Required /></label>
                   <div className="flex flex-wrap gap-2">
                     {workingDays.map((day) => (
                       <button
@@ -765,7 +839,7 @@ export default function RegisterOwnerPage() {
           {step === totalSteps && (
             <div key={`step-plan-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <p className="text-blue-700 text-sm font-medium">Choose Your Plan</p>
+                <p className="text-blue-700 text-sm font-medium">Choose Your Plan<Required /></p>
                 <p className="text-blue-600 text-xs mt-1">Select a subscription plan. You'll get a 7-day free trial while your application is reviewed. After approval and payment confirmation, your subscription begins.</p>
               </div>
 

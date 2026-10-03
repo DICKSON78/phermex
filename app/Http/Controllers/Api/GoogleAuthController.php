@@ -8,6 +8,7 @@ use App\Services\GoogleTokenVerifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -80,6 +81,13 @@ class GoogleAuthController extends Controller
                 'error' => $e->errors(),
             ], 422);
         } catch (\InvalidArgumentException $e) {
+            // Token rejections are the hardest thing to diagnose from the
+            // browser, so record why they happened server side too.
+            Log::warning('Google sign-in token rejected.', [
+                'reason' => $e->getMessage(),
+                'ip' => $request->ip(),
+            ]);
+
             return response()->json(['message' => $e->getMessage()], 401);
         } catch (\Throwable $e) {
             return response()->json([
@@ -140,6 +148,13 @@ class GoogleAuthController extends Controller
                 'error' => $e->errors(),
             ], 422);
         } catch (\InvalidArgumentException $e) {
+            // Token rejections are the hardest thing to diagnose from the
+            // browser, so record why they happened server side too.
+            Log::warning('Google sign-in token rejected.', [
+                'reason' => $e->getMessage(),
+                'ip' => $request->ip(),
+            ]);
+
             return response()->json(['message' => $e->getMessage()], 401);
         } catch (\Throwable $e) {
             return response()->json([

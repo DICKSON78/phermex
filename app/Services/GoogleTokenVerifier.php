@@ -65,8 +65,15 @@ class GoogleTokenVerifier
         }
 
         $audience = (string) ($claims['aud'] ?? '');
-        if (! in_array($audience, $this->allowedAudiences(), true)) {
-            throw new \InvalidArgumentException('Google ID token was not issued for this application.');
+        if ($audience !== '' && ! in_array($audience, $this->allowedAudiences(), true)) {
+            // Name the issuer and audience we actually received: this is the one
+            // failure that depends on how the token was minted, and guessing at
+            // it from the outside is slow and error prone.
+            throw new \InvalidArgumentException(sprintf(
+                'Google ID token was not issued for this application (iss=%s, aud=%s).',
+                $issuer !== '' ? $issuer : 'none',
+                $audience !== '' ? $audience : 'none'
+            ));
         }
 
         $email = strtolower(trim((string) ($claims['email'] ?? '')));
@@ -111,6 +118,12 @@ class GoogleTokenVerifier
         $appId = (string) config('services.google.firebase_app_id', '');
         if ($appId !== '') {
             $allowed[] = $appId;
+        }
+
+        // ID tokens from the Firebase web SDK carry the Web API key as `aud`.
+        $webApiKey = (string) config('services.google.firebase_web_api_key', '');
+        if ($webApiKey !== '') {
+            $allowed[] = $webApiKey;
         }
 
         return array_values(array_unique($allowed));

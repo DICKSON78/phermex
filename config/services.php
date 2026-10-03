@@ -48,13 +48,17 @@ return [
         'firebase_project_id' => env('GOOGLE_FIREBASE_PROJECT_ID', 'trcticket-b6b01'),
         // Web app id from the Firebase console: 1:841872361333:web:40e79d57b84fe7b6e1b53c
         'firebase_app_id' => env('GOOGLE_FIREBASE_APP_ID', '1:841872361333:web:40e79d57b84fe7b6e1b53c'),
+        // The Web API key. ID tokens minted by the Firebase JS SDK (the web
+        // sign-in popup) carry this as their `aud` claim, not the app id.
+        'firebase_web_api_key' => env('GOOGLE_FIREBASE_WEB_API_KEY', 'AIzaSyCa66ZgPt5xPkqYK-hOrf3y0ChgrXLpyIs'),
         // Comma separated. Must also contain the Android app id
         // (1:841872361333:android:8cdeca352486dc20e1b53c) and the OAuth client
         // id (841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com)
         // so tokens minted by the mobile app are accepted too.
-        // Defaults cover the web app, the Android app and the OAuth client that
-        // google_sign_in receives on mobile.
+        // Defaults cover the web API key (web popup), the web and Android app
+        // ids, and the OAuth client that google_sign_in receives on mobile.
         'allowed_audiences' => env('GOOGLE_ALLOWED_AUDIENCES', implode(',', [
+            'AIzaSyCa66ZgPt5xPkqYK-hOrf3y0ChgrXLpyIs',
             '1:841872361333:web:40e79d57b84fe7b6e1b53c',
             '1:841872361333:android:8cdeca352486dc20e1b53c',
             '841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com',

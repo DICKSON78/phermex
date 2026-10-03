@@ -24,7 +24,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only treat a 401 as an expired session if a token was actually sent.
+    // A stale token used to make every request 401, including the public
+    // endpoints the login page itself loads, and the redirect below turned
+    // that into a full page reload: open /login with a dead token and the page
+    // reloaded itself, and only then did pricing render. That read as
+    // "packages need a reload". An anonymous 401 is just a failed request.
+    const sentToken = !!error.config?.headers?.Authorization
+
+    if (error.response?.status === 401 && sentToken) {
       localStorage.removeItem('pharmex_token')
       localStorage.removeItem('pharmex_user')
       window.location.href = '/login'

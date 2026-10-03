@@ -6,6 +6,20 @@ import LanguageSwitcher from '../../components/LanguageSwitcher'
 import { Pill, Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react'
 import api from '../../services/api'
 
+const PLANS_CACHE_KEY = 'pharmex_login_plans'
+
+// Seed from the last successful load so the packages are on screen at first
+// paint instead of popping in a beat later. The request below still refreshes
+// them, so the database stays the only source of truth and prices cannot drift.
+const readCachedPlans = () => {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(PLANS_CACHE_KEY) || '[]')
+    return Array.isArray(cached) ? cached : []
+  } catch {
+    return []
+  }
+}
+
 export default function LoginPage() {
   const [credentials, setCredentials] = useState('')
   const [password, setPassword] = useState('')
@@ -15,7 +29,7 @@ export default function LoginPage() {
   const { login, loginWithGoogleAccount, subscription, pendingGoogleResult, clearPendingGoogleResult, loading: authLoading } = useAuth()
   const { t } = useLanguage()
   const navigate = useNavigate()
-  const [plans, setPlans] = useState([])
+  const [plans, setPlans] = useState(readCachedPlans)
 
   // Same public endpoint the marketing /packages page uses, so pricing can
   // never drift between the two.
@@ -25,7 +39,13 @@ export default function LoginPage() {
       .then((res) => {
         if (!active) return
         const list = res.data?.data || res.data || []
-        setPlans(Array.isArray(list) ? list : [])
+        if (!Array.isArray(list)) return
+        setPlans(list)
+        try {
+          sessionStorage.setItem(PLANS_CACHE_KEY, JSON.stringify(list))
+        } catch {
+          // A full or blocked sessionStorage just means the next load fetches again.
+        }
       })
       .catch(() => {})
     return () => { active = false }
@@ -127,10 +147,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <div className="flex items-center justify-center gap-3 mb-8">
+    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-8">
+      <div className="w-full max-w-4xl grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <div>
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center gap-3 mb-5">
             <div className="w-12 h-12 bg-[#0FD452] rounded-xl flex items-center justify-center">
               <Pill className="w-7 h-7 text-[#000F14]" />
             </div>
@@ -196,7 +217,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="relative my-8">
+        <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
           </div>
@@ -220,46 +241,61 @@ export default function LoginPage() {
           Continue with Google
         </button>
 
-        {plans.length > 0 && (
-          <div className="mt-10">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Sparkles className="w-4 h-4 text-[#0FD452]" />
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[3px]">
-                Packages
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {plans.map((plan) => (
-                <Link
-                  key={plan.id ?? plan.slug}
-                  to="/register/owner"
-                  className="rounded-2xl border border-gray-200 p-4 text-center transition-all duration-200 hover:border-[#0FD452] hover:shadow-md"
-                >
-                  <p className="text-[10px] font-black tracking-widest text-gray-500 truncate">
-                    {plan.name}
-                  </p>
-                  <p className="mt-1.5 text-lg font-black text-[#000F14]">
-                    {formatPrice(plan)}
-                  </p>
-                  <p className="text-[10px] text-gray-400">
-                    /{Number(plan.duration_months ?? 12) === 1 ? 'mo' : 'yr'}
-                  </p>
-                </Link>
-              ))}
-            </div>
-            <p className="mt-3 text-center text-xs text-gray-400">
-              Start your pharmacy on any package
-            </p>
-          </div>
-        )}
-
-        <div className="mt-10 text-center">
+        <div className="mt-6 text-center">
           <p className="text-gray-500 text-sm">
-{t('auth.noAccount')}{' '}
+            {t('auth.noAccount')}{' '}
             <Link to="/register" className="text-[#0FD452] font-semibold hover:text-[#0cb843] transition-colors">
               {t('auth.signUp')}
             </Link>
           </p>
+        </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Sparkles className="w-4 h-4 text-[#0FD452]" />
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[3px]">
+              Packages
+            </p>
+          </div>
+          {plans.length > 0 ? (
+            <>
+              <div className="grid grid-cols-3 gap-3">
+                {plans.map((plan) => (
+                  <Link
+                    key={plan.id ?? plan.slug}
+                    to="/register/owner"
+                    className="rounded-2xl border border-gray-200 p-4 text-center transition-all duration-200 hover:border-[#0FD452] hover:shadow-md"
+                  >
+                    <p className="text-[10px] font-black tracking-widest text-gray-500 truncate">
+                      {plan.name}
+                    </p>
+                    <p className="mt-1.5 text-lg font-black text-[#000F14]">
+                      {formatPrice(plan)}
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      /{Number(plan.duration_months ?? 12) === 1 ? 'mo' : 'yr'}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+              <p className="mt-3 text-center text-xs text-gray-400">
+                Start your pharmacy on any package
+              </p>
+            </>
+          ) : (
+            // Holds the space the cards will take so the page does not jump
+            // when pricing arrives, and stays honest if the request fails.
+            <div className="grid grid-cols-3 gap-3" aria-hidden="true">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="rounded-2xl border border-gray-100 p-4">
+                  <div className="h-2 w-1/2 mx-auto rounded bg-gray-100" />
+                  <div className="h-5 w-2/3 mx-auto mt-2 rounded bg-gray-100" />
+                  <div className="h-2 w-1/4 mx-auto mt-2 rounded bg-gray-100" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

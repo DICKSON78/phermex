@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom'
+import { useLanguage } from '../contexts/LanguageContext'
 
 export default function Story() {
+
+  const { t } = useLanguage()
   return (
     <section className="bg-white py-20 lg:py-28 overflow-hidden" id="story">
       <div className="max-w-7xl mx-auto px-6">
@@ -16,25 +19,25 @@ export default function Story() {
             </div>
             <div className="absolute -bottom-5 -right-5 bg-[#0FD452] p-5 rounded-2xl shadow-lg hidden sm:block">
               <p className="text-white text-3xl font-extrabold">500+</p>
-              <p className="text-white/80 text-xs font-semibold">Pharmacies Served</p>
+              <p className="text-white/80 text-xs font-semibold">{t('site.home.story.served')}</p>
             </div>
           </div>
           <div>
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">OUR STORY</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.home.ourStory')}</p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-black leading-tight">
-              The Road to Health Management.
+              {t('site.home.story.title')}
             </h2>
             <div className="mt-6 space-y-4 text-gray-500 text-sm leading-relaxed max-w-lg">
               <p>
-                We are on a mission to digitize pharmacies across Africa, providing the tools needed to manage inventory, process prescriptions, and serve patients better.
+                {t('site.home.story.bodyOne')}
               </p>
               <p>
-                Our platform empowers pharmacy owners to focus on what matters most — delivering quality healthcare to their communities.
+                {t('site.home.story.bodyTwo')}
               </p>
             </div>
             <div className="mt-8">
               <Link to="/about" className="btn-asaak hover:!bg-white hover:!text-black">
-                ABOUT US
+                {t('site.nav.about')}
               </Link>
             </div>
           </div>

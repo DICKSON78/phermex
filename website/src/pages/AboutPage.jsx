@@ -5,24 +5,25 @@ import isackMahozi from '../Isack Mahozi.jpeg'
 import fredTom from '../Fred Tom  co-founder & CSO.jpeg'
 import michaelMaduhu from '../Michael Maduhu Co-founder & COO.jpeg'
 import dicksonSteven from '../Dickson Steven CTO.png'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const milestones = [
-  {
+  { key: 'beginning',
     year: '2023', title: 'The Beginning',
     desc: 'Helix was founded in Dar es Salaam with a vision to digitize pharmacies across Africa.',
     icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
   },
-  {
+  { key: 'first100',
     year: '2024', title: 'First 100 Pharmacies',
     desc: 'Reached our first 100 pharmacy partners and expanded to 3 regions in Africa.',
     icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
   },
-  {
+  { key: 'regional',
     year: '2025', title: 'Regional Expansion',
     desc: 'Expanded to 5 regions across Africa and secured $2M in seed funding to accelerate growth.',
     icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z',
   },
-  {
+  { key: 'national',
     year: '2026', title: 'National Expansion',
     desc: 'Now serving 500+ pharmacies across Africa with a team of 50+ employees.',
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
@@ -37,6 +38,7 @@ const team = [
 ]
 
 export default function AboutPage() {
+  const { t } = useLanguage()
   return (
     <>
       <section className="relative py-28 lg:py-36 overflow-hidden">
@@ -46,21 +48,20 @@ export default function AboutPage() {
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">ABOUT HELIX</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.about.kicker')}</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
-              Empowering Pharmacies Across{' '}
-              <span className="text-[#0FD452]">Africa</span>
+              {t('site.pages.about.hero')}
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              Helix is building the digital backbone for African pharmacies. We provide a complete management platform that helps pharmacy owners streamline operations, serve patients better, and grow their business.
+              {t('site.pages.about.heroBody')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <Link to="/products" className="btn-asaak hover:!bg-white hover:!text-black">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                Explore Products
+                {t('site.cta.exploreProducts')}
               </Link>
               <Link to="/careers" className="btn-asaak hover:!bg-white hover:!text-black">
-                Join Our Team
+                {t('site.pages.careers.join')}
               </Link>
             </div>
           </div>
@@ -71,8 +72,8 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="lg:order-2">
-              <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">OUR STORY</p>
-              <h2 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight">Built by Pharmacists, for Pharmacists</h2>
+              <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.home.ourStory')}</p>
+              <h2 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight">{t('site.pages.about.title')}</h2>
               <div className="mt-6 space-y-4 text-gray-500 text-sm leading-relaxed">
                 <p>Helix started in 2023 when our founder, Isack Mahozi, saw firsthand the challenges pharmacy owners face managing their businesses — from inventory tracking to prescription management.</p>
                 <p>What began as a simple inventory tool has grown into a comprehensive pharmacy management platform used by hundreds of pharmacies across Africa.</p>
@@ -85,7 +86,7 @@ export default function AboutPage() {
               </div>
               <div className="absolute -bottom-5 -right-5 bg-[#0FD452] p-5 rounded-2xl shadow-lg">
                 <p className="text-white text-3xl font-extrabold">500+</p>
-                <p className="text-white/80 text-xs font-semibold">Pharmacies Served</p>
+                <p className="text-white/80 text-xs font-semibold">{t('site.pages.about.served')}</p>
               </div>
             </div>
           </div>
@@ -105,8 +106,8 @@ export default function AboutPage() {
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center mb-16">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">OUR JOURNEY</p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Key Milestones</h2>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.about.journeyKicker')}</p>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">{t('site.pages.about.milestones')}</h2>
           </div>
 
           <div className="relative">
@@ -131,7 +132,7 @@ export default function AboutPage() {
                           </div>
                           <span className="text-[#0FD452] text-xs font-bold">{m.year}</span>
                         </div>
-                        <h3 className="text-black font-bold text-lg mb-2">{m.title}</h3>
+                        <h3 className="text-black font-bold text-lg mb-2">{t(`site.pages.about.milestoneItems.${m.key}`, m.title)}</h3>
                         <p className="text-gray-500 text-sm leading-relaxed">{m.desc}</p>
                       </div>
                     </div>
@@ -150,7 +151,7 @@ export default function AboutPage() {
                         </div>
                         <span className="text-[#0FD452] text-xs font-bold">{m.year}</span>
                       </div>
-                      <h3 className="text-black font-bold text-base mb-1.5">{m.title}</h3>
+                      <h3 className="text-black font-bold text-base mb-1.5">{t(`site.pages.about.milestoneItems.${m.key}`, m.title)}</h3>
                       <p className="text-gray-500 text-sm leading-relaxed">{m.desc}</p>
                     </div>
                   </div>
@@ -166,8 +167,8 @@ export default function AboutPage() {
         <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-[#0FD452]/[0.03] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center mb-14">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">LEADERSHIP</p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Meet the Team</h2>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.about.leadershipKicker')}</p>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">{t('site.pages.about.team')}</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {team.map((member, i) => (
@@ -185,9 +186,9 @@ export default function AboutPage() {
 
       <section className="bg-[#000F14] py-16 lg:py-20 text-center">
         <div className="max-w-7xl mx-auto px-6">
-          <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-2">OUR MISSION</p>
+          <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-2">{t('site.pages.about.missionKicker')}</p>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-white max-w-3xl mx-auto leading-tight">
-            Making pharmacy management simple, efficient, and accessible for every pharmacy in Africa.
+            {t('site.pages.about.mission')}
           </h2>
         </div>
       </section>

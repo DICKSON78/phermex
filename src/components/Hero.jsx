@@ -1,6 +1,9 @@
 import { DASHBOARD_URL } from '../config'
+import { useLanguage } from '../contexts/LanguageContext'
 
 export default function Hero() {
+  const { t } = useLanguage()
+
   return (
     <section className="relative py-28 lg:py-36 overflow-hidden" id="hero">
       <div className="absolute inset-0 z-0">
@@ -18,23 +21,23 @@ export default function Hero() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">HELIX</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.home.heroKicker')}</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-              DON'T WAIT,<br />
-              <span className="text-[#0FD452]">APPLY TODAY</span>
+              {t('site.home.heroLine1')}<br />
+              <span className="text-[#0FD452]">{t('site.home.heroLine2')}</span>
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-md">
-              The all-in-one pharmacy management platform built for African pharmacies. Streamline operations, serve patients better, and grow your business.
+              {t('site.home.heroBody')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <a href={DASHBOARD_URL + '/register'} className="btn-asaak hover:!bg-white hover:!text-black">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
-                Get Started
+                {t('site.cta.getStarted')}
               </a>
               <a href={DASHBOARD_URL + '/register'} className="btn-asaak hover:!bg-white hover:!text-black">
-                Apply Here
+                {t('site.cta.applyHere')}
               </a>
             </div>
           </div>

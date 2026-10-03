@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DASHBOARD_URL } from '../config'
+import { useLanguage } from '../contexts/LanguageContext'
 import MainCta from '../components/MainCta'
 
 // Shown while the API is unreachable, and if the endpoint ever returns nothing,
@@ -56,6 +57,7 @@ function periodLabel(plan) {
 }
 
 export default function PackagesPage() {
+  const { t } = useLanguage()
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -85,14 +87,13 @@ export default function PackagesPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="max-w-3xl">
             <p className="text-xs font-bold text-[#0FD452] uppercase tracking-[3px] mb-4">
-              Packages
+              {t('site.pages.packages.kicker')}
             </p>
             <h1 className="text-4xl lg:text-6xl font-black tracking-tight text-[#000F14]">
-              Simple pricing that scales with your pharmacy
+              {t('site.pages.packages.title')}
             </h1>
             <p className="mt-6 text-lg text-gray-600">
-              Choose the package that matches your operation. Every plan includes
-              inventory, point of sale, prescriptions and the Helix customer app.
+              {t('site.pages.packages.body')}
             </p>
           </div>
         </div>
@@ -172,7 +173,7 @@ export default function PackagesPage() {
                           : 'mt-8 block w-full rounded-xl border border-[#000F14] px-6 py-3 text-center text-sm font-black text-[#000F14] transition-colors hover:bg-[#0FD452]'
                       }
                     >
-                      Get Started
+                      {t('site.cta.getStarted')}
                     </Link>
                   </div>
                 )
@@ -183,7 +184,7 @@ export default function PackagesPage() {
           <p className="mt-10 text-center text-sm text-gray-500">
             Need a custom package for a chain?{' '}
             <Link to="/contact" className="font-bold text-[#0FD452] hover:text-[#0cb843]">
-              Talk to our team
+              {t('site.cta.talkToTeam')}
             </Link>
           </p>
         </div>

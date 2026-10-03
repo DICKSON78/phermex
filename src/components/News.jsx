@@ -1,4 +1,7 @@
+import { useLanguage } from '../contexts/LanguageContext'
 export default function News() {
+
+  const { t } = useLanguage()
   const articles = [
     {
       title: 'Helix Raises $5M to Expand Pharmacy Tech Across Africa',
@@ -20,7 +23,7 @@ export default function News() {
   return (
     <section className="bg-gray-50 py-16 lg:py-24" id="newsroom">
       <div className="max-w-7xl mx-auto px-6">
-        <h2 className="text-3xl lg:text-4xl font-extrabold text-black mb-10">Making The News</h2>
+        <h2 className="text-3xl lg:text-4xl font-extrabold text-black mb-10">{t('site.home.news')}</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {articles.map((article, i) => (
             <article key={i} className="group cursor-pointer">

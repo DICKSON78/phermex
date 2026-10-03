@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom'
+import { useLanguage } from '../contexts/LanguageContext'
 import { articles, featured } from '../data/articles'
 
 const categories = ['All', 'Press', 'Industry', 'Tips', 'Customer Story']
 
+/** Filter values stay English so they keep matching article.category; only the label is translated. */
+const CATEGORY_KEYS = { All: 'all', Press: 'press', Industry: 'industry', Tips: 'tips', 'Customer Story': 'customerStory' }
+
 export default function NewsroomPage() {
+  const { t } = useLanguage()
   return (
     <>
       <section className="relative py-24 lg:py-32 overflow-hidden">
@@ -13,13 +18,12 @@ export default function NewsroomPage() {
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">NEWSROOM</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.newsroom.kicker')}</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
-              Latest News &{' '}
-              <span className="text-[#0FD452]">Stories</span>
+              {t('site.pages.newsroom.title')}
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              Stay up to date with the latest from Helix — company updates, industry insights, and customer success stories.
+              {t('site.pages.newsroom.body')}
             </p>
           </div>
         </div>
@@ -40,7 +44,7 @@ export default function NewsroomPage() {
                   <span className="font-semibold text-black">{featured.author}</span> &middot; {featured.date}
                 </div>
                 <Link to={`/newsroom/${featured.slug}`} className="btn-asaak hover:!bg-white hover:!text-black !text-xs !px-6 !py-2.5">
-                  Read More
+                  {t('site.cta.readMore')}
                 </Link>
               </div>
             </div>
@@ -49,7 +53,7 @@ export default function NewsroomPage() {
           <div className="flex flex-wrap gap-2 mb-10">
             {categories.map((cat, i) => (
               <button key={i} className={`px-3 sm:px-5 py-2 rounded-full text-[10px] sm:text-xs font-bold transition-colors ${i === 0 ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                {cat}
+                {t(`site.pages.newsroom.filters.${CATEGORY_KEYS[cat]}`, cat)}
               </button>
             ))}
           </div>
@@ -63,14 +67,14 @@ export default function NewsroomPage() {
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-[10px] font-bold text-[#0FD452] bg-[#0FD452]/10 px-2.5 py-1 rounded-full">
-                      {article.category}
+                      {t(`site.pages.newsroom.filters.${CATEGORY_KEYS[article.category]}`, article.category)}
                     </span>
                     <span className="text-xs text-gray-400">{article.date}</span>
                   </div>
                   <h3 className="text-black font-bold text-base mb-2 leading-snug">{article.title}</h3>
                   <p className="text-gray-500 text-xs leading-relaxed">{article.excerpt}</p>
                   <Link to={`/newsroom/${article.slug}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-black mt-4 group-hover:text-[#0FD452] transition-colors">
-                    Read Article
+                    {t('site.cta.readArticle')}
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                     </svg>
@@ -82,7 +86,7 @@ export default function NewsroomPage() {
 
           <div className="text-center mt-12">
             <button className="btn-asaak hover:!bg-white hover:!text-black">
-              Load More Articles
+              {t('site.cta.loadMore')}
             </button>
           </div>
         </div>
@@ -91,11 +95,11 @@ export default function NewsroomPage() {
       <section className="bg-[#000F14] py-16">
         <div className="max-w-7xl mx-auto px-6">
           <div className="max-w-xl mx-auto text-center">
-            <h2 className="text-2xl lg:text-3xl font-extrabold text-white mb-3">Stay in the Loop</h2>
+            <h2 className="text-2xl lg:text-3xl font-extrabold text-white mb-3">{t('site.pages.newsroom.stayInLoop')}</h2>
             <p className="text-gray-400 text-sm mb-6">Get the latest news and updates delivered to your inbox.</p>
             <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input type="email" placeholder="Enter your email" className="flex-1 px-4 py-3 rounded-full text-sm bg-white/10 border border-white/20 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#0FD452]" />
-              <button className="btn-asaak hover:!bg-white hover:!text-black">Subscribe</button>
+              <button className="btn-asaak hover:!bg-white hover:!text-black">{t('site.cta.subscribe')}</button>
             </div>
           </div>
         </div>

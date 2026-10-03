@@ -1,44 +1,47 @@
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faInstagram, faLinkedinIn, faYoutube } from '@fortawesome/free-brands-svg-icons'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const companyLinks = [
-  { label: 'About Us', to: '/about' },
-  { label: 'Products', to: '/products' },
-  { label: 'Packages', to: '/packages' },
-  { label: 'Careers', to: '/careers' },
-  { label: 'FAQ', to: '/faq' },
-  { label: 'Newsroom', to: '/newsroom' },
-  { label: 'Contact', to: '/contact' },
+  { key: 'aboutUs', to: '/about' },
+  { key: 'products', to: '/products' },
+  { key: 'packages', to: '/packages' },
+  { key: 'careers', to: '/careers' },
+  { key: 'faq', to: '/faq' },
+  { key: 'newsroom', to: '/newsroom' },
+  { key: 'contact', to: '/contact' },
 ]
 
 export default function Footer() {
+  const { t } = useLanguage()
+
   return (
     <footer className="bg-[#000F14] text-white py-16 lg:py-20" id="footer">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
           <div>
-            <h4 className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-5">OFFICES</h4>
+            <h4 className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-5">{t('site.footer.offices')}</h4>
             <ul className="space-y-2 text-gray-400 text-sm">
-              <li><span className="text-white font-semibold">Dar es Salaam,</span> Tanzania</li>
-              <li><span className="text-white font-semibold">Arusha,</span> Tanzania</li>
-              <li><span className="text-white font-semibold">Mwanza,</span> Tanzania</li>
+              <li><span className="text-white font-semibold">Dar es Salaam,</span> {t('site.footer.tanzania')}</li>
+              <li><span className="text-white font-semibold">Arusha,</span> {t('site.footer.tanzania')}</li>
+              <li><span className="text-white font-semibold">Mwanza,</span> {t('site.footer.tanzania')}</li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-5">COMPANY</h4>
+            <h4 className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-5">{t('site.footer.company')}</h4>
             <ul className="space-y-3 text-sm">
               {companyLinks.map((link) => (
                 <li key={link.to}>
-                  <Link to={link.to} className="text-gray-400 hover:text-white transition-colors">{link.label}</Link>
+                  <Link to={link.to} className="text-gray-400 hover:text-white transition-colors">{t(`site.footer.${link.key}`)}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-5">KEEP IN TOUCH</h4>
+            <h4 className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-5">{t('site.footer.keepInTouch')}</h4>
             <ul className="space-y-3 text-sm text-gray-400">
               <li>
                 <a href="tel:+255 669 254 444" className="hover:text-white transition-colors">+255 669 254 444</a>
@@ -81,18 +84,18 @@ export default function Footer() {
               <span className="text-[#0FD452] font-bold text-lg tracking-wide">HELIX</span>
             </Link>
             <p className="text-gray-500 text-xs mt-4 leading-relaxed">
-              Empowering pharmacies across Africa with modern digital tools for better health outcomes.
+              {t('site.footer.blurb')}
             </p>
           </div>
         </div>
 
         <div className="border-t border-white/10 mt-10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500">
           <div className="flex gap-4">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">{t('site.footer.privacyPolicy')}</a>
             <span>|</span>
-            <a href="#" className="hover:text-white transition-colors">Terms of Use</a>
+            <a href="#" className="hover:text-white transition-colors">{t('site.footer.termsOfUse')}</a>
           </div>
-          <p>&copy; {new Date().getFullYear()} Helix. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {t('site.brand', 'Helix')}. {t('site.footer.rights')}</p>
         </div>
       </div>
     </footer>

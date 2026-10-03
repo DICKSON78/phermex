@@ -1,7 +1,9 @@
 import { useParams, Link } from 'react-router-dom'
+import { useLanguage } from '../contexts/LanguageContext'
 import { articles } from '../data/articles'
 
 export default function ArticlePage() {
+  const { t } = useLanguage()
   const { slug } = useParams()
   const article = articles.find(a => a.slug === slug)
 
@@ -9,7 +11,7 @@ export default function ArticlePage() {
     return (
       <section className="bg-white py-28 lg:py-36 text-center">
         <div className="max-w-7xl mx-auto px-6">
-          <h1 className="text-4xl font-extrabold text-black">Article Not Found</h1>
+          <h1 className="text-4xl font-extrabold text-black">{t('site.pages.articleNotFound')}</h1>
           <p className="text-gray-500 mt-4 mb-8">The article you are looking for does not exist.</p>
           <Link to="/newsroom" className="btn-asaak hover:!bg-white hover:!text-black">
             Back to Newsroom

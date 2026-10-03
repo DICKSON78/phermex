@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLanguage } from '../contexts/LanguageContext'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
@@ -10,6 +11,7 @@ const offices = [
 ]
 
 export default function ContactPage() {
+  const { t } = useLanguage()
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -45,13 +47,12 @@ export default function ContactPage() {
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">CONTACT</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.nav.contact')}</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
-              Get in{' '}
-              <span className="text-[#0FD452]">Touch</span>
+              {t('site.pages.contact.hero')}
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              Have a question, want a demo, or ready to get started? We're here to help. Reach out to our team.
+              {t('site.pages.contact.heroBody')}
             </p>
           </div>
         </div>
@@ -61,7 +62,7 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-5 gap-12">
             <div className="lg:col-span-3">
-              <h2 className="text-2xl lg:text-3xl font-extrabold text-black mb-2">Send Us a Message</h2>
+              <h2 className="text-2xl lg:text-3xl font-extrabold text-black mb-2">{t('site.pages.contact.heading')}</h2>
               <p className="text-gray-400 text-sm mb-8">We'll get back to you within 24 hours.</p>
 
               {success ? (
@@ -69,7 +70,7 @@ export default function ContactPage() {
                   <div className="w-16 h-16 rounded-full bg-[#0FD452]/10 flex items-center justify-center mx-auto mb-5">
                     <CheckCircle2 className="w-8 h-8 text-[#0FD452]" />
                   </div>
-                  <h3 className="text-xl font-bold text-black mb-2">Message Sent!</h3>
+                  <h3 className="text-xl font-bold text-black mb-2">{t('site.pages.contact.messageSent')}</h3>
                   <p className="text-gray-500 text-sm mb-6">Thank you for reaching out. We will get back to you within 24 hours.</p>
                   <button onClick={() => setSuccess(false)} className="px-6 py-3 bg-[#0FD452] text-white rounded-full font-bold text-sm hover:bg-[#0cb843] transition-colors">
                     Send Another Message
@@ -84,7 +85,7 @@ export default function ContactPage() {
                   )}
                   <div className="grid sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Full Name</label>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">{t('site.pages.contact.fullName')}</label>
                       <input
                         type="text"
                         required
@@ -95,7 +96,7 @@ export default function ContactPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Email</label>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">{t('site.pages.contact.labels.email')}</label>
                       <input
                         type="email"
                         required
@@ -107,23 +108,23 @@ export default function ContactPage() {
                     </div>
                   </div>
                   <div className="mt-5">
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Subject</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">{t('site.pages.contact.labels.subject')}</label>
                     <select
                       required
                       value={form.subject}
                       onChange={e => setForm(p => ({ ...p, subject: e.target.value }))}
                       className="w-full px-4 py-3 rounded-full text-sm border border-gray-200 focus:outline-none focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 transition-all bg-white"
                     >
-                      <option value="">Select a subject</option>
-                      <option value="Request a Demo">Request a Demo</option>
-                      <option value="Sales Inquiry">Sales Inquiry</option>
-                      <option value="Customer Support">Customer Support</option>
-                      <option value="Partnership">Partnership</option>
-                      <option value="Other">Other</option>
+                      <option value="">{t('site.pages.contact.labels.selectSubject')}</option>
+                      <option value="Request a Demo">{t('site.pages.contact.subjects.demo')}</option>
+                      <option value="Sales Inquiry">{t('site.pages.contact.subjects.sales')}</option>
+                      <option value="Customer Support">{t('site.pages.contact.subjects.customerSupport')}</option>
+                      <option value="Partnership">{t('site.pages.contact.subjects.partnership')}</option>
+                      <option value="Other">{t('site.pages.contact.subjects.other')}</option>
                     </select>
                   </div>
                   <div className="mt-5">
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Message</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">{t('site.pages.contact.message')}</label>
                     <textarea
                       rows="5"
                       required
@@ -139,7 +140,7 @@ export default function ContactPage() {
                     ) : (
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     )}
-                    {loading ? 'Sending...' : 'Send Message'}
+                    {loading ? t('site.pages.contact.sending') : t('site.cta.sendMessage')}
                   </button>
                 </form>
               )}
@@ -147,7 +148,7 @@ export default function ContactPage() {
 
             <div className="lg:col-span-2 space-y-8">
               <div>
-                <h3 className="text-black font-bold text-lg mb-4">Contact Info</h3>
+                <h3 className="text-black font-bold text-lg mb-4">{t('site.pages.contact.contactInfo')}</h3>
                 <div className="space-y-4">
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#0FD452]/10 flex items-center justify-center shrink-0">
@@ -156,7 +157,7 @@ export default function ContactPage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-gray-400">Phone</p>
+                      <p className="text-xs font-bold text-gray-400">{t('site.contact.phone')}</p>
                       <a href="tel:+255669254444" className="text-black font-bold hover:text-[#0FD452] transition-colors">+255 669 254 444</a>
                     </div>
                   </div>
@@ -167,7 +168,7 @@ export default function ContactPage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-gray-400">Email</p>
+                      <p className="text-xs font-bold text-gray-400">{t('site.contact.email')}</p>
                       <a href="mailto:support@helix.co.tz" className="text-black font-bold hover:text-[#0FD452] transition-colors">support@helix.co.tz</a>
                     </div>
                   </div>
@@ -178,15 +179,15 @@ export default function ContactPage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-gray-400">Hours</p>
-                      <p className="text-black font-bold">Mon - Fri, 8AM - 6PM</p>
+                      <p className="text-xs font-bold text-gray-400">{t('site.contact.hours')}</p>
+                      <p className="text-black font-bold">{t('site.pages.contact.hoursValue')}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="border-t border-gray-100 pt-8">
-                <h3 className="text-black font-bold text-lg mb-4">Our Offices</h3>
+                <h3 className="text-black font-bold text-lg mb-4">{t('site.contact.offices')}</h3>
                 <div className="space-y-5">
                   {offices.map((office, i) => (
                     <div key={i}>
@@ -199,7 +200,7 @@ export default function ContactPage() {
               </div>
 
               <div className="border-t border-gray-100 pt-8">
-                <h3 className="text-black font-bold text-lg mb-4">Follow Us</h3>
+                <h3 className="text-black font-bold text-lg mb-4">{t('site.contact.followUs')}</h3>
                 <div className="flex gap-3">
                   <a href="https://www.linkedin.com/in/helix-co-ltd-part-of-allos-holding-co-ltd-299605359" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0FD452]/10 flex items-center justify-center text-[#0FD452] hover:bg-[#0FD452] hover:text-white transition-all">
                     <span className="text-xs font-bold">in</span>
@@ -220,8 +221,8 @@ export default function ContactPage() {
       <section className="bg-gray-50 py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">FOLLOW US</p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-black mb-8">Stay Connected</h2>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.contact.followKicker')}</p>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-black mb-8">{t('site.pages.contact.stayConnected')}</h2>
             <div className="flex justify-center gap-4">
               <a href="https://www.linkedin.com/in/helix-co-ltd-part-of-allos-holding-co-ltd-299605359" target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] hover:shadow-lg transition-all">
                 <span className="text-xs font-bold">in</span>

@@ -5,19 +5,23 @@ export const SITE = {
   subline: 'Pharmacy Management',
   tagline: 'Pharmacy management software built for African pharmacies.',
   contact: {
-    email: 'info@helix.com',
+    email: 'support@helix.co.tz',
     /** Every number Helix answers on, in display order. */
-    phones: [{ label: 'Sales', number: '+255 625 460 081', href: 'tel:+255625460081' }],
+    phones: [{ key: 'phone', number: '+255 669 254 444', href: 'tel:+255669254444' }],
   },
 }
 
+/**
+ * Nav targets only. Labels come from the dictionaries so the navbar follows
+ * the active language, so each entry carries a `site.nav.*` key.
+ */
 export const NAV_LINKS = [
-  { label: 'HOME', to: '/' },
-  { label: 'ABOUT', to: '/about' },
-  { label: 'PRODUCTS', to: '/products' },
-  { label: 'PACKAGES', to: '/packages' },
-  { label: 'CAREERS', to: '/careers' },
-  { label: 'NEWSROOM', to: '/newsroom' },
-  { label: 'FAQ', to: '/faq' },
-  { label: 'CONTACT', to: '/contact' },
+  { key: 'home', to: '/' },
+  { key: 'about', to: '/about' },
+  { key: 'products', to: '/products' },
+  { key: 'packages', to: '/packages' },
+  { key: 'careers', to: '/careers' },
+  { key: 'newsroom', to: '/newsroom' },
+  { key: 'faq', to: '/faq' },
+  { key: 'contact', to: '/contact' },
 ]

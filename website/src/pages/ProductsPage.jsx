@@ -2,27 +2,28 @@ import { Link } from 'react-router-dom'
 import { DASHBOARD_URL } from '../config'
 import HowItWorks from '../components/HowItWorks'
 import MainCta from '../components/MainCta'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const features = [
-  {
+  { key: 'inventory',
     title: 'Inventory Management',
     desc: 'Track stock levels, expiration dates, and reorder points in real-time. Get alerts when stock is running low.',
     icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
     img: 'https://images.pexels.com/photos/7490839/pexels-photo-7490839.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
-  {
+  { key: 'pos',
     title: 'Point of Sale (POS)',
     desc: 'Fast, intuitive POS system with support for multiple payment methods, invoice generation, and receipt printing.',
     icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
     img: 'https://images.pexels.com/photos/30688588/pexels-photo-30688588.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
-  {
+  { key: 'prescriptions',
     title: 'Prescription Management',
     desc: 'Digital prescription processing from patient intake to fulfillment. Track prescription history and automate refills.',
     icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
     img: 'https://images.pexels.com/photos/30677719/pexels-photo-30677719.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
-  {
+  { key: 'analytics',
     title: 'Analytics & Reports',
     desc: 'Data-driven insights on sales trends, inventory turnover, and profitability. Make informed business decisions.',
     icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
@@ -31,15 +32,16 @@ const features = [
 ]
 
 const benefits = [
-  { title: 'Cloud-Based', desc: 'Access your data from anywhere, anytime. No installation needed.' },
-  { title: 'Real-Time Sync', desc: 'Inventory and sales update instantly across all devices.' },
-  { title: '24/7 Support', desc: 'Our team is always available to help you succeed.' },
-  { title: 'Secure', desc: 'Bank-level encryption keeps your data safe and protected.' },
-  { title: 'Easy Setup', desc: 'Get started in minutes with our simple onboarding process.' },
-  { title: 'Scalable', desc: 'Grows with your business — from single store to multi-location.' },
+  { key: 'cloud', title: 'Cloud-Based', desc: 'Access your data from anywhere, anytime. No installation needed.' },
+  { key: 'sync', title: 'Real-Time Sync', desc: 'Inventory and sales update instantly across all devices.' },
+  { key: 'support', title: '24/7 Support', desc: 'Our team is always available to help you succeed.' },
+  { key: 'secure', title: 'Secure', desc: 'Bank-level encryption keeps your data safe and protected.' },
+  { key: 'setup', title: 'Easy Setup', desc: 'Get started in minutes with our simple onboarding process.' },
+  { key: 'scalable', title: 'Scalable', desc: 'Grows with your business — from single store to multi-location.' },
 ]
 
 export default function ProductsPage() {
+  const { t } = useLanguage()
   return (
     <>
       <section className="relative py-28 lg:py-36 overflow-hidden">
@@ -49,18 +51,17 @@ export default function ProductsPage() {
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">PRODUCTS</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.home.products')}</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
-              Everything You Need to Run Your{' '}
-              <span className="text-[#0FD452]">Pharmacy</span>
+              {t('site.pages.products.hero')}
             </h1>
             <p className="text-gray-300 text-sm mt-6 leading-relaxed max-w-xl">
-              From inventory to prescriptions, Helix provides all the tools you need to manage your pharmacy efficiently and grow your business.
+              {t('site.pages.products.heroBody')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <a href={DASHBOARD_URL + '/register'} className="btn-asaak hover:!bg-white hover:!text-black">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                Get Started Free
+                {t('site.cta.getStartedFree')}
               </a>
             </div>
           </div>
@@ -70,16 +71,16 @@ export default function ProductsPage() {
       <section className="bg-white py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">FEATURES</p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Powerful Tools for Your Pharmacy</h2>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.products.featuresKicker')}</p>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">{t('site.pages.products.title')}</h2>
           </div>
           <div className="space-y-24">
             {features.map((feature, i) => (
               <div key={i}              className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                 <div className={i % 2 === 1 ? 'lg:order-2' : ''}>
                   <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">FEATURE 0{i + 1}</p>
-                  <h3 className="text-2xl lg:text-3xl font-extrabold text-black mb-4">{feature.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed mb-6">{feature.desc}</p>
+                  <h3 className="text-2xl lg:text-3xl font-extrabold text-black mb-4">{t(`site.pages.products.features.${feature.key}.title`, feature.title)}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed mb-6">{t(`site.pages.products.features.${feature.key}.desc`, feature.desc)}</p>
                   <ul className="space-y-3">
                     {['Real-time tracking', 'Automated alerts', 'Detailed reports'].map((item, j) => (
                       <li key={j} className="flex items-center gap-3 text-sm text-gray-600">
@@ -93,7 +94,7 @@ export default function ProductsPage() {
                 </div>
                 <div className={i % 2 === 1 ? 'lg:order-1' : ''}>
                   <div className="rounded-2xl overflow-hidden shadow-xl h-72 lg:h-80">
-                    <img src={feature.img} alt={feature.title} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={feature.img} alt={t(`site.pages.products.features.${feature.key}.title`, feature.title)} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 </div>
               </div>
@@ -105,8 +106,8 @@ export default function ProductsPage() {
       <section className="bg-gray-50 py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">BENEFITS</p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Why Choose Helix</h2>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.products.benefitsKicker')}</p>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">{t('site.pages.products.whyChoose')}</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {benefits.map((b, i) => (
@@ -116,8 +117,8 @@ export default function ProductsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                   </svg>
                 </div>
-                <h3 className="text-black font-bold text-lg mb-2">{b.title}</h3>
-                <p className="text-gray-500 text-sm">{b.desc}</p>
+                <h3 className="text-black font-bold text-lg mb-2">{t(`site.pages.products.benefits.${b.key}.title`, b.title)}</h3>
+                <p className="text-gray-500 text-sm">{t(`site.pages.products.benefits.${b.key}.desc`, b.desc)}</p>
               </div>
             ))}
           </div>

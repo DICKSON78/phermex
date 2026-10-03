@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const API_BASE = '/api'
 
@@ -11,13 +12,14 @@ const TYPE_LABELS = {
 }
 
 const values = [
-  { icon: 'M13 10V3L4 14h7v7l9-11h-7z', title: 'Innovation', desc: 'We push boundaries and embrace new ideas to solve real problems.' },
-  { icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', title: 'People First', desc: 'Our team and our customers are at the heart of everything we do.' },
-  { icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', title: 'Integrity', desc: 'We do the right thing, even when no one is watching.' },
-  { icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', title: 'Growth', desc: 'We invest in our people and create opportunities for growth.' },
+  { key: 'innovation', icon: 'M13 10V3L4 14h7v7l9-11h-7z', title: 'Innovation', desc: 'We push boundaries and embrace new ideas to solve real problems.' },
+  { key: 'people', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', title: 'People First', desc: 'Our team and our customers are at the heart of everything we do.' },
+  { key: 'integrity', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', title: 'Integrity', desc: 'We do the right thing, even when no one is watching.' },
+  { key: 'growth', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', title: 'Growth', desc: 'We invest in our people and create opportunities for growth.' },
 ]
 
 export default function CareersPage() {
+  const { t } = useLanguage()
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedJob, setSelectedJob] = useState(null)
@@ -79,17 +81,17 @@ export default function CareersPage() {
           <div className="absolute inset-0 bg-black/65" />
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">CAREERS</p>
+          <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.nav.careers')}</p>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight max-w-3xl mx-auto">
-            Join Us in Transforming{' '}<span className="text-[#0FD452]">African Pharmacy</span>
+            {t('site.pages.careers.hero')}
           </h1>
           <p className="text-gray-300 text-sm mt-6 max-w-xl mx-auto">
-            We are building the future of pharmacy management in Africa. Come make an impact with us.
+            {t('site.pages.careers.heroBody')}
           </p>
           <div className="mt-10 flex justify-center">
             <a href="#openings" className="btn-asaak hover:!bg-white hover:!text-black">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-              View Openings
+              {t('site.cta.viewOpenings')}
             </a>
           </div>
         </div>
@@ -100,8 +102,8 @@ export default function CareersPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">WHY JOIN US</p>
-              <h2 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight">Build the Future of Healthcare</h2>
+              <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.careers.whyKicker')}</p>
+              <h2 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight">{t('site.pages.careers.title')}</h2>
               <p className="text-gray-500 text-sm mt-6 leading-relaxed">
                 At Helix, you will work on meaningful problems that directly impact healthcare delivery across Africa. We are a fast-growing startup where your work matters from day one.
               </p>
@@ -132,8 +134,8 @@ export default function CareersPage() {
       <section className="bg-gray-50 py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">OUR VALUES</p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">What We Stand For</h2>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.careers.valuesKicker')}</p>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">{t('site.pages.careers.values')}</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((v, i) => (
@@ -141,8 +143,8 @@ export default function CareersPage() {
                 <div className="w-12 h-12 rounded-full bg-[#000F14] flex items-center justify-center mb-4">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d={v.icon}/></svg>
                 </div>
-                <h3 className="text-black font-bold text-lg mb-2">{v.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{v.desc}</p>
+                <h3 className="text-black font-bold text-lg mb-2">{t(`site.pages.careers.valueItems.${v.key}.title`, v.title)}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{t(`site.pages.careers.valueItems.${v.key}.desc`, v.desc)}</p>
               </div>
             ))}
           </div>
@@ -153,22 +155,22 @@ export default function CareersPage() {
       <section id="openings" className="bg-white py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">OPEN POSITIONS</p>
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">Join Our Team</h2>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.pages.careers.positionsKicker')}</p>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-black">{t('site.pages.careers.join')}</h2>
           </div>
           {loading ? (
-            <div className="text-center py-12"><p className="text-gray-400">Loading positions...</p></div>
+            <div className="text-center py-12"><p className="text-gray-400">{t('site.pages.careers.loading')}</p></div>
           ) : jobs.length === 0 ? (
             <div className="max-w-lg mx-auto text-center bg-gray-50 p-10 lg:p-12 rounded-2xl border border-gray-100">
               <div className="w-16 h-16 rounded-full bg-[#0FD452]/10 flex items-center justify-center mx-auto mb-5">
                 <svg className="w-8 h-8 text-[#0FD452]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
               </div>
-              <h3 className="text-black font-bold text-xl mb-2">No Open Positions Right Now</h3>
+              <h3 className="text-black font-bold text-xl mb-2">{t('site.pages.careers.noOpenings')}</h3>
               <p className="text-gray-500 text-sm leading-relaxed">We are not currently hiring, but we are always looking for talented people. Send us your CV and we will keep you in mind for future opportunities.</p>
               <div className="mt-8 flex flex-wrap gap-4 justify-center">
                 <a href="mailto:support@helix.co.tz" className="btn-asaak hover:!bg-white hover:!text-black">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                  Send Your CV
+                  {t('site.cta.sendCv')}
                 </a>
               </div>
             </div>
@@ -212,7 +214,7 @@ export default function CareersPage() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-xl font-bold text-black">Apply for Position</h2>
+                  <h2 className="text-xl font-bold text-black">{t('site.pages.careers.apply')}</h2>
                   <p className="text-sm text-gray-500 mt-1">{selectedJob?.title}</p>
                 </div>
                 <button onClick={() => setShowApplyModal(false)} className="text-gray-400 hover:text-gray-600">
@@ -224,35 +226,35 @@ export default function CareersPage() {
                   <div className="w-16 h-16 rounded-full bg-[#0FD452]/10 flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8 text-[#0FD452]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   </div>
-                  <h3 className="text-lg font-bold text-black mb-2">Application Submitted!</h3>
+                  <h3 className="text-lg font-bold text-black mb-2">{t('site.pages.careers.submitted')}</h3>
                   <p className="text-sm text-gray-500">Thank you for your interest. We will review your application and get back to you soon.</p>
-                  <button onClick={() => setShowApplyModal(false)} className="mt-6 px-6 py-3 bg-[#0FD452] text-white rounded-xl font-semibold text-sm hover:bg-[#0cb843] transition-colors">Done</button>
+                  <button onClick={() => setShowApplyModal(false)} className="mt-6 px-6 py-3 bg-[#0FD452] text-white rounded-xl font-semibold text-sm hover:bg-[#0cb843] transition-colors">{t('site.cta.done')}</button>
                 </div>
               ) : (
                 <form onSubmit={handleApplySubmit} className="space-y-4">
                   {applyError && <div className="bg-red-50 text-red-700 text-sm p-3 rounded-xl">{applyError}</div>}
                   <div>
-                    <label className="block text-sm font-semibold text-black mb-1">Full Name <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-semibold text-black mb-1">{t('site.pages.careers.labels.fullName')} <span className="text-red-500">*</span></label>
                     <input type="text" value={applyForm.full_name} onChange={(e) => setApplyForm({ ...applyForm, full_name: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 outline-none" placeholder="Your full name" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-black mb-1">Email <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-semibold text-black mb-1">{t('site.pages.careers.labels.email')} <span className="text-red-500">*</span></label>
                     <input type="email" value={applyForm.email} onChange={(e) => setApplyForm({ ...applyForm, email: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 outline-none" placeholder="your@email.com" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-black mb-1">Phone</label>
+                    <label className="block text-sm font-semibold text-black mb-1">{t('site.pages.careers.labels.phone')}</label>
                     <input type="tel" value={applyForm.phone} onChange={(e) => setApplyForm({ ...applyForm, phone: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 outline-none" placeholder="+255 ..." />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-black mb-1">Cover Letter</label>
+                    <label className="block text-sm font-semibold text-black mb-1">{t('site.pages.careers.labels.coverLetter')}</label>
                     <textarea value={applyForm.cover_letter} onChange={(e) => setApplyForm({ ...applyForm, cover_letter: e.target.value })} rows={4} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 outline-none resize-none" placeholder="Tell us why you are a great fit..." />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-black mb-1">Portfolio URL</label>
+                    <label className="block text-sm font-semibold text-black mb-1">{t('site.pages.careers.labels.portfolio')}</label>
                     <input type="url" value={applyForm.portfolio_url} onChange={(e) => setApplyForm({ ...applyForm, portfolio_url: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 outline-none" placeholder="https://..." />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-black mb-1">LinkedIn URL</label>
+                    <label className="block text-sm font-semibold text-black mb-1">{t('site.pages.careers.labels.linkedin')}</label>
                     <input type="url" value={applyForm.linkedin_url} onChange={(e) => setApplyForm({ ...applyForm, linkedin_url: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 outline-none" placeholder="https://linkedin.com/in/..." />
                   </div>
                   <button type="submit" disabled={applyLoading} className="w-full py-3 bg-[#0FD452] text-white rounded-xl font-semibold text-sm hover:bg-[#0cb843] transition-colors disabled:opacity-50">

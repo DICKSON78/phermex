@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DASHBOARD_URL } from '../config'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const faqs = [
   {
@@ -66,7 +67,11 @@ const faqs = [
 
 const categories = ['All', 'General', 'Pricing', 'Technical', 'Security']
 
+/** Filter values stay English so they keep matching faq.cat; only the label is translated. */
+const CATEGORY_KEYS = { All: 'all', General: 'general', Pricing: 'pricing', Technical: 'technical', Security: 'security' }
+
 export default function FAQPage() {
+  const { t } = useLanguage()
   const [active, setActive] = useState(null)
   const [filter, setFilter] = useState('All')
 
@@ -81,10 +86,9 @@ export default function FAQPage() {
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl mx-auto text-center">
-            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">FAQ</p>
+            <p className="text-[#0FD452] text-xs font-bold tracking-[2px] uppercase mb-3">{t('site.nav.faq')}</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
-              Frequently Asked{' '}
-              <span className="text-[#0FD452]">Questions</span>
+              {t('site.pages.faq.title')}
             </h1>
             <p className="text-gray-300 text-sm mt-6 max-w-lg mx-auto">
               Everything you need to know about Helix. Can't find what you're looking for? Get in touch.
@@ -102,7 +106,7 @@ export default function FAQPage() {
                 onClick={() => setFilter(cat)}
                 className={`px-5 py-2 rounded-full text-xs font-bold transition-colors ${filter === cat ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
-                {cat}
+                {t(`site.pages.faq.filters.${CATEGORY_KEYS[cat]}`, cat)}
               </button>
             ))}
           </div>
@@ -138,11 +142,11 @@ export default function FAQPage() {
           </div>
 
           <div className="text-center mt-14 bg-gray-50 p-8 lg:p-10 rounded-2xl">
-            <h3 className="text-black font-bold text-xl mb-2">Still Have Questions?</h3>
-            <p className="text-gray-400 text-sm mb-6">Our team is here to help you.</p>
+            <h3 className="text-black font-bold text-xl mb-2">{t('site.pages.faq.stillHaveQuestions')}</h3>
+            <p className="text-gray-400 text-sm mb-6">{t('site.pages.faq.team')}</p>
             <a href="/contact" className="btn-asaak hover:!bg-white hover:!text-black">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-              Contact Us
+              {t('site.cta.contactUs')}
             </a>
           </div>
         </div>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -28,6 +29,14 @@ class GoogleTokenVerifier
 {
     private const GOOGLE_CERTS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
 
+    /**
+     * Firebase ID tokens are signed by the securetoken service account, whose
+     * public keys are published separately from the OAuth keys above. The web
+     * sign-in popup mints Firebase tokens, so these are the keys that actually
+     * verify them.
+     */
+    private const FIREBASE_CERTS_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
+
     /** Google rotates keys daily; caching for an hour keeps logins fast. */
     private const CERTS_CACHE_KEY = 'google:id_token_certs';
 
@@ -49,9 +58,14 @@ class GoogleTokenVerifier
         try {
             $claims = (array) JWT::decode(
                 $idToken,
-                JWK::parseKeySet($this->certs()),
-                'RS256'
+                $this->certs(),
+                'RS256',
+                self::CLOCK_SKEW_SECONDS
             );
+        } catch (\UnexpectedValueException $e) {
+            // Clock drift or an unknown key id: say which, because the two need
+            // different fixes and both otherwise surface as a bare 401.
+            throw new \InvalidArgumentException('Google ID token could not be verified: '.$e->getMessage(), 0, $e);
         } catch (Throwable $e) {
             throw new \InvalidArgumentException('Google ID token could not be verified.', 0, $e);
         }
@@ -145,38 +159,92 @@ class GoogleTokenVerifier
     }
 
     /**
-     * Google's public signing keys, cached locally.
+     * Google's public signing keys, as a kid => Key map ready for JWT::decode().
+     *
+     * Two sources have to be merged. Plain Google ID tokens are signed by
+     * Google's OAuth service account and verified with the JWK set from
+     * GOOGLE_CERTS_URL. Firebase ID tokens, which is what the web popup
+     * returns, are signed by the securetoken service account and published as
+     * PEM certificates keyed by kid. Verifying only one of the two makes every
+     * token from the other fail its signature check.
+     *
+     * @return array<string, Key>
      */
     private function certs(): array
     {
+        $keys = [];
+        $payload = $this->rawCerts();
+
+        if (is_array($payload['jwk'] ?? null) && ! empty($payload['jwk']['keys'])) {
+            try {
+                $keys += JWK::parseKeySet($payload['jwk']);
+            } catch (Throwable $e) {
+                Log::warning('Could not parse Google OAuth signing keys.', ['error' => $e->getMessage()]);
+            }
+        }
+
+        foreach ((array) ($payload['firebase'] ?? []) as $kid => $certificate) {
+            if (is_string($certificate) && str_contains($certificate, 'BEGIN CERTIFICATE')) {
+                $keys[(string) $kid] = new Key($certificate, 'RS256');
+            }
+        }
+
+        if ($keys === []) {
+            throw new \RuntimeException('Google sign-in is temporarily unavailable. Please try again.');
+        }
+
+        return $keys;
+    }
+
+    /**
+     * Raw signing key material, cached. Certificates cannot be cached as Key
+     * objects because a JWK derived key holds an OpenSSL handle that does not
+     * survive serialisation, so the raw payloads are cached and rebuilt.
+     *
+     * @return array{jwk: ?array, firebase: ?array}
+     */
+    private function rawCerts(): array
+    {
         try {
             $cached = Cache::get(self::CERTS_CACHE_KEY);
-            if (is_array($cached) && ! empty($cached)) {
-                return $cached;
+            // Ignore anything cached before this shape existed: a bare JWK set
+            // from the old single-source fetch would parse as empty and turn
+            // every sign-in into a 500 until the hour-long TTL expired.
+            if (is_array($cached) && (isset($cached['jwk']) || isset($cached['firebase']))) {
+                return $cached + ['jwk' => null, 'firebase' => null];
             }
         } catch (Throwable $e) {
             // A broken cache store must not block sign-in; fall through to the
             // network fetch.
         }
 
+        $payload = ['jwk' => null, 'firebase' => null];
+
         try {
             $response = Http::timeout(8)->retry(2, 200)->get(self::GOOGLE_CERTS_URL);
-            $certs = $response->successful() ? $response->json() : null;
+            $payload['jwk'] = $response->successful() ? $response->json() : null;
         } catch (Throwable $e) {
-            Log::warning('Could not fetch Google ID token signing keys.', ['error' => $e->getMessage()]);
-            $certs = null;
+            Log::warning('Could not fetch Google OAuth signing keys.', ['error' => $e->getMessage()]);
         }
 
-        if (! is_array($certs) || empty($certs['keys'])) {
+        try {
+            $response = Http::timeout(8)->retry(2, 200)->get(self::FIREBASE_CERTS_URL);
+            $firebase = $response->successful() ? $response->json() : null;
+            $payload['firebase'] = is_array($firebase) ? $firebase : null;
+        } catch (Throwable $e) {
+            Log::warning('Could not fetch Firebase signing keys.', ['error' => $e->getMessage()]);
+        }
+
+        if (empty($payload['jwk']) && empty($payload['firebase'])) {
             throw new \RuntimeException('Google sign-in is temporarily unavailable. Please try again.');
         }
 
         try {
-            Cache::put(self::CERTS_CACHE_KEY, $certs, self::CERTS_TTL_SECONDS);
+            Cache::put(self::CERTS_CACHE_KEY, $payload, self::CERTS_TTL_SECONDS);
         } catch (Throwable $e) {
             // Cache store problems must not break sign-in.
         }
 
-        return $certs;
+        return $payload;
     }
 }

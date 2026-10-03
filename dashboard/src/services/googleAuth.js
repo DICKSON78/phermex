@@ -12,19 +12,24 @@ import api from './api'
 
 // Firebase web app configuration (Firebase console > Project settings).
 //
-// authDomain is the origin that serves Firebase's auth handler at
-// /__/auth/handler, and it is what Google's account chooser names when it
-// asks the user to continue. It is not just a label: point it at a host that
-// does not serve that handler and the popup never completes.
+// authDomain is not only the name Google's account chooser shows. It decides
+// the host that serves Firebase's auth handler at /__/auth/handler, and that
+// host becomes the redirect_uri Google's OAuth layer checks. Changing it needs
+// three things at once, and missing any one of them breaks sign-in:
 //
-// The apex helix.co.tz cannot be used here. It resolves to 184.94.213.218,
-// which runs the Laravel app on LiteSpeed, and its /__/auth/handler returns
-// the SPA rather than the Firebase handler. Only a host on Firebase Hosting
-// can serve it, so the project's Helix Hosting site is used and the chooser
-// names Helix instead of the old trcticket project.
+//   1. the host must serve /__/auth/handler (only Firebase Hosting does);
+//   2. it must be listed in Firebase Auth > Settings > Authorized domains;
+//   3. its handler URL must be in the OAuth client's authorized redirect URIs
+//      in Google Cloud Console, or Google answers redirect_uri_mismatch.
+//
+// This project's OAuth client is the one Google generated for the project, so
+// it only has the trcticket project's own domains registered. helix.firebaseapp.com
+// loads the handler but is not registered, and the apex helix.co.tz runs the
+// Laravel app on LiteSpeed and answers with the SPA instead of the handler.
+// Keep authDomain aligned with the project until those registrations are done.
 const firebaseConfig = {
   apiKey: 'AIzaSyCa66ZgPt5xPkqYK-hOrf3y0ChgrXLpyIs',
-  authDomain: 'helix.firebaseapp.com',
+  authDomain: 'trcticket-b6b01.firebaseapp.com',
   projectId: 'trcticket-b6b01',
   storageBucket: 'trcticket-b6b01.firebasestorage.app',
   messagingSenderId: '841872361333',

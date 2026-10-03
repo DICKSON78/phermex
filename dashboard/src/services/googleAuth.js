@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, getRedirectResult, signInWithPopup, signInWithRedirect } from 'firebase/auth'
 import api from './api'
 
 /**
@@ -22,6 +22,35 @@ const firebaseConfig = {
 
 let authInstance = null
 
+// Set right before a redirect sign-in leaves the page, so the app only reaches
+// for Firebase on boot when there is genuinely a redirect to finish.
+const REDIRECT_FLAG = 'pharmex_google_redirect'
+
+export function markGoogleRedirectPending() {
+  try {
+    sessionStorage.setItem(REDIRECT_FLAG, '1')
+  } catch {
+    // Private mode: the redirect just will not be auto-completed.
+  }
+}
+
+/** True when this page load could be the return leg of a redirect sign-in. */
+export function isGoogleRedirectPending() {
+  try {
+    return sessionStorage.getItem(REDIRECT_FLAG) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function clearGoogleRedirectPending() {
+  try {
+    sessionStorage.removeItem(REDIRECT_FLAG)
+  } catch {
+    // Nothing to clean up.
+  }
+}
+
 function auth() {
   if (!authInstance) {
     authInstance = getAuth(initializeApp(firebaseConfig))
@@ -31,7 +60,9 @@ function auth() {
 
 /**
  * Returns a Google ID token for the signed-in user, or throws.
- * Falls back to a redirect flow when a popup is blocked.
+ *
+ * Only a popup that was *blocked* falls back to a full page redirect; a popup
+ * the user closed on purpose must not hijack the page.
  */
 export async function getGoogleIdToken() {
   const provider = new GoogleAuthProvider()
@@ -41,10 +72,10 @@ export async function getGoogleIdToken() {
   try {
     result = await signInWithPopup(auth(), provider)
   } catch (error) {
-    // Popups are blocked in some browsers/embedded webviews; a full page
-    // redirect still completes the flow.
-    if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/popup-closed-by-user') {
+    if (error?.code === 'auth/popup-blocked') {
+      markGoogleRedirectPending()
       await signInWithRedirect(auth(), provider)
+      // The page navigates away here, so this promise never settles.
       return new Promise(() => {})
     }
     throw error
@@ -53,6 +84,24 @@ export async function getGoogleIdToken() {
   const idToken = await result.user.getIdToken()
   if (!idToken) throw new Error('Google did not return an ID token.')
   return idToken
+}
+
+/**
+ * Finishes a sign-in that was started as a redirect instead of a popup.
+ *
+ * Firebase stashes the credential in the browser, so this has to run on mount
+ * after the page comes back from accounts.google.com. Returns the API payload,
+ * or null when there is no redirect to complete.
+ */
+export async function completeGoogleRedirect() {
+  const result = await getRedirectResult(auth())
+  if (!result) return null
+
+  const idToken = await result.user.getIdToken()
+  if (!idToken) throw new Error('Google did not return an ID token.')
+
+  const response = await api.post('/auth/google', { id_token: idToken })
+  return response.data
 }
 
 /** Turns a Google ID token into a Helix session and returns the API payload. */

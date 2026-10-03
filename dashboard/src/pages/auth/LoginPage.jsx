@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { login, loginWithGoogleAccount } = useAuth()
+  const { login, loginWithGoogleAccount, subscription, pendingGoogleResult, clearPendingGoogleResult, loading: authLoading } = useAuth()
   const { t } = useLanguage()
   const navigate = useNavigate()
   const [plans, setPlans] = useState([])
@@ -62,6 +62,15 @@ export default function LoginPage() {
     navigate(userData.role === 'customer' ? '/app' : '/dashboard')
   }
 
+  // A Google sign-in that fell back to a redirect comes back to this same page
+  // with the session already stored, so route it the same way a popup sign-in
+  // is routed.
+  useEffect(() => {
+    if (authLoading || !pendingGoogleResult?.user) return
+    clearPendingGoogleResult()
+    routeAfterLogin(pendingGoogleResult.user, subscription, pendingGoogleResult.emailVerified)
+  }, [authLoading, pendingGoogleResult])
+
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true)
     setError('')
@@ -75,6 +84,12 @@ export default function LoginPage() {
         // User dismissed the Google chooser; not an error worth showing.
       } else if (data?.application_status === 'rejected') {
         setError('Your application has been rejected. ' + (data.rejection_reason || ''))
+      } else if (code) {
+        // Show the Firebase error code, otherwise every Firebase-side problem
+        // (unauthorized domain, provider disabled, blocked request) collapses
+        // into the same generic message with no way to tell them apart.
+        console.error('Google sign-in failed:', code, err)
+        setError(`Google sign-in failed (${code}).`)
       } else {
         setError(data?.message || 'Google sign-in failed. Please try again.')
       }

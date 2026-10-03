@@ -1,6 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import api from '../services/api'
-import { loginWithGoogle } from '../services/googleAuth'
+import {
+  loginWithGoogle,
+  completeGoogleRedirect,
+  isGoogleRedirectPending,
+  clearGoogleRedirectPending,
+} from '../services/googleAuth'
 
 const AuthContext = createContext(null)
 
@@ -9,8 +14,12 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('pharmex_token'))
   const [subscription, setSubscription] = useState(null)
   const [loading, setLoading] = useState(true)
+  // Set only when a Google sign-in came back from a redirect, so the login page
+  // can run the same routing rules as a popup sign-in.
+  const [pendingGoogleResult, setPendingGoogleResult] = useState(null)
 
   useEffect(() => {
+    let active = true
     const params = new URLSearchParams(window.location.search)
     const urlToken = params.get('token')
 
@@ -20,11 +29,47 @@ export function AuthProvider({ children }) {
       setToken(sanitized)
       window.history.replaceState({}, document.title, window.location.pathname)
       fetchUser(sanitized)
-    } else if (token) {
-      fetchUser(token)
-    } else {
-      setLoading(false)
+      return () => { active = false }
     }
+
+    // A Google sign-in that fell back to a redirect lands back here with the
+    // credential waiting in the browser. Only reach for Firebase when that
+    // actually happened, and never let it hold up the app: it talks to the
+    // network, so a slow or unreachable Firebase must not blank the screen.
+    const finishRedirect = async () => {
+      if (!isGoogleRedirectPending()) return null
+      clearGoogleRedirectPending()
+      return Promise.race([
+        completeGoogleRedirect(),
+        new Promise((resolve) => setTimeout(() => resolve(null), 5000)),
+      ])
+    }
+
+    finishRedirect()
+      .then((data) => {
+        if (!active || !data) return
+        const respData = data.data || data
+        const { token: newToken, user: userData, subscription: subData } = respData
+        if (!newToken) return
+        localStorage.setItem('pharmex_token', newToken)
+        setToken(newToken)
+        setUser(userData)
+        setSubscription(subData || null)
+        setPendingGoogleResult({
+          user: userData,
+          emailVerified: respData.email_verified,
+        })
+      })
+      .catch((error) => {
+        console.error('Google redirect sign-in failed:', error?.code || error)
+      })
+      .finally(() => {
+        if (!active) return
+        if (token) fetchUser(token)
+        else setLoading(false)
+      })
+
+    return () => { active = false }
   }, [])
 
   const fetchUser = async (authToken) => {
@@ -122,7 +167,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, subscription, pharmacyId, setSubscription, login, loginWithGoogleAccount, register, logout, loading, setUser, switchPharmacy }}>
+    <AuthContext.Provider value={{ user, token, subscription, pharmacyId, setSubscription, login, loginWithGoogleAccount, register, logout, loading, setUser, switchPharmacy, pendingGoogleResult, clearPendingGoogleResult: () => setPendingGoogleResult(null) }}>
       {children}
     </AuthContext.Provider>
   )

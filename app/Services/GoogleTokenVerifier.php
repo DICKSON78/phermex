@@ -60,12 +60,16 @@ class GoogleTokenVerifier
         $keys = $this->certs();
 
         try {
-            $claims = (array) JWT::decode(
-                $idToken,
-                $keys,
-                'RS256',
-                self::CLOCK_SKEW_SECONDS
-            );
+            // decode() takes only ($jwt, $keyOrKeyArray, &$headers). Its third
+            // parameter is a by-reference headers out-param, so passing an
+            // algorithm there is an Error, not a default: that alone threw
+            // "Argument #3 could not be passed by reference" and was caught as
+            // a bad token, which is why no token ever verified. The algorithm
+            // is not a parameter at all, it is read off each Key and compared
+            // against the token header, and leeway is the JWT::$leeway static.
+            JWT::$leeway = self::CLOCK_SKEW_SECONDS;
+
+            $claims = (array) JWT::decode($idToken, $keys);
         } catch (\UnexpectedValueException | \InvalidArgumentException | \DomainException $e) {
             // php-jwt reports an unknown kid, a bad signature and clock drift
             // as different exception types but all of them land here, and each

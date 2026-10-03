@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useLanguage } from '../../contexts/LanguageContext'
-import LanguageSwitcher from '../../components/LanguageSwitcher'
 import { Pill, Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react'
 import api from '../../services/api'
 
@@ -62,6 +61,9 @@ export default function LoginPage() {
       return `${plan.currency || 'USD'} ${Number(plan.price ?? 0).toLocaleString()}`
     }
   }
+
+  const billingSuffix = (plan) =>
+    Number(plan.duration_months ?? 12) === 1 ? t('auth.perMonth') : t('auth.perYear')
 
   const [googleLoading, setGoogleLoading] = useState(false)
 
@@ -147,37 +149,42 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-8">
-      <div className="w-full max-w-4xl grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-        <div>
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-3 mb-5">
-            <div className="w-12 h-12 bg-[#0FD452] rounded-xl flex items-center justify-center">
-              <Pill className="w-7 h-7 text-[#000F14]" />
+    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-6">
+      {/* One card holds the whole page. Splitting sign-in and pricing across
+          two columns left the plan names truncated in cells too narrow to read
+          and pushed the brand mark off to one side. Pricing now sits under the
+          form as full-width price rows, so names and amounts have room and the
+          page reads top to bottom as one unit. */}
+      <div className="w-full max-w-md">
+        <div className="bg-white border border-gray-200 rounded-3xl shadow-sm p-5 sm:p-6">
+          <div className="flex items-center justify-center gap-2.5 mb-3">
+            <div className="w-8 h-8 bg-[#0FD452] rounded-xl flex items-center justify-center">
+              <Pill className="w-[18px] h-[18px] text-[#000F14]" />
             </div>
-            <span className="text-gray-600 font-black text-3xl">HELIX</span>
+            <span className="text-gray-600 font-black text-2xl">HELIX</span>
           </div>
-          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">{t('auth.login')}</p>
-          <h1 className="text-4xl font-black text-gray-600 mb-3">{t('auth.loginTitle')}</h1>
-          <p className="text-gray-500 text-lg">{t('auth.loginSubtitle')}</p>
+          <div className="text-center mb-5">
+          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-1">{t('auth.login')}</p>
+          <h1 className="text-xl font-black text-gray-600">{t('auth.loginTitle')}</h1>
+          <p className="text-sm text-gray-500">{t('auth.loginSubtitle')}</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-5">
             <p className="text-red-600 text-sm font-medium">{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('auth.email')} / {t('common.phone')}</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1">{t('auth.email')} / {t('common.phone')}</label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 value={credentials}
                 onChange={(e) => setCredentials(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
+                className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
                 placeholder="example@gmail.com"
                 required
               />
@@ -185,14 +192,19 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('auth.password')}</label>
+            <div className="flex items-baseline justify-between mb-1">
+              <label className="block text-sm font-semibold text-gray-600">{t('auth.password')}</label>
+              <Link to="/forgot-password" className="text-xs text-[#0FD452] hover:text-[#0cb843] font-medium transition-colors">
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-11 pr-11 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
+                className="w-full pl-11 pr-11 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
                 placeholder="••••••••"
                 required
               />
@@ -202,22 +214,16 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end">
-            <Link to="/forgot-password" className="text-sm text-[#0FD452] hover:text-[#0cb843] font-medium transition-colors">
-              {t('auth.forgotPassword')}
-            </Link>
-          </div>
-
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
+            className="w-full py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
           >
             {loading ? `${t('common.loading')}` : t('auth.signIn').toUpperCase()}
           </button>
         </form>
 
-        <div className="relative my-6">
+        <div className="relative my-3">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
           </div>
@@ -230,7 +236,7 @@ export default function LoginPage() {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={googleLoading || loading}
-          className="w-full flex items-center justify-center gap-3 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-3 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -238,10 +244,10 @@ export default function LoginPage() {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          Continue with Google
+          {t('auth.continueWithGoogle')}
         </button>
 
-        <div className="mt-6 text-center">
+        <div className="mt-3 text-center">
           <p className="text-gray-500 text-sm">
             {t('auth.noAccount')}{' '}
             <Link to="/register" className="text-[#0FD452] font-semibold hover:text-[#0cb843] transition-colors">
@@ -249,53 +255,49 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-        </div>
 
-        <div>
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Sparkles className="w-4 h-4 text-[#0FD452]" />
+        <div className="mt-4 pt-3.5 border-t border-gray-200">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#0FD452]" />
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[3px]">
-              Packages
+              {t('auth.packages')}
             </p>
           </div>
           {plans.length > 0 ? (
             <>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
                 {plans.map((plan) => (
                   <Link
                     key={plan.id ?? plan.slug}
                     to="/register/owner"
-                    className="rounded-2xl border border-gray-200 p-4 text-center transition-all duration-200 hover:border-[#0FD452] hover:shadow-md"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-1.5 transition-all duration-200 hover:border-[#0FD452] hover:bg-gray-50"
                   >
-                    <p className="text-[10px] font-black tracking-widest text-gray-500 truncate">
+                    <span className="text-[11px] font-black tracking-widest text-gray-500 uppercase truncate">
                       {plan.name}
-                    </p>
-                    <p className="mt-1.5 text-lg font-black text-[#000F14]">
+                    </span>
+                    <span className="shrink-0 text-sm font-black text-[#000F14]">
                       {formatPrice(plan)}
-                    </p>
-                    <p className="text-[10px] text-gray-400">
-                      /{Number(plan.duration_months ?? 12) === 1 ? 'mo' : 'yr'}
-                    </p>
+                      <span className="text-[10px] font-semibold text-gray-400">
+                        /{billingSuffix(plan)}
+                      </span>
+                    </span>
                   </Link>
                 ))}
               </div>
-              <p className="mt-3 text-center text-xs text-gray-400">
-                Start your pharmacy on any package
-              </p>
             </>
           ) : (
-            // Holds the space the cards will take so the page does not jump
+            // Holds the space the rows will take so the page does not jump
             // when pricing arrives, and stays honest if the request fails.
-            <div className="grid grid-cols-3 gap-3" aria-hidden="true">
+            <div className="space-y-1" aria-hidden="true">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="rounded-2xl border border-gray-100 p-4">
-                  <div className="h-2 w-1/2 mx-auto rounded bg-gray-100" />
-                  <div className="h-5 w-2/3 mx-auto mt-2 rounded bg-gray-100" />
-                  <div className="h-2 w-1/4 mx-auto mt-2 rounded bg-gray-100" />
+                <div key={i} className="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-1.5">
+                  <div className="h-2 w-24 rounded bg-gray-100" />
+                  <div className="h-3 w-14 rounded bg-gray-100" />
                 </div>
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

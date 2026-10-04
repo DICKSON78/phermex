@@ -13,6 +13,13 @@ use Illuminate\Validation\ValidationException;
 
 class PharmacyReelController extends Controller
 {
+    /** A reel stays visible for 24 hours, then it drops out of the feed. */
+    public const REEL_LIFETIME_HOURS = 24;
+
+    private function expiryCutoff(): \DateTimeInterface
+    {
+        return now()->subHours(self::REEL_LIFETIME_HOURS);
+    }
     private function toApi(PharmacyReel $reel, bool $withPharmacy = true): array
     {
         $data = [
@@ -25,6 +32,8 @@ class PharmacyReelController extends Controller
             'status' => $reel->status,
             'views' => (int) $reel->views,
             'updatedAt' => $reel->updated_at?->toISOString(),
+            'expiresAt' => $reel->updated_at?->copy()->addHours(self::REEL_LIFETIME_HOURS)->toISOString(),
+            'expiresInHours' => self::REEL_LIFETIME_HOURS,
         ];
 
         if ($withPharmacy && $reel->relationLoaded('pharmacy') && $reel->pharmacy) {
@@ -56,6 +65,7 @@ class PharmacyReelController extends Controller
             $reels = PharmacyReel::query()
                 ->with('pharmacy:id,name,location,address')
                 ->where('status', 'published')
+                ->where('updated_at', '>=', $this->expiryCutoff())
                 ->orderByDesc('updated_at')
                 ->limit(50)
                 ->get();

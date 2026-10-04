@@ -619,3 +619,46 @@ class TicketReply {
     );
   }
 }
+
+/// A promotional reel posted by a pharmacy. The backend enforces one reel per
+/// pharmacy, so [pharmacyId] uniquely identifies the reel.
+class PharmacyReel {
+  final int id;
+  final int pharmacyId;
+  final String title;
+  final String? description;
+  final String mediaType; // image | video
+  final String mediaUrl;
+  final String? thumbnailUrl;
+  final String? pharmacyName;
+  final String? pharmacyLocation;
+
+  const PharmacyReel({
+    required this.id,
+    required this.pharmacyId,
+    required this.title,
+    this.description,
+    required this.mediaType,
+    required this.mediaUrl,
+    this.thumbnailUrl,
+    this.pharmacyName,
+    this.pharmacyLocation,
+  });
+
+  bool get isVideo => mediaType == 'video';
+
+  factory PharmacyReel.fromJson(Map<String, dynamic> json) {
+    final pharmacy = json['pharmacy'] is Map ? json['pharmacy'] as Map : const {};
+    return PharmacyReel(
+      id: json['id'] ?? 0,
+      pharmacyId: json['pharmacy_id'] ?? pharmacy['id'] ?? 0,
+      title: json['title'] ?? '',
+      description: json['description'],
+      mediaType: json['media_type'] ?? json['mediaType'] ?? 'image',
+      mediaUrl: json['media_url'] ?? json['mediaUrl'] ?? '',
+      thumbnailUrl: json['thumbnail_url'] ?? json['thumbnailUrl'],
+      pharmacyName: pharmacy['name'],
+      pharmacyLocation: pharmacy['location'],
+    );
+  }
+}

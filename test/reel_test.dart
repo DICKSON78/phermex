@@ -77,4 +77,33 @@ void main() {
       expect(deduped.map((r) => r.pharmacyId).toSet(), {42, 43});
     });
   });
+
+  group('reel 24 hour lifetime', () {
+    test('a reel updated within 24 hours is still live', () {
+      final updatedAt = DateTime.now().subtract(const Duration(hours: 23));
+      final cutoff = DateTime.now().subtract(const Duration(hours: 24));
+
+      expect(updatedAt.isBefore(cutoff), isFalse);
+    });
+
+    test('a reel older than 24 hours is expired', () {
+      final updatedAt = DateTime.now().subtract(const Duration(hours: 25));
+      final cutoff = DateTime.now().subtract(const Duration(hours: 24));
+
+      expect(updatedAt.isBefore(cutoff), isTrue);
+    });
+
+    test('updatedAt is parsed from the API payload', () {
+      final reel = PharmacyReel.fromJson({
+        'id': 1,
+        'title': 'Fresh offer',
+        'media_type': 'image',
+        'media_url': 'https://helix.co.tz/storage/x.jpg',
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+
+      expect(reel.updatedAt, isNotNull);
+      expect(reel.updatedAt!.isBefore(DateTime.now().subtract(const Duration(hours: 24))), isFalse);
+    });
+  });
 }

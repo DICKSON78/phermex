@@ -632,6 +632,7 @@ class PharmacyReel {
   final String? thumbnailUrl;
   final String? pharmacyName;
   final String? pharmacyLocation;
+  final DateTime? updatedAt;
 
   const PharmacyReel({
     required this.id,
@@ -643,6 +644,7 @@ class PharmacyReel {
     this.thumbnailUrl,
     this.pharmacyName,
     this.pharmacyLocation,
+    this.updatedAt,
   });
 
   bool get isVideo => mediaType == 'video';
@@ -659,6 +661,9 @@ class PharmacyReel {
       thumbnailUrl: json['thumbnail_url'] ?? json['thumbnailUrl'],
       pharmacyName: pharmacy['name'],
       pharmacyLocation: pharmacy['location'],
+      updatedAt: DateTime.tryParse(
+        (json['updatedAt'] ?? json['updated_at'] ?? '').toString(),
+      ),
     );
   }
 }

@@ -4,9 +4,10 @@ import '../../models/models.dart';
 import '../../services/reel_service.dart';
 import '../../theme.dart';
 
-/// Fullscreen ad "reel" — shows real reels posted by pharmacies. The backend
-/// allows one reel per pharmacy, so each pharmacy appears at most once here.
-/// Falls back to placeholder promotional slides when no reels are published.
+/// Fullscreen ad "reel" — shows live reels posted by pharmacies. The backend
+/// allows one reel per pharmacy and each reel expires after 24 hours, so every
+/// slide here is a real, currently-live promotion. When nothing is live the
+/// screen shows an empty state; there are no placeholder reels.
 class AdReelScreen extends StatefulWidget {
   const AdReelScreen({super.key});
 
@@ -31,16 +32,6 @@ class _AdReelScreenState extends State<AdReelScreen> {
       _reels = reels;
       _loading = false;
     });
-  }
-
-  List<(String, String)> get _slides {
-    final L = AppLocalizations.of(context);
-    return [
-      (L.t('shop.adPharmacyBonanza'), L.t('shop.adPharmacyBonanzaBody')),
-      (L.t('shop.adSeasonalSale'), L.t('shop.adSeasonalSaleBody')),
-      (L.t('healthTips'), L.t('shop.adHealthTipsBody')),
-      (L.t('shop.adNewArrivals'), L.t('shop.adNewArrivalsBody')),
-    ];
   }
 
   int _index = 0;
@@ -79,42 +70,74 @@ class _AdReelScreenState extends State<AdReelScreen> {
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                  : _reels.isNotEmpty
-                      ? PageView.builder(
+                  : _reels.isEmpty
+                      ? const _NoReels()
+                      : PageView.builder(
                           itemCount: _reels.length,
                           onPageChanged: (i) => setState(() => _index = i),
                           itemBuilder: (context, i) => _PharmacyReelSlide(
                             reel: _reels[i],
                             onOpen: () => _openPharmacy(i),
                           ),
-                        )
-                      : PageView.builder(
-                          itemCount: _slides.length,
-                          onPageChanged: (i) => setState(() => _index = i),
-                          itemBuilder: (context, i) => _ReelSlide(
-                            data: _slides[i],
-                            onOpen: () => _openPharmacy(i),
-                          ),
                         ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_loading ? 0 : (_reels.isNotEmpty ? _reels.length : _slides.length), (i) {
-                  final active = i == _index;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    width: active ? 18 : 6,
-                    height: 6,
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    decoration: BoxDecoration(
-                      color: active ? Colors.white : Colors.white.withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                  );
-                }),
+            if (!_loading && _reels.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_reels.length, (i) {
+                    final active = i == _index;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      width: active ? 18 : 6,
+                      height: 6,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      decoration: BoxDecoration(
+                        color: active ? Colors.white : Colors.white.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    );
+                  }),
+                ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shown when no pharmacy has a live reel. There are no placeholder reels —
+/// an empty feed simply says so.
+class _NoReels extends StatelessWidget {
+  const _NoReels();
+
+  @override
+  Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.storefront_rounded, size: 56, color: Colors.white.withValues(alpha: 0.35)),
+            const SizedBox(height: 16),
+            Text(
+              L.t('misc.noReelsRightNow'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              L.t('misc.noReelsBody'),
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
             ),
           ],
         ),
@@ -229,63 +252,6 @@ class _PharmacyReelSlide extends StatelessWidget {
                   child: Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReelSlide extends StatelessWidget {
-  final (String, String) data;
-  final VoidCallback onOpen;
-  const _ReelSlide({required this.data, required this.onOpen});
-
-  @override
-  Widget build(BuildContext context) {
-    final L = AppLocalizations.of(context);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.promo,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.percent_rounded, color: Colors.white, size: 30),
-          ),
-          const SizedBox(height: 20),
-          Text(data.$1,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 10),
-          Text(data.$2,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13.5)),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 46,
-            child: ElevatedButton(
-              onPressed: onOpen,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.brand800,
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
-              ),
-              child: Text(L.t('shop.explore'),
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
             ),
           ),
         ],

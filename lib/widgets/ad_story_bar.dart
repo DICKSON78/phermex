@@ -4,21 +4,34 @@ import '../models/models.dart';
 import '../services/reel_service.dart';
 import '../theme.dart';
 
-/// Horizontal ad-story bar. Shows real pharmacy reels when the backend has any,
-/// otherwise the placeholder campaigns.
-class AdStoryBar extends StatelessWidget {
+/// Header for the reel row. Loads the live reels itself and hides entirely when
+/// no pharmacy currently has one — there are no placeholder campaigns.
+class AdStoryBar extends StatefulWidget {
   final ValueChanged<int> onTapStory;
   const AdStoryBar({super.key, required this.onTapStory});
 
-  static const _placeholderAds = [
-    ('misc.adPharmacyBonanza', Icons.local_pharmacy_rounded),
-    ('misc.adSeasonalSale', Icons.percent_rounded),
-    ('misc.adHealthTips', Icons.health_and_safety_rounded),
-    ('misc.adNewArrivals', Icons.new_releases_rounded),
-  ];
+  @override
+  State<AdStoryBar> createState() => _AdStoryBarState();
+}
+
+class _AdStoryBarState extends State<AdStoryBar> {
+  int _count = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final reels = await ReelService.fetchReels();
+    if (!mounted) return;
+    setState(() => _count = reels.length);
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_count == 0) return const SizedBox.shrink();
     final L = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
@@ -33,7 +46,7 @@ class AdStoryBar extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () => onTapStory(0),
+            onTap: () => widget.onTapStory(0),
             child: Row(
               children: [
                 Text(
@@ -76,6 +89,7 @@ class AdStoryReel extends StatefulWidget {
 
 class _AdStoryReelState extends State<AdStoryReel> {
   List<PharmacyReel> _reels = const [];
+  bool _loading = true;
 
   @override
   void initState() {
@@ -86,13 +100,17 @@ class _AdStoryReelState extends State<AdStoryReel> {
   Future<void> _load() async {
     final reels = await ReelService.fetchReels();
     if (!mounted) return;
-    setState(() => _reels = reels);
+    setState(() {
+      _reels = reels;
+      _loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final useReels = _reels.isNotEmpty;
-    final count = useReels ? _reels.length : AdStoryBar._placeholderAds.length;
+    // Nothing live: render no row at all rather than inventing campaigns.
+    if (_loading || _reels.isEmpty) return const SizedBox.shrink();
+    final count = _reels.length;
 
     return Container(
       width: double.infinity,
@@ -106,17 +124,10 @@ class _AdStoryReelState extends State<AdStoryReel> {
           itemCount: count,
           separatorBuilder: (_, _) => const SizedBox(width: 8),
           itemBuilder: (context, i) {
-            if (useReels) {
-              return _ReelStoryBubble(
-                reel: _reels[i],
-                slotWidth: AdStoryReel._kBubbleSlot,
-                bubbleSize: AdStoryReel._kBubbleSize,
-                onTap: () => widget.onTapStory(i),
-              );
-            }
-            return _StoryBubble(
-              ad: AdStoryBar._placeholderAds[i],
+            return _ReelStoryBubble(
+              reel: _reels[i],
               slotWidth: AdStoryReel._kBubbleSlot,
+              bubbleSize: AdStoryReel._kBubbleSize,
               onTap: () => widget.onTapStory(i),
             );
           },
@@ -201,84 +212,6 @@ class _ReelStoryBubble extends StatelessWidget {
               width: slotWidth - 6,
               child: Text(
                 caption,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                softWrap: false,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.ink,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StoryBubble extends StatelessWidget {
-  final (String, IconData) ad;
-  final double slotWidth;
-  final VoidCallback onTap;
-  const _StoryBubble({
-    required this.ad,
-    required this.slotWidth,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final L = AppLocalizations.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: slotWidth,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Instagram-style story ring: gradient circle wrapping a light
-            // inner disc that holds the campaign icon.
-            Container(
-              width: AdStoryReel._kBubbleSize,
-              height: AdStoryReel._kBubbleSize,
-              padding: const EdgeInsets.all(2.5),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF22C55E), Color(0xFF0E3324)],
-                ),
-              ),
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Container(
-                  width: AdStoryReel._kBubbleSize - 12,
-                  height: AdStoryReel._kBubbleSize - 12,
-                  decoration: const BoxDecoration(
-                    color: AppColors.mint50,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(ad.$2, size: 18, color: AppColors.brand600),
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            // Single line with a trailing ellipsis keeps every caption on the
-            // same baseline instead of wrapping and breaking alignment.
-            SizedBox(
-              width: slotWidth - 6,
-              child: Text(
-                L.t(ad.$1),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 softWrap: false,

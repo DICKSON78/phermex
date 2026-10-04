@@ -64,6 +64,8 @@ const Map<String, String> miscEnStrings = {
   // Ad story bar
   'misc.todaysHighlights': 'Today’s highlights',
   'misc.viewAll': 'View all',
+  'misc.noReelsRightNow': 'No offers right now',
+  'misc.noReelsBody': 'Pharmacy promotions show here for 24 hours. Check back soon.',
   'misc.adPharmacyBonanza': 'Pharmacy Bonanza',
   'misc.adSeasonalSale': 'Seasonal Sale',
   'misc.adNewArrivals': 'New Arrivals',
@@ -170,6 +172,8 @@ const Map<String, String> miscSwStrings = {
   // Ad story bar
   'misc.todaysHighlights': 'Mambo muhimu ya leo',
   'misc.viewAll': 'Ona yote',
+  'misc.noReelsRightNow': 'Hakuna ofa kwa sasa',
+  'misc.noReelsBody': 'Matangazo ya maduka ya dawa yanaonyeshwa hapa kwa saa 24. Angalia tena baadaye.',
   'misc.adPharmacyBonanza': 'Bonanza ya Maduka ya Dawa',
   'misc.adSeasonalSale': 'Mauzo ya Msimu',
   'misc.adNewArrivals': 'Bidhaa Mpya',

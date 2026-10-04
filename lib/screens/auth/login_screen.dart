@@ -349,8 +349,11 @@ class _LoginScreenState extends State<LoginScreen> {
   /// OAuth client id of the Firebase project's web app. Passing it as the
   /// server client makes Android return an ID token whose audience the backend
   /// accepts.
-  static const _googleServerClientId =
-      '841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com';
+  static const _googleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue:
+        '841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com',
+  );
 
   Future<void> _googleSignIn() async {
     if (_loading) return;
@@ -554,8 +557,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// OAuth client id of the Firebase project's web app. Passing it as the
   /// server client makes Android return an ID token whose audience the backend
   /// accepts.
-  static const _googleServerClientId =
-      '841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com';
+  static const _googleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue:
+        '841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com',
+  );
 
   Future<void> _googleSignIn() async {
     if (_loading) return;

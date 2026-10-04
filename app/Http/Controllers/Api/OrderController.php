@@ -19,6 +19,20 @@ class OrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            // Aggregate over the same scope as the list, but ignoring the status
+            // filter, so the summary cards report real totals instead of whatever
+            // happens to be on the current page.
+            $scoped = fn () => Order::query()
+                ->when($request->filled('pharmacy_id'), fn ($q) => $q->where('pharmacy_id', $request->input('pharmacy_id')));
+
+            $statusCounts = $scoped()
+                ->selectRaw('order_status, count(*) as aggregate')
+                ->groupBy('order_status')
+                ->pluck('aggregate', 'order_status')
+                ->all();
+
+            $revenueTotal = (float) $scoped()->where('payment_status', 'paid')->sum('total');
+
             $query = Order::with(['customer', 'items.drug', 'processor', 'user'])
                 ->when($request->filled('pharmacy_id'), fn ($q) => $q->where('pharmacy_id', $request->input('pharmacy_id')));
 
@@ -40,7 +54,10 @@ class OrderController extends Controller
 
             $orders = $query->latest()->paginate($request->input('per_page', 20));
 
-            return response()->json($orders);
+            return response()->json(array_merge($orders->toArray(), [
+                'status_counts' => $statusCounts,
+                'revenue_total' => $revenueTotal,
+            ]));
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch orders.',

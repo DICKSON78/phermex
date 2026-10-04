@@ -28,7 +28,9 @@ const TYPE_STYLES = {
   phone: 'bg-blue-100 text-blue-700',
 }
 
-const STATUS_TABS = ['All', 'Pending', 'Confirmed', 'Dispensed', 'Delivered', 'Cancelled']
+const STATUS_TABS = ['All', 'Pending', 'Dispensed', 'Delivered', 'Cancelled']
+const ACTIONABLE_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery']
+const COMPLETED_STATUSES = ['dispensed', 'delivered']
 
 export default function OrderListPage() {
   const navigate = useNavigate()
@@ -40,6 +42,8 @@ export default function OrderListPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [lastPage, setLastPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [statusCounts, setStatusCounts] = useState({})
+  const [revenueTotal, setRevenueTotal] = useState(0)
   const pageSize = 20
 
   useEffect(() => {
@@ -50,13 +54,15 @@ export default function OrderListPage() {
     setLoading(true)
     try {
       const params = { page: currentPage, per_page: pageSize }
-      if (statusTab !== 'All') params.status = statusTab.toLowerCase()
+      if (statusTab !== 'All' && statusTab !== 'Pending') params.status = statusTab.toLowerCase()
       if (search) params.search = search
       const res = await api.get('/orders', { params })
       const data = res.data
       setOrders(data.data || [])
       setLastPage(data.last_page || 1)
       setTotal(data.total || 0)
+      setStatusCounts(data.status_counts || {})
+      setRevenueTotal(Number(data.revenue_total || 0))
     } catch {
       setOrders([])
     } finally {
@@ -81,17 +87,23 @@ export default function OrderListPage() {
   const getItemsCount = (o) => o.items_count ?? o.items?.length ?? 0
   const getTotal = (o) => Number(o.total || 0)
 
-  const filtered = statusTab === 'All' ? orders : orders.filter((o) => getStatus(o) === statusTab.toLowerCase())
+  // "Pending" is the whole in-flight set, so an order in preparing or ready is
+// still reachable. Filtering happens here rather than on the server because the
+// API only accepts one exact status.
+const filtered = statusTab === 'All'
+  ? orders
+  : statusTab === 'Pending'
+    ? orders.filter((o) => ACTIONABLE_STATUSES.includes(getStatus(o)))
+    : orders.filter((o) => getStatus(o) === statusTab.toLowerCase())
+
+  const countStatuses = (list) =>
+    list.reduce((sum, st) => sum + (Number(statusCounts[st]) || 0), 0)
 
   const stats = {
     total,
-    pending: orders.filter((o) => getStatus(o) === 'pending').length,
-    completedToday: orders.filter((o) =>
-      (getStatus(o) === 'dispensed' || getStatus(o) === 'delivered')
-    ).length,
-    totalRevenue: orders
-      .filter((o) => (o.payment_status || 'unpaid') === 'paid')
-      .reduce((sum, o) => sum + getTotal(o), 0),
+    pending: countStatuses(ACTIONABLE_STATUSES),
+    completedToday: countStatuses(COMPLETED_STATUSES),
+    totalRevenue: revenueTotal,
   }
 
   const statCards = [

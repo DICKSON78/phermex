@@ -10,6 +10,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    /**
+     * Statuses that still need a human to act on the order.
+     *
+     * The sidebar badge, the Orders "Pending" card and the status tabs all read
+     * from this one list so a count can never promise work the list hides.
+     */
+    public const ACTIONABLE_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'];
+
+    /** Statuses that mean the order is finished with. */
+    public const COMPLETED_STATUSES = ['dispensed', 'delivered'];
+
     use TenantScoped, HasFactory;
 
     protected $fillable = [

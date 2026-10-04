@@ -144,15 +144,27 @@ class DashboardController extends Controller
 
         try {
             $user = $request->user();
-            $pharmacyIds = $user->accessiblePharmacyIds();
+
+            // Badges must describe the branch actually on screen. Counting every
+            // accessible pharmacy made the sidebar advertise work that the
+            // scoped list pages could never show.
+            $currentId = $request->filled('pharmacy_id')
+                ? $request->input('pharmacy_id')
+                : $user->resolveCurrentPharmacyId();
+
+            $pharmacyIds = $currentId
+                ? array_values(array_intersect([(int) $currentId], $user->accessiblePharmacyIds()))
+                : ($user->isAdmin() ? $user->accessiblePharmacyIds() : []);
 
             $pendingApprovals = $user->isAdmin()
                 ? (int) $safe(fn () => Pharmacy::where('application_status', 'pending')->count())
                 : null;
 
+            // Same definition the Orders page uses for its Pending card and
+            // tabs, so the badge and the list can no longer disagree.
             $orders = $safe(function () use ($pharmacyIds) {
                 return empty($pharmacyIds) ? 0 : Order::whereIn('pharmacy_id', $pharmacyIds)
-                    ->whereIn('order_status', ['pending', 'confirmed', 'preparing'])
+                    ->whereIn('order_status', Order::ACTIONABLE_STATUSES)
                     ->count();
             });
 

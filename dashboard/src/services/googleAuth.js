@@ -27,13 +27,30 @@ import api from './api'
 // loads the handler but is not registered, and the apex helix.co.tz runs the
 // Laravel app on LiteSpeed and answers with the SPA instead of the handler.
 // Keep authDomain aligned with the project until those registrations are done.
+// Read from dashboard/.env (gitignored) so this project is never bound in
+// source control to a Firebase project the team does not control. authDomain and
+// storageBucket derive from the project id; override them only if the project
+// uses non-default values.
+const firebaseProjectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || ''
+
 const firebaseConfig = {
-  apiKey: 'AIzaSyCa66ZgPt5xPkqYK-hOrf3y0ChgrXLpyIs',
-  authDomain: 'trcticket-b6b01.firebaseapp.com',
-  projectId: 'trcticket-b6b01',
-  storageBucket: 'trcticket-b6b01.firebasestorage.app',
-  messagingSenderId: '841872361333',
-  appId: '1:841872361333:web:40e79d57b84fe7b6e1b53c',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${firebaseProjectId}.firebaseapp.com`,
+  projectId: firebaseProjectId,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${firebaseProjectId}.firebasestorage.app`,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+}
+
+// Firebase fails with an opaque error when these are blank, so say what is
+// actually wrong instead.
+const missingFirebaseKeys = ['VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_MESSAGING_SENDER_ID', 'VITE_FIREBASE_APP_ID']
+  .filter((key) => !import.meta.env[key])
+
+if (missingFirebaseKeys.length) {
+  console.warn(
+    `[googleAuth] Google sign-in is not configured: missing ${missingFirebaseKeys.join(', ')} in dashboard/.env.`,
+  )
 }
 
 

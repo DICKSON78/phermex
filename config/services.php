@@ -43,26 +43,23 @@ return [
         'tzs_per_usd' => (float) env('SUBSCRIPTION_TZS_PER_USD', 2600),
     ],
 
+    // Google sign-in settings. Deliberately no hardcoded defaults: this project
+    // must point at a Firebase project its own team controls, so every value
+    // comes from the environment and a missing value is an error rather than a
+    // silent fallback to some other project's credentials. See .env.example.
     'google' => [
-        // Firebase project used for Google sign-in (trcticket-b6b01).
-        'firebase_project_id' => env('GOOGLE_FIREBASE_PROJECT_ID', 'trcticket-b6b01'),
-        // Web app id from the Firebase console: 1:841872361333:web:40e79d57b84fe7b6e1b53c
-        'firebase_app_id' => env('GOOGLE_FIREBASE_APP_ID', '1:841872361333:web:40e79d57b84fe7b6e1b53c'),
-        // The Web API key. Some sign-in flows mint this as the `aud` claim; the
-        // project id below is what this deployment actually receives.
-        'firebase_web_api_key' => env('GOOGLE_FIREBASE_WEB_API_KEY', 'AIzaSyCa66ZgPt5xPkqYK-hOrf3y0ChgrXLpyIs'),
-        // Comma separated. Must also contain the Android app id
-        // (1:841872361333:android:8cdeca352486dc20e1b53c) and the OAuth client
-        // id (841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com)
-        // so tokens minted by the mobile app are accepted too.
-        // Defaults cover the web API key (web popup), the web and Android app
-        // ids, and the OAuth client that google_sign_in receives on mobile.
-        'allowed_audiences' => env('GOOGLE_ALLOWED_AUDIENCES', implode(',', [
-            'AIzaSyCa66ZgPt5xPkqYK-hOrf3y0ChgrXLpyIs',
-            '1:841872361333:web:40e79d57b84fe7b6e1b53c',
-            '1:841872361333:android:8cdeca352486dc20e1b53c',
-            '841872361333-7ohrhqni6kjtmr3l7lvv911lgl8h2nh6.apps.googleusercontent.com',
-        ])),
+        // Firebase project id, e.g. "my-pharmex-project". Also used to pin the
+        // accepted token issuer to https://securetoken.google.com/<project>.
+        'firebase_project_id' => env('GOOGLE_FIREBASE_PROJECT_ID', ''),
+        // Web app id from Firebase console > Project settings > Your apps.
+        'firebase_app_id' => env('GOOGLE_FIREBASE_APP_ID', ''),
+        // Web API key. Some sign-in flows mint this as the `aud` claim.
+        'firebase_web_api_key' => env('GOOGLE_FIREBASE_WEB_API_KEY', ''),
+        // Comma separated list of audiences this deployment accepts. Must contain
+        // the web API key, the web app id, the Android app id
+        // (1:<project number>:android:<hash>) and the Android OAuth client id,
+        // so tokens minted by the web popup and by google_sign_in are both valid.
+        'allowed_audiences' => env('GOOGLE_ALLOWED_AUDIENCES', ''),
     ],
 
     'fcm' => [

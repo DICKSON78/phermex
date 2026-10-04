@@ -46,3 +46,9 @@ app.*.map.json
 
 # Firebase config contains a project API key - keep it out of the repo.
 android/app/google-services.json
+
+# Release signing material and local credential backups
+keys-backup/
+*.jks
+*.keystore
+key.properties

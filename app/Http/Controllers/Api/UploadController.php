@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class UploadController extends Controller
 {
-    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
+    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'mp4', 'webm', 'mov'];
 
     private const MIME_TO_EXTENSION = [
         'image/jpeg' => 'jpg',
@@ -18,13 +18,26 @@ class UploadController extends Controller
         'image/gif' => 'gif',
         'image/webp' => 'webp',
         'application/pdf' => 'pdf',
+        'video/mp4' => 'mp4',
+        'video/webm' => 'webm',
+        'video/quicktime' => 'mov',
     ];
+
+    private const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov'];
+
+    /** Videos get a larger ceiling than documents and images. */
+    private const VIDEO_MAX_KB = 51200;
+
+    private function maxKbFor(string $extension): int
+    {
+        return in_array($extension, self::VIDEO_EXTENSIONS, true) ? self::VIDEO_MAX_KB : 5120;
+    }
 
     public function store(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
-                'file' => 'required|file|max:5120|mimes:jpg,jpeg,png,gif,webp,pdf',
+                'file' => 'required|file|mimes:jpg,jpeg,png,gif,webp,pdf,mp4,webm,mov|max:51200',
                 'folder' => 'sometimes|string|max:100',
             ]);
 
@@ -44,6 +57,14 @@ class UploadController extends Controller
                 return response()->json([
                     'message' => 'Validation failed.',
                     'error' => ['file' => ['The file type is not allowed.']],
+                ], 422);
+            }
+
+            $maxKb = self::maxKbFor($detectedExtension);
+            if ($file->getSize() > $maxKb * 1024) {
+                return response()->json([
+                    'message' => 'Validation failed.',
+                    'error' => ['file' => ['The file may not be larger than ' . ($maxKb / 1024) . ' MB.']],
                 ], 422);
             }
 

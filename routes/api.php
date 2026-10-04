@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayrollController;
 use App\Http\Controllers\Api\PerformanceController;
 use App\Http\Controllers\Api\PharmacyController;
+use App\Http\Controllers\Api\PharmacyReelController;
 use App\Http\Controllers\Api\PharmacyReviewController;
 use App\Http\Controllers\Api\PrescriptionController;
 use App\Http\Controllers\Api\TaxController;
@@ -100,6 +101,9 @@ Route::get('/subscriptions/plans', [SubscriptionController::class, 'plans']);
 Route::get('/exchange-rate', [SubscriptionController::class, 'exchangeRate']);
 
 Route::prefix('customer-app')->group(function () {
+    // Public reel feed for the customer app: one reel per pharmacy, published only.
+    Route::get('/reels', [PharmacyReelController::class, 'index']);
+
     Route::post('/register', [CustomerAppController::class, 'register'])->middleware('throttle:5,1');
     Route::post('/login', [CustomerAppController::class, 'login'])->middleware('throttle:10,1');
     // Sign in with Google: customers are created on first sign-in.
@@ -194,6 +198,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // Inventory writes are limited to owners and pharmacists —
         // cashiers/delivery staff keep read + POS access only.
         Route::middleware('role:owner,pharmacist')->group(function () {
+            // A pharmacy has at most one reel; posting again replaces it.
+            Route::get('/reel', [PharmacyReelController::class, 'mine']);
+            Route::post('/reel', [PharmacyReelController::class, 'store']);
+            Route::delete('/reel', [PharmacyReelController::class, 'destroy']);
+
             Route::post('/drugs', [DrugController::class, 'store']);
             Route::put('/drugs/{id}', [DrugController::class, 'update']);
             Route::delete('/drugs/{id}', [DrugController::class, 'destroy']);

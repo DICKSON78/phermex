@@ -48,6 +48,7 @@ import {
   Gift,
   ShieldCheck,
   Lock,
+  Clapperboard,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -79,6 +80,7 @@ import ProfilePage from '../pages/owner/ProfilePage'
 import PharmacyReviewsPage from '../pages/owner/PharmacyReviewsPage'
 import TelemedicinePage from '../pages/owner/TelemedicinePage'
 import LoyaltyPage from '../pages/owner/LoyaltyPage'
+import ReelPage from '../pages/owner/ReelPage'
 import InsuranceProvidersPage from '../pages/owner/InsuranceProvidersPage'
 import PatientInsurancesPage from '../pages/owner/PatientInsurancesPage'
 import InsuranceClaimsPage from '../pages/owner/InsuranceClaimsPage'
@@ -190,6 +192,7 @@ const ownerNavGroups = [
       { path: '/dashboard/reviews', icon: Star, label: 'Reviews', requiredPlan: 'professional' },
       { path: '/dashboard/telemedicine', icon: Video, label: 'Telemedicine', requiredPlan: 'professional' },
       { path: '/dashboard/loyalty', icon: Gift, label: 'Loyalty Program', requiredPlan: 'professional' },
+      { path: '/dashboard/reel', icon: Clapperboard, label: 'Promotional Reel' },
     ],
   },
   {
@@ -959,6 +962,7 @@ export default function DashboardLayout({ role }) {
               <Route path="chats/:customerId" element={<PharmacyChatPage />} />
               <Route path="telemedicine" element={<TelemedicinePage />} />
               <Route path="loyalty" element={<LoyaltyPage />} />
+              <Route path="reel" element={<ReelPage />} />
               <Route path="insurance/providers" element={<InsuranceProvidersPage />} />
               <Route path="insurance/patients" element={<PatientInsurancesPage />} />
               <Route path="insurance/claims" element={<InsuranceClaimsPage />} />

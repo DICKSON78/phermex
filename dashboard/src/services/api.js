@@ -391,3 +391,18 @@ export const telemedicine = {
 }
 
 export default api
+
+export const reels = {
+  // A pharmacy has at most one reel — the backend replaces it on re-post.
+  mine: () => api.get('/reel'),
+  save: (data) => api.post('/reel', data),
+  remove: () => api.delete('/reel'),
+  upload: (file, folder = 'reels') => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('folder', folder)
+    return api.post('/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+}

@@ -28,6 +28,7 @@ import {
   Trash2,
   Pencil,
   ChevronDown,
+  ImageUp,
 } from 'lucide-react'
 import { TANZANIA_REGIONS } from '../../data/tanzaniaLocations'
 
@@ -167,6 +168,8 @@ function blankPharmacy(country) {
   return {
     pharmacy_name: '',
     pharmacy_type: 'independent',
+    pharmacy_logo: null, // uploaded File, not yet sent
+    pharmacy_logo_preview: null,
     license_number: '',
     license_expiry: '',
     country,
@@ -370,12 +373,62 @@ export default function RegisterOwnerPage() {
 
   const handleBack = () => goStep(step - 1, 'right')
 
+  const MAX_LOGO_MB = 5
+  const LOGO_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+
+  const updatePharmacyLogo = (i, file) => {
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next[`p${i}_pharmacy_logo`]
+      return next
+    })
+    if (!file) return
+    setPharmacies((prev) => prev.map((p, idx) => {
+      if (idx !== i || !p.pharmacy_logo_preview) return p
+      URL.revokeObjectURL(p.pharmacy_logo_preview)
+      return { ...p, pharmacy_logo_preview: null }
+    }))
+    if (!LOGO_TYPES.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, [`p${i}_pharmacy_logo`]: 'Use a JPG, PNG, GIF or WEBP image.' }))
+      return
+    }
+    if (file.size > MAX_LOGO_MB * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, [`p${i}_pharmacy_logo`]: `Logo must be smaller than ${MAX_LOGO_MB} MB.` }))
+      return
+    }
+    setPharmacies((prev) => prev.map((p, idx) => (idx === i
+      ? { ...p, pharmacy_logo: file, pharmacy_logo_preview: URL.createObjectURL(file) }
+      : p)))
+  }
+
+  // Uploads a logo and returns its public URL, or null when there is nothing to
+  // upload or the upload fails — registration still proceeds without a logo.
+  const uploadLogo = async (file) => {
+    if (!file) return null
+    const body = new FormData()
+    body.append('file', file)
+    body.append('folder', 'pharmacy-logos')
+    const res = await api.post('/upload', body, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return res.data?.data?.url ?? null
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validatePlan()) return
 
     setLoading(true)
     setError('')
+
+    // Logos are uploaded first so registration can stay a single JSON request.
+    let logoUrls
+    try {
+      logoUrls = await Promise.all(pharmacies.map((p) => uploadLogo(p.pharmacy_logo)))
+    } catch {
+      logoUrls = pharmacies.map(() => null)
+      setError('Could not upload the pharmacy logo. You can add it later from Pharmacy Settings.')
+    }
 
     const payload = {
       name: form.name,
@@ -386,9 +439,10 @@ export default function RegisterOwnerPage() {
       role: 'owner',
       country: form.country,
       subscription_plan_id: form.subscription_plan_id,
-      pharmacies: pharmacies.map((p) => ({
+      pharmacies: pharmacies.map((p, i) => ({
         pharmacy_name: p.pharmacy_name,
         pharmacy_type: p.pharmacy_type,
+        pharmacy_logo: logoUrls?.[i] ?? null,
         license_number: p.license_number || null,
         license_expiry: p.license_expiry || null,
         country: p.country || form.country,
@@ -597,6 +651,40 @@ export default function RegisterOwnerPage() {
                       <input type="text" value={p.pharmacy_name} onChange={(e) => updatePharmacy(i, 'pharmacy_name', e.target.value)} className={`${inputClasses} ${errors[`p${i}_pharmacy_name`] ? 'border-red-400' : ''}`} placeholder="e.g. Helix Central Pharmacy" />
                     </div>
                     {errors[`p${i}_pharmacy_name`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_pharmacy_name`]}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">
+                      Pharmacy Logo <span className="font-normal text-gray-400">(optional)</span>
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 shrink-0 rounded-2xl border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+                        {p.pharmacy_logo_preview ? (
+                          <img
+                            src={p.pharmacy_logo_preview}
+                            alt="Pharmacy logo preview"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <ImageUp className="w-6 h-6 text-gray-300" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          id={`pharmacy-logo-${i}`}
+                          type="file"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          onChange={(e) => updatePharmacyLogo(i, e.target.files?.[0])}
+                          className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-xl file:border-0 file:bg-[#0FD452] file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-[#000F14] hover:file:bg-[#0cb843] cursor-pointer"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">
+                          JPG, PNG, GIF or WEBP up to 5 MB. Shown on your profile and in search results.
+                        </p>
+                        {errors[`p${i}_pharmacy_logo`] && (
+                          <p className="text-red-500 text-xs mt-1">{errors[`p${i}_pharmacy_logo`]}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-5">

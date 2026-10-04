@@ -29,6 +29,7 @@ class AuthController extends Controller
             if ($request->role === 'owner' || $request->input('role', 'owner') === 'owner') {
                 $rules['pharmacy_name'] = 'sometimes|required_without:pharmacies|string|max:255';
                 $rules['pharmacy_type'] = 'sometimes|string|max:50';
+                $rules['pharmacy_logo'] = 'sometimes|nullable|string|max:255';
                 $rules['license_number'] = 'sometimes|string|max:100';
                 $rules['license_expiry'] = 'sometimes|nullable|date';
                 $rules['country'] = 'required|string|max:100';
@@ -47,6 +48,7 @@ class AuthController extends Controller
                 $rules['pharmacies'] = 'sometimes|array|min:1';
                 $rules['pharmacies.*.pharmacy_name'] = 'required|string|max:255';
                 $rules['pharmacies.*.pharmacy_type'] = 'sometimes|string|max:50';
+                $rules['pharmacies.*.pharmacy_logo'] = 'sometimes|nullable|string|max:255';
                 $rules['pharmacies.*.license_number'] = 'sometimes|nullable|string|max:100';
                 $rules['pharmacies.*.license_expiry'] = 'sometimes|nullable|date';
                 $rules['pharmacies.*.country'] = 'sometimes|nullable|string|max:100';
@@ -90,6 +92,7 @@ class AuthController extends Controller
                     $pharmacyInputs[] = [
                         'pharmacy_name' => $validated['pharmacy_name'],
                         'pharmacy_type' => $validated['pharmacy_type'] ?? 'independent',
+                        'pharmacy_logo' => $validated['pharmacy_logo'] ?? null,
                         'license_number' => $validated['license_number'] ?? null,
                         'license_expiry' => $validated['license_expiry'] ?? null,
                         'country' => $validated['country'] ?? null,
@@ -112,6 +115,7 @@ class AuthController extends Controller
                         'pharmacy_name' => $input['pharmacy_name'],
                         'pharmacy_code' => 'PHM-' . strtoupper(Str::random(6)),
                         'pharmacy_type' => $input['pharmacy_type'] ?? 'independent',
+                        'pharmacy_logo' => $input['pharmacy_logo'] ?? null,
                         'license_number' => $input['license_number'] ?? null,
                         'license_expiry' => $input['license_expiry'] ?? null,
                         'country' => $input['country'] ?? $validated['country'],

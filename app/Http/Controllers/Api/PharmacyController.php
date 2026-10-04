@@ -7,7 +7,10 @@ use App\Models\Pharmacy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PharmacyController extends Controller
 {
@@ -162,7 +165,7 @@ class PharmacyController extends Controller
 
             $validated = $request->validate([
                 'pharmacy_name' => 'sometimes|string|max:255',
-                'pharmacy_logo' => 'sometimes|nullable|string|max:255',
+                'pharmacy_logo' => 'sometimes|nullable',
                 'license_number' => 'sometimes|nullable|string|max:255',
                 'license_expiry' => 'sometimes|nullable|date',
                 'pharmacy_type' => 'sometimes|in:independent,chain,hospital,online',
@@ -180,6 +183,11 @@ class PharmacyController extends Controller
                 'status' => 'sometimes|in:pending,active,suspended,closed',
                 'is_published' => 'sometimes|boolean',
             ]);
+
+            $logo = $this->resolvePharmacyLogo($request, $pharmacy);
+            if ($logo !== false) {
+                $validated['pharmacy_logo'] = $logo;
+            }
 
             $pharmacy->update($validated);
 
@@ -199,6 +207,68 @@ class PharmacyController extends Controller
                 'message' => 'Failed to update pharmacy.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
+        }
+    }
+
+    /**
+     * Resolve an updated pharmacy logo, accepting an uploaded file or a plain URL.
+     *
+     * The dashboard settings form sends the file under "logo", while other clients
+     * send "pharmacy_logo"; both are honoured so neither is silently dropped.
+     * Returns false when the request did not touch the logo at all.
+     */
+    private function resolvePharmacyLogo(Request $request, Pharmacy $pharmacy)
+    {
+        $file = $request->file('pharmacy_logo') ?? $request->file('logo');
+
+        if ($file) {
+            $validator = Validator::make(
+                ['logo' => $file],
+                ['logo' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120']
+            );
+
+            if ($validator->fails()) {
+                throw ValidationException::withMessages([
+                    'pharmacy_logo' => $validator->errors()->get('logo'),
+                ]);
+            }
+
+            $this->deleteStoredLogo($pharmacy);
+
+            $path = $file->storeAs('pharmacy-logos', Str::uuid() . '.' . strtolower($file->getClientOriginalExtension()), 'public');
+
+            return Storage::disk('public')->url($path);
+        }
+
+        $url = $request->input('pharmacy_logo') ?? $request->input('logo');
+
+        if ($url === null) {
+            return false;
+        }
+
+        if (trim((string) $url) !== '') {
+            return $url;
+        }
+
+        $this->deleteStoredLogo($pharmacy);
+
+        return null;
+    }
+
+    /** Remove a previously uploaded logo so replacements do not orphan files. */
+    private function deleteStoredLogo(Pharmacy $pharmacy): void
+    {
+        $current = $pharmacy->pharmacy_logo;
+
+        if (!is_string($current) || $current === '' || !str_contains($current, '/storage/pharmacy-logos/')) {
+            return;
+        }
+
+        $relative = Str::after($current, '/storage/');
+        $disk = Storage::disk('public');
+
+        if ($disk->exists($relative)) {
+            $disk->delete($relative);
         }
     }
 

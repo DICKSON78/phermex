@@ -70,7 +70,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-[72px]">
             <Link to="/" className="flex items-center gap-3 group">
               <span className="h-10 w-10 rounded-xl overflow-hidden flex items-center justify-center shadow-sm ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-105">
-                <img src="/logo.jpeg" alt={t('site.brand', SITE.name)} className="h-full w-full object-cover" />
+                <img src="/helix-logo.png" alt={t('site.brand', SITE.name)} className="h-full w-full object-contain" />
               </span>
               <span className="flex flex-col leading-none">
                 <span className="text-[#0FD452] font-bold text-lg tracking-wide whitespace-nowrap">{t('site.brand', 'HELIX')}</span>

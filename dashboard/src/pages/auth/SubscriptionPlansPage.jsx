@@ -126,7 +126,7 @@ export default function SubscriptionPlansPage() {
   const handlePay = async () => {
     if (!selectedPlan) return
     if (!phone || phone.replace(/\D/g, '').length < 9) {
-      setError('Please enter a valid M-PESA phone number.')
+      setError('Please enter a valid phone number.')
       return
     }
     setPaying(true)
@@ -337,7 +337,7 @@ export default function SubscriptionPlansPage() {
               </div>
 
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1.5">
-                <Smartphone className="w-4 h-4 text-gray-400" /> M-PESA Phone Number
+                <Smartphone className="w-4 h-4 text-gray-400" /> Phone Number
               </label>
               <div className="relative mb-4">
                 <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />

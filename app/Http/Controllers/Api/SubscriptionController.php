@@ -281,10 +281,7 @@ class SubscriptionController extends Controller
             ], 502);
         }
 
-        $gatewayStatus = strtoupper($status['status'] ?? 'PROCESSING');
-        $paid = str_contains($gatewayStatus, 'SUCCESS')
-            || str_contains($gatewayStatus, 'SETTLED')
-            || str_contains($gatewayStatus, 'RECEIVED');
+        [$paid, $gatewayStatus] = $this->interpretGatewayStatus($status);
 
         if ($paid && $revenue->status !== 'paid') {
             $this->activateSubscription($revenue);
@@ -298,10 +295,18 @@ class SubscriptionController extends Controller
         ]);
     }
 
+    /**
+     * Confirm a subscription payment.
+     *
+     * The client saying "I paid" is not evidence, so this never activates on
+     * request alone: the reference is looked up against our own revenue record
+     * and the gateway is asked whether it actually received the money. Access is
+     * granted only when ClickPesa reports a settled payment.
+     */
     public function confirmPayment(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'payment_ref' => 'sometimes|string|max:255',
+            'payment_ref' => 'required|string|max:255',
             'payment_method' => 'sometimes|string|max:50',
         ]);
 
@@ -338,41 +343,79 @@ class SubscriptionController extends Controller
             return response()->json(['message' => 'No subscription plan selected.'], 400);
         }
 
-        $subscription = Subscription::where('pharmacy_id', $pharmacy->id)
-            ->where('status', 'active')
+        $revenue = RevenueRecord::where('pharmacy_id', $pharmacy->id)
+            ->where('type', 'subscription')
+            ->where('payment_reference', $validated['payment_ref'])
             ->latest('id')
             ->first();
 
-        $pharmacy->update([
-            'payment_status' => 'paid',
-            'status' => 'active',
-            'is_published' => true,
-        ]);
+        if (!$revenue) {
+            return response()->json([
+                'message' => 'No subscription payment matches that reference.',
+            ], 404);
+        }
 
-        if ($subscription) {
-            $subscription->update([
-                'transaction_id' => $validated['payment_ref']
-                    ?? $subscription->transaction_id
-                    ?? 'TXN-' . strtoupper(Str::random(10)),
-                'payment_method' => $validated['payment_method'] ?? $subscription->payment_method ?? 'manual',
+        if ($revenue->status === 'paid') {
+            return response()->json([
+                'message' => 'Payment already confirmed.',
+                'gateway_status' => 'SUCCESS',
+                'pharmacy' => $pharmacy->fresh(),
             ]);
         }
 
-        RevenueRecord::where('pharmacy_id', $pharmacy->id)
-            ->where('type', 'subscription')
-            ->where('status', 'pending')
-            ->latest('id')
-            ->first()
-            ?->update([
-                'status' => 'paid',
-                'paid_at' => now(),
-                'payment_method' => $validated['payment_method'] ?? null,
-            ]);
+        $service = app(ClickPesaService::class);
+
+        if (!$service->enabled()) {
+            return response()->json([
+                'message' => 'Payment gateway not configured, so the payment cannot be confirmed. Our team will verify it for you.',
+                'status' => 'pending',
+            ], 503);
+        }
+
+        try {
+            $gateway = $service->queryStatus($validated['payment_ref']);
+        } catch (\Throwable $e) {
+            Log::warning('Subscription payment verification failed: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Could not reach the payment gateway to verify this payment. Please try again shortly.',
+                'status' => 'pending',
+            ], 502);
+        }
+
+        [$paid, $gatewayStatus] = $this->interpretGatewayStatus($gateway);
+
+        if (!$paid) {
+            return response()->json([
+                'message' => 'The payment has not been received yet.',
+                'status' => 'pending',
+                'gateway_status' => $gatewayStatus,
+            ], 402);
+        }
+
+        $this->activateSubscription($revenue);
 
         return response()->json([
-            'message' => 'Payment confirmed. Subscription activated.',
+            'message' => 'Payment confirmed with the payment provider. Subscription activated.',
+            'gateway_status' => $gatewayStatus,
             'pharmacy' => $pharmacy->fresh(),
         ]);
+    }
+
+    /**
+     * Decide whether a gateway response means the money actually arrived.
+     *
+     * @return array{0: bool, 1: string}
+     */
+    private function interpretGatewayStatus(array $gateway): array
+    {
+        $status = strtoupper((string) ($gateway['status'] ?? 'PROCESSING'));
+
+        $paid = str_contains($status, 'SUCCESS')
+            || str_contains($status, 'SETTLED')
+            || str_contains($status, 'RECEIVED');
+
+        return [$paid, $status];
     }
 
     private function planSlug(SubscriptionPlan $plan): string

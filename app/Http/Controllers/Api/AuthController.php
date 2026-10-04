@@ -10,8 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -29,7 +32,7 @@ class AuthController extends Controller
             if ($request->role === 'owner' || $request->input('role', 'owner') === 'owner') {
                 $rules['pharmacy_name'] = 'sometimes|required_without:pharmacies|string|max:255';
                 $rules['pharmacy_type'] = 'sometimes|string|max:50';
-                $rules['pharmacy_logo'] = 'sometimes|nullable|string|max:255';
+                $rules['pharmacy_logo'] = 'sometimes|nullable';
                 $rules['license_number'] = 'sometimes|string|max:100';
                 $rules['license_expiry'] = 'sometimes|nullable|date';
                 $rules['country'] = 'required|string|max:100';
@@ -62,6 +65,7 @@ class AuthController extends Controller
                 $rules['pharmacies.*.working_days'] = 'sometimes|nullable|array';
                 $rules['pharmacies.*.working_hours'] = 'sometimes|nullable|array';
                 $rules['pharmacies.*.description'] = 'sometimes|nullable|string|max:1000';
+                $rules['pharmacies.*.pharmacy_logo'] = 'sometimes|nullable';
             }
 
             $validated = $request->validate($rules);
@@ -109,7 +113,9 @@ class AuthController extends Controller
                     ];
                 }
 
-                foreach ($pharmacyInputs as $input) {
+                foreach ($pharmacyInputs as $index => $input) {
+                    $input['pharmacy_logo'] = $this->resolvePharmacyLogo($request, $index, $input['pharmacy_logo'] ?? null);
+
                     $pharmacyData = [
                         'owner_id' => $user->id,
                         'pharmacy_name' => $input['pharmacy_name'],
@@ -181,6 +187,42 @@ class AuthController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }
+    }
+
+    /**
+     * Resolve a registration pharmacy logo into a stored URL.
+     *
+     * The logo travels with the registration request as a multipart file, so
+     * unauthenticated owners never need a token to upload one. A plain string is
+     * still accepted so existing JSON clients keep working.
+     */
+    private function resolvePharmacyLogo(Request $request, int $index, $existing): ?string
+    {
+        $key = "pharmacies.{$index}.pharmacy_logo";
+        $file = $request->file($key) ?? ($index === 0 ? $request->file('pharmacy_logo') : null);
+
+        if ($file) {
+            // Validate against a flat key, then report the error under the real
+            // dotted field name so the dashboard highlights the right branch.
+            $validator = Validator::make(
+                ['logo' => $file],
+                ['logo' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120']
+            );
+
+            if ($validator->fails()) {
+                throw ValidationException::withMessages([
+                    $key => $validator->errors()->get('logo'),
+                ]);
+            }
+
+            $path = $file->storeAs('pharmacy-logos', Str::uuid() . '.' . strtolower($file->getClientOriginalExtension()), 'public');
+
+            return Storage::disk('public')->url($path);
+        }
+
+        $value = $request->input($key) ?? $existing;
+
+        return is_string($value) && trim($value) !== '' ? $value : null;
     }
 
     public function login(Request $request): JsonResponse

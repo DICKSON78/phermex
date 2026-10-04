@@ -123,7 +123,14 @@ export function AuthProvider({ children }) {
   }
 
   const register = async (data) => {
-    const response = await api.post('/register', data)
+    // Pharmacy logos are attached as files, so registration must go out as
+    // multipart. Axios turns FormData into JSON when a JSON content-type is set.
+    const isMultipart = typeof FormData !== 'undefined' && data instanceof FormData
+    const response = await api.post(
+      '/register',
+      data,
+      isMultipart ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined,
+    )
     const { token: newToken, user: userData } = response.data.data || response.data
     localStorage.setItem('pharmex_token', newToken)
     setToken(newToken)

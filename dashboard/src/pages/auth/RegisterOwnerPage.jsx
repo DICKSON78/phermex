@@ -401,19 +401,6 @@ export default function RegisterOwnerPage() {
       : p)))
   }
 
-  // Uploads a logo and returns its public URL, or null when there is nothing to
-  // upload or the upload fails — registration still proceeds without a logo.
-  const uploadLogo = async (file) => {
-    if (!file) return null
-    const body = new FormData()
-    body.append('file', file)
-    body.append('folder', 'pharmacy-logos')
-    const res = await api.post('/upload', body, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    return res.data?.data?.url ?? null
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validatePlan()) return
@@ -421,46 +408,50 @@ export default function RegisterOwnerPage() {
     setLoading(true)
     setError('')
 
-    // Logos are uploaded first so registration can stay a single JSON request.
-    let logoUrls
-    try {
-      logoUrls = await Promise.all(pharmacies.map((p) => uploadLogo(p.pharmacy_logo)))
-    } catch {
-      logoUrls = pharmacies.map(() => null)
-      setError('Could not upload the pharmacy logo. You can add it later from Pharmacy Settings.')
-    }
+    const body = new FormData()
+    body.append('name', form.name)
+    body.append('email', form.email)
+    body.append('phone', `${form.countryCode}${form.phone}`)
+    body.append('password', form.password)
+    body.append('password_confirmation', form.password_confirmation)
+    body.append('role', 'owner')
+    body.append('country', form.country)
+    body.append('subscription_plan_id', form.subscription_plan_id)
 
-    const payload = {
-      name: form.name,
-      email: form.email,
-      phone: `${form.countryCode}${form.phone}`,
-      password: form.password,
-      password_confirmation: form.password_confirmation,
-      role: 'owner',
-      country: form.country,
-      subscription_plan_id: form.subscription_plan_id,
-      pharmacies: pharmacies.map((p, i) => ({
-        pharmacy_name: p.pharmacy_name,
-        pharmacy_type: p.pharmacy_type,
-        pharmacy_logo: logoUrls?.[i] ?? null,
-        license_number: p.license_number || null,
-        license_expiry: p.license_expiry || null,
-        country: p.country || form.country,
-        region: p.region,
-        district: p.district,
-        ward: p.ward || null,
-        street: p.street || null,
-        latitude: p.latitude,
-        longitude: p.longitude,
-        opening_capital: p.opening_capital || 0,
-        working_days: p.working_days,
-        working_hours: { open: p.opening_time, close: p.closing_time },
-        description: p.description || null,
-      })),
-    }
+    // Branch fields use bracket notation so Laravel rebuilds the nested array,
+    // and the logo is attached as a real file on the same request.
+    const scalarKeys = [
+      'pharmacy_name',
+      'pharmacy_type',
+      'license_number',
+      'license_expiry',
+      'country',
+      'region',
+      'district',
+      'ward',
+      'street',
+      'latitude',
+      'longitude',
+      'opening_capital',
+      'description',
+    ]
+
+    pharmacies.forEach((p, i) => {
+      scalarKeys.forEach((key) => {
+        const value = p[key]
+        if (value === undefined || value === null || value === '') return
+        body.append(`pharmacies[${i}][${key}]`, typeof value === 'boolean' ? String(value) : value)
+      })
+      if (p.working_days?.length) {
+        p.working_days.forEach((day) => body.append(`pharmacies[${i}][working_days][]`, day))
+      }
+      if (p.opening_time) body.append(`pharmacies[${i}][working_hours][open]`, p.opening_time)
+      if (p.closing_time) body.append(`pharmacies[${i}][working_hours][close]`, p.closing_time)
+      if (p.pharmacy_logo) body.append(`pharmacies[${i}][pharmacy_logo]`, p.pharmacy_logo)
+    })
 
     try {
-      await register(payload)
+      await register(body)
       navigate('/pending-approval')
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.')

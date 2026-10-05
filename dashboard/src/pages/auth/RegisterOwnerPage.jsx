@@ -233,13 +233,67 @@ function blankPharmacy(country) {
   }
 }
 
+const DRAFT_KEY = 'pharmex_registration_draft'
+
+/**
+ * Registration is long enough that losing it to a refresh is a real cost, so
+ * the draft is kept in localStorage.
+ *
+ * The password is deliberately never stored. A draft sitting on a shared or
+ * borrowed machine would otherwise hand over the account, so a returning
+ * visitor has to re-enter the password on the first step.
+ */
+function readDraft() {
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function writeDraft(draft) {
+  try {
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+  } catch {
+    // Private browsing or a full quota: losing the draft is acceptable.
+  }
+}
+
+function clearDraft() {
+  try {
+    window.localStorage.removeItem(DRAFT_KEY)
+  } catch {
+    // ignore
+  }
+}
+
 export default function RegisterOwnerPage() {
   const navigate = useNavigate()
   const { register } = useAuth()
 
   const multiple = new URLSearchParams(window.location.search).get('mode') === 'multiple'
 
-  const [step, setStep] = useState(1)
+  // A draft saved from the multi branch form describes a different number of
+  // steps than the single branch one, so mixing them would land the owner on a
+  // step that no longer exists. Only restore the draft for the mode it was
+  // written in.
+  const [draft] = useState(() => {
+    const saved = readDraft()
+    if (!saved) return null
+    if (Boolean(saved.multiple) !== multiple) return null
+    if (!saved.pharmacies?.length) return null
+    return saved
+  })
+
+  const [step, setStep] = useState(() => {
+    if (!draft?.step) return 1
+    // Clamped below against the real step count once that is known.
+    return Math.max(1, Number(draft.step) || 1)
+  })
   const [stepDir, setStepDir] = useState('left')
   const [animKey, setAnimKey] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -248,21 +302,107 @@ export default function RegisterOwnerPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [plans, setPlans] = useState([])
 
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    countryCode: '+255',
-    password: '',
-    password_confirmation: '',
-    country: 'Tanzania',
-    subscription_plan_id: null,
+  const [form, setForm] = useState(() => {
+    const empty = {
+      name: '',
+      email: '',
+      phone: '',
+      countryCode: '+255',
+      // Never restored from the draft: see DRAFT_KEY.
+      password: '',
+      password_confirmation: '',
+      country: 'Tanzania',
+      subscription_plan_id: null,
+    }
+    if (!draft?.form) return empty
+    return {
+      ...empty,
+      ...draft.form,
+      password: '',
+      password_confirmation: '',
+    }
   })
 
-  const [pharmacies, setPharmacies] = useState(() => [blankPharmacy('Tanzania')])
+  const [pharmacies, setPharmacies] = useState(() => {
+    if (!Array.isArray(draft?.pharmacies) || !draft.pharmacies.length) {
+      return [blankPharmacy('Tanzania')]
+    }
+
+    return draft.pharmacies.map((p) => {
+      const base = blankPharmacy('Tanzania')
+      // The uploaded logo is a File and cannot survive a JSON round trip, so
+      // that branch comes back without a logo and has to be picked again.
+      const restored = { ...base, ...p, pharmacy_logo: null, pharmacy_logo_preview: null }
+      if (!Array.isArray(restored.working_days) || !restored.working_days.length) {
+        restored.working_days = base.working_days
+      }
+      return restored
+    })
+  })
   const [errors, setErrors] = useState({})
+  const [resumedFrom, setResumedFrom] = useState(null)
 
   const totalSteps = 3 * pharmacies.length + 2
+
+  // A draft can hold a step number that no longer fits, either because the
+  // draft predates a branch being removed or because the owner navigated back
+  // to the single form. Pull them back rather than rendering nothing.
+  useEffect(() => {
+    if (step > totalSteps) {
+      setStep(totalSteps)
+      setAnimKey((k) => k + 1)
+    }
+  }, [step, totalSteps])
+
+  // Persist as they type, but skip the very first pass after a restore: writing
+  // back immediately is pointless work and would persist the clamped step from
+  // the effect above rather than the one the owner actually left on.
+  const restoredRef = useRef(false)
+  useEffect(() => {
+    if (!draft) return
+    if (!restoredRef.current) {
+      restoredRef.current = true
+      return
+    }
+    writeDraft({
+      step,
+      multiple,
+      // The password is dropped on the way out as well as on the way back in.
+      // Storing it and clearing it after the read would still leave it sitting
+      // in localStorage for the whole session.
+      form: {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        countryCode: form.countryCode,
+        country: form.country,
+        subscription_plan_id: form.subscription_plan_id,
+      },
+      // pharmacy_logo is a File; JSON.stringify would drop it anyway, so the
+      // draft keeps every other field.
+      pharmacies,
+      savedAt: Date.now(),
+    })
+  }, [step, form, pharmacies, multiple, draft])
+
+  const discardDraft = () => {
+    clearDraft()
+    setResumedFrom(null)
+    setStep(1)
+    setAnimKey((k) => k + 1)
+    setForm((prev) => ({
+      name: '',
+      email: '',
+      phone: '',
+      countryCode: prev.countryCode,
+      password: '',
+      password_confirmation: '',
+      country: prev.country,
+      subscription_plan_id: null,
+    }))
+    setPharmacies([blankPharmacy('Tanzania')])
+    setErrors({})
+  }
 
   useEffect(() => {
     api.get('/subscriptions/plans').then((res) => {
@@ -273,6 +413,13 @@ export default function RegisterOwnerPage() {
   useEffect(() => {
     setErrors({})
   }, [step])
+
+  // Tell the owner their answers came back rather than letting the restored
+  // step look like a page that forgot to render.
+  useEffect(() => {
+    if (!draft) return
+    setResumedFrom(draft.savedAt || null)
+  }, [draft])
 
   const updateForm = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -498,6 +645,9 @@ export default function RegisterOwnerPage() {
 
     try {
       await register(body)
+      // The account exists now, so the draft has done its job. Leaving it
+      // behind would repopulate the form if they register again.
+      clearDraft()
       navigate('/pending-approval')
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.')
@@ -541,6 +691,25 @@ export default function RegisterOwnerPage() {
           </p>
           <h1 className="text-4xl font-black text-gray-600 mb-3">Set Up Your Pharmacy</h1>
           <p className="text-gray-500 text-lg">{stepLabel()}</p>
+
+          {resumedFrom && (
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-[#0FD452]/30 bg-[#0FD452]/5 px-4 py-3 text-left">
+              <p className="text-xs text-gray-600">
+                We saved your progress
+                {resumedFrom
+                  ? ` on ${new Date(resumedFrom).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`
+                  : ''}
+                . You are back on step {step} of {totalSteps}.
+              </p>
+              <button
+                type="button"
+                onClick={discardDraft}
+                className="shrink-0 text-xs font-semibold text-gray-500 underline hover:text-gray-800 transition-colors"
+              >
+                Start over
+              </button>
+            </div>
+          )}
 
           {/* Step Indicator */}
           <div className="flex items-center justify-center gap-2 mt-4">

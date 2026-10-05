@@ -499,7 +499,7 @@ class CustomerAppController extends Controller
                 $paymentPhone = $validated['payment_phone'] ?? $user->phone;
                 if (!empty($paymentPhone) && app(\App\Services\ClickPesaService::class)->enabled()) {
                     try {
-                        $pushRef = 'HELIX-' . $order->id . '-' . strtoupper(Str::random(6));
+                        $pushRef = \App\Services\ClickPesaService::reference('HELIXORD', $order->id);
                         $push = app(\App\Services\ClickPesaService::class)->initiatePush(
                             (string) $subtotal,
                             $paymentPhone,

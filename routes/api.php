@@ -112,6 +112,13 @@ Route::prefix('customer-app')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:5,1');
 });
 
+// Payment provider callback. Must stay outside the authenticated groups: the
+// gateway calls this server-to-server and cannot present a Sanctum token, so
+// behind auth:sanctum it answered 401 to every notification. Authentication here
+// is the HMAC signature the handler verifies, not a user session.
+Route::post('/payments/webhook', [PaymentController::class, 'handleWebhook'])
+    ->middleware('throttle:120,1');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload', [UploadController::class, 'store']);
 
@@ -174,8 +181,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/payments/device-token', [PaymentController::class, 'registerDeviceToken']);
         Route::get('/payments/{order_id}/status', [PaymentController::class, 'queryPaymentStatus']);
     });
-
-    Route::post('/payments/webhook', [PaymentController::class, 'handleWebhook']);
 
     Route::middleware([EnsureSubscriptionActive::class, AutoScopePharmacy::class, PharmacyScopeMiddleware::class])->group(function () {
         Route::get('/pharmacies', [PharmacyController::class, 'index']);

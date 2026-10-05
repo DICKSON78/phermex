@@ -3,9 +3,13 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class ClickPesaService
 {
+    /** The gateway rejects order references longer than this. */
+    public const MAX_REFERENCE_LENGTH = 20;
+
     protected string $baseUrl;
 
     protected string $clientId;
@@ -25,6 +29,45 @@ class ClickPesaService
     public function enabled(): bool
     {
         return $this->enabled && $this->clientId !== '' && $this->apiKey !== '';
+    }
+
+    /**
+     * Authorization header for the payments endpoints.
+     *
+     * generate-token hands back a token that already starts with "Bearer ".
+     * Passing that through Http::withToken() would send "Bearer Bearer ...",
+     * which the gateway answers with 401 on every request.
+     *
+     * @return array<string, string>
+     */
+    protected function authHeaders(): array
+    {
+        $token = $this->accessToken();
+
+        return [
+            'Authorization' => Str::startsWith($token, 'Bearer ') ? $token : 'Bearer ' . $token,
+        ];
+    }
+
+    /**
+     * Build an order reference the gateway will accept: alphanumeric only, no
+     * separators, and no longer than MAX_REFERENCE_LENGTH. The gateway rejects
+     * anything with a hyphen, so references cannot be built with '-'.
+     */
+    public static function reference(string $prefix, $id = null): string
+    {
+        $base = strtoupper((string) preg_replace('/[^A-Z0-9]/', '', $prefix));
+
+        if ($id !== null && $id !== '') {
+            $base .= preg_replace('/[^0-9]/', '', (string) $id);
+        }
+
+        // Keep room for the random tail so references stay unique.
+        $base = substr($base, 0, self::MAX_REFERENCE_LENGTH - 8);
+
+        $suffix = strtoupper((string) preg_replace('/[^A-Z0-9]/', '', Str::random(10)));
+
+        return substr($base . $suffix, 0, self::MAX_REFERENCE_LENGTH);
     }
 
     protected function accessToken(): string
@@ -86,7 +129,7 @@ class ClickPesaService
         }
 
         $response = Http::timeout(20)
-            ->withToken($this->accessToken())
+            ->withHeaders($this->authHeaders())
             ->asJson()
             ->post($this->baseUrl . '/payments/initiate-ussd-push-request', [
                 'amount' => number_format((float) $amount, 2, '.', ''),
@@ -108,7 +151,7 @@ class ClickPesaService
         // path segment, and the gateway answers with a list, so an unwrapped read
         // of ['status'] would always look like PROCESSING and never activate.
         $response = Http::timeout(15)
-            ->withToken($this->accessToken())
+            ->withHeaders($this->authHeaders())
             ->get($this->baseUrl . '/payments/' . rawurlencode($orderReference));
 
         if (!$response->successful()) {

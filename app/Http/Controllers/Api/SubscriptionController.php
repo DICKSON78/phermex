@@ -208,7 +208,7 @@ class SubscriptionController extends Controller
 
         if ($service->enabled()) {
             try {
-                $pushRef = 'HELIX-SUB-' . $subscription->id . '-' . strtoupper(Str::random(6));
+                $pushRef = ClickPesaService::reference('HELIXSUB', $subscription->id);
                 $push = $service->initiatePush((string) $amountTzs, $validated['phone'], $pushRef);
                 $reference = $push['orderReference'] ?? $pushRef;
                 $pushInitiated = true;

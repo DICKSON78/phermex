@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
@@ -21,7 +24,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   final _notesController = TextEditingController();
-  final _paymentPhoneController = TextEditingController();
   bool _placing = false;
   String _paymentMethod = 'cash';
 
@@ -31,7 +33,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final user = ApiService.cachedUser;
     _addressController.text = (user?['location'] ?? '').toString();
     _phoneController.text = (user?['phone'] ?? '').toString();
-    _paymentPhoneController.text = (user?['phone'] ?? '').toString();
     _loadDefaultAddress();
   }
 
@@ -50,15 +51,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _addressController.dispose();
     _phoneController.dispose();
     _notesController.dispose();
-    _paymentPhoneController.dispose();
     super.dispose();
-  }
-
-  String _normalizePhone(String phone) {
-    return phone
-        .replaceAll(' ', '')
-        .replaceAll('+', '')
-        .trim();
   }
 
   Future<void> _placeOrder() async {
@@ -78,21 +71,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    if (_paymentMethod == 'mobile' && _paymentPhoneController.text.trim().isEmpty) {
-      final L = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L.t('shop.enterMobileMoneyPhone')),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    final paymentPhone = _paymentMethod == 'mobile'
-        ? _normalizePhone(_paymentPhoneController.text.trim())
-        : null;
 
     setState(() => _placing = true);
     try {
@@ -103,31 +81,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         deliveryPhone: _phoneController.text.trim(),
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         paymentMethod: _paymentMethod,
-        paymentPhone: paymentPhone,
       );
       final order = Order.fromJson(data);
       cart.clear();
       if (!mounted) return;
 
+      final navigator = Navigator.of(context);
+
       if (_paymentMethod == 'mobile') {
-        final payment = data['payment'];
-        final pushInitiated = payment is Map && payment['push_initiated'] == true;
-        if (pushInitiated) {
-          await _showPushPaymentDialog(order);
-          return;
-        }
-        // Push couldn't be initiated; pharmacy confirms manually.
-        final L = AppLocalizations.of(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(L.t('shop.manualPaymentConfirm')),
-            backgroundColor: AppTheme.dark,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        // The money went to the pharmacy, not to us, so there is nothing to
+        // poll. Show the customer where to send it and hand them to the order.
+        if (!mounted) return;
+        await _showPayPharmacyModal(order, data['payment']);
+        if (!mounted) return;
       }
 
-      Navigator.of(context).pushAndRemoveUntil(
+      navigator.pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)),
         (route) => route.isFirst,
       );
@@ -144,87 +113,110 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  /// Shows a dialog while polling payment status every 5s until it reaches
-  /// `paid` or `failed`.
-  Future<void> _showPushPaymentDialog(Order order) async {
+  /// Shows the pharmacy's own account so the customer can pay it directly,
+  /// then hands them to the order screen to follow the confirmation.
+  Future<void> _showPayPharmacyModal(Order order, dynamic payment) async {
     final L = AppLocalizations.of(context);
-    final navigator = Navigator.of(context);
-    var paid = false;
+    final number = payment is Map ? payment['pharmacy_payment_number'] as String? : null;
+    final name = payment is Map ? payment['pharmacy_payment_name'] as String? : null;
 
-    Future<void> poll(BuildContext ctx) async {
-      while (true) {
-        try {
-          final status = await CustomerRepository.paymentStatus(order.id);
-          final paidStatus = status['status'] == 'paid';
-          final failedStatus = status['status'] == 'failed';
-          if (paidStatus || failedStatus) {
-            paid = paidStatus;
-            if (ctx.mounted) {
-              navigator.pop();
-            }
-            return;
-          }
-        } catch (_) {
-          // Ignore transient errors and keep polling.
-        }
-        await Future.delayed(const Duration(seconds: 5));
-      }
+    // The pharmacy can decline to publish a number, in which case there is
+    // nothing to pay into and the customer must not think otherwise.
+    if (number == null || number.trim().isEmpty) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          contentPadding: const EdgeInsets.fromLTRB(24, 26, 24, 8),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const _ResultBadge(
+                icon: Icons.info_outline_rounded,
+                color: Color(0xFFB9762A),
+                background: Color(0xFFFDF1E2),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                L.t('shop.paymentSentTitle'),
+                style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                L.t('shop.noPaymentNumberOnFile'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13.5, color: Color(0xFF6B7280), height: 1.45),
+              ),
+            ],
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text(L.t('shop.viewOrder')),
+              ),
+            ),
+          ],
+          actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+        ),
+      );
+      return;
     }
 
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) {
-        // Kick off polling as soon as the dialog opens.
-        poll(dialogContext);
-        return AlertDialog(
-          title: Text(L.t('shop.completePayment')),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(L.t('shop.checkPhonePush')),
-              const SizedBox(height: 16),
-              const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(L.t('cancel')),
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 26, 24, 8),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const _ResultBadge(
+              icon: Icons.savings_outlined,
+              color: Color(0xFF16A34A),
+              background: Color(0xFFE7F7EC),
             ),
+            const SizedBox(height: 16),
+            Text(
+              L.t('shop.paymentSentTitle'),
+              style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              L.t('shop.payPharmacyDirectBody'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13.5, color: Color(0xFF6B7280), height: 1.45),
+            ),
+            const SizedBox(height: 18),
+            _PayToAccountPanel(number: number, name: name, total: order.total),
+            const SizedBox(height: 14),
+            _OrderSummaryStrip(order: order),
           ],
-        );
-      },
-    );
-
-    if (!mounted) return;
-    if (paid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L.t('shop.paymentSuccessful')),
-          backgroundColor: AppTheme.dark,
-          behavior: SnackBarBehavior.floating,
         ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L.t('shop.paymentIncomplete')),
-          backgroundColor: const Color(0xFFD97706),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-
-    navigator.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)),
-      (route) => route.isFirst,
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(L.t('shop.viewOrder')),
+            ),
+          ),
+        ],
+        actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+      ),
     );
   }
 
@@ -295,24 +287,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                       const SizedBox(height: 10),
                       _PaymentOption(
-                        title: L.t('shop.mobileMoney'),
-                        subtitle: L.t('shop.payInstantlyPush'),
+                        title: L.t('shop.payPharmacyDirect'),
+                        subtitle: L.t('shop.pharmacyWillConfirm'),
                         icon: Icons.phone_android,
                         selected: _paymentMethod == 'mobile',
                         onTap: () => setState(() => _paymentMethod = 'mobile'),
                       ),
                       if (_paymentMethod == 'mobile') ...[
-                        const SizedBox(height: 14),
-                        TextField(
-                          controller: _paymentPhoneController,
-                          keyboardType: TextInputType.phone,
-                          maxLength: 20,
-                          textInputAction: TextInputAction.done,
-                          decoration: InputDecoration(
-                            hintText: '+255712345678',
-                            labelText: L.t('shop.mobileMoneyPhoneNumber'),
-                            fillColor: const Color(0xFFF9FAFB),
-                            counterText: '',
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(13),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF6F8F7),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE7EBE6)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.info_outline_rounded,
+                                  size: 17, color: AppTheme.textMuted),
+                              const SizedBox(width: 9),
+                              Expanded(
+                                child: Text(
+                                  L.t('shop.payPharmacyDirectBody'),
+                                  style: const TextStyle(
+                                      fontSize: 12.5, color: AppTheme.textMuted, height: 1.4),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -570,6 +573,143 @@ class _InfoRow extends StatelessWidget {
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
         ),
       ],
+    );
+  }
+}
+
+/// Coloured circle behind the tick or cross in the result modal.
+class _ResultBadge extends StatelessWidget {
+  const _ResultBadge({required this.icon, required this.color, required this.background});
+
+  final IconData icon;
+  final Color color;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+      child: Icon(icon, color: color, size: 34),
+    );
+  }
+}
+
+/// Order code and total, so the modal confirms which order it refers to.
+class _OrderSummaryStrip extends StatelessWidget {
+  const _OrderSummaryStrip({required this.order});
+
+  final Order order;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F8F7),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE7EBE6)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            order.orderCode ?? '#${order.id}',
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0D211A)),
+          ),
+          Text(
+            AppHelpers.formatTZS(order.total),
+            style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: Color(0xFF16A34A)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The pharmacy's own account, with the number tappable so the customer can
+/// copy or dial it straight from the modal.
+class _PayToAccountPanel extends StatelessWidget {
+  const _PayToAccountPanel({required this.number, required this.name, required this.total});
+
+  final String number;
+  final String? name;
+  final double total;
+
+  @override
+  Widget build(BuildContext context) {
+    final L = AppLocalizations.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 10, 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F8F7),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE7EBE6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            L.t('shop.pharmacyMobileMoney'),
+            style: const TextStyle(
+                fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textMuted),
+          ),
+          const SizedBox(height: 7),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  number,
+                  style: const TextStyle(
+                      fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: 0.4),
+                ),
+              ),
+              IconButton(
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: number));
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(L.t('shop.copied')),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.copy_rounded, size: 19),
+                tooltip: L.t('shop.copyNumber'),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          if (name != null && name!.trim().isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              name!,
+              style: const TextStyle(fontSize: 12.5, color: AppTheme.textMuted),
+            ),
+          ],
+          const SizedBox(height: 11),
+          Divider(height: 1, color: const Color(0xFFE7EBE6)),
+          const SizedBox(height: 11),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                L.t('shop.amountToSend'),
+                style: const TextStyle(fontSize: 12.5, color: AppTheme.textMuted),
+              ),
+              Text(
+                AppHelpers.formatTZS(total),
+                style: const TextStyle(
+                    fontSize: 15.5, fontWeight: FontWeight.w700, color: Color(0xFF16A34A)),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

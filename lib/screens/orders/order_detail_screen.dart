@@ -41,6 +41,12 @@ String _orderStatusText(AppLocalizations L, String status) {
     case 'unpaid':
     case 'Unpaid':
       return L.t('oh.statusUnpaid');
+    case 'pending_customer_transfer':
+    case 'Pending Customer Transfer':
+      return L.t('shop.paymentPendingConfirmation');
+    case 'partial':
+    case 'Partial':
+      return L.t('shop.paymentPendingConfirmation');
     default:
       return AppHelpers.statusLabel(status);
   }

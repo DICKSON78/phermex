@@ -91,6 +91,39 @@ const Map<String, String> shopEnStrings = {
   'shop.paymentSuccessful': 'Payment successful',
   'shop.paymentIncomplete':
       'Payment incomplete. The pharmacy will confirm your payment.',
+  'shop.paymentSuccessTitle': 'Payment successful',
+  'shop.paymentSuccessBody':
+      'Your mobile money payment has been confirmed. Your order is now being prepared.',
+  'shop.paymentFailedTitle': 'Payment failed',
+  'shop.paymentFailedBody':
+      'Your payment was not completed. Your order is saved and you can pay again from the order screen.',
+  'shop.paymentFailedNoFunds':
+      'Insufficient balance or the request was declined on your phone.',
+  'shop.paymentFailedCancelled': 'You cancelled the payment prompt on your phone.',
+  'shop.paymentFailedNotInitiated':
+      'The payment request could not be sent to your phone.',
+  'shop.paymentFailedUnknown':
+      'The payment could not be completed. Please try again.',
+  'shop.paymentChecking': 'Checking payment status',
+  'shop.paymentPollTimeout':
+      'Still waiting for confirmation. You can close this and check the order later.',
+  'shop.viewOrder': 'View order',
+  'shop.payPharmacyDirect': 'Pay the pharmacy directly',
+  'shop.payPharmacyDirectBody':
+      'Send the amount to the pharmacy account below, then enter the confirmation code they give you. The pharmacy verifies your payment.',
+  'shop.pharmacyMobileMoney': 'Mobile money number',
+  'shop.pharmacyWillConfirm': 'The pharmacy confirms your payment',
+  'shop.noPaymentNumberOnFile':
+      'This pharmacy has not published a mobile money number. Choose cash on delivery.',
+  'shop.paymentSentTitle': 'Send your payment',
+  'shop.paymentSentBody':
+      'Pay the pharmacy, then keep this order open. They will confirm the payment shortly.',
+  'shop.paidViaDirectTransfer': 'Paid directly to the pharmacy',
+  'shop.paymentPendingConfirmation': 'Waiting for the pharmacy to confirm',
+  'shop.paymentNotYetPaid': 'Not paid yet',
+  'shop.copied': 'Copied',
+  'shop.copyNumber': 'Copy number',
+  'shop.amountToSend': 'Amount to send',
   'shop.deliveryDetails': 'Delivery Details',
   'shop.phone': 'Phone',
   'shop.payment': 'Payment',
@@ -211,6 +244,39 @@ const Map<String, String> shopSwStrings = {
   'shop.paymentSuccessful': 'Malipo yamefanikiwa',
   'shop.paymentIncomplete':
       'Malipo hayajakamilika. Duka la dawa litathibitisha malipo yako.',
+  'shop.paymentSuccessTitle': 'Malipo yamefanikiwa',
+  'shop.paymentSuccessBody':
+      'Malipo yako ya mobile money yamethibitishwa. Agizo lako sasa likiwa likitayarishwa.',
+  'shop.paymentFailedTitle': 'Malipo yamekataliwa',
+  'shop.paymentFailedBody':
+      'Malipo yako hayakukamilika. Agizo lako limehifadhiwa na unaweza kulipa tena kutoka skrini ya agizo.',
+  'shop.paymentFailedNoFunds':
+      'Salio hazitoshi au ombi limekatawa kwenye simu yako.',
+  'shop.paymentFailedCancelled': 'Umeghairi maombi ya malipo kwenye simu yako.',
+  'shop.paymentFailedNotInitiated':
+      'Ombi la malipo lisingepelekwa kwenye simu yako.',
+  'shop.paymentFailedUnknown':
+      'Malipo hayakuweza kukamilika. Tafadhali jaribu tena.',
+  'shop.paymentChecking': 'Inaangalia hali ya malipo',
+  'shop.paymentPollTimeout':
+      'Bado tunasubiri uthibitisho. Unaweza kufunga na kuangalia agizo baadaye.',
+  'shop.viewOrder': 'Tazama agizo',
+  'shop.payPharmacyDirect': 'Lipa duka mwenyewe',
+  'shop.payPharmacyDirectBody':
+      'Tuma kiasi kwenye akaunti ya duka iliyo hapa chini, kisha weka msimbo wa uthibitishao watakupao. Duka litathibitisha malipo yako.',
+  'shop.pharmacyMobileMoney': 'Namba ya mobile money',
+  'shop.pharmacyWillConfirm': 'Duka litathibitisha malipo yako',
+  'shop.noPaymentNumberOnFile':
+      'Duka hili halijaweka namba ya mobile money. Chagua malipo wakati wa kupokea.',
+  'shop.paymentSentTitle': 'Tuma malipo yako',
+  'shop.paymentSentBody':
+      'Lipa duka, kisha acha agizo hili likifunguliwe. Watauthibitisha malipo baadaye.',
+  'shop.paidViaDirectTransfer': 'Imelipwa moja kwa moja kwa duka',
+  'shop.paymentPendingConfirmation': 'Inasubiri uthibitisho wa duka',
+  'shop.paymentNotYetPaid': 'Bado haijalipwa',
+  'shop.copied': 'Imenakiliwa',
+  'shop.copyNumber': 'Nakili namba',
+  'shop.amountToSend': 'Kiasi cha kutuma',
   'shop.deliveryDetails': 'Maelezo ya Utoaji',
   'shop.phone': 'Simu',
   'shop.payment': 'Malipo',

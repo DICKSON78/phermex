@@ -373,14 +373,17 @@ export default function RegisterOwnerPage() {
     }
   }, [step, totalSteps])
 
-  // Persist as they type, but skip the very first pass after a restore: writing
-  // back immediately is pointless work and would persist the clamped step from
-  // the effect above rather than the one the owner actually left on.
-  const restoredRef = useRef(false)
+  // Persist as they type.
+  //
+  // Only the first pass after reading a draft back is skipped. An earlier
+  // version guarded this with `if (!draft) return`, which meant a brand new
+  // visitor never wrote a draft at all: there was nothing to read on mount, so
+  // nothing was saved afterwards, so a refresh threw the work away. The people
+  // who needed the draft were exactly the ones who could not get one.
+  const skipFirstWriteRef = useRef(Boolean(draft))
   useEffect(() => {
-    if (!draft) return
-    if (!restoredRef.current) {
-      restoredRef.current = true
+    if (skipFirstWriteRef.current) {
+      skipFirstWriteRef.current = false
       return
     }
     writeDraft({

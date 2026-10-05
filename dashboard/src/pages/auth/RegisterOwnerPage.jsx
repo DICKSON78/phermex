@@ -75,6 +75,12 @@ function LocationMap({ latitude, longitude, onChange }) {
   const markerRef = useRef(null)
   const leafletRef = useRef(null)
 
+  // Leaflet is loaded with a dynamic import, so the map usually does not exist
+  // yet when the automatic detection on mount resolves. Without somewhere to
+  // park the answer, that callback had no map to move and the view stayed on
+  // the Dar es Salaam default. The position waits here until the map is built.
+  const pendingLocationRef = useRef(null)
+
   const handleDetectLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationError('This browser cannot detect your location.')
@@ -100,6 +106,10 @@ function LocationMap({ latitude, longitude, onChange }) {
           map.setView([lat, lng], 16)
           if (markerRef.current) markerRef.current.remove()
           markerRef.current = L.marker([lat, lng]).addTo(map)
+        } else {
+          // The map has not finished loading. Remember the position so the
+          // effect that builds it can centre on us instead of the default.
+          pendingLocationRef.current = [lat, lng]
         }
 
         onChange(lat, lng)
@@ -156,18 +166,27 @@ function LocationMap({ latitude, longitude, onChange }) {
     if (!container || container._leaflet_id) return
 
     const L = leafletRef.current
-    const center = latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER
 
-    const map = L.map(container).setView(center, 13)
+    // A freshly detected position wins over the saved one, because it is more
+    // accurate about where the owner is standing right now.
+    const pending = pendingLocationRef.current
+    const restored = latitude && longitude ? [latitude, longitude] : null
+    const center = pending || restored || DEFAULT_CENTER
+    const zoom = pending || restored ? 16 : 13
+
+    const map = L.map(container).setView(center, zoom)
     mapRef.current = map
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
     }).addTo(map)
 
-    if (latitude && longitude) {
+    if (pending || restored) {
       markerRef.current = L.marker(center).addTo(map)
     }
+
+    // Consumed, so a later rebuild does not yank the view back here.
+    pendingLocationRef.current = null
 
     map.on('click', handleMapClick)
 

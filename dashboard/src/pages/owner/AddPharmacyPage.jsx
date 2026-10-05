@@ -41,6 +41,10 @@ function LocationMap({ latitude, longitude, onChange }) {
   const markerRef = React.useRef(null)
   const leafletRef = React.useRef(null)
 
+  // Leaflet arrives through a dynamic import, so detection usually finishes
+  // before the map exists. The position waits here for the map to be built.
+  const pendingLocationRef = React.useRef(null)
+
   const handleDetectLocation = React.useCallback(() => {
     if (!navigator.geolocation) {
       setLocationError('This browser cannot detect your location.')
@@ -64,6 +68,8 @@ function LocationMap({ latitude, longitude, onChange }) {
           map.setView([lat, lng], 16)
           if (markerRef.current) markerRef.current.remove()
           markerRef.current = L.marker([lat, lng]).addTo(map)
+        } else {
+          pendingLocationRef.current = [lat, lng]
         }
 
         onChange(lat, lng)
@@ -106,18 +112,24 @@ function LocationMap({ latitude, longitude, onChange }) {
     if (!container || container._leaflet_id) return
 
     const L = leafletRef.current
-    const center = latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER
 
-    const map = L.map(container).setView(center, 13)
+    const pending = pendingLocationRef.current
+    const restored = latitude && longitude ? [latitude, longitude] : null
+    const center = pending || restored || DEFAULT_CENTER
+    const zoom = pending || restored ? 16 : 13
+
+    const map = L.map(container).setView(center, zoom)
     mapRef.current = map
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
     }).addTo(map)
 
-    if (latitude && longitude) {
+    if (pending || restored) {
       markerRef.current = L.marker(center).addTo(map)
     }
+
+    pendingLocationRef.current = null
 
     map.on('click', (e) => {
       const lat = parseFloat(e.latlng.lat.toFixed(7))

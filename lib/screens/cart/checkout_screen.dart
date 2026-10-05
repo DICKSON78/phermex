@@ -20,6 +20,10 @@ class CheckoutScreen extends StatefulWidget {
   State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
+/// Customers settle with the pharmacy in cash for now. Once each pharmacy has
+/// published a mobile money number, flipping this on offers direct transfer.
+const bool kDirectPharmacyPaymentEnabled = false;
+
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -285,6 +289,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         selected: _paymentMethod == 'cash',
                         onTap: () => setState(() => _paymentMethod = 'cash'),
                       ),
+                      if (kDirectPharmacyPaymentEnabled) ...[
                       const SizedBox(height: 10),
                       _PaymentOption(
                         title: L.t('shop.payPharmacyDirect'),
@@ -318,6 +323,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ],
                           ),
                         ),
+                      ],
                       ],
                     ],
                   ),

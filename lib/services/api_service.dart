@@ -261,6 +261,18 @@ class ApiService {
   }
 
   static String friendlyError(Object e) {
+    // ApiException.toString() returns just the message, so the string checks
+    // below could never match it and every real API error collapsed into the
+    // generic "something went wrong". Match the type instead: these messages
+    // were already made customer-safe by _decode/_sanitize.
+    if (e is ApiException) {
+      final direct = e.message.trim();
+      if (direct.isNotEmpty && !direct.toLowerCase().contains('connection')) {
+        return direct;
+      }
+      return AppLocalizations.tr('misc.somethingWrong');
+    }
+
     final msg = e.toString();
     if (msg.contains('timed out')) return AppLocalizations.tr('misc.timeoutError');
     if (msg.contains('SocketException') ||

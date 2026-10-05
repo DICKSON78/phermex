@@ -630,6 +630,19 @@ export default function RegisterOwnerPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // The draft keeps the password out of localStorage, so anyone resuming
+    // after step one arrives here with no password at all. Submitting anyway
+    // failed with a validation error for a field that is not on this screen, so
+    // the owner was left staring at a form that refused to send and no way to
+    // tell why. Send them to the field that needs filling instead.
+    if (!form.password) {
+      setError('Please re-enter your password to finish. We do not keep it saved for your security.')
+      setErrors((prev) => ({ ...prev, password: 'Password is required' }))
+      goStep(1, 'left')
+      return
+    }
+
     if (!validatePlan()) return
 
     setLoading(true)
@@ -734,6 +747,7 @@ export default function RegisterOwnerPage() {
                   ? ` on ${new Date(resumedFrom).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`
                   : ''}
                 . You are back on step {step} of {totalSteps}.
+                {step > 1 && ' Your password was not saved, so you will need to enter it again before submitting.'}
               </p>
               <button
                 type="button"

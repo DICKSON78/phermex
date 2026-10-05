@@ -41,3 +41,7 @@ storage/logs/*
 *.njsproj
 *.sln
 *.sw?
+# Vite now builds straight into public/dashboard, which is the only place
+# /dashboard/ is served from. Keeping a second copy only invites builds that
+# never reach anyone.
+dashboard/dist

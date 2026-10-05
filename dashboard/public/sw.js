@@ -1,7 +1,10 @@
-const CACHE_NAME = 'helix-cache-v3';
-const SHELL_CACHE = 'helix-shell-v3';
-const API_CACHE = 'helix-api-v3';
-const STATIC_CACHE = 'helix-static-v3';
+// Bumped to v4 to drop the stale v3 caches. Static assets are served
+// cache-first, so the old bundle that carried the React crash stayed pinned in
+// a visitor's cache even after a correct one had been deployed.
+const CACHE_NAME = 'helix-cache-v4';
+const SHELL_CACHE = 'helix-shell-v4';
+const API_CACHE = 'helix-api-v4';
+const STATIC_CACHE = 'helix-static-v4';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

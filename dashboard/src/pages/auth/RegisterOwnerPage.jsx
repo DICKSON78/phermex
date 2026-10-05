@@ -946,16 +946,24 @@ export default function RegisterOwnerPage() {
                           <h4 className="font-bold text-gray-900">{plan.name}</h4>
                         </div>
                         <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
-                        {plan.features && (
-                          <div className="flex flex-wrap gap-1.5 mt-2">
-                            {plan.features.slice(0, 4).map((f, i) => (
-                              <span key={i} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{f}</span>
-                            ))}
-                            {plan.features.length > 4 && (
-                              <span className="text-[10px] text-gray-400">+{plan.features.length - 4} more</span>
-                            )}
-                          </div>
-                        )}
+                        {(() => {
+                          // features is the comparison matrix: [{ section, rows }],
+                          // so render row names rather than the wrapper objects.
+                          const chips = (plan.features || []).flatMap((sec) =>
+                            (sec.rows || []).map((row) => row.name)
+                          ).filter(Boolean)
+                          if (chips.length === 0) return null
+                          return (
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {chips.slice(0, 4).map((name) => (
+                                <span key={name} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{name}</span>
+                              ))}
+                              {chips.length > 4 && (
+                                <span className="text-[10px] text-gray-400">+{chips.length - 4} more</span>
+                              )}
+                            </div>
+                          )
+                        })()}
                       </div>
                       <div className="text-right ml-4 shrink-0">
                         <p className="text-xl font-black text-[#000F14]">TZS {Number(plan.price).toLocaleString()}</p>

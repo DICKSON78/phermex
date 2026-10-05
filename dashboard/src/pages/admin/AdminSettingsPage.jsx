@@ -300,7 +300,10 @@ export default function AdminSettingsPage() {
                       {plan.price === 0 ? 'Free' : `$${plan.price}`}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">{plan.duration}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{plan.features}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {((plan.features || []).flatMap((sec) => (sec.rows || []).map((r) => r.name)).filter(Boolean)).slice(0, 3).join(', ')
+                        || '—'}
+                    </td>
                   </tr>
                 )) : (
                   <tr>

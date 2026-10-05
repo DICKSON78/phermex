@@ -52,6 +52,49 @@ const COUNTRIES = [
   { code: 'RW', name: 'Rwanda', dial: '+250', flag: '🇷🇼' },
 ]
 
+// Every country Helix registers accepts a nine digit subscriber number, or ten
+// when it keeps the leading zero. Anything longer is a typo, not a number.
+const PHONE_MIN = 9
+const PHONE_MAX = 10
+
+/**
+ * Strips the separators people paste in from a phone number and returns the
+ * digits. Returns null when what is left is not a number at all.
+ */
+function phoneDigits(value) {
+  return String(value ?? '').replace(/[\s()\-.]/g, '')
+}
+
+function isValidPhone(value) {
+  const digits = phoneDigits(value)
+  return new RegExp(`^[0-9]{${PHONE_MIN},${PHONE_MAX}}$`).test(digits)
+}
+
+// Deliberately stricter than the old /\S+@\S+\.\S+/, which accepted things
+// like "a@b.c" and "@host.com" and let a mistyped address reach the mailer.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
+
+/** Rejects the shapes that pass a naive check but no mail server accepts. */
+function hasValidEmailShape(value) {
+  const email = String(value ?? '').trim()
+  if (!EMAIL_RE.test(email)) return false
+  const domain = email.split('@')[1]
+  if (domain.includes('..')) return false
+  if (email.includes('..')) return false
+  return true
+}
+
+function isValidEmail(value) {
+  return hasValidEmailShape(value)
+}
+
+function isFutureDate(value) {
+  if (!value) return true
+  const d = new Date(`${value}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return false
+  return d.getTime() > Date.now()
+}
+
 const pharmacyTypes = [
   { value: 'independent', label: 'Independent' },
   { value: 'chain', label: 'Chain' },
@@ -528,13 +571,31 @@ export default function RegisterOwnerPage() {
 
   const validatePersonal = () => {
     const errs = {}
-    if (!form.name.trim()) errs.name = 'Full name is required'
-    if (!form.email.trim()) errs.email = 'Email is required'
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Invalid email format'
-    if (!form.phone.trim()) errs.phone = 'Phone number is required'
+    const name = form.name.trim()
+
+    if (!name) errs.name = 'Full name is required'
+    else if (name.length < 2) errs.name = 'Please enter your full name'
+    else if (name.length > 120) errs.name = 'Full name is too long'
+
+    const email = form.email.trim()
+    if (!email) errs.email = 'Email is required'
+    else if (!isValidEmail(email)) errs.email = 'Enter a valid email address, for example name@example.com'
+
+    const digits = phoneDigits(form.phone)
+    if (!digits) errs.phone = 'Phone number is required'
+    else if (!/^[0-9]+$/.test(digits)) errs.phone = 'Phone number can only contain digits'
+    else if (digits.length < PHONE_MIN) errs.phone = `Phone number needs at least ${PHONE_MIN} digits`
+    else if (digits.length > PHONE_MAX) errs.phone = `Phone number cannot be longer than ${PHONE_MAX} digits`
+
     if (!form.password) errs.password = 'Password is required'
     else if (form.password.length < 8) errs.password = 'Password must be at least 8 characters'
-    if (form.password !== form.password_confirmation) errs.password_confirmation = 'Passwords do not match'
+    else if (!/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
+      errs.password = 'Password must contain at least one letter and one number'
+    }
+    if (form.password_confirmation && form.password !== form.password_confirmation) {
+      errs.password_confirmation = 'Passwords do not match'
+    }
+
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -542,9 +603,34 @@ export default function RegisterOwnerPage() {
   const validateDetails = (i) => {
     const errs = {}
     const p = pharmacies[i]
-    if (!p.pharmacy_name.trim()) errs[`p${i}_pharmacy_name`] = 'Pharmacy name is required'
+    const name = (p.pharmacy_name || '').trim()
+
+    if (!name) errs[`p${i}_pharmacy_name`] = 'Pharmacy name is required'
+    else if (name.length < 2) errs[`p${i}_pharmacy_name`] = 'Pharmacy name is too short'
+    else if (name.length > 255) errs[`p${i}_pharmacy_name`] = 'Pharmacy name is too long'
+
     if (!p.region.trim()) errs[`p${i}_region`] = 'Region is required'
     if (!p.district.trim()) errs[`p${i}_district`] = 'District is required'
+
+    // A licence that expired before today would let an owner through the door
+    // and fail later, so say so while they can still fix it.
+    if (p.license_expiry && !isFutureDate(p.license_expiry)) {
+      errs[`p${i}_license_expiry`] = 'Licence expiry date must be in the future'
+    }
+
+    const capital = (p.opening_capital || '').trim()
+    if (capital) {
+      if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(capital)) {
+        errs[`p${i}_opening_capital`] = 'Enter an amount, for example 5000000'
+      } else if (Number(capital) < 0) {
+        errs[`p${i}_opening_capital`] = 'Opening capital cannot be negative'
+      }
+    }
+
+    if ((p.description || '').length > 1000) {
+      errs[`p${i}_description`] = 'Description cannot be longer than 1000 characters'
+    }
+
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -560,7 +646,19 @@ export default function RegisterOwnerPage() {
   const validateHours = (i) => {
     const errs = {}
     const p = pharmacies[i]
-    if (p.working_days.length === 0) errs[`p${i}_working_days`] = 'Select at least one working day'
+
+    if (p.working_days.length === 0) {
+      errs[`p${i}_working_days`] = 'Select at least one working day'
+    }
+
+    // Comparing as strings is safe here because both values are zero padded
+    // "HH:MM" from a time input, so an earlier opening than closing compares
+    // true. Validating it catches the shop that would report itself open all
+    // night.
+    if (p.opening_time && p.closing_time && p.opening_time >= p.closing_time) {
+      errs[`p${i}_closing_time`] = 'Closing time must be later than opening time'
+    }
+
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -821,7 +919,27 @@ export default function RegisterOwnerPage() {
                         <option key={c.code} value={c.dial}>{c.flag} {c.dial}</option>
                       ))}
                     </select>
-                    <input type="tel" value={form.phone} onChange={(e) => updateForm('phone', e.target.value)} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="712 345 678" />
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={PHONE_MAX}
+                      value={form.phone}
+                      onChange={(e) => {
+                        // Strip anything that is not a digit as it is typed, so
+                        // the field cannot hold a letter or an eleventh digit.
+                        // The validator alone would only complain after the
+                        // fact, by which point the owner has already typed it.
+                        const dial = form.countryCode.replace(/[^0-9]/g, '')
+                        let digits = e.target.value.replace(/[^0-9]/g, '')
+                        // People paste the full number including the country
+                        // code even though the separate dropdown already adds
+                        // it. Cutting it here keeps "+255712345678" from
+                        // silently becoming "2557123456".
+                        if (dial && digits.startsWith(dial) && digits.length > PHONE_MAX) {
+                          digits = digits.slice(dial.length)
+                        }
+                        updateForm('phone', digits.slice(0, PHONE_MAX))
+                      }} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="712 345 678" />
                   </div>
                   {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                 </div>
@@ -1055,8 +1173,9 @@ export default function RegisterOwnerPage() {
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <Calendar className="w-5 h-5 text-gray-400" />
                         </div>
-                        <input type="date" value={p.license_expiry} onChange={(e) => updatePharmacy(i, 'license_expiry', e.target.value)} className={inputClasses} />
+                        <input type="date" value={p.license_expiry} onChange={(e) => updatePharmacy(i, 'license_expiry', e.target.value)} className={`${inputClasses} ${errors[`p${i}_license_expiry`] ? 'border-red-400' : ''}`} />
                       </div>
+                      {errors[`p${i}_license_expiry`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_license_expiry`]}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-600 mb-1.5">Opening Capital (TZS)</label>
@@ -1064,8 +1183,16 @@ export default function RegisterOwnerPage() {
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <DollarSign className="w-5 h-5 text-gray-400" />
                         </div>
-                        <input type="number" value={p.opening_capital} onChange={(e) => updatePharmacy(i, 'opening_capital', e.target.value)} className={inputClasses} placeholder="e.g. 5000000" />
+                        <input
+                        type="text"
+                        inputMode="decimal"
+                        value={p.opening_capital}
+                        onChange={(e) => {
+                          const clean = e.target.value.replace(/[^0-9.]/g, '').replace(/(\.[0-9]{0,2}).*$/, '$1')
+                          updatePharmacy(i, 'opening_capital', clean)
+                        }} className={`${inputClasses} ${errors[`p${i}_opening_capital`] ? 'border-red-400' : ''}`} placeholder="e.g. 5000000" />
                       </div>
+                      {errors[`p${i}_opening_capital`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_opening_capital`]}</p>}
                     </div>
                   </div>
 
@@ -1075,7 +1202,13 @@ export default function RegisterOwnerPage() {
                       <div className="absolute top-3 left-3.5 pointer-events-none">
                         <Info className="w-5 h-5 text-gray-400" />
                       </div>
-                      <textarea value={p.description} onChange={(e) => updatePharmacy(i, 'description', e.target.value)} rows={3} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] resize-none" placeholder="Brief description of this pharmacy..." />
+                      <textarea value={p.description} onChange={(e) => updatePharmacy(i, 'description', e.target.value)} rows={3} maxLength={1000} className={`w-full pl-11 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] resize-none ${errors[`p${i}_description`] ? 'border-red-400' : 'border-gray-200'}`} placeholder="Brief description of this pharmacy..." />
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      {errors[`p${i}_description`]
+                        ? <p className="text-red-500 text-xs">{errors[`p${i}_description`]}</p>
+                        : <span />}
+                      <span className="text-xs text-gray-400">{(p.description || '').length}/1000</span>
                     </div>
                   </div>
 
@@ -1160,8 +1293,9 @@ export default function RegisterOwnerPage() {
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <Clock className="w-5 h-5 text-gray-400" />
                       </div>
-                      <input type="time" value={p.closing_time} onChange={(e) => updatePharmacy(i, 'closing_time', e.target.value)} className={inputClasses} />
+                      <input type="time" value={p.closing_time} onChange={(e) => updatePharmacy(i, 'closing_time', e.target.value)} className={`${inputClasses} ${errors[`p${i}_closing_time`] ? 'border-red-400' : ''}`} />
                     </div>
+                    {errors[`p${i}_closing_time`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_closing_time`]}</p>}
                   </div>
                 </div>
 

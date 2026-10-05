@@ -22,9 +22,15 @@ class AuthController extends Controller
     {
         try {
             $rules = [
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email',
-                'phone' => 'required|string|max:20',
+                'name' => 'required|string|min:2|max:255',
+                'email' => 'required|email:rfc|max:254|unique:users,email',
+                // Nine digits is the shortest subscriber number across the
+                // countries we register and ten the longest, and the client
+                // prepends a three digit country code. Thirteen total digits is
+                // therefore the longest real number; anything past that is a
+                // typo. A loose max:20 was storing whatever was typed as
+                // somebody's actual contact number.
+                'phone' => ['required', 'string', 'regex:/^\+?[0-9]{9,13}$/'],
                 'password' => ['required', 'string', 'min:8', 'confirmed'],
                 'role' => 'sometimes|in:owner,pharmacist,cashier,delivery,customer',
             ];
@@ -43,6 +49,7 @@ class AuthController extends Controller
                 $rules['latitude'] = 'sometimes|nullable|numeric|between:-90,90';
                 $rules['longitude'] = 'sometimes|nullable|numeric|between:-180,180';
                 $rules['opening_capital'] = 'sometimes|nullable|numeric|min:0';
+                $rules['license_expiry'] = ['sometimes', 'nullable', 'date', 'after:today'];
                 $rules['working_days'] = 'sometimes|nullable|array';
                 $rules['working_hours'] = 'sometimes|nullable|array';
                 $rules['description'] = 'sometimes|nullable|string|max:1000';
@@ -62,6 +69,8 @@ class AuthController extends Controller
                 $rules['pharmacies.*.latitude'] = 'sometimes|nullable|numeric|between:-90,90';
                 $rules['pharmacies.*.longitude'] = 'sometimes|nullable|numeric|between:-180,180';
                 $rules['pharmacies.*.opening_capital'] = 'sometimes|nullable|numeric|min:0';
+                // A licence dated in the past is not a licence.
+                $rules['pharmacies.*.license_expiry'] = ['sometimes', 'nullable', 'date', 'after:today'];
                 $rules['pharmacies.*.working_days'] = 'sometimes|nullable|array';
                 $rules['pharmacies.*.working_hours'] = 'sometimes|nullable|array';
                 $rules['pharmacies.*.description'] = 'sometimes|nullable|string|max:1000';

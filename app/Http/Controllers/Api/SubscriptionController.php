@@ -205,12 +205,26 @@ class SubscriptionController extends Controller
         $service = app(ClickPesaService::class);
         $pushInitiated = false;
         $reference = null;
+        $pushChannel = null;
+        $pushStatus = null;
+        $pushError = null;
 
         if ($service->enabled()) {
             try {
                 $pushRef = ClickPesaService::reference('HELIXSUB', $subscription->id);
                 $push = $service->initiatePush((string) $amountTzs, $validated['phone'], $pushRef);
                 $reference = $push['orderReference'] ?? $pushRef;
+                $pushChannel = $push['channel'] ?? null;
+                $pushStatus = strtoupper((string) ($push['status'] ?? ''));
+
+                // The gateway answers 200 with status FAILED when it refuses the
+                // request, so an HTTP success alone is not a push that was sent.
+                // Reporting those as delivered left the owner staring at "check
+                // your phone" for a prompt that was never going to arrive.
+                if (in_array($pushStatus, ['FAILED', 'REJECTED', 'EXPIRED'], true)) {
+                    throw new \Exception('ClickPesa refused the payment request (' . ($pushStatus ?: 'no reason given') . ').');
+                }
+
                 $pushInitiated = true;
 
                 $subscription->update([
@@ -223,15 +237,28 @@ class SubscriptionController extends Controller
                     'payment_method' => 'mobile',
                 ]);
             } catch (\Throwable $e) {
+                // Log for us, but also hand the reason to the owner. A push that
+                // never left was previously reported as "reserved, complete
+                // payment to activate", which reads like a payment problem and
+                // leaves them waiting on a prompt that was never sent.
                 Log::warning('Subscription ClickPesa push init failed: ' . $e->getMessage());
+                $pushError = $e->getMessage();
             }
+        } else {
+            $pushError = 'The payment gateway is not configured on this server.';
         }
 
         return response()->json([
             'message' => $pushInitiated
-                ? 'Payment prompt sent to your phone. Confirm the M-PESA push to activate your plan.'
+                ? 'Payment prompt sent to your phone. Confirm the payment prompt to activate your plan.'
                 : 'Subscription reserved. Complete payment to activate.',
             'push_initiated' => $pushInitiated,
+            // Only ever present when push_initiated is false. The checkout screen
+            // shows it instead of a generic instruction to pay, because the two
+            // situations need different things from the customer.
+            'push_error' => $pushError,
+            'gateway_channel' => $pushChannel,
+            'gateway_status' => $pushStatus,
             'reference' => $reference,
             'subscription' => [
                 'id' => $subscription->id,

@@ -76,8 +76,13 @@ export default function SubscriptionPlansPage() {
   const [paying, setPaying] = useState(false)
   const [paymentStep, setPaymentStep] = useState(null)
   const [pushResult, setPushResult] = useState(null)
+  // Which mobile money network ClickPesa matched to the number, e.g. TIGO-PESA.
+  // The steps differ per network, so the instruction follows it rather than
+  // telling everyone to expect an M-PESA PIN prompt.
+  const channel = pushResult?.gateway_channel || null
   const [error, setError] = useState('')
   const pollRef = useRef(null)
+  const timeoutRef = useRef(null)
   const navigate = useNavigate()
   const { setSubscription, setUser } = useAuth()
   const { rates, rateDate, refresh: refreshRates } = useCurrency()
@@ -145,6 +150,10 @@ export default function SubscriptionPlansPage() {
         setPaymentStep('waiting')
         startPolling(data.reference)
       } else {
+        // The backend now says why the prompt never went out. Showing that
+        // beats a screen telling the customer to pay a payment that was never
+        // requested from their network.
+        setError(data.push_error || 'We could not send the payment prompt to that number.')
         setPaymentStep('manual')
       }
     } catch (err) {
@@ -169,8 +178,22 @@ export default function SubscriptionPlansPage() {
     navigate('/dashboard')
   }
 
+  useEffect(() => () => {
+    clearInterval(pollRef.current)
+    clearTimeout(timeoutRef.current)
+  }, [])
+
   const startPolling = (reference) => {
     clearInterval(pollRef.current)
+    clearTimeout(timeoutRef.current)
+    // A push that is never approved just sits at PROCESSING forever. Spinning
+    // indefinitely tells the customer to wait for something that will not
+    // happen, so after a while offer them the way out.
+    timeoutRef.current = setTimeout(() => {
+      clearInterval(pollRef.current)
+      setError('We have not received your payment yet. If you approved the request on your phone, it can take a few minutes. Otherwise check your mobile money balance and try again.')
+      setPaymentStep('manual')
+    }, 90000)
     pollRef.current = setInterval(async () => {
       try {
         const res = await api.get('/subscriptions/payment-status', {
@@ -226,13 +249,24 @@ export default function SubscriptionPlansPage() {
                 <Smartphone className="w-8 h-8 text-emerald-500 animate-pulse" />
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-2">Check Your Phone</h3>
-              <p className="text-gray-500 text-sm leading-relaxed mb-5">
-                We sent a payment prompt to <strong>{pushResult?.subscription?.phone || phone}</strong>.
-                Enter your M-PESA PIN to pay{' '}
+              <p className="text-gray-500 text-sm leading-relaxed mb-2">
+                We sent a payment request to <strong>{pushResult?.subscription?.phone || phone}</strong> for{' '}
                 <strong className="text-gray-900">
                   TZS {Number(pushResult?.subscription?.amount_tzs || 0).toLocaleString()}
                 </strong>.
               </p>
+              <p className="text-gray-500 text-sm leading-relaxed mb-5">
+                {channel === 'TIGO-PESA'
+                  ? 'Tigo Pesa sends the request as a menu prompt. Open your phone, accept the payment request when it appears, then enter your PIN to approve it.'
+                  : channel === 'AIRTEL-MONEY'
+                    ? 'Airtel Money sends the request as a message approval. Confirm the payment on your phone, then enter your PIN.'
+                    : 'Your phone should ask you to approve the payment. Enter your mobile money PIN to complete it.'}
+              </p>
+              {channel && (
+                <p className="text-xs text-gray-400 mb-4">
+                  Paying with {channel.replace('-', ' ')} on {Number(pushResult?.subscription?.phone || 0)}
+                </p>
+              )}
               <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mb-6">
                 <Loader2 className="w-4 h-4 animate-spin text-[#0FD452]" />
                 Waiting for payment confirmation…

@@ -163,24 +163,10 @@ class _BrandHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: _green, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: _green.withValues(alpha: 0.25),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: Image.asset('assets/images/helix_logo.png', fit: BoxFit.cover),
-          ),
+        SizedBox(
+          width: 96,
+          height: 96,
+          child: Image.asset('assets/images/helix_logo.png', fit: BoxFit.contain),
         ),
         const SizedBox(height: 18),
         Text(

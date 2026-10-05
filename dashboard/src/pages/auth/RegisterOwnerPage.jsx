@@ -31,6 +31,7 @@ import {
   ImageUp,
 } from 'lucide-react'
 import { TANZANIA_REGIONS } from '../../data/tanzaniaLocations'
+import { useCurrency, tzsFromUsd } from '../../utils/currency'
 
 // Required fields are marked with this. The browser's own required attribute
 // cannot be used: validation runs per step so the wizard can advance, and these
@@ -293,6 +294,17 @@ function clearDraft() {
 export default function RegisterOwnerPage() {
   const navigate = useNavigate()
   const { register } = useAuth()
+  const { rates } = useCurrency()
+
+  // Plan prices are held in USD and charged in TZS. Labelling the raw USD
+  // number "TZS" made a 150 dollar plan read as 150 shillings, a price that
+  // does not exist. Until the rate arrives, show the dollar amount instead of
+  // guessing at the conversion.
+  const planPrice = (plan) => {
+    const tzs = tzsFromUsd(plan?.price, rates)
+    if (tzs == null) return `USD ${Number(plan?.price || 0).toLocaleString()}`
+    return `TZS ${tzs.toLocaleString()}`
+  }
 
   const multiple = new URLSearchParams(window.location.search).get('mode') === 'multiple'
 
@@ -1203,7 +1215,7 @@ export default function RegisterOwnerPage() {
                         })()}
                       </div>
                       <div className="text-right ml-4 shrink-0">
-                        <p className="text-xl font-black text-[#000F14]">TZS {Number(plan.price).toLocaleString()}</p>
+                        <p className="text-xl font-black text-[#000F14]">{planPrice(plan)}</p>
                         <p className="text-xs text-gray-500">{plan.duration_months} month{plan.duration_months > 1 ? 's' : ''}</p>
                       </div>
                     </div>
@@ -1261,7 +1273,7 @@ export default function RegisterOwnerPage() {
                 <div className="mt-3 space-y-1 text-sm text-gray-500">
                   <p><span className="font-medium text-gray-600">Owner:</span> {form.name || '—'}</p>
                   {form.subscription_plan_id && (
-                    <p><span className="font-medium text-gray-600">Plan:</span> {plans.find(p => p.id === form.subscription_plan_id)?.name} — TZS {Number(plans.find(p => p.id === form.subscription_plan_id)?.price || 0).toLocaleString()}</p>
+                    <p><span className="font-medium text-gray-600">Plan:</span> {plans.find(p => p.id === form.subscription_plan_id)?.name} — {planPrice(plans.find(p => p.id === form.subscription_plan_id))}</p>
                   )}
                 </div>
               </div>

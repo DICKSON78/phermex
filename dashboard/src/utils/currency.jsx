@@ -177,6 +177,20 @@ export function usdRate(rates = readCache()?.rates) {
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
+/**
+ * Plan prices are stored in USD but charged in shillings, so the number a
+ * customer sees has to be converted at the rate of the day. Returns null when
+ * no rate has loaded, so callers fall back to the USD price rather than print
+ * a TZS figure that is simply the USD number with the wrong label on it.
+ */
+export function tzsFromUsd(usd, rates = readCache()?.rates) {
+  const rate = usdRate(rates)
+  if (rate == null) return null
+  const value = Number(usd)
+  if (!Number.isFinite(value)) return null
+  return Math.round(value * rate)
+}
+
 const CurrencyContext = createContext(null)
 
 export function CurrencyProvider({ children }) {

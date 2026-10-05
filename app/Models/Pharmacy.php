@@ -58,6 +58,9 @@ class Pharmacy extends Model
         'subscription_end_date',
         'trial_ends_at',
         'rejection_reason',
+        'customer_payment_method',
+        'customer_payment_number',
+        'customer_payment_name',
     ];
 
     protected $casts = [

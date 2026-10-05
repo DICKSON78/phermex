@@ -371,4 +371,82 @@ class PharmacyController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Records the account customers should pay this pharmacy directly.
+     *
+     * The platform only stores the details; the money never touches it. That
+     * keeps every other pharmacy's float out of the platform's balance.
+     */
+    public function updatePaymentDetails(Request $request): JsonResponse
+    {
+        try {
+            $pharmacyId = Auth::user()?->resolveCurrentPharmacyId();
+
+            if (! $pharmacyId) {
+                return response()->json(['message' => 'No pharmacy is linked to this account.'], 403);
+            }
+
+            $validated = $request->validate([
+                'payment_method' => 'required|in:cash,mobile_money',
+                'payment_number' => 'nullable|string|max:40',
+                'payment_name' => 'nullable|string|max:120',
+            ]);
+
+            // A number is meaningless without a method that uses one, so the
+            // two are validated together rather than independently.
+            if ($validated['payment_method'] === 'mobile_money') {
+                if (empty($validated['payment_number'])) {
+                    return response()->json([
+                        'message' => 'Validation failed.',
+                        'error' => ['payment_number' => ['A mobile money number is required when customers pay by mobile money.']],
+                    ], 422);
+                }
+
+                // Tanzanian mobile money numbers are 10 digits locally
+                // (0754123456) or 12 digits in international form (255754123456).
+                $digits = preg_replace('/\D/', '', $validated['payment_number']);
+                $isLocal = strlen($digits) === 10 && str_starts_with($digits, '0');
+                $isInternational = strlen($digits) === 12 && str_starts_with($digits, '255');
+
+                if (! $isLocal && ! $isInternational) {
+                    return response()->json([
+                        'message' => 'Validation failed.',
+                        'error' => ['payment_number' => ['Enter a valid Tanzanian mobile money number, e.g. 0754123456.']],
+                    ], 422);
+                }
+            }
+
+            $pharmacy = Pharmacy::findOrFail($pharmacyId);
+
+            $pharmacy->update([
+                'customer_payment_method' => $validated['payment_method'],
+                'customer_payment_number' => $validated['payment_method'] === 'mobile_money'
+                    ? $validated['payment_number']
+                    : null,
+                'customer_payment_name' => $validated['payment_name'] ?? null,
+            ]);
+
+            return response()->json([
+                'message' => 'Payment details saved.',
+                'payment' => [
+                    'method' => $pharmacy->customer_payment_method,
+                    'number' => $pharmacy->customer_payment_number,
+                    'name' => $pharmacy->customer_payment_name,
+                ],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'error' => $e->errors(),
+            ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Pharmacy not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to save payment details.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
 }

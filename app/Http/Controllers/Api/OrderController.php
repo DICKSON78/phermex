@@ -199,7 +199,9 @@ class OrderController extends Controller
 
             $validated = $request->validate([
                 'order_status' => 'required|in:pending,confirmed,preparing,ready,out_for_delivery,delivered,dispensed,cancelled',
-                'payment_status' => 'sometimes|in:unpaid,partial,paid',
+                // pending_customer_transfer is the state left when a customer was
+                // told to pay this pharmacy directly and has not confirmed yet.
+                'payment_status' => 'sometimes|in:unpaid,partial,paid,pending_customer_transfer',
                 'payment_method' => 'sometimes|in:cash,card,mobile,bank',
             ]);
 

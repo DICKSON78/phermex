@@ -225,6 +225,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
         Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->middleware('role:owner,pharmacist');
+
+    // Where this pharmacy wants customer money sent. Customers pay this account
+    // directly, so the platform never holds another pharmacy's float.
+    Route::put('/pharmacies/payment-details', [PharmacyController::class, 'updatePaymentDetails'])->middleware('role:owner,pharmacist');
         Route::get('/orders/{id}', [OrderController::class, 'show']);
 
         Route::get('/prescriptions/search-by-doctor', [PrescriptionController::class, 'searchByDoctor']);

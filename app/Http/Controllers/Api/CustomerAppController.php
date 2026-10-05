@@ -282,6 +282,14 @@ class CustomerAppController extends Controller
                 'data' => [
                     'pharmacy' => $pharmacy,
                     'drug_count' => $drugCount,
+                    // How this pharmacy wants to be paid. Only the fields a
+                    // customer needs to pay, never anything about the
+                    // pharmacy's own ledger.
+                    'payment' => [
+                        'method' => $pharmacy->customer_payment_method ?? 'cash',
+                        'number' => $pharmacy->customer_payment_number,
+                        'name' => $pharmacy->customer_payment_name,
+                    ],
                 ],
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
@@ -493,31 +501,26 @@ class CustomerAppController extends Controller
                 'processed_by' => $pharmacy->owner_id,
             ]);
 
-            // Initiate ClickPesa push for mobile money payments
-            $pushInitiated = false;
-            if (($validated['payment_method'] ?? 'cash') === 'mobile') {
-                $paymentPhone = $validated['payment_phone'] ?? $user->phone;
-                if (!empty($paymentPhone) && app(\App\Services\ClickPesaService::class)->enabled()) {
-                    try {
-                        $pushRef = \App\Services\ClickPesaService::reference('HELIXORD', $order->id);
-                        $push = app(\App\Services\ClickPesaService::class)->initiatePush(
-                            (string) $subtotal,
-                            $paymentPhone,
-                            $pushRef
-                        );
-                        $order->update([
-                            'payment_reference' => $push['orderReference'] ?? $pushRef,
-                            'payment_details' => [
-                                'channel' => $push['channel'] ?? 'M-PESA',
-                                'status' => $push['status'] ?? 'PROCESSING',
-                                'phone' => $paymentPhone,
-                            ],
-                        ]);
-                        $pushInitiated = true;
-                    } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning('ClickPesa push init failed for order ' . $order->id . ': ' . $e->getMessage());
-                    }
-                }
+            // Customer money never routes through the platform. A mobile money
+            // customer sends the amount straight to the pharmacy's own number
+            // and the pharmacy confirms it; the platform holds no float, so a
+            // reversed or missing payment is the pharmacy's exposure, not ours.
+            $paymentMethod = $validated['payment_method'] ?? 'cash';
+            $paidExternally = $paymentMethod !== 'cash';
+            $pharmacyPays = $pharmacy->customer_payment_number
+                ?? null;
+
+            if ($paidExternally) {
+                $order->update([
+                    'payment_status' => 'pending_customer_transfer',
+                    'payment_details' => [
+                        'paid_to_pharmacy' => true,
+                        'pharmacy_payment_number' => $pharmacyPays,
+                        'pharmacy_payment_name' => $pharmacy->customer_payment_name,
+                        'pharmacy_payment_method' => $pharmacy->customer_payment_method,
+                        'awaiting_pharmacy_confirmation' => true,
+                    ],
+                ]);
             }
 
             foreach ($orderItems as $oi) {
@@ -559,7 +562,12 @@ class CustomerAppController extends Controller
                 'payment' => [
                     'method' => $order->payment_method,
                     'status' => $order->payment_status,
-                    'push_initiated' => $pushInitiated,
+                    // Money goes to the pharmacy directly; the app shows the
+                    // account to pay and the pharmacy confirms receipt.
+                    'pay_pharmacy_directly' => $paidExternally,
+                    'pharmacy_payment_number' => $pharmacyPays,
+                    'pharmacy_payment_name' => $pharmacy->customer_payment_name,
+                    'pharmacy_payment_method' => $pharmacy->customer_payment_method,
                     'reference' => $order->payment_reference,
                     'details' => $order->payment_details,
                 ],

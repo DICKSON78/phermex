@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import api from '../../services/api'
@@ -64,23 +64,79 @@ const DEFAULT_CENTER = [-6.7924, 39.2083]
 
 function LocationMap({ latitude, longitude, onChange }) {
   const [mapReady, setMapReady] = useState(false)
+  const [locating, setLocating] = useState(false)
+  const [locationError, setLocationError] = useState('')
 
-  const handleMapClick = useCallback((e) => {
-    onChange(parseFloat(e.latlng.lat.toFixed(7)), parseFloat(e.latlng.lng.toFixed(7)))
+  // The map and marker are created once and kept in refs. The old code reached
+  // for them through an effect keyed on latitude/longitude and a getElementById
+  // button, which meant the detect click had no map to move: the JSX onClick
+  // updated the form and that re-ran the effect before it could.
+  const mapRef = useRef(null)
+  const markerRef = useRef(null)
+  const leafletRef = useRef(null)
+
+  const handleDetectLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationError('This browser cannot detect your location.')
+      return
+    }
+
+    setLocating(true)
+    setLocationError('')
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = parseFloat(pos.coords.latitude.toFixed(7))
+        const lng = parseFloat(pos.coords.longitude.toFixed(7))
+
+        setLocating(false)
+
+        const map = mapRef.current
+        const L = leafletRef.current
+
+        // Move the map and drop the marker where we actually are, then report
+        // it up to the form. Both halves were missing before.
+        if (map && L) {
+          map.setView([lat, lng], 16)
+          if (markerRef.current) markerRef.current.remove()
+          markerRef.current = L.marker([lat, lng]).addTo(map)
+        }
+
+        onChange(lat, lng)
+      },
+      (err) => {
+        setLocating(false)
+        setLocationError(
+          err.code === err.PERMISSION_DENIED
+            ? 'Location access was blocked. Allow it in your browser settings, or click the map to place the pin.'
+            : 'Could not detect your location. Click the map to place the pin instead.'
+        )
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    )
   }, [onChange])
 
-  const handleDetectLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          onChange(parseFloat(pos.coords.latitude.toFixed(7)), parseFloat(pos.coords.longitude.toFixed(7)))
-        },
-        () => {}
-      )
-    }
-  }
+  // Ask once on mount: a pharmacy owner registering at the premises should not
+  // have to tap anything.
+  useEffect(() => {
+    handleDetectLocation()
+    // Intentionally runs once; re-running would re-prompt on every re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  React.useEffect(() => {
+  const handleMapClick = useCallback((e) => {
+    const lat = parseFloat(e.latlng.lat.toFixed(7))
+    const lng = parseFloat(e.latlng.lng.toFixed(7))
+
+    if (markerRef.current) markerRef.current.remove()
+    markerRef.current = leafletRef.current
+      ? leafletRef.current.marker([lat, lng]).addTo(mapRef.current)
+      : null
+
+    onChange(lat, lng)
+  }, [onChange])
+
+  useEffect(() => {
     if (mapReady || typeof window === 'undefined') return
     import('leaflet').then((L) => {
       delete L.Icon.Default.prototype._getIconUrl
@@ -89,62 +145,40 @@ function LocationMap({ latitude, longitude, onChange }) {
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       })
+      leafletRef.current = L
       setMapReady(true)
     })
   }, [mapReady])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mapReady || typeof window === 'undefined') return
-    let mapInstance = null
+    const container = document.getElementById('pharmacy-map')
+    if (!container || container._leaflet_id) return
 
-    import('leaflet').then((L) => {
-      const container = document.getElementById('pharmacy-map')
-      if (!container || container._leaflet_id) return
+    const L = leafletRef.current
+    const center = latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER
 
-      const center = latitude && longitude ? [latitude, longitude] : DEFAULT_CENTER
-      mapInstance = L.map(container).setView(center, 13)
+    const map = L.map(container).setView(center, 13)
+    mapRef.current = map
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-      }).addTo(mapInstance)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+    }).addTo(map)
 
-      let marker = latitude && longitude ? L.marker(center).addTo(mapInstance) : null
+    if (latitude && longitude) {
+      markerRef.current = L.marker(center).addTo(map)
+    }
 
-      mapInstance.on('click', (e) => {
-        const lat = parseFloat(e.latlng.lat.toFixed(7))
-        const lng = parseFloat(e.latlng.lng.toFixed(7))
-        if (marker) mapInstance.removeLayer(marker)
-        marker = L.marker([lat, lng]).addTo(mapInstance)
-        onChange(lat, lng)
-      })
-
-      const detectBtn = document.getElementById('detect-location-btn')
-      if (detectBtn) {
-        detectBtn.onclick = () => {
-          navigator.geolocation?.getCurrentPosition(
-            (pos) => {
-              const lat = parseFloat(pos.coords.latitude.toFixed(7))
-              const lng = parseFloat(pos.coords.longitude.toFixed(7))
-              mapInstance.setView([lat, lng], 15)
-              if (marker) mapInstance.removeLayer(marker)
-              marker = L.marker([lat, lng]).addTo(mapInstance)
-              onChange(lat, lng)
-            },
-            () => {},
-            { enableHighAccuracy: true }
-          )
-        }
-      }
-    })
+    map.on('click', handleMapClick)
 
     return () => {
-      if (mapInstance) {
-        mapInstance.remove()
-        const container = document.getElementById('pharmacy-map')
-        if (container) container._leaflet_id = null
-      }
+      map.remove()
+      mapRef.current = null
+      markerRef.current = null
+      const el = document.getElementById('pharmacy-map')
+      if (el) el._leaflet_id = null
     }
-  }, [mapReady, latitude, longitude, onChange])
+  }, [mapReady, handleMapClick])
 
   return (
     <div className="space-y-3">
@@ -155,10 +189,22 @@ function LocationMap({ latitude, longitude, onChange }) {
           <span className="font-mono">{latitude}, {longitude}</span>
         </div>
       )}
-      <button type="button" id="detect-location-btn" onClick={handleDetectLocation} className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#0FD452] text-[#0FD452] rounded-xl text-sm font-semibold hover:bg-[#0FD452]/5 transition-all">
-        <Crosshair className="w-4 h-4" />
-        Detect My Current Location
+      <button
+        type="button"
+        onClick={handleDetectLocation}
+        disabled={locating}
+        className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#0FD452] text-[#0FD452] rounded-xl text-sm font-semibold hover:bg-[#0FD452]/5 transition-all disabled:opacity-60"
+      >
+        {locating ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Crosshair className="w-4 h-4" />
+        )}
+        {locating ? 'Detecting your location...' : 'Detect My Current Location'}
       </button>
+      {locationError && (
+        <p className="text-xs text-amber-600 text-center">{locationError}</p>
+      )}
       <p className="text-xs text-gray-400 text-center">Click on the map to set your pharmacy location, or use detect above.</p>
     </div>
   )

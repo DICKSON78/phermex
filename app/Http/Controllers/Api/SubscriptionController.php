@@ -208,10 +208,39 @@ class SubscriptionController extends Controller
         $pushChannel = null;
         $pushStatus = null;
         $pushError = null;
+        $supportedChannels = [];
 
         if ($service->enabled()) {
             try {
                 $pushRef = ClickPesaService::reference('HELIXSUB', $subscription->id);
+
+                // Ask the gateway what it can charge for this amount first. If it
+                // cannot charge this network, or the amount is outside its
+                // limits, say so now instead of pushing and leaving the customer
+                // waiting on a prompt that will never arrive.
+                $preview = null;
+
+                try {
+                    $preview = $service->previewPush((string) $amountTzs, $validated['phone'], $pushRef);
+                } catch (\Throwable $previewFailure) {
+                    // A preview problem is not a reason to refuse payment. Fall
+                    // through and let the push itself be the answer.
+                    Log::info('ClickPesa preview unavailable, attempting push anyway: ' . $previewFailure->getMessage());
+                }
+
+                // Checked outside the try above on purpose: an empty result is a
+                // definite "this cannot be charged", not an inconclusive preview,
+                // so it must not be absorbed by that catch and fall through.
+                if ($preview !== null) {
+                    $supportedChannels = $preview['available'];
+
+                    if (!$supportedChannels) {
+                        $reason = $preview['unavailable'][0]['message'] ?? 'no mobile money method is available';
+
+                        throw new \Exception('ClickPesa cannot take this payment yet: ' . $reason);
+                    }
+                }
+
                 $push = $service->initiatePush((string) $amountTzs, $validated['phone'], $pushRef);
                 $reference = $push['orderReference'] ?? $pushRef;
                 $pushChannel = $push['channel'] ?? null;
@@ -257,6 +286,10 @@ class SubscriptionController extends Controller
             // shows it instead of a generic instruction to pay, because the two
             // situations need different things from the customer.
             'push_error' => $pushError,
+            // The networks this merchant account can actually charge. A Vodacom
+            // customer needs to hear "M-PESA is not enabled" rather than be
+            // told to approve a prompt on a network that will never send one.
+            'supported_channels' => array_column($supportedChannels, 'name'),
             'gateway_channel' => $pushChannel,
             'gateway_status' => $pushStatus,
             'reference' => $reference,

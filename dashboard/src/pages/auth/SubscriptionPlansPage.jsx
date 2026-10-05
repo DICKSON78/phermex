@@ -80,6 +80,9 @@ export default function SubscriptionPlansPage() {
   // The steps differ per network, so the instruction follows it rather than
   // telling everyone to expect an M-PESA PIN prompt.
   const channel = pushResult?.gateway_channel || null
+  // Networks this payment can actually go through, straight from the gateway.
+  // Shown whenever a push fails so the customer can switch to one that works.
+  const [supportedChannels, setSupportedChannels] = useState(null)
   const [error, setError] = useState('')
   const pollRef = useRef(null)
   const timeoutRef = useRef(null)
@@ -154,6 +157,14 @@ export default function SubscriptionPlansPage() {
         // beats a screen telling the customer to pay a payment that was never
         // requested from their network.
         setError(data.push_error || 'We could not send the payment prompt to that number.')
+        if (Array.isArray(data.supported_channels) && data.supported_channels.length === 0) {
+          // The gateway can charge nothing for this number or amount. Naming the
+          // networks that do work turns a dead end into something the customer
+          // can act on right now.
+          setSupportedChannels([])
+        } else if (Array.isArray(data.supported_channels)) {
+          setSupportedChannels(data.supported_channels)
+        }
         setPaymentStep('manual')
       }
     } catch (err) {
@@ -389,6 +400,14 @@ export default function SubscriptionPlansPage() {
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
                   <p className="text-red-600 text-xs font-medium">{error}</p>
+                  {supportedChannels?.length > 0 && (
+                    <p className="text-gray-600 text-xs mt-2">
+                      You can pay with {supportedChannels.map((name) => name.replace('-', ' ')).join(', ')}.
+                      {channel && !supportedChannels.includes(channel)
+                        ? ' This number is not on one of those networks, so try another number.'
+                        : ''}
+                    </p>
+                  )}
                 </div>
               )}
 

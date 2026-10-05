@@ -120,6 +120,55 @@ class ClickPesaService
         return $digits;
     }
 
+    /**
+     * Ask the gateway what it can actually charge before committing to a push.
+     *
+     * The preview endpoint answers 200 even when nothing can be charged, listing
+     * each method as UNAVAILABLE with the reason. That reason is the only place
+     * the gateway says "M-PESA is not enabled for this merchant" or "amount
+     * outside 500..3,000,000", so without asking first those failures surface
+     * later as a customer who was told to approve a prompt that never came.
+     *
+     * @return array{available: array<int, array{name: string, fee: float}>, unavailable: array<int, array{name: string, message: string}>}
+     */
+    public function previewPush(string $amount, string $phoneNumber, string $orderReference): array
+    {
+        $phone = self::normalizePhone($phoneNumber);
+
+        if ($phone === null) {
+            throw new \Exception('ClickPesa: a valid phone number is required.');
+        }
+
+        $response = Http::timeout(20)
+            ->withHeaders($this->authHeaders())
+            ->asJson()
+            ->post($this->baseUrl . '/payments/preview-ussd-push-request', [
+                'amount' => number_format((float) $amount, 2, '.', ''),
+                'currency' => 'TZS',
+                'orderReference' => $orderReference,
+                'phoneNumber' => $phone,
+            ]);
+
+        if (!$response->successful()) {
+            throw new \Exception('ClickPesa: ' . ($response->json()['message'] ?? 'preview request failed.'));
+        }
+
+        $available = [];
+        $unavailable = [];
+
+        foreach ((array) $response->json('activeMethods', []) as $method) {
+            $name = (string) ($method['name'] ?? '');
+
+            if (($method['status'] ?? '') === 'AVAILABLE') {
+                $available[] = ['name' => $name, 'fee' => (float) ($method['fee'] ?? 0)];
+            } else {
+                $unavailable[] = ['name' => $name, 'message' => (string) ($method['message'] ?? 'unavailable')];
+            }
+        }
+
+        return ['available' => $available, 'unavailable' => $unavailable];
+    }
+
     public function initiatePush(string $amount, string $phoneNumber, string $orderReference): array
     {
         $phone = self::normalizePhone($phoneNumber);

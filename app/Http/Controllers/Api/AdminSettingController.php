@@ -23,6 +23,9 @@ class AdminSettingController extends Controller
                 'support_email' => 'support@pharmex.com',
                 'address' => '',
                 'currency' => 'TZS',
+                'default_currency' => 'TZS',
+                'secondary_currency' => 'USD',
+                'exchange_rate' => null,
                 'timezone' => 'Africa/Dar_es_Salaam',
                 'default_language' => 'en',
             ],
@@ -101,7 +104,13 @@ class AdminSettingController extends Controller
                 'website' => 'nullable|url|max:500',
                 'support_email' => 'sometimes|email',
                 'address' => 'nullable|string|max:500',
-                'currency' => 'sometimes|string|max:10',
+                // The dashboard currency selects were never in this list, so
+                // validation dropped them and saveGroup() stored nothing. Prices
+                // are held in TZS; these only choose how they are displayed.
+                'default_currency' => 'sometimes|in:TZS,USD',
+                'secondary_currency' => 'sometimes|in:TZS,USD',
+                'exchange_rate' => 'nullable|numeric|min:0',
+                'currency' => 'sometimes|in:TZS,USD',
                 'timezone' => 'sometimes|string|max:50',
                 'default_language' => 'sometimes|string|max:10',
             ]);

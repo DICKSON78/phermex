@@ -204,16 +204,12 @@ export default function AdminPlatformSettingsPage() {
                   <select value={gen.default_currency} onChange={(e) => updateGeneral('default_currency', e.target.value)} className="form-input">
                     <option value="TZS">TZS — Tanzania Shilling</option>
                     <option value="USD">USD — US Dollar</option>
-                    <option value="KES">KES — Kenyan Shilling</option>
-                    <option value="NGN">NGN — Nigerian Naira</option>
                   </select>
                 </Field>
                 <Field label="Secondary Currency">
                   <select value={gen.secondary_currency || 'USD'} onChange={(e) => updateGeneral('secondary_currency', e.target.value)} className="form-input">
                     <option value="USD">USD — US Dollar</option>
                     <option value="TZS">TZS — Tanzania Shilling</option>
-                    <option value="KES">KES — Kenyan Shilling</option>
-                    <option value="NGN">NGN — Nigerian Naira</option>
                   </select>
                 </Field>
                 <Field label="Exchange Rate (Primary → Secondary)">

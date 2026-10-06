@@ -116,22 +116,18 @@ class PaymentController extends Controller
     public function handleWebhook(Request $request): JsonResponse
     {
         $secret = config('services.clickpesa.webhook_secret', '');
-
-        if ($secret === '') {
-            Log::error('ClickPesa webhook received but no checksum key is configured. Set CLICKPESA_WEBHOOK_SECRET.');
-
-            return response()->json(['message' => 'Webhook not configured.'], 503);
-        }
-
         $payload = $request->all();
 
-        // The gateway signs the payload itself and sends the digest inside it.
-        // Checking a signature header instead meant every genuine callback came
-        // back 401, so no payment was ever recorded as received.
-        if (!ClickPesaChecksum::verify($secret, $payload, true)) {
-            Log::warning('ClickPesa webhook rejected: checksum did not match.');
-
-            return response()->json(['message' => 'Invalid webhook checksum.'], 401);
+        // The gateway signs the payload and sends the digest inside it, so an
+        // x-signature header over the raw body never matches and every genuine
+        // callback was being answered 401. When a checksum key is configured the
+        // digest is checked as a second line of defence. It is not a gate:
+        // activation below is decided by asking the gateway, so an unverifiable
+        // callback still cannot grant a subscription.
+        if ($secret === '') {
+            Log::warning('ClickPesa webhook received with no checksum key configured. Set CLICKPESA_WEBHOOK_SECRET to verify payloads.');
+        } elseif (!ClickPesaChecksum::verify($secret, $payload, true)) {
+            Log::warning('ClickPesa webhook checksum did not match.');
         }
 
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
@@ -201,7 +197,37 @@ class PaymentController extends Controller
                     ->first();
 
                 if ($revenue) {
-                    if (strpos($status, 'SUCCESS') !== false || strpos($status, 'SETTLED') !== false || strpos($status, 'RECEIVED') !== false) {
+                    // Ask the gateway instead of trusting the callback body. The
+                    // payload is a request from the internet; only the gateway
+                    // knows the money actually arrived, and this is what stops a
+                    // forged POST from handing someone a free plan.
+                    $confirmed = false;
+
+                    try {
+                        $gateway = app(ClickPesaService::class)->queryStatus($orderReference);
+                        $gatewayStatus = strtoupper((string) ($gateway['status'] ?? ''));
+
+                        $confirmed = strpos($gatewayStatus, 'SUCCESS') !== false
+                            || strpos($gatewayStatus, 'SETTLED') !== false
+                            || strpos($gatewayStatus, 'RECEIVED') !== false;
+
+                        Log::info('ClickPesa webhook gateway confirmation', [
+                            'order_reference' => $orderReference,
+                            'gateway_status' => $gatewayStatus,
+                            'confirmed' => $confirmed,
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::warning('ClickPesa webhook could not confirm with gateway: ' . $e->getMessage());
+
+                        // Unknown, not declined. A 500 asks the gateway to retry,
+                        // whereas answering 2xx would drop this payment for good.
+                        return response()->json(['message' => 'Could not confirm payment with the gateway.'], 500);
+                    }
+
+                    // Only the gateway can say yes. Falling back to the payload
+                    // would undo the whole point: anyone able to POST to this
+                    // route could then grant themselves a subscription.
+                    if ($confirmed) {
                         if ($revenue->status !== 'paid') {
                             $revenue->update([
                                 'status' => 'paid',

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { toArray } from '../../utils/safeData';
+import { toArray, toObject } from '../../utils/safeData';
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft, Clock, CheckCircle, Truck, XCircle, Package, Pill,
@@ -23,6 +23,7 @@ const STATUS_STYLES = {
 const PAYMENT_STYLES = {
   unpaid: 'bg-red-100 text-red-700',
   partial: 'bg-yellow-100 text-yellow-700',
+  pending_customer_transfer: 'bg-amber-100 text-amber-700',
   paid: 'bg-green-100 text-green-700',
 }
 
@@ -53,13 +54,30 @@ export default function OrderDetailPage() {
     }
   }
 
+  const paymentDetails = toObject(order?.payment_details)
+
+  const handleMarkPaid = async () => {
+    setUpdating(true)
+    try {
+      const res = await api.put(`/orders/${id}/payment`, { payment_status: 'paid' })
+      setOrder(res.data.order || res.data)
+      toast.success('Payment marked as received')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update payment')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   const handleStatusChange = async (newStatus) => {
     setUpdating(true)
     try {
       const payload = { order_status: newStatus }
-      if (newStatus === 'confirmed') {
+      // Cash is settled on arrival, so confirming the order settles it. A
+      // customer who was asked to transfer directly keeps that method, and
+      // only the pharmacy's own acknowledgement clears it.
+      if (newStatus === 'confirmed' && order?.payment_method === 'cash') {
         payload.payment_status = 'paid'
-        payload.payment_method = 'cash'
       }
       const res = await api.put(`/orders/${id}/status`, payload)
       setOrder(res.data.order || res.data)
@@ -210,9 +228,33 @@ export default function OrderDetailPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-[#000F14] capitalize">{order.payment_method || '—'}</span>
                   <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize ${PAYMENT_STYLES[order.payment_status] || 'bg-gray-100 text-gray-600'}`}>
-                    {order.payment_status || 'unpaid'}
+                    {(order.payment_status || 'unpaid').replace(/_/g, ' ')}
                   </span>
                 </div>
+                {paymentDetails && (
+                  <div className="mt-3 rounded-lg bg-amber-50 border border-amber-100 p-3">
+                    <p className="text-xs font-medium text-amber-800 mb-1.5">
+                      Customer was told to pay this account directly
+                    </p>
+                    <p className="text-sm text-[#000F14] font-medium">
+                      {[paymentDetails.pharmacy_payment_method, paymentDetails.pharmacy_payment_number]
+                        .filter(Boolean).join(' · ')}
+                    </p>
+                    {paymentDetails.pharmacy_payment_name && (
+                      <p className="text-xs text-gray-500">{paymentDetails.pharmacy_payment_name}</p>
+                    )}
+                    {order.payment_status !== 'paid' && (
+                      <button
+                        onClick={handleMarkPaid}
+                        disabled={updating}
+                        className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#16A34A] px-3 py-2 text-xs font-semibold text-white hover:bg-[#15803D] disabled:opacity-50"
+                      >
+                        <DollarSign className="h-3.5 w-3.5" />
+                        {updating ? 'Saving…' : 'Confirm payment received'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

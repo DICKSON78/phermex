@@ -280,6 +280,39 @@ class OrderController extends Controller
         }
     }
 
+    /**
+     * The pharmacy acknowledging that money changed hands outside the app.
+     * Nothing was collected by the platform, so all this does is clear the
+     * order's outstanding balance and tell the customer it is settled.
+     */
+    public function updatePayment(Request $request, $id): JsonResponse
+    {
+        try {
+            $order = Order::findOrFail($id);
+
+            $validated = $request->validate([
+                'payment_status' => 'required|in:unpaid,partial,paid',
+            ]);
+
+            $order->update($validated);
+
+            return response()->json([
+                'message' => 'Payment status updated successfully.',
+                'order' => $order->fresh(),
+            ]);
+        } catch (\Illuminate\Validation\Exception $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update payment status.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
     public function dailyReport($pharmacyId): JsonResponse
     {
         try {

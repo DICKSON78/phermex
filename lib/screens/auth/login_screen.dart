@@ -363,6 +363,11 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeShell()),
       );
+    } on GoogleSignInException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '${AppLocalizations.tr('auth.googleSignInError')} (${e.code})';
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = ApiService.friendlyError(e));
@@ -571,6 +576,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeShell()),
       );
+    } on GoogleSignInException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '${AppLocalizations.tr('auth.googleSignInError')} (${e.code})';
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = ApiService.friendlyError(e));

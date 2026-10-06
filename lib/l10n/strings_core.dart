@@ -1,5 +1,7 @@
 const Map<String, String> coreEnStrings = {
   'home': 'Home',
+  'appName': 'HELIX',
+  'splashTagline': 'Pharmacy • Care • Delivery',
   'orders': 'Orders',
   'call': 'Call',
   'rx': 'Rx',
@@ -26,6 +28,18 @@ const Map<String, String> coreEnStrings = {
       'Your language is saved to your account and applied across your devices.',
   'changePassword': 'Change Password',
   'resetSignInPassword': 'Reset your sign-in password',
+  'onboarding.title1': 'Licensed pharmacies, nearby',
+  'onboarding.body1':
+      'Browse vetted pharmacies around you, search medicines and place an order in seconds.',
+  'onboarding.title2': 'Prescriptions & video consultations',
+  'onboarding.body2':
+      'Snap a photo of your prescription for a pharmacist to check, or book a video consultation from anywhere.',
+  'onboarding.title3': 'You pay the pharmacy, not us',
+  'onboarding.body3':
+      'Settle by cash on delivery or send mobile money straight to the pharmacy. Helix never holds your money.',
+  'onboarding.skip': 'Skip',
+  'onboarding.next': 'Next',
+  'onboarding.getStarted': 'Get Started',
   'privacyPolicy': 'Privacy Policy',
   'howWeUseData': 'How we use your data',
   'termsOfService': 'Terms of Service',
@@ -50,6 +64,8 @@ const Map<String, String> coreEnStrings = {
 
 const Map<String, String> coreSwStrings = {
   'home': 'Nyumbani',
+  'appName': 'HELIX',
+  'splashTagline': 'Duka la dawa • Huduma • Uwasilishaji',
   'orders': 'Maagizo',
   'call': 'Simu',
   'rx': 'Rx',
@@ -76,6 +92,18 @@ const Map<String, String> coreSwStrings = {
       'Lugha yako imehifadhiwa kwenye akaunti yako na inatumika kwenye vifaa vyako vyote.',
   'changePassword': 'Badilisha Nenosiri',
   'resetSignInPassword': 'Weka upya nenosiri lako la kuingia',
+  'onboarding.title1': 'Maduka ya dawa yaliyothibitishwa, karibu',
+  'onboarding.body1':
+      'Tafuta maduka yaliyothibitishwa yaliyopo karibu nawe, tafuta dawa na uweke agizo kwa haraka.',
+  'onboarding.title2': 'Dawa na video za washauri',
+  'onboarding.body2':
+      'Piga picha ya dawa ili mfamasia aiangalie, au uweke miadi ya video kutoka popote ulipo.',
+  'onboarding.title3': 'Unamlipa duka la dawa, si sisi',
+  'onboarding.body3':
+      'Lipa kwa cash ukipokea au tuma pesa za simu moja kwa moja kwa duka. Helix haishiki pesa zako.',
+  'onboarding.skip': 'Ruka',
+  'onboarding.next': 'Endelea',
+  'onboarding.getStarted': 'Anza',
   'privacyPolicy': 'Sera ya Faragha',
   'howWeUseData': 'Jinsi tunavyotumia data yako',
   'termsOfService': 'Masharti ya Huduma',

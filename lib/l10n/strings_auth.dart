@@ -18,6 +18,7 @@ const Map<String, String> authEnStrings = {
   'auth.haveAccount': 'Already have an account?',
   'auth.continueWithGoogle': 'Continue with Google',
   'auth.googleSignInFailed': 'Google sign-in failed. Please try again.',
+  'auth.googleSignInError': 'Google sign-in failed. Check the message below and try again, or use email and password.',
   'auth.or': 'OR',
   'auth.emailOrPhoneRequired': 'Email or phone is required',
   'auth.validEmailOrPhone': 'Enter a valid email or phone number',
@@ -80,6 +81,8 @@ const Map<String, String> authSwStrings = {
   'auth.continueWithGoogle': 'Endelea na Google',
   'auth.googleSignInFailed':
       'Kuingia kupitia Google kushindwa. Jaribu tena.',
+  'auth.googleSignInError':
+      'Uingiaji wa Google umeshindikana. Angalia ujumbe hapa chini kisha ujaribu tena, au tumia barua pepe na nenosiri.',
   'auth.or': 'AU',
   'auth.emailOrPhoneRequired': 'Barua pepe au nambari ya simu inahitajika',
   'auth.validEmailOrPhone':

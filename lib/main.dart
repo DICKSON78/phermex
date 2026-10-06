@@ -17,6 +17,7 @@ import 'screens/notifications/notifications_screen.dart';
 import 'screens/orders/orders_list_screen.dart';
 import 'screens/telemedicine/video_consult_view.dart';
 import 'screens/profile/settings_screen.dart' as profile;
+import 'screens/splash/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,7 +82,7 @@ class HelixApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const SessionGate(),
+      home: const SplashScreen(),
       routes: {
         '/login': (_) => const LoginScreen(),
         '/home': (_) => const HomeShell(),
@@ -91,49 +92,6 @@ class HelixApp extends StatelessWidget {
         '/consult': (args) => ConsultRoute(args: args),
       },
     );
-  }
-}
-
-class SessionGate extends StatefulWidget {
-  const SessionGate({super.key});
-
-  @override
-  State<SessionGate> createState() => _SessionGateState();
-}
-
-class _SessionGateState extends State<SessionGate> {
-  bool _ready = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    await ApiService.loadSession();
-    if (ApiService.isLoggedIn) {
-      // Best-effort FCM token registration; never blocks or crashes.
-      await PushService.initPushNotifications();
-    } else {
-      // Notifications must be configured before the user signs in, otherwise
-      // the first incoming call would be dropped.
-      await PushService.initPushNotifications();
-    }
-    if (mounted) setState(() => _ready = true);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_ready) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFF8F9FC),
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF0FD452)),
-        ),
-      );
-    }
-    return ApiService.isLoggedIn ? const HomeShell() : const LoginScreen();
   }
 }
 

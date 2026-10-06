@@ -9,6 +9,7 @@ import 'api_service.dart';
 class AppPreferences extends ChangeNotifier {
   static const String _langKey = 'helix_app_language';
   static const String _notifKey = 'helix_notification_preferences';
+  static const String _onboardKey = 'helix_onboarding_done';
 
   static const List<String> supportedLanguageCodes = ['en', 'sw'];
 
@@ -21,8 +22,12 @@ class AppPreferences extends ChangeNotifier {
 
   String _languageCode = 'en';
   Map<String, bool> _notificationPrefs = {...defaultNotificationPrefs};
+  bool _onboardingDone = false;
 
   String get languageCode => _languageCode;
+
+  /// Whether the first-run introduction has been finished on this device.
+  bool get onboardingDone => _onboardingDone;
 
   Locale get locale => Locale(_languageCode);
 
@@ -53,6 +58,8 @@ class AppPreferences extends ChangeNotifier {
       }
     }
 
+    _onboardingDone = prefs.getBool(_onboardKey) ?? false;
+
     notifyListeners();
   }
 
@@ -82,6 +89,15 @@ class AppPreferences extends ChangeNotifier {
 
     if (!ApiService.isLoggedIn) return true;
     return _sync({'notification_preferences': {..._notificationPrefs}});
+  }
+
+  /// Marks the first-run introduction as finished for this device.
+  Future<void> setOnboardingDone() async {
+    if (_onboardingDone) return;
+    _onboardingDone = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardKey, true);
   }
 
   Future<bool> _sync(Map<String, dynamic> body) async {

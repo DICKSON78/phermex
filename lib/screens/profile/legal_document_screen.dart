@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme.dart';
@@ -135,9 +136,67 @@ class LegalDocumentScreen extends StatelessWidget {
               ],
             ),
           ),
+
+          // Google Play requires a privacy policy behind a public URL, linked
+          // from inside the app. The text above is a local copy so the rows
+          // still open with no network; this link is the authoritative one.
+          if (document == LegalDocument.privacy) ...[
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _openHostedPolicy,
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: AppColors.line),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.open_in_new_rounded,
+                      size: 18,
+                      color: AppColors.brand600,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            L.t('privacyFullPolicy'),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.ink,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            L.t('privacyFullPolicyHint'),
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: AppColors.muted,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _openHostedPolicy() async {
+    final uri = Uri.parse('https://helix.co.tz/privacy');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 }
 

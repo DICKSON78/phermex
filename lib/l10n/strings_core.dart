@@ -32,6 +32,9 @@ const Map<String, String> coreEnStrings = {
   'appUsageTerms': 'App usage terms',
   'privacyIntro':
       'How Helix collects, uses, and protects your personal information.',
+  'privacyFullPolicy': 'Read the full policy online',
+  'privacyFullPolicyHint':
+      'The complete policy, always in its latest version, is published at helix.co.tz/privacy',
   'termsIntro': 'The rules that apply when you order medicines through Helix.',
   'signOutOfAccount': 'Sign out of your account',
   'logoutConfirm': 'Are you sure you want to log out?',
@@ -79,6 +82,9 @@ const Map<String, String> coreSwStrings = {
   'appUsageTerms': 'Masharti ya matumizi ya programu',
   'privacyIntro':
       'Jinsi Helix inavyokusanya, inavyotumia, na inavyolinda taarifa zako za faragha.',
+  'privacyFullPolicy': 'Soma sera kamili mtandaoni',
+  'privacyFullPolicyHint':
+      'Sera kamili, ikiwa daima toleo la hivi karibuni, imechapishwa katika helix.co.tz/privacy',
   'termsIntro': 'Kanuni zinazotumika unapotagua dawa kupitia Helix.',
   'signOutOfAccount': 'Toka kwenye akaunti yako',
   'logoutConfirm': 'Una uhakika unataka kutoka kwenye akaunti?',

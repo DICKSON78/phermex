@@ -52,3 +52,6 @@ keys-backup/
 *.jks
 *.keystore
 key.properties
+
+# Gradle build output under the android module
+/android/build/

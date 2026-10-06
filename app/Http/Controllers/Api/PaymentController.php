@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\DeviceToken;
 use App\Models\Order;
 use App\Models\Notification;
+use App\Services\ClickPesaChecksum;
 use App\Services\ClickPesaService;
 use App\Services\FcmService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -116,30 +118,44 @@ class PaymentController extends Controller
         $secret = config('services.clickpesa.webhook_secret', '');
 
         if ($secret === '') {
+            Log::error('ClickPesa webhook received but no checksum key is configured. Set CLICKPESA_WEBHOOK_SECRET.');
+
             return response()->json(['message' => 'Webhook not configured.'], 503);
-        }
-
-        $rawBody = $request->getContent();
-        $expectedSignature = hash_hmac('sha256', $rawBody, $secret);
-
-        $providedSignature = $request->header('x-signature')
-            ?? $request->header('x-clickpesa-signature')
-            ?? $request->header('x-webhook-signature')
-            ?? '';
-
-        if ($providedSignature === '' || !hash_equals($expectedSignature, $providedSignature)) {
-            return response()->json(['message' => 'Invalid webhook signature.'], 401);
         }
 
         $payload = $request->all();
 
-        $orderReference = $payload['orderReference']
-            ?? $payload['reference']
-            ?? ($payload['data']['orderReference'] ?? null);
+        // The gateway signs the payload itself and sends the digest inside it.
+        // Checking a signature header instead meant every genuine callback came
+        // back 401, so no payment was ever recorded as received.
+        if (!ClickPesaChecksum::verify($secret, $payload, true)) {
+            Log::warning('ClickPesa webhook rejected: checksum did not match.');
 
-        $status = strtoupper($payload['status']
+            return response()->json(['message' => 'Invalid webhook checksum.'], 401);
+        }
+
+        $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
+
+        $orderReference = $data['orderReference']
+            ?? $payload['orderReference']
+            ?? $payload['reference']
+            ?? null;
+
+        // The gateway puts the real status in data.status and the event name in
+        // event. Reading event first made the status the string
+        // "PAYMENT RECEIVED", which only matched by luck on a substring.
+        $status = strtoupper($data['status']
+            ?? $payload['status']
+            ?? $data['event']
             ?? $payload['event']
-            ?? ($payload['data']['status'] ?? ''));
+            ?? '');
+
+        Log::info('ClickPesa webhook received', [
+            'event' => $payload['event'] ?? $data['event'] ?? null,
+            'status' => $status,
+            'order_reference' => $orderReference,
+            'channel' => $data['channel'] ?? null,
+        ]);
 
         if (empty($orderReference)) {
             return response()->json(['message' => 'Missing order reference.'], 400);

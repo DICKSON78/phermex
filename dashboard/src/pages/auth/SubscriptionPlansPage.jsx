@@ -40,6 +40,18 @@ function CellValue({ value }) {
   return <span className="text-xs font-bold text-gray-700">{value}</span>
 }
 
+// Vodacom holds the 754-757 blocks in Tanzania. M-PESA is not enabled on our
+// ClickPesa account, so these numbers are told payments are coming rather than
+// being sent to a gateway that would route them somewhere else and go quiet.
+const MPESA_PREFIXES = ['754', '755', '756', '757']
+
+function isMpesaNumber(phone) {
+  const digits = normalizePhone(phone)
+  if (!digits.startsWith('255')) return false
+  const national = digits.slice(3)
+  return MPESA_PREFIXES.some((prefix) => national.startsWith(prefix))
+}
+
 function normalizePhone(phone) {
   let p = (phone || '').replace(/[^\d]/g, '')
   if (p.startsWith('0')) p = '255' + p.slice(1)
@@ -77,12 +89,14 @@ export default function SubscriptionPlansPage() {
   const [paymentStep, setPaymentStep] = useState(null)
   const [pushResult, setPushResult] = useState(null)
   // Which mobile money network ClickPesa matched to the number, e.g. TIGO-PESA.
-  // The steps differ per network, so the instruction follows it rather than
-  // telling everyone to expect an M-PESA PIN prompt.
+  // The steps differ per network, so the instruction follows it instead of
+  // describing one flow for everybody.
   const channel = pushResult?.gateway_channel || null
   // Networks this payment can actually go through, straight from the gateway.
   // Shown whenever a push fails so the customer can switch to one that works.
   const [supportedChannels, setSupportedChannels] = useState(null)
+  // Recomputed as they type so the notice appears before they try to pay.
+  const isVodacom = isMpesaNumber(phone)
   const [error, setError] = useState('')
   const pollRef = useRef(null)
   const timeoutRef = useRef(null)
@@ -137,6 +151,13 @@ export default function SubscriptionPlansPage() {
       setError('Please enter a valid phone number.')
       return
     }
+    // Only Vodacom is turned away. Every other number goes through to the
+    // gateway, which decides for itself whether it can charge it.
+    if (isVodacom) {
+      setError('M-PESA payments are not available yet. Please pay with Tigo Pesa, Airtel Money or HaloPesa.')
+      return
+    }
+
     setPaying(true)
     setError('')
     // Get the rate for today before charging.
@@ -148,6 +169,12 @@ export default function SubscriptionPlansPage() {
         payment_method: 'mobile',
       })
       const data = res.data
+
+      if (data?.coming_soon) {
+        setError(data.message)
+        return
+      }
+
       setPushResult(data)
       if (data.push_initiated && data.reference) {
         setPaymentStep('waiting')
@@ -396,6 +423,16 @@ export default function SubscriptionPlansPage() {
                   inputMode="numeric"
                 />
               </div>
+
+              {isVodacom && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                  <p className="text-amber-800 text-xs font-semibold">M-PESA payments are not available yet</p>
+                  <p className="text-gray-600 text-xs mt-1">
+                    This looks like a Vodacom number. M-PESA is coming soon. You can pay today with
+                    Tigo Pesa, Airtel Money or HaloPesa.
+                  </p>
+                </div>
+              )}
 
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">

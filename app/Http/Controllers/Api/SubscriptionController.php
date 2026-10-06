@@ -146,6 +146,16 @@ class SubscriptionController extends Controller
             return response()->json(['message' => 'Your application has not been approved yet.'], 403);
         }
 
+        // Rejected before anything is written, so a Vodacom customer who cannot
+        // pay yet does not leave a pending invoice behind on every retry.
+        if (ClickPesaService::isMpesaNumber($validated['phone'])) {
+            return response()->json([
+                'message' => 'M-PESA payments are not available yet. Please pay with Tigo Pesa, Airtel Money or HaloPesa.',
+                'coming_soon' => true,
+                'supported_channels' => ['TIGO-PESA', 'AIRTEL-MONEY', 'HALOPESA'],
+            ], 422);
+        }
+
         $plan = SubscriptionPlan::findOrFail($validated['plan_id']);
         // Price the plan with the USD->TZS rate of the day, not a fixed constant.
         $exchangeRates = app(ExchangeRateService::class);

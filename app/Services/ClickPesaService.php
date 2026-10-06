@@ -121,6 +121,41 @@ class ClickPesaService
     }
 
     /**
+     * Is this a Vodacom number?
+     *
+     * M-PESA is not enabled on our ClickPesa account and Vodacom will not be
+     * added for now, so these numbers cannot be charged. They are rejected up
+     * front instead of being handed to a gateway that will silently route them
+     * to another network and leave the customer waiting for a prompt that is
+     * never going to arrive.
+     *
+     * Detection is by prefix because the gateway does not report the network of
+     * a number back to us. Vodacom holds the 754-757 blocks in Tanzania.
+     */
+    public static function isMpesaNumber(?string $phone): bool
+    {
+        $digits = self::normalizePhone($phone);
+
+        if ($digits === null) {
+            return false;
+        }
+
+        if (!str_starts_with($digits, '255')) {
+            return false;
+        }
+
+        $national = substr($digits, 3);
+
+        foreach (['754', '755', '756', '757'] as $prefix) {
+            if (str_starts_with($national, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Ask the gateway what it can actually charge before committing to a push.
      *
      * The preview endpoint answers 200 even when nothing can be charged, listing

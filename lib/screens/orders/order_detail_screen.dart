@@ -290,6 +290,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
           const SizedBox(height: 20),
 
+          // Settlement invoice. The order has been processed, so the customer
+          // now pays this pharmacy directly. Nothing is collected here: this
+          // card only says where to send the money and who confirms it.
+          ..._settlementInvoice(context, order, status),
+
+          const SizedBox(height: 20),
+
           // Receipt / Items
           Text(L.t('oh.receipt'),
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
@@ -408,6 +415,136 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ],
       ),
     );
+  }
+
+
+  /// What the customer must do to settle a processed order with the pharmacy,
+  /// and later, the evidence that they did.
+  List<Widget> _settlementInvoice(BuildContext context, Order order, String status) {
+    final L = AppLocalizations.of(context);
+    final details = order.paymentDetails;
+    final paid = order.paymentStatus == 'paid';
+
+    // Cash orders have nothing to settle before arrival, and an order still
+    // being prepared has no bill to pay yet.
+    if (details == null && !paid) return const [];
+    final processed = const ['ready', 'out_for_delivery', 'dispensed', 'delivered'].contains(status);
+    if (!processed && !paid) return const [];
+
+    final number = details?['pharmacy_payment_number'] as String?;
+    final name = details?['pharmacy_payment_name'] as String?;
+    final method = details?['pharmacy_payment_method'] as String?;
+
+    return [
+      Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEEF1F0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: (paid ? const Color(0xFF16A34A) : AppTheme.primary).withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    paid ? Icons.check_rounded : Icons.receipt_long_rounded,
+                    size: 16,
+                    color: paid ? const Color(0xFF16A34A) : AppTheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    L.t('oh.payment'),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Amount the pharmacy is owed.
+            Row(
+              children: [
+                Expanded(
+                  child: Text(L.t('shop.amountToSend'),
+                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF6B7280))),
+                ),
+                Text('TZS ${order.total.toStringAsFixed(0)}',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF111827))),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Where to send it, when the pharmacy has published an account.
+            if (!paid && number != null && number.trim().isNotEmpty) ...[
+              const Divider(height: 1, color: Color(0xFFF0F3F1)),
+              const SizedBox(height: 12),
+              Text(L.t('shop.pharmacyMobileMoney'),
+                  style: const TextStyle(fontSize: 12.5, color: Color(0xFF6B7280))),
+              const SizedBox(height: 5),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      [method, number].where((e) => e != null && e.trim().isNotEmpty).join(' · '),
+                      style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                    ),
+                  ),
+                  if (name != null && name.trim().isNotEmpty)
+                    Expanded(
+                      child: Text(name,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(fontSize: 12.5, color: Color(0xFF6B7280))),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(L.t('shop.payPharmacyDirectBody'),
+                  style: const TextStyle(fontSize: 12.5, color: Color(0xFF6B7280), height: 1.45)),
+            ],
+
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: (paid ? const Color(0xFF16A34A) : const Color(0xFFB9762A)).withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    paid ? Icons.verified_rounded : Icons.hourglass_top_rounded,
+                    size: 14,
+                    color: paid ? const Color(0xFF16A34A) : const Color(0xFFB9762A),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      paid ? L.t('shop.paidViaDirectTransfer') : L.t('shop.paymentPendingConfirmation'),
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: paid ? const Color(0xFF16A34A) : const Color(0xFFB9762A),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
   }
 
   Widget _reorderButton(BuildContext context, Order order) {

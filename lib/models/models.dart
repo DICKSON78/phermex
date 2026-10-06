@@ -282,6 +282,12 @@ class Order {
   final String? orderStatus;
   final String? paymentStatus;
   final String? paymentMethod;
+
+  /// How the customer is expected to settle with the pharmacy directly.
+  /// The platform never holds this money, so the order carries only what the
+  /// customer needs to pay the pharmacy: the method, the number and the name
+  /// on the account.
+  final Map<String, dynamic>? paymentDetails;
   final double subtotal;
   final double discount;
   final double total;
@@ -309,6 +315,7 @@ class Order {
     this.orderStatus,
     this.paymentStatus,
     this.paymentMethod,
+    this.paymentDetails,
     required this.subtotal,
     this.discount = 0,
     required this.total,
@@ -341,6 +348,9 @@ class Order {
       orderStatus: json['order_status'],
       paymentStatus: json['payment_status'],
       paymentMethod: json['payment_method'],
+      paymentDetails: json['payment_details'] is Map
+          ? Map<String, dynamic>.from(json['payment_details'])
+          : null,
       subtotal: _toDouble(json['subtotal']) ?? 0,
       discount: _toDouble(json['discount']) ?? 0,
       total: _toDouble(json['total']) ?? 0,

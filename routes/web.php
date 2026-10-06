@@ -95,6 +95,18 @@ Route::post('/contact', function (\Illuminate\Http\Request $request) {
 });
 
 // ======================================================================
+// Privacy policy — a plain, non-editable page, served straight from the
+// file so it stays readable without JavaScript (Google Play requires the
+// policy to live behind a public https URL).
+// ======================================================================
+Route::get('/privacy', function () {
+    return response()->file(public_path('privacy.html'), [
+        'Content-Type' => 'text/html; charset=utf-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
+});
+
+// ======================================================================
 // Marketing website SPA
 // ======================================================================
 

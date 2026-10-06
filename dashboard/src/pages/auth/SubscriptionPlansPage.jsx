@@ -252,12 +252,24 @@ export default function SubscriptionPlansPage() {
           clearInterval(pollRef.current)
           setPaymentStep('success')
           setTimeout(refreshAndGoToDashboard, 1500)
-        } else if (res.data?.gateway_status?.includes('FAILED')) {
+        } else if (['FAILED', 'EXPIRED', 'CANCELLED', 'REVERSED'].some((s) => res.data?.gateway_status?.includes(s))) {
+          // These will never become paid. Waiting for a change that cannot come
+          // only tells the customer to keep looking at their phone for nothing.
           clearInterval(pollRef.current)
+          clearTimeout(timeoutRef.current)
           setPaymentStep('manual')
           setError('The payment was not completed. You can retry or contact support.')
         }
-      } catch {
+      } catch (err) {
+        // The gateway being out of allowance is not transient. Every further
+        // poll is a call it will refuse, so stop and say what is actually true.
+        if (err.response?.status === 429 || err.response?.data?.rate_limited) {
+          clearInterval(pollRef.current)
+          clearTimeout(timeoutRef.current)
+          setPaymentStep('manual')
+          setError('Mobile money payments are temporarily unavailable and we cannot check your payment right now. If you approved the prompt, your money has not been taken. Please try again in a few minutes or contact support.')
+          return
+        }
         // keep polling; transient network errors are expected
       }
     }, 8000)

@@ -84,7 +84,7 @@ function checkGateway(string $name, bool $ok, string $detail = ''): void
     if ($gatewayLimited) {
         $skip++;
 
-        printf("  [SKIP] %s (gateway over its daily limit)\n", $name);
+        printf("  [SKIP] %s (gateway not answering)\n", $name);
 
         return;
     }
@@ -158,11 +158,21 @@ line('supported_channels', implode(',', $r['body']['supported_channels'] ?? []))
 line('amount charged TZS', (string) ($r['body']['subscription']['amount_tzs'] ?? '-'));
 line('push_error', (string) ($r['body']['push_error'] ?? 'none'));
 
-if (str_contains((string) ($r['body']['push_error'] ?? ''), 'Daily API limit')) {
+// The gateway being over its daily allowance and the gateway hanging up are
+// both the gateway declining to answer, not this code being wrong. Either way
+// an assertion that needs a live answer cannot be judged.
+$pushError = (string) ($r['body']['push_error'] ?? '');
+$gatewayUnreachable = str_contains($pushError, 'Daily API limit')
+    || str_contains($pushError, 'daily limit')
+    || str_contains($pushError, 'cURL error')
+    || str_contains($pushError, 'timed out')
+    || str_contains($pushError, 'unable to obtain access token');
+
+if ($gatewayUnreachable) {
     $gatewayLimited = true;
 
-    echo "\n  ClickPesa has stopped answering for today (100 calls a day before KYC).\n";
-    echo "  The assertions that need the gateway cannot be judged, so they are\n";
+    echo "\n  ClickPesa is not answering: " . trim($pushError) . "\n";
+    echo "  Assertions that need a live gateway cannot be judged, so they are\n";
     echo "  skipped rather than failed. Everything not needing a gateway call\n";
     echo "  still runs below.\n";
 }

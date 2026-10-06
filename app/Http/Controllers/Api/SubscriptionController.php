@@ -344,6 +344,19 @@ class SubscriptionController extends Controller
         try {
             $status = $service->queryStatus($validated['reference']);
         } catch (\Throwable $e) {
+            // A gateway that has spent its daily allowance will refuse the next
+            // call too, and the one after that. Saying so stops the page asking
+            // again and again, which would only spend what is left discovering
+            // the same refusal. The payment itself is untouched.
+            if (str_contains($e->getMessage(), 'Daily API limit')
+                || str_contains($e->getMessage(), 'daily limit')) {
+                return response()->json([
+                    'message' => 'The payment gateway is temporarily unavailable.',
+                    'status' => 'pending',
+                    'rate_limited' => true,
+                ], 429);
+            }
+
             return response()->json([
                 'message' => 'Failed to query payment status.',
                 'status' => 'pending',

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\PaymentNotFoundAtGateway;
+use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -75,6 +76,7 @@ class ClickPesaService
     protected function accessToken(): string
     {
         $cacheKey = 'clickpesa_token';
+        $fallbackKey = 'clickpesa_token_last_good';
         $ttl = 55 * 60; // tokens valid 1 hour; refresh a little early
 
         $cached = cache()->get($cacheKey);
@@ -95,10 +97,28 @@ class ClickPesaService
         $data = $response->json();
 
         if (!$response->successful() || !($data['success'] ?? false) || empty($data['token'])) {
-            throw new \Exception('ClickPesa: unable to obtain access token.');
+            // Before KYC the account gets 100 calls a day and generate-token
+            // counts towards them, so the limit gets hit while real customers are
+            // mid-payment. A token already in hand is still valid for up to an
+            // hour, so use it rather than failing a payment the customer is
+            // halfway through.
+            $fallback = cache()->get($fallbackKey);
+
+            if ($fallback) {
+                Log::warning('ClickPesa token refresh failed, reusing the last token: ' . ($data['message'] ?? $response->status()));
+
+                cache()->put($cacheKey, $fallback, 5 * 60);
+
+                return $fallback;
+            }
+
+            throw new \Exception('ClickPesa: unable to obtain access token.' . (isset($data['message']) ? ' ' . $data['message'] : ''));
         }
 
         cache()->put($cacheKey, $data['token'], $ttl);
+        // Held much longer than the token itself so a rate limit has something
+        // to fall back on.
+        cache()->put($fallbackKey, $data['token'], 6 * 60 * 60);
 
         return $data['token'];
     }
@@ -231,7 +251,41 @@ class ClickPesaService
         return $response->json();
     }
 
-    public function queryStatus(string $orderReference): array
+    /**
+     * Read a payment status without spending a gateway call every time.
+     *
+     * The checkout screen polls while a customer waits, and each poll is a
+     * metered call. Before KYC the account only gets 100 a day, so a handful of
+     * customers watching their phones would use the whole day's budget. The
+     * answer for a given reference cannot change faster than a few seconds, so
+     * a short cache costs nothing in latency and saves the calls.
+     *
+     * @param bool $fresh Bypass the cache. Used by the webhook, which is the
+     *                    one caller that must not read a stale answer.
+     */
+    public function queryStatus(string $orderReference, bool $fresh = false): array
+    {
+        $cacheKey = 'clickpesa_status_' . $orderReference;
+
+        if (! $fresh) {
+            $cached = cache()->get($cacheKey);
+
+            if ($cached) {
+                return $cached;
+            }
+        }
+
+        $result = $this->queryGatewayStatus($orderReference);
+
+        // Kept briefly. Payment states settle in seconds and a customer waiting
+        // on a prompt should see it land, but not at the price of one call per
+        // second per waiting customer.
+        cache()->put($cacheKey, $result, 10);
+
+        return $result;
+    }
+
+    private function queryGatewayStatus(string $orderReference): array
     {
         // There is no /payments/query-status endpoint. The reference is the last
         // path segment, and the gateway answers with a list, so an unwrapped read

@@ -205,7 +205,9 @@ class PaymentController extends Controller
                     $confirmed = false;
 
                     try {
-                        $gateway = app(ClickPesaService::class)->queryStatus($orderReference);
+                        // Fresh: the webhook is the authoritative signal, so it must
+                        // not be answered from a cache filled by a poll.
+                        $gateway = app(ClickPesaService::class)->queryStatus($orderReference, true);
                         $gatewayStatus = strtoupper((string) ($gateway['status'] ?? ''));
 
                         $confirmed = strpos($gatewayStatus, 'SUCCESS') !== false

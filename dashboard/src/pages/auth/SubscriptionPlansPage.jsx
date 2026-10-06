@@ -224,6 +224,7 @@ export default function SubscriptionPlansPage() {
   const startPolling = (reference) => {
     clearInterval(pollRef.current)
     clearTimeout(timeoutRef.current)
+    let attempts = 0
     // A push that is never approved just sits at PROCESSING forever. Spinning
     // indefinitely tells the customer to wait for something that will not
     // happen, so after a while offer them the way out.
@@ -233,6 +234,16 @@ export default function SubscriptionPlansPage() {
       setPaymentStep('manual')
     }, 90000)
     pollRef.current = setInterval(async () => {
+      // Capped, and slowed from every 4s. Each poll spends a metered gateway
+      // call and the account has a daily limit, so a customer watching their
+      // phone must not burn the budget on a status that cannot have changed
+      // that fast.
+      if (attempts >= 12) {
+        clearInterval(pollRef.current)
+        return
+      }
+      attempts += 1
+
       try {
         const res = await api.get('/subscriptions/payment-status', {
           params: { reference },
@@ -249,7 +260,7 @@ export default function SubscriptionPlansPage() {
       } catch {
         // keep polling; transient network errors are expected
       }
-    }, 4000)
+    }, 8000)
   }
 
   const handleManualConfirm = async () => {

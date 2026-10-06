@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Exceptions\PaymentNotFoundAtGateway;
 use App\Models\DeviceToken;
 use App\Models\Order;
 use App\Models\Notification;
@@ -216,6 +217,13 @@ class PaymentController extends Controller
                             'gateway_status' => $gatewayStatus,
                             'confirmed' => $confirmed,
                         ]);
+                    } catch (PaymentNotFoundAtGateway $e) {
+                        // The gateway has no such payment, so retrying cannot
+                        // help. Acknowledge so it stops calling, and leave the
+                        // invoice pending for the browser poll to resolve.
+                        Log::warning('ClickPesa webhook: no such payment at the gateway, nothing to confirm. ' . $e->getMessage());
+
+                        return response()->json(['message' => 'Unknown payment reference.'], 200);
                     } catch (\Throwable $e) {
                         Log::warning('ClickPesa webhook could not confirm with gateway: ' . $e->getMessage());
 

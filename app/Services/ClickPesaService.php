@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Exceptions\PaymentNotFoundAtGateway;
+
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -237,6 +239,15 @@ class ClickPesaService
         $response = Http::timeout(15)
             ->withHeaders($this->authHeaders())
             ->get($this->baseUrl . '/payments/' . rawurlencode($orderReference));
+
+        if ($response->status() === 404 || $response->status() === 400) {
+            // The gateway has never heard of this reference. Flagged separately
+            // because answering as though it were an outage makes callers retry
+            // something that can never succeed.
+            throw new PaymentNotFoundAtGateway(
+                'ClickPesa: no payment for reference ' . $orderReference . '.'
+            );
+        }
 
         if (!$response->successful()) {
             throw new \Exception('ClickPesa: ' . ($response->json()['message'] ?? 'status query failed.'));

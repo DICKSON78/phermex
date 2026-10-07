@@ -29,7 +29,28 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-        ],
+        ] + (env('DB_READ_HOST') ? [
+            // Read/write splitting: SELECTs go to the replica, writes stay on
+            // the master. `sticky` keeps one connection per request after a
+            // write so replica lag can never serve stale data mid-request.
+            // Set DB_READ_HOST+friends only when you have a replica; leave
+            // them empty and everything stays on the single master.
+            'read' => [
+                'host' => [env('DB_READ_HOST', env('DB_HOST', '127.0.0.1'))],
+                'port' => env('DB_READ_PORT', env('DB_PORT', '3306')),
+                'database' => env('DB_READ_DATABASE', env('DB_DATABASE', 'laravel')),
+                'username' => env('DB_READ_USERNAME', env('DB_USERNAME', 'root')),
+                'password' => env('DB_READ_PASSWORD', env('DB_PASSWORD', '')),
+            ],
+            'write' => [
+                'host' => [env('DB_HOST', '127.0.0.1')],
+                'port' => env('DB_PORT', '3306'),
+                'database' => env('DB_DATABASE', 'laravel'),
+                'username' => env('DB_USERNAME', 'root'),
+                'password' => env('DB_PASSWORD', ''),
+            ],
+            'sticky' => true,
+        ] : []),
 
         'pgsql' => [
             'driver' => 'pgsql',

@@ -15,12 +15,16 @@ use App\Models\Prescription;
 use App\Models\SupportTicket;
 use App\Models\TicketReply;
 use App\Models\User;
+use App\Support\CacheKey;
+use App\Support\Search;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CustomerAppController extends Controller
 {
@@ -62,7 +66,7 @@ class CustomerAppController extends Controller
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'role' => 'customer',
-                'user_code' => 'CUS-' . strtoupper(Str::random(8)),
+                'user_code' => 'CUS-'.strtoupper(Str::random(8)),
                 'password' => Hash::make($validated['password']),
                 'is_active' => true,
             ]);
@@ -76,7 +80,7 @@ class CustomerAppController extends Controller
                     'token' => $token,
                 ],
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed.',
                 'error' => $e->errors(),
@@ -104,13 +108,13 @@ class CustomerAppController extends Controller
                 $q->where('email', $login)->orWhere('phone', $login);
             })->where('role', 'customer')->first();
 
-            if (!$user || !Hash::check($password, $user->password)) {
+            if (! $user || ! Hash::check($password, $user->password)) {
                 return response()->json([
                     'message' => 'Invalid credentials.',
                 ], 401);
             }
 
-            if (!$user->is_active) {
+            if (! $user->is_active) {
                 return response()->json([
                     'message' => 'Your account has been deactivated. Please contact support.',
                 ], 403);
@@ -125,7 +129,7 @@ class CustomerAppController extends Controller
                     'token' => $token,
                 ],
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed.',
                 'error' => $e->errors(),
@@ -168,9 +172,9 @@ class CustomerAppController extends Controller
             $validated = $request->validate([
                 'name' => 'sometimes|string|max:255',
                 'phone' => 'sometimes|string|max:20',
-                'email' => 'sometimes|email|unique:users,email,' . $user->id,
+                'email' => 'sometimes|email|unique:users,email,'.$user->id,
                 'password' => ['sometimes', 'nullable', 'string', 'min:8', 'confirmed'],
-                'language' => 'sometimes|string|in:' . implode(',', self::SUPPORTED_LANGUAGES),
+                'language' => 'sometimes|string|in:'.implode(',', self::SUPPORTED_LANGUAGES),
                 'notification_preferences' => 'sometimes|array',
                 'notification_preferences.email_notifications' => 'sometimes|boolean',
                 'notification_preferences.sms_notifications' => 'sometimes|boolean',
@@ -202,7 +206,7 @@ class CustomerAppController extends Controller
                 'message' => 'Profile updated successfully.',
                 'data' => $user->fresh(),
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed.',
                 'error' => $e->errors(),
@@ -223,37 +227,51 @@ class CustomerAppController extends Controller
                 'longitude' => 'required|numeric|between:-180,180',
                 'radius_km' => 'sometimes|numeric|min:1|max:100',
                 'search' => 'sometimes|string|max:255',
+                'page' => 'sometimes|integer|min:1',
+                'per_page' => 'sometimes|integer|min:1|max:100',
             ]);
 
-            $lat = $request->input('latitude');
-            $lng = $request->input('longitude');
-            $radius = $request->input('radius_km', 10);
-            $search = $request->input('search');
+            $lat = (float) $request->input('latitude');
+            $lng = (float) $request->input('longitude');
+            $radius = (float) $request->input('radius_km', 10);
+            $search = (string) $request->input('search', '');
+            $page = (int) $request->input('page', 1);
+            $perPage = (int) $request->input('per_page', 50);
 
-            $query = Pharmacy::selectRaw('*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance', [$lat, $lng, $lat])
-                ->whereNotNull('latitude')
-                ->whereNotNull('longitude')
-                ->where('status', 'active')
-                ->where('is_published', true);
+            // Cache key rounds the origin so nearby users share one result set;
+            // the pharmacies version token invalidates it when any pharmacy changes.
+            $key = 'pharmacy:nearby:v'.CacheKey::version('pharmacies')
+                .'.'.implode('|', [round($lat, 2), round($lng, 2), $radius, $search, $page, $perPage]);
 
-            if ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('pharmacy_name', 'like', "%{$search}%")
-                      ->orWhere('district', 'like', "%{$search}%")
-                      ->orWhere('region', 'like', "%{$search}%")
-                      ->orWhere('ward', 'like', "%{$search}%");
-                });
-            }
+            $result = Cache::remember($key, 300, function () use ($lat, $lng, $radius, $search, $page, $perPage) {
+                $query = Pharmacy::selectRaw('*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance', [$lat, $lng, $lat])
+                    ->whereNotNull('latitude')
+                    ->whereNotNull('longitude')
+                    ->where('status', 'active')
+                    ->where('is_published', true);
 
-            $pharmacies = $query->having('distance', '<=', $radius)
-                ->orderBy('distance')
-                ->get();
+                if ($search !== '') {
+                    Search::apply($query, ['pharmacy_name', 'region', 'district', 'ward'], $search);
+                }
+
+                $paginator = $query->having('distance', '<=', $radius)
+                    ->orderBy('distance')
+                    ->simplePaginate($perPage, ['*'], 'page', $page);
+
+                return [
+                    'items' => $paginator->items(),
+                    'has_more' => $paginator->hasMorePages(),
+                ];
+            });
 
             return response()->json([
                 'message' => 'Nearby pharmacies retrieved.',
-                'data' => $pharmacies,
+                'data' => $result['items'],
+                'page' => $page,
+                'per_page' => $perPage,
+                'has_more' => $result['has_more'],
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed.',
                 'error' => $e->errors(),
@@ -269,17 +287,18 @@ class CustomerAppController extends Controller
     public function pharmacyDetail(Request $request, string $id): JsonResponse
     {
         try {
-            $pharmacy = Pharmacy::where('status', 'active')
-                ->where('is_published', true)
-                ->findOrFail($id);
+            $key = 'pharmacy:detail:v'.CacheKey::version('pharmacies').'.'.$id;
 
-            $drugCount = Drug::where('pharmacy_id', $pharmacy->id)
-                ->where('is_published', true)
-                ->count();
+            $data = Cache::remember($key, 300, function () use ($id) {
+                $pharmacy = Pharmacy::where('status', 'active')
+                    ->where('is_published', true)
+                    ->findOrFail($id);
 
-            return response()->json([
-                'message' => 'Pharmacy details retrieved.',
-                'data' => [
+                $drugCount = Drug::where('pharmacy_id', $pharmacy->id)
+                    ->where('is_published', true)
+                    ->count();
+
+                return [
                     'pharmacy' => $pharmacy,
                     'drug_count' => $drugCount,
                     // How this pharmacy wants to be paid. Only the fields a
@@ -290,9 +309,14 @@ class CustomerAppController extends Controller
                         'number' => $pharmacy->customer_payment_number,
                         'name' => $pharmacy->customer_payment_name,
                     ],
-                ],
+                ];
+            });
+
+            return response()->json([
+                'message' => 'Pharmacy details retrieved.',
+                'data' => $data,
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             return response()->json([
                 'message' => 'Pharmacy not found.',
             ], 404);
@@ -316,24 +340,35 @@ class CustomerAppController extends Controller
             return response()->json(['message' => 'Barcode is required.'], 422);
         }
 
-        $drugs = Drug::where('barcode', $code)
-            ->where('is_published', true)
-            ->with(['category', 'pharmacy'])
-            ->orderByDesc('quantity')
-            ->limit(25)
-            ->get();
+        $key = 'drug:barcode:v'.CacheKey::version('drugs').'.'.$code;
 
-        $inStock = $drugs->filter(fn (Drug $drug) => (int) $drug->quantity > 0)->values();
+        $result = Cache::remember($key, 600, function () use ($code) {
+            $drugs = Drug::where('barcode', $code)
+                ->where('is_published', true)
+                ->with(['category', 'pharmacy'])
+                ->orderByDesc('quantity')
+                ->limit(25)
+                ->get();
+
+            $inStock = $drugs->filter(fn (Drug $drug) => (int) $drug->quantity > 0)->values();
+
+            return [
+                'found' => $drugs->isNotEmpty(),
+                // In-stock listings first so the customer sees a place to buy it.
+                'data' => ($inStock->isNotEmpty() ? $inStock : $drugs->values())
+                    ->map(fn (Drug $drug) => $drug->toArray())
+                    ->values()
+                    ->all(),
+                'total' => $drugs->count(),
+            ];
+        });
 
         return response()->json([
-            'message' => $drugs->isEmpty()
-                ? 'No product matched that barcode.'
-                : 'Product found.',
+            'message' => $result['found'] ? 'Product found.' : 'No product matched that barcode.',
             'barcode' => $code,
-            'found' => $drugs->isNotEmpty(),
-            // In-stock listings first so the customer sees a place to buy it.
-            'data' => $inStock->isNotEmpty() ? $inStock : $drugs->values(),
-            'total' => $drugs->count(),
+            'found' => $result['found'],
+            'data' => $result['data'],
+            'total' => $result['total'],
         ]);
     }
 
@@ -344,32 +379,37 @@ class CustomerAppController extends Controller
                 ->where('is_published', true)
                 ->findOrFail($id);
 
-            $query = Drug::where('pharmacy_id', $pharmacy->id)
-                ->where('is_published', true)
-                ->with('category');
+            $key = 'pharmacy:v'.CacheKey::version('drugs:'.$pharmacy->id).':drugs.'.$id
+                .'.'.implode('|', [
+                    (string) $request->input('search', ''),
+                    (string) $request->input('category_id', ''),
+                    (int) $request->input('page', 1),
+                    (int) $request->input('per_page', 20),
+                ]);
 
-            if ($request->has('search')) {
-                $search = $request->input('search');
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('generic_name', 'like', "%{$search}%")
-                      ->orWhere('manufacturer', 'like', "%{$search}%")
-                      ->orWhere('barcode', 'like', "%{$search}%");
-                });
-            }
+            $data = Cache::remember($key, 300, function () use ($pharmacy, $request) {
+                $query = Drug::where('pharmacy_id', $pharmacy->id)
+                    ->where('is_published', true)
+                    ->with('category');
 
-            if ($request->has('category_id')) {
-                $query->where('category_id', $request->input('category_id'));
-            }
+                if ($request->has('search')) {
+                    Search::apply($query, ['name', 'generic_name', 'manufacturer', 'barcode'], (string) $request->input('search'));
+                }
 
-            $drugs = $query->orderBy('name')
-                ->paginate($request->input('per_page', 20));
+                if ($request->has('category_id')) {
+                    $query->where('category_id', $request->input('category_id'));
+                }
+
+                return $query->orderBy('name')
+                    ->paginate($request->input('per_page', 20))
+                    ->toArray();
+            });
 
             return response()->json([
                 'message' => 'Pharmacy drugs retrieved.',
-                'data' => $drugs,
+                'data' => $data,
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             return response()->json([
                 'message' => 'Pharmacy not found.',
             ], 404);
@@ -388,17 +428,22 @@ class CustomerAppController extends Controller
                 ->where('is_published', true)
                 ->findOrFail($id);
 
-            $categories = DrugCategory::where('pharmacy_id', $pharmacy->id)
-                ->withCount(['drugs' => function ($q) {
-                    $q->where('is_published', true);
-                }])
-                ->get();
+            $key = 'pharmacy:v'.CacheKey::version('drugs:'.$pharmacy->id).':categories.'.$id;
+
+            $categories = Cache::remember($key, 300, function () use ($pharmacy) {
+                return DrugCategory::where('pharmacy_id', $pharmacy->id)
+                    ->withCount(['drugs' => function ($q) {
+                        $q->where('is_published', true);
+                    }])
+                    ->get()
+                    ->toArray();
+            });
 
             return response()->json([
                 'message' => 'Pharmacy categories retrieved.',
                 'data' => $categories,
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             return response()->json([
                 'message' => 'Pharmacy not found.',
             ], 404);
@@ -435,7 +480,7 @@ class CustomerAppController extends Controller
             $subtotal = 0;
             $orderItems = [];
 
-            $orderCode = 'ORD-' . now()->format('Y') . '-' . strtoupper(Str::random(5));
+            $orderCode = 'ORD-'.now()->format('Y').'-'.strtoupper(Str::random(5));
 
             foreach ($validated['items'] as $item) {
                 $drug = Drug::lockForUpdate()
@@ -444,8 +489,9 @@ class CustomerAppController extends Controller
                     ->where('is_published', true)
                     ->first();
 
-                if (!$drug) {
+                if (! $drug) {
                     DB::rollBack();
+
                     return response()->json([
                         'message' => "Drug ID {$item['drug_id']} not found in this pharmacy.",
                     ], 422);
@@ -453,6 +499,7 @@ class CustomerAppController extends Controller
 
                 if ($drug->quantity < $item['quantity']) {
                     DB::rollBack();
+
                     return response()->json([
                         'message' => "Insufficient stock for '{$drug->name}'. Available: {$drug->quantity}.",
                     ], 422);
@@ -531,7 +578,7 @@ class CustomerAppController extends Controller
                 'pharmacy_id' => $pharmacy->id,
                 'user_id' => $pharmacy->owner_id,
                 'title' => 'New Online Order',
-                'message' => "Order #{$orderCode} received from {$user->name} (deliver to: {$validated['delivery_address']}). Total: " . number_format($subtotal, 2) . " TZS",
+                'message' => "Order #{$orderCode} received from {$user->name} (deliver to: {$validated['delivery_address']}). Total: ".number_format($subtotal, 2).' TZS',
                 'type' => 'info',
                 'is_read' => false,
                 'link' => "/dashboard/orders/{$order->id}",
@@ -539,11 +586,11 @@ class CustomerAppController extends Controller
 
             // Create a pending delivery record for the customer's online order
             // unless one has already been linked to this order.
-            if (!Delivery::where('order_id', $order->id)->exists()) {
+            if (! Delivery::where('order_id', $order->id)->exists()) {
                 Delivery::create([
                     'pharmacy_id' => $pharmacy->id,
                     'order_id' => $order->id,
-                    'delivery_code' => 'DLV-' . strtoupper(Str::random(8)),
+                    'delivery_code' => 'DLV-'.strtoupper(Str::random(8)),
                     'customer_name' => $user->name,
                     'customer_phone' => $validated['delivery_phone'] ?? $user->phone,
                     'delivery_address' => $validated['delivery_address'],
@@ -572,14 +619,16 @@ class CustomerAppController extends Controller
                     'details' => $order->payment_details,
                 ],
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
+
             return response()->json([
                 'message' => 'Validation failed.',
                 'error' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'message' => 'Failed to place order.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
@@ -624,7 +673,7 @@ class CustomerAppController extends Controller
             DB::beginTransaction();
 
             foreach ($order->items as $item) {
-                if (!$item->drug) {
+                if (! $item->drug) {
                     continue;
                 }
                 $item->drug->increment('quantity', $item->quantity);
@@ -658,7 +707,7 @@ class CustomerAppController extends Controller
                 'message' => 'Order cancelled successfully.',
                 'data' => $order->fresh(['items.drug', 'pharmacy']),
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             return response()->json([
                 'message' => 'Order not found.',
             ], 404);
@@ -684,7 +733,7 @@ class CustomerAppController extends Controller
                 'message' => 'Order details retrieved.',
                 'data' => $order,
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             return response()->json([
                 'message' => 'Order not found.',
             ], 404);
@@ -709,7 +758,7 @@ class CustomerAppController extends Controller
 
             $user = $request->user();
 
-            $rxCode = 'RX-' . strtoupper(Str::random(5)) . '-' . time();
+            $rxCode = 'RX-'.strtoupper(Str::random(5)).'-'.time();
 
             $prescription = Prescription::create([
                 'pharmacy_id' => $validated['pharmacy_id'],
@@ -738,7 +787,7 @@ class CustomerAppController extends Controller
                 'message' => 'Prescription uploaded successfully.',
                 'data' => $prescription,
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed.',
                 'error' => $e->errors(),
@@ -883,7 +932,7 @@ class CustomerAppController extends Controller
                 'message' => 'Support ticket submitted. We will get back to you.',
                 'data' => $ticket->load('pharmacy'),
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed.',
                 'errors' => $e->errors(),
@@ -921,9 +970,9 @@ class CustomerAppController extends Controller
                 'message' => 'Reply added.',
                 'data' => $reply->load('user'),
             ], 201);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Ticket not found.'], 404);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed.',
                 'errors' => $e->errors(),

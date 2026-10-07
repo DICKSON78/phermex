@@ -1,0 +1,23 @@
+[Unit]
+Description=Laravel Octane Swoole server (Phermex API)
+After=network.target redis-server.service mariadb.service
+Wants=redis-server.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/pharmex-app
+# Update these paths if PHP or the app live elsewhere. --workers=auto sizes the
+# worker pool to the CPU count; --max-requests recycles workers to avoid leaks.
+ExecStart=/usr/bin/php /var/www/pharmex-app/artisan octane:start --server=swoole --host=127.0.0.1 --port=8000 --workers=auto --max-requests=1000
+ExecReload=/usr/bin/php /var/www/pharmex-app/artisan octane:reload
+Restart=always
+RestartSec=3
+# Real secrets stay in .env (never here)
+Environment=APP_ENV=production
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { toArray } from '../../utils/safeData'
 import { Loader2, Settings2, Search, Plus, Minus, X, RefreshCcw, Users, Award, Repeat, CheckCircle2 } from 'lucide-react'
 import { loyalty } from '../../services/api'
+import PageHeader from '../../components/PageHeader'
 import { formatMoney as sharedMoney } from '../../utils/currency'
 
 export default function LoyaltyPage() {
@@ -124,17 +125,12 @@ export default function LoyaltyPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="p-6">
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>{toast.msg}</div>
       )}
 
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Loyalty Program</h1>
-          <p className="text-gray-500 text-sm mt-1">Reward customers with points on every purchase</p>
-        </div>
-      </div>
+      <PageHeader icon={Award} title="Loyalty Program" subtitle="Reward customers with points on every purchase" />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">

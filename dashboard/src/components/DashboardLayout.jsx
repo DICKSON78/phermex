@@ -26,6 +26,7 @@ import {
   User,
   Search,
   Stethoscope,
+  ClipboardCheck,
   ClipboardList,
   Building2,
   QrCode,
@@ -99,16 +100,27 @@ import PurchaseOrderDetailPage from '../pages/owner/PurchaseOrderDetailPage'
 import GoodsReceivedPage from '../pages/owner/GoodsReceivedPage'
 import StockTransferPage from '../pages/owner/StockTransferPage'
 import StockReturnsPage from '../pages/owner/StockReturnsPage'
+import StockTakesPage from '../pages/owner/StockTakesPage'
+import StockTakeDetailPage from '../pages/owner/StockTakeDetailPage'
+import SupplierOrdersPage from '../pages/owner/SupplierOrdersPage'
+import SupplierOrderDetailPage from '../pages/owner/SupplierOrderDetailPage'
 import DamagedGoodsPage from '../pages/owner/DamagedGoodsPage'
 import ControlledSubstancePage from '../pages/owner/ControlledSubstancePage'
 import LicenseManagementPage from '../pages/owner/LicenseManagementPage'
 import DrugRecallPage from '../pages/owner/DrugRecallPage'
 import RegulatoryReportsPage from '../pages/owner/RegulatoryReportsPage'
 import ChartOfAccountsPage from '../pages/owner/ChartOfAccountsPage'
+import ChartOfAccountsFormPage from '../pages/owner/ChartOfAccountsFormPage'
 import JournalEntriesPage from '../pages/owner/JournalEntriesPage'
+import JournalEntryFormPage from '../pages/owner/JournalEntryFormPage'
+import JournalEntryViewPage from '../pages/owner/JournalEntryViewPage'
 import BankManagementPage from '../pages/owner/BankManagementPage'
+import BankAccountFormPage from '../pages/owner/BankAccountFormPage'
+import BankTransferPage from '../pages/owner/BankTransferPage'
 import BudgetPage from '../pages/owner/BudgetPage'
+import BudgetFormPage from '../pages/owner/BudgetFormPage'
 import TaxManagementPage from '../pages/owner/TaxManagementPage'
+import TaxRecordFormPage from '../pages/owner/TaxRecordFormPage'
 import FinancialReportsPage from '../pages/owner/FinancialReportsPage'
 import EmployeeListPage from '../pages/owner/EmployeeListPage'
 import EmployeeFormPage from '../pages/owner/EmployeeFormPage'
@@ -180,6 +192,7 @@ const ownerNavGroups = [
       { path: '/dashboard/stock-movements', icon: Package, label: 'Stock Movements' },
       { path: '/dashboard/low-stock', icon: AlertTriangle, label: 'Low Stock Alerts' },
       { path: '/dashboard/expiring-soon', icon: Clock, label: 'Expiring Soon' },
+      { path: '/dashboard/stock-takes', icon: ClipboardCheck, label: 'Stock Taking', requiredPlan: 'professional' },
     ],
   },
   {
@@ -243,6 +256,7 @@ const ownerNavGroups = [
     items: [
       { path: '/dashboard/suppliers', icon: Users, label: 'Suppliers' },
       { path: '/dashboard/purchase-orders', icon: ShoppingCart, label: 'Purchase Orders' },
+      { path: '/dashboard/supplier-orders', icon: ShoppingCart, label: 'Supplier Orders' },
       { path: '/dashboard/goods-received', icon: Package, label: 'Goods Received' },
       { path: '/dashboard/stock-transfers', icon: Truck, label: 'Stock Transfers', requiredPlan: 'professional' },
       { path: '/dashboard/stock-returns', icon: RotateCcw, label: 'Stock Returns', requiredPlan: 'professional' },
@@ -358,6 +372,7 @@ const sellerNavGroups = [
       { path: '/dashboard/stock-movements', icon: Package, label: 'Stock Movements' },
       { path: '/dashboard/low-stock', icon: AlertTriangle, label: 'Low Stock Alerts' },
       { path: '/dashboard/expiring-soon', icon: Clock, label: 'Expiring Soon' },
+      { path: '/dashboard/stock-takes', icon: ClipboardCheck, label: 'Stock Taking', requiredPlan: 'professional' },
     ],
   },
   {
@@ -891,10 +906,22 @@ export default function DashboardLayout({ role }) {
               <Route path="expenses/:id/edit" element={<ExpenseFormPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="chart-of-accounts" element={<PlanGate requiredPlan="professional"><ChartOfAccountsPage /></PlanGate>} />
+              <Route path="chart-of-accounts/new" element={<PlanGate requiredPlan="professional"><ChartOfAccountsFormPage /></PlanGate>} />
+              <Route path="chart-of-accounts/:id/edit" element={<PlanGate requiredPlan="professional"><ChartOfAccountsFormPage /></PlanGate>} />
               <Route path="journal-entries" element={<PlanGate requiredPlan="professional"><JournalEntriesPage /></PlanGate>} />
+              <Route path="journal-entries/new" element={<PlanGate requiredPlan="professional"><JournalEntryFormPage /></PlanGate>} />
+              <Route path="journal-entries/:id/edit" element={<PlanGate requiredPlan="professional"><JournalEntryFormPage /></PlanGate>} />
+              <Route path="journal-entries/:id" element={<PlanGate requiredPlan="professional"><JournalEntryViewPage /></PlanGate>} />
               <Route path="bank-management" element={<PlanGate requiredPlan="professional"><BankManagementPage /></PlanGate>} />
+              <Route path="bank-management/new" element={<PlanGate requiredPlan="professional"><BankAccountFormPage /></PlanGate>} />
+              <Route path="bank-management/:id/edit" element={<PlanGate requiredPlan="professional"><BankAccountFormPage /></PlanGate>} />
+              <Route path="bank-management/transfer" element={<PlanGate requiredPlan="professional"><BankTransferPage /></PlanGate>} />
               <Route path="budgets" element={<PlanGate requiredPlan="professional"><BudgetPage /></PlanGate>} />
+              <Route path="budgets/new" element={<PlanGate requiredPlan="professional"><BudgetFormPage /></PlanGate>} />
+              <Route path="budgets/:id/edit" element={<PlanGate requiredPlan="professional"><BudgetFormPage /></PlanGate>} />
               <Route path="tax-management" element={<PlanGate requiredPlan="professional"><TaxManagementPage /></PlanGate>} />
+              <Route path="tax-management/new" element={<PlanGate requiredPlan="professional"><TaxRecordFormPage /></PlanGate>} />
+              <Route path="tax-management/:id/edit" element={<PlanGate requiredPlan="professional"><TaxRecordFormPage /></PlanGate>} />
               <Route path="financial-reports" element={<PlanGate requiredPlan="professional"><FinancialReportsPage /></PlanGate>} />
               <Route path="consolidated-reports" element={<PlanGate requiredPlan="enterprise"><ConsolidatedFinancialReportPage /></PlanGate>} />
               <Route path="employees" element={<EmployeeListPage />} />
@@ -913,6 +940,10 @@ export default function DashboardLayout({ role }) {
               <Route path="goods-received" element={<GoodsReceivedPage />} />
               <Route path="stock-transfers" element={<PlanGate requiredPlan="professional"><StockTransferPage /></PlanGate>} />
               <Route path="stock-returns" element={<PlanGate requiredPlan="professional"><StockReturnsPage /></PlanGate>} />
+              <Route path="stock-takes" element={<PlanGate requiredPlan="professional"><StockTakesPage /></PlanGate>} />
+              <Route path="stock-takes/:id" element={<PlanGate requiredPlan="professional"><StockTakeDetailPage /></PlanGate>} />
+              <Route path="supplier-orders" element={<SupplierOrdersPage />} />
+              <Route path="supplier-orders/:id" element={<SupplierOrderDetailPage />} />
               <Route path="damaged-goods" element={<PlanGate requiredPlan="professional"><DamagedGoodsPage /></PlanGate>} />
               <Route path="controlled-substances" element={<PlanGate requiredPlan="professional"><ControlledSubstancePage /></PlanGate>} />
               <Route path="licenses" element={<PlanGate requiredPlan="professional"><LicenseManagementPage /></PlanGate>} />
@@ -949,6 +980,8 @@ export default function DashboardLayout({ role }) {
               <Route path="stock-movements" element={<StockMovementsPage />} />
               <Route path="low-stock" element={<LowStockPage />} />
               <Route path="expiring-soon" element={<ExpiringSoonPage />} />
+              <Route path="stock-takes" element={<PlanGate requiredPlan="professional"><StockTakesPage /></PlanGate>} />
+              <Route path="stock-takes/:id" element={<PlanGate requiredPlan="professional"><StockTakeDetailPage /></PlanGate>} />
               <Route path="orders" element={<OrderListPage />} />
               <Route path="orders/:id" element={<OrderDetailPage />} />
               <Route path="prescriptions" element={<PrescriptionListPage />} />

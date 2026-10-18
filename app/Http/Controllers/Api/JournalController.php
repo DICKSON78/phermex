@@ -132,6 +132,106 @@ class JournalController extends Controller
         }
     }
 
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+            $entry = JournalEntry::findOrFail($id);
+
+            if (!in_array($entry->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
+            if ($entry->status !== 'draft') {
+                return response()->json([
+                    'message' => 'Only draft entries can be edited.',
+                ], 422);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'entry_date' => 'required|date',
+                'description' => 'required|string',
+                'reference_type' => 'nullable|string',
+                'reference_id' => 'nullable|integer',
+                'lines' => 'required|array|min:2',
+                'lines.*.account_id' => 'required|exists:accounts,id',
+                'lines.*.debit' => 'required|numeric|min:0',
+                'lines.*.credit' => 'required|numeric|min:0',
+                'lines.*.description' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+            $lines = $validated['lines'];
+            unset($validated['lines']);
+
+            $totalDebit = array_sum(array_column($lines, 'debit'));
+            $totalCredit = array_sum(array_column($lines, 'credit'));
+
+            if (abs($totalDebit - $totalCredit) >= 0.01) {
+                return response()->json([
+                    'message' => 'Total debits must equal total credits.',
+                ], 422);
+            }
+
+            $entry->update(array_merge($validated, [
+                'total_debit' => $totalDebit,
+                'total_credit' => $totalCredit,
+            ]));
+
+            $entry->lines()->delete();
+            foreach ($lines as $line) {
+                $entry->lines()->create($line);
+            }
+
+            return response()->json([
+                'message' => 'Journal entry updated successfully.',
+                'entry' => $entry->fresh()->load(['lines.account', 'poster']),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Journal entry not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update journal entry.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function destroy(Request $request, $id): JsonResponse
+    {
+        try {
+            $entry = JournalEntry::findOrFail($id);
+
+            if (!in_array($entry->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
+            if ($entry->status !== 'draft') {
+                return response()->json([
+                    'message' => 'Only draft entries can be deleted.',
+                ], 422);
+            }
+
+            $entry->lines()->delete();
+            $entry->delete();
+
+            return response()->json(['message' => 'Journal entry deleted successfully.']);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Journal entry not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete journal entry.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
     public function post(Request $request, $id): JsonResponse
     {
         try {

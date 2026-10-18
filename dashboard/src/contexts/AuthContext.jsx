@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import api from '../services/api'
+import { applyDisplayCurrency } from '../utils/currency'
 import {
   loginWithGoogle,
   completeGoogleRedirect,
@@ -17,6 +18,13 @@ export function AuthProvider({ children }) {
   // Set only when a Google sign-in came back from a redirect, so the login page
   // can run the same routing rules as a popup sign-in.
   const [pendingGoogleResult, setPendingGoogleResult] = useState(null)
+
+  // The pharmacy's saved currency drives how amounts are shown across the whole
+  // dashboard, so every page shows figures in the same currency.
+  useEffect(() => {
+    const currency = user?.current_pharmacy?.currency ?? user?.pharmacy?.[0]?.currency
+    if (currency) applyDisplayCurrency(currency)
+  }, [user])
 
   useEffect(() => {
     let active = true

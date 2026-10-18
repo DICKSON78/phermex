@@ -18,6 +18,8 @@ const PATH_KEYS = {
   '/dashboard/stock-transfers': 'nav.items.stockTransfers',
   '/dashboard/stock-returns': 'nav.items.stockReturns',
   '/dashboard/damaged-goods': 'nav.items.damagedGoods',
+  '/dashboard/stock-takes': 'nav.items.stockTakes',
+  '/dashboard/supplier-orders': 'nav.items.supplierOrders',
   '/dashboard/barcode': 'nav.items.barcode',
   '/dashboard/export': 'nav.items.export',
   '/dashboard/chart-of-accounts': 'nav.items.chartOfAccounts',

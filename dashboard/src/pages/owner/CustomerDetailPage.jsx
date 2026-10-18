@@ -8,6 +8,7 @@ import {
 import { toArray } from '../../utils/safeData'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
+import Tabs from '../../components/Tabs'
 import { formatMoney as sharedMoney } from '../../utils/currency'
 
 const statusColors = {
@@ -241,30 +242,14 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-gray-200 mb-6">
-        <button
-          onClick={() => setActiveTab('purchases')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'purchases'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-gray-500 hover:text-dark'
-          }`}
-        >
-          <ClipboardList className="w-4 h-4" />
-          Purchase History
-        </button>
-        <button
-          onClick={() => setActiveTab('prescriptions')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'prescriptions'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-gray-500 hover:text-dark'
-          }`}
-        >
-          <FileText className="w-4 h-4" />
-          Prescriptions
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'purchases', label: 'Purchase History', icon: ClipboardList, count: orders.length },
+          { id: 'prescriptions', label: 'Prescriptions', icon: FileText, count: prescriptions.length },
+        ]}
+        active={activeTab}
+        onChange={setActiveTab}
+      />
 
       {/* Purchase History Tab */}
       {activeTab === 'purchases' && (

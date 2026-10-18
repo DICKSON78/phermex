@@ -7,6 +7,8 @@ import { PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, XAxis, YAxis, Cart
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import PageHeader from '../../components/PageHeader'
+import Tabs from '../../components/Tabs'
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
@@ -79,54 +81,49 @@ export default function BudgetPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-[#0FD452]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Budgets</h1>
-            <p className="text-sm text-gray-500 mt-1">Plan and track financial budgets.</p>
-          </div>
-        </div>
-        <button onClick={() => setShowForm(true)} className="btn-primary">
-          <Plus className="w-4 h-4" /> Add Budget
-        </button>
-      </div>
+      <PageHeader
+        icon={BarChart3}
+        title="Budgets"
+        subtitle="Plan and track financial budgets."
+        actions={
+          <button onClick={() => setShowForm(true)} className="btn-primary">
+            <Plus className="w-4 h-4" /> Add Budget
+          </button>
+        }
+      />
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0FD452]">
           {[2024, 2025, 2026, 2027].map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
-        <div className="flex bg-white rounded-xl border border-gray-200 p-1">
-          {MONTHS.map((m, i) => (
-            <button key={i} onClick={() => setSelectedMonth(i + 1)} className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${selectedMonth === i + 1 ? 'bg-[#0FD452] text-[#000F14]' : 'text-gray-500 hover:text-gray-900'}`}>
-              {m}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          tabs={MONTHS.map((m, i) => ({ id: String(i + 1), label: m }))}
+          active={String(selectedMonth)}
+          onChange={(v) => setSelectedMonth(parseInt(v))}
+          className="mb-0"
+        />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-[#0FD452]/10 rounded-lg flex items-center justify-center"><Target className="w-4 h-4 text-[#0FD452]" /></div></div>
           <p className="text-xs text-gray-500 mb-1">Budgeted</p>
-          <p className="text-xl font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(totalBudgeted)}</p>
+          <p className="text-xl font-bold text-gray-900  tabular-nums">{formatCurrency(totalBudgeted)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"><DollarSign className="w-4 h-4 text-blue-600" /></div></div>
           <p className="text-xs text-gray-500 mb-1">Actual</p>
-          <p className="text-xl font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(totalActual)}</p>
+          <p className="text-xl font-bold text-gray-900  tabular-nums">{formatCurrency(totalActual)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className={`w-8 h-8 rounded-lg flex items-center justify-center ${totalVariance <= 0 ? 'bg-green-100' : 'bg-red-100'}`}>{totalVariance <= 0 ? <TrendingDown className="w-4 h-4 text-green-600" /> : <TrendingUp className="w-4 h-4 text-red-600" />}</div></div>
           <p className="text-xs text-gray-500 mb-1">Variance</p>
-          <p className={`text-xl font-bold font-mono tabular-nums ${totalVariance <= 0 ? 'text-green-600' : 'text-red-600'}`}>{totalVariance >= 0 ? '+' : ''}{formatCurrency(totalVariance)}</p>
+          <p className={`text-xl font-bold  tabular-nums ${totalVariance <= 0 ? 'text-green-600' : 'text-red-600'}`}>{totalVariance >= 0 ? '+' : ''}{formatCurrency(totalVariance)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center"><BarChart3 className="w-4 h-4 text-purple-600" /></div></div>
           <p className="text-xs text-gray-500 mb-1">Variance %</p>
-          <p className={`text-xl font-bold font-mono tabular-nums ${parseFloat(variancePct) <= 0 ? 'text-green-600' : 'text-red-600'}`}>{variancePct}%</p>
+          <p className={`text-xl font-bold  tabular-nums ${parseFloat(variancePct) <= 0 ? 'text-green-600' : 'text-red-600'}`}>{variancePct}%</p>
         </div>
       </div>
 
@@ -150,7 +147,7 @@ export default function BudgetPage() {
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
                   <span className="text-gray-500">{item.name}</span>
                 </div>
-                <span className="font-medium text-gray-900 font-mono tabular-nums">{formatCurrency(item.value)}</span>
+                <span className="font-medium text-gray-900  tabular-nums">{formatCurrency(item.value)}</span>
               </div>
             ))}
           </div>
@@ -242,9 +239,9 @@ export default function BudgetPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-mono tabular-nums text-right text-gray-900">{formatCurrency(budget.budgeted_amount)}</td>
-                    <td className="px-6 py-4 text-sm font-mono tabular-nums text-right text-gray-900">{formatCurrency(budget.actual_amount)}</td>
-                    <td className={`px-6 py-4 text-sm font-mono tabular-nums text-right font-medium ${isOver ? 'text-red-600' : 'text-green-600'}`}>
+                    <td className="px-6 py-4 text-sm  tabular-nums text-right text-gray-900">{formatCurrency(budget.budgeted_amount)}</td>
+                    <td className="px-6 py-4 text-sm  tabular-nums text-right text-gray-900">{formatCurrency(budget.actual_amount)}</td>
+                    <td className={`px-6 py-4 text-sm  tabular-nums text-right font-medium ${isOver ? 'text-red-600' : 'text-green-600'}`}>
                       {isOver ? '+' : ''}{formatCurrency(variance)}
                     </td>
                     <td className="px-6 py-4">

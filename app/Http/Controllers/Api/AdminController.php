@@ -302,7 +302,7 @@ class AdminController extends Controller
                 'application_status' => 'approved',
                 'is_published' => true,
                 'payment_status' => 'paid',
-                'trial_ends_at' => now()->addDays(14),
+                'trial_ends_at' => now()->addDays(30),
             ]);
 
             $user->pharmacy()->attach($pharmacy->id);
@@ -637,7 +637,7 @@ class AdminController extends Controller
             $pharmacy->update([
                 'application_status' => 'approved',
                 'status' => 'active',
-                'trial_ends_at' => now()->addDays(14),
+                'trial_ends_at' => now()->addDays(30),
             ]);
 
             return response()->json([

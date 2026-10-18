@@ -242,6 +242,8 @@ export const journal = {
   getAll: (params) => api.get('/journal', { params }),
   create: (data) => api.post('/journal', data),
   getById: (id) => api.get(`/journal/${id}`),
+  update: (id, data) => api.put(`/journal/${id}`, data),
+  delete: (id) => api.delete(`/journal/${id}`),
   post: (id) => api.post(`/journal/${id}/post`),
   reverse: (id, data) => api.post(`/journal/${id}/reverse`, data),
   getTrialBalance: (params) => api.get('/journal/trial-balance', { params }),
@@ -252,6 +254,8 @@ export const bank = {
   getAll: (params) => api.get('/bank', { params }),
   create: (data) => api.post('/bank', data),
   getById: (id) => api.get(`/bank/${id}`),
+  update: (id, data) => api.put(`/bank/${id}`, data),
+  delete: (id) => api.delete(`/bank/${id}`),
   getTransactions: (id, params) => api.get(`/bank/${id}/transactions`, { params }),
   reconcile: (id, data) => api.post(`/bank/${id}/reconcile`, data),
   getSummary: (params) => api.get('/bank/summary', { params }),
@@ -262,6 +266,8 @@ export const budgets = {
   getAll: (params) => api.get('/budgets', { params }),
   create: (data) => api.post('/budgets', data),
   getById: (id) => api.get(`/budgets/${id}`),
+  update: (id, data) => api.put(`/budgets/${id}`, data),
+  delete: (id) => api.delete(`/budgets/${id}`),
   getSummary: (params) => api.get('/budgets/summary', { params }),
   getVariance: (params) => api.get('/budgets/variance', { params }),
 }
@@ -269,6 +275,9 @@ export const budgets = {
 export const taxes = {
   getAll: (params) => api.get('/tax', { params }),
   create: (data) => api.post('/tax', data),
+  getById: (id) => api.get(`/tax/${id}`),
+  update: (id, data) => api.put(`/tax/${id}`, data),
+  delete: (id) => api.delete(`/tax/${id}`),
   calculate: (data) => api.post('/tax/calculate', data),
   file: (id) => api.post(`/tax/${id}/file`),
   markPaid: (id, data) => api.post(`/tax/${id}/pay`, data),
@@ -328,6 +337,27 @@ export const stockReturns = {
   approve: (id) => api.post(`/stock-returns/${id}/approve`),
   ship: (id) => api.post(`/stock-returns/${id}/ship`),
   refund: (id) => api.post(`/stock-returns/${id}/refund`),
+}
+
+export const stockTakes = {
+  getAll: (params) => api.get('/stock-takes', { params }),
+  getById: (id) => api.get(`/stock-takes/${id}`),
+  create: (data) => api.post('/stock-takes', data),
+  record: (id, data) => api.post(`/stock-takes/${id}/record`, data),
+  complete: (id) => api.post(`/stock-takes/${id}/complete`),
+  approve: (id) => api.post(`/stock-takes/${id}/approve`),
+  cancel: (id) => api.post(`/stock-takes/${id}/cancel`),
+}
+
+export const supplierOrders = {
+  getAll: (params) => api.get('/supplier-orders', { params }),
+  getById: (id) => api.get(`/supplier-orders/${id}`),
+  create: (data) => api.post('/supplier-orders', data),
+  update: (id, data) => api.put(`/supplier-orders/${id}`, data),
+  submit: (id) => api.post(`/supplier-orders/${id}/submit`),
+  approve: (id) => api.post(`/supplier-orders/${id}/approve`),
+  complete: (id, data) => api.post(`/supplier-orders/${id}/complete`, data),
+  cancel: (id) => api.post(`/supplier-orders/${id}/cancel`),
 }
 
 export const damagedGoods = {

@@ -1,11 +1,14 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   BookOpen, Plus, Search, ChevronRight, ChevronDown, Edit, Trash2,
-  X, ArrowUpRight, ArrowDownRight, Loader2,
+  X, ArrowUpRight, ArrowDownRight, Loader2, Landmark, CreditCard, Scale, TrendingUp, Receipt, Wallet,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import PageHeader from '../../components/PageHeader'
+import Tabs from '../../components/Tabs'
 
 const ACCOUNT_TYPES = [
   { id: 'asset', label: 'Assets', color: 'blue' },
@@ -28,6 +31,14 @@ function formatCurrency(amount) {
   return formatMoney(amount, { decimals: 2, abs: true })
 }
 
+const TYPE_ICONS = {
+  asset: { Icon: Landmark, bg: 'bg-blue-100', text: 'text-blue-600' },
+  liability: { Icon: CreditCard, bg: 'bg-red-100', text: 'text-red-600' },
+  equity: { Icon: Scale, bg: 'bg-purple-100', text: 'text-purple-600' },
+  revenue: { Icon: TrendingUp, bg: 'bg-green-100', text: 'text-green-600' },
+  expense: { Icon: Receipt, bg: 'bg-orange-100', text: 'text-orange-600' },
+}
+
 function AccountTreeItem({ account, depth = 0, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(depth < 1)
   const hasChildren = account.children && account.children.length > 0
@@ -48,13 +59,13 @@ function AccountTreeItem({ account, depth = 0, onEdit, onDelete }) {
         ) : (
           <div className="w-4" />
         )}
-        <span className="font-mono text-xs text-gray-400 w-16">{account.account_code}</span>
+        <span className=" text-xs text-gray-400 w-16">{account.account_code}</span>
         <span className="flex-1 text-sm text-gray-900 font-medium">{account.account_name}</span>
         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${colors.badge}`}>
           {account.account_type}
         </span>
         
-        <span className={`text-sm font-mono tabular-nums w-32 text-right ${isDebitNormal ? 'text-gray-900' : 'text-green-600'}`}>
+        <span className={`text-sm  tabular-nums w-32 text-right ${isDebitNormal ? 'text-gray-900' : 'text-green-600'}`}>
           {formatCurrency(balance)}
         </span>
         
@@ -75,18 +86,12 @@ function AccountTreeItem({ account, depth = 0, onEdit, onDelete }) {
 }
 
 export default function ChartOfAccountsPage() {
-  const [accounts, setAccounts] = useState([])
+  const navigate = useNavigate()
   const [tree, setTree] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeType, setActiveType] = useState('all')
   const [search, setSearch] = useState('')
-  const [showForm, setShowForm] = useState(false)
-  const [editAccount, setEditAccount] = useState(null)
   const [balances, setBalances] = useState(null)
-  const [formData, setFormData] = useState({
-    account_code: '', account_name: '', account_type: 'asset', parent_id: '', description: '', currency: 'TZS',
-  })
-  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -100,11 +105,8 @@ export default function ChartOfAccountsPage() {
       ])
       setTree(treeRes.data.tree || [])
       setBalances(balRes.data)
-      const flatRes = await api.get('/accounts', { params: { per_page: 200 } })
-      setAccounts(flatRes.data.data || [])
     } catch {
       setTree([])
-      setAccounts([])
       setBalances(null)
     } finally {
       setLoading(false)
@@ -147,41 +149,8 @@ export default function ChartOfAccountsPage() {
     return totals
   }, [tree])
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      const payload = { ...formData }
-      if (payload.parent_id === '') delete payload.parent_id
-      if (editAccount) {
-        await api.put(`/accounts/${editAccount.id}`, payload)
-        toast.success('Account updated')
-      } else {
-        await api.post('/accounts', payload)
-        toast.success('Account created')
-      }
-      setShowForm(false)
-      setEditAccount(null)
-      resetForm()
-      fetchData()
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save account')
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const handleEdit = (account) => {
-    setEditAccount(account)
-    setFormData({
-      account_code: account.account_code,
-      account_name: account.account_name,
-      account_type: account.account_type,
-      parent_id: account.parent_id || '',
-      description: account.description || '',
-      currency: account.currency || 'TZS',
-    })
-    setShowForm(true)
+    navigate(`/dashboard/chart-of-accounts/${account.id}/edit`)
   }
 
   const handleDelete = async (account) => {
@@ -195,64 +164,58 @@ export default function ChartOfAccountsPage() {
     }
   }
 
-  const resetForm = () => {
-    setFormData({ account_code: '', account_name: '', account_type: 'asset', parent_id: '', description: '', currency: 'TZS' })
-  }
-
-  const openNewForm = () => {
-    setEditAccount(null)
-    resetForm()
-    setShowForm(true)
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-[#0FD452]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Chart of Accounts</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage the accounting ledger structure.</p>
-          </div>
-        </div>
-        <button onClick={openNewForm} className="btn-primary">
-          <Plus className="w-4 h-4" />
-          Add Account
-        </button>
-      </div>
+    <div className="p-6 space-y-6">
+      <PageHeader
+        icon={BookOpen}
+        title="Chart of Accounts"
+        subtitle="Manage the accounting ledger structure."
+        actions={
+          <button onClick={() => navigate('/dashboard/chart-of-accounts/new')} className="btn-primary">
+            <Plus className="w-4 h-4" />
+            Add Account
+          </button>
+        }
+      />
 
       {balances && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           <div className={`bg-white border border-gray-200 rounded-xl p-4 ${!balances.is_balanced ? 'border-red-300' : ''}`}>
+            <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"><ArrowDownRight className="w-4 h-4 text-red-600" /></div></div>
             <p className="text-xs text-gray-500 mb-1">Total Debit</p>
-            <p className="text-lg font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(balances.total_debit)}</p>
+            <p className="text-lg font-bold text-gray-900 tabular-nums">{formatCurrency(balances.total_debit)}</p>
           </div>
           <div className={`bg-white border border-gray-200 rounded-xl p-4 ${!balances.is_balanced ? 'border-red-300' : ''}`}>
+            <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"><ArrowUpRight className="w-4 h-4 text-blue-600" /></div></div>
             <p className="text-xs text-gray-500 mb-1">Total Credit</p>
-            <p className="text-lg font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(balances.total_credit)}</p>
+            <p className="text-lg font-bold text-gray-900 tabular-nums">{formatCurrency(balances.total_credit)}</p>
           </div>
-          {ACCOUNT_TYPES.map((t) => (
-            <div key={t.id} className="bg-white border border-gray-200 rounded-xl p-4">
-              <p className="text-xs text-gray-500 mb-1">{t.label}</p>
-              <p className={`text-lg font-bold font-mono tabular-nums ${TYPE_COLORS[t.id].text}`}>{formatCurrency(totalByType[t.id])}</p>
-            </div>
-          ))}
+          {ACCOUNT_TYPES.map((t) => {
+            const typeIcon = TYPE_ICONS[t.id] || { Icon: Wallet, bg: 'bg-gray-100', text: 'text-gray-600' }
+            const Icon = typeIcon.Icon
+            return (
+              <div key={t.id} className="bg-white border border-gray-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-8 h-8 ${typeIcon.bg} rounded-lg flex items-center justify-center`}>
+                    <Icon className={`w-4 h-4 ${typeIcon.text}`} />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mb-1">{t.label}</p>
+                <p className={`text-lg font-bold tabular-nums ${TYPE_COLORS[t.id].text}`}>{formatCurrency(totalByType[t.id])}</p>
+              </div>
+            )
+          })}
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <button onClick={() => setActiveType('all')} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${activeType === 'all' ? 'bg-[#0FD452] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-          All
-        </button>
-        {ACCOUNT_TYPES.map((t) => (
-          <button key={t.id} onClick={() => setActiveType(t.id)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 ${activeType === t.id ? `${TYPE_COLORS[t.id].bg} ${TYPE_COLORS[t.id].text}` : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-            <div className={`w-2 h-2 rounded-full bg-current`} />
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'all', label: 'All' },
+          ...ACCOUNT_TYPES.map((t) => ({ id: t.id, label: t.label })),
+        ]}
+        active={activeType}
+        onChange={setActiveType}
+      />
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
@@ -292,56 +255,7 @@ export default function ChartOfAccountsPage() {
         )}
       </div>
 
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">{editAccount ? 'Edit Account' : 'New Account'}</h2>
-              <button onClick={() => { setShowForm(false); setEditAccount(null) }} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Account Code</label>
-                  <input type="text" value={formData.account_code} onChange={(e) => setFormData({ ...formData, account_code: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-primary transition-colors" placeholder="e.g. 1000" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Account Type</label>
-                  <select value={formData.account_type} onChange={(e) => setFormData({ ...formData, account_type: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-primary transition-colors">
-                    {ACCOUNT_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">Account Name</label>
-                <input type="text" value={formData.account_name} onChange={(e) => setFormData({ ...formData, account_name: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-primary transition-colors" placeholder="e.g. Cash in Hand" required />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">Parent Account</label>
-                <select value={formData.parent_id} onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-primary transition-colors">
-                  <option value="">None (Top Level)</option>
-                  {accounts.filter((a) => a.id !== editAccount?.id).map((a) => (
-                    <option key={a.id} value={a.id}>{a.account_code} - {a.account_name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">Description</label>
-                <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-primary transition-colors resize-none" rows={2} placeholder="Optional description" />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => { setShowForm(false); setEditAccount(null) }} className="btn-secondary">Cancel</button>
-                <button type="submit" disabled={saving} className="btn-primary">
-                  {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editAccount ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
     </div>
   )
 }

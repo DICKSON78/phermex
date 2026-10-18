@@ -7,11 +7,11 @@ import {
   AlertTriangle,
   XCircle,
   Loader2,
-  Filter,
   Building2,
   User,
 } from 'lucide-react'
 import api from '../../services/api'
+import Tabs from '../../components/Tabs'
 
 // Only allow navigation to internal dashboard paths. Blocks javascript:,
 // external URLs, and protocol-relative links injected by attackers.
@@ -19,8 +19,6 @@ function safeNavigate(link) {
   if (typeof link !== 'string' || !link.startsWith('/dashboard/')) return
   window.location.href = link
 }
-
-const TABS = ['All', 'Unread', 'Alerts', 'Info']
 
 const TYPE_CONFIG = {
   info: { icon: Info, color: 'text-blue-500', bg: 'bg-blue-50' },
@@ -222,55 +220,27 @@ export default function NotificationsPage() {
       </div>
 
       {/* View Toggle: My Notifications / Pharmacy Inbox */}
-      <div className="flex items-center gap-2 bg-gray-100 rounded-xl p-1">
-        <button
-          onClick={() => setView('mine')}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            view === 'mine' ? 'bg-white text-[#000F14] shadow-sm' : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <User className="w-4 h-4" />
-          My Notifications
-        </button>
-        <button
-          onClick={() => setView('pharmacy')}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            view === 'pharmacy' ? 'bg-white text-[#000F14] shadow-sm' : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <Building2 className="w-4 h-4" />
-          Pharmacy Inbox
-          {pharmacyUnread > 0 && view !== 'pharmacy' && (
-            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-[#0FD452] text-white rounded-full">
-              {pharmacyUnread}
-            </span>
-          )}
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'mine', label: 'My Notifications', icon: User, count: notifications.length },
+          { id: 'pharmacy', label: 'Pharmacy Inbox', icon: Building2, count: pharmacyUnread },
+        ]}
+        active={view}
+        onChange={setView}
+      />
 
       {/* Filter Tabs (mine view only) */}
       {view === 'mine' && (
-      <div className="flex items-center gap-2 bg-gray-100 rounded-xl p-1">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === tab
-                ? 'bg-white text-[#000F14] shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {tab}
-            {tab === 'Unread' && unreadCount > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-[#0FD452] text-white rounded-full">
-                {unreadCount}
-              </span>
-              
-            )}
-          </button>
-        ))}
-      </div>
+        <Tabs
+          tabs={[
+            { id: 'All', label: 'All', icon: Bell, count: notifications.length },
+            { id: 'Unread', label: 'Unread', icon: CheckCircle, count: unreadCount },
+            { id: 'Alerts', label: 'Alerts', icon: AlertTriangle, count: notifications.filter((n) => n.type === 'warning' || n.type === 'danger').length },
+            { id: 'Info', label: 'Info', icon: Info, count: notifications.filter((n) => n.type === 'info' || n.type === 'success').length },
+          ]}
+          active={activeTab}
+          onChange={setActiveTab}
+        />
       )}
 
       {/* Pharmacy Inbox */}

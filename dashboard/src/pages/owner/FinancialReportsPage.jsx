@@ -7,6 +7,7 @@ import {
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import Tabs from '../../components/Tabs'
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6']
 
@@ -77,17 +78,7 @@ export default function FinancialReportsPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex bg-white rounded-xl border border-gray-200 p-1">
-          {REPORT_TABS.map((tab) => {
-            const Icon = tab.icon
-            return (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === tab.id ? 'bg-[#0FD452] text-[#000F14]' : 'text-gray-500 hover:text-gray-900'}`}>
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
+        <Tabs tabs={REPORT_TABS} active={activeTab} onChange={setActiveTab} className="mb-0 flex-1 min-w-[220px]" />
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-500" />
           <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0FD452]" />

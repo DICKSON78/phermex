@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { toArray } from '../../utils/safeData';
 import {
   Clock, Calendar, Search, ChevronLeft, ChevronRight, Loader2, Users,
-  TrendingUp, AlertTriangle, Download, Timer, Activity, User,
+  TrendingUp, AlertTriangle, Download, Timer, Activity, User, Rows3,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import Tabs from '../../components/Tabs'
 import { attendance, employees } from '../../services/api'
 
 function formatTime(dt) {
@@ -140,8 +141,15 @@ export default function AttendancePage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setViewMode('table')} className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === 'table' ? 'bg-[#0FD452]/10 text-[#0FD452]' : 'text-gray-500 hover:bg-gray-100'}`}>Table</button>
-            <button onClick={() => setViewMode('calendar')} className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === 'calendar' ? 'bg-[#0FD452]/10 text-[#0FD452]' : 'text-gray-500 hover:bg-gray-100'}`}>Calendar</button>
+            <Tabs
+              className="mb-0"
+              tabs={[
+                { id: 'table', label: 'Table', icon: Rows3 },
+                { id: 'calendar', label: 'Calendar', icon: Calendar },
+              ]}
+              active={viewMode}
+              onChange={setViewMode}
+            />
           </div>
         </div>
 

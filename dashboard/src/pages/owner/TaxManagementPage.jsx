@@ -7,6 +7,8 @@ import {
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import PageHeader from '../../components/PageHeader'
+import Tabs from '../../components/Tabs'
 
 const TAX_TYPES = [
   { id: 'VAT', label: 'VAT', rate: 18, color: 'blue' },
@@ -105,34 +107,35 @@ export default function TaxManagementPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
-            <Receipt className="w-5 h-5 text-[#0FD452]" />
+      <PageHeader
+        icon={Receipt}
+        title="Tax Management"
+        subtitle="Manage tax records and calculations."
+        actions={
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowCalc(true)} className="btn-secondary">
+              <Calculator className="w-4 h-4" /> Calculate
+            </button>
+            <button onClick={() => setShowForm(true)} className="btn-primary">
+              <Plus className="w-4 h-4" /> New Record
+            </button>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Tax Management</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage tax records and calculations.</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowCalc(true)} className="btn-secondary">
-            <Calculator className="w-4 h-4" /> Calculate
-          </button>
-          <button onClick={() => setShowForm(true)} className="btn-primary">
-            <Plus className="w-4 h-4" /> New Record
-          </button>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0FD452]">
           {[2024, 2025, 2026, 2027].map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
-        <div className="flex bg-white rounded-xl border border-gray-200 p-1">
-          <button onClick={() => setActiveView('records')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeView === 'records' ? 'bg-[#0FD452] text-[#000F14]' : 'text-gray-500 hover:text-gray-900'}`}>Records</button>
-          <button onClick={() => setActiveView('calendar')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeView === 'calendar' ? 'bg-[#0FD452] text-[#000F14]' : 'text-gray-500 hover:text-gray-900'}`}>Calendar</button>
-        </div>
+        <Tabs
+          tabs={[
+            { id: 'records', label: 'Records', count: records.length },
+            { id: 'calendar', label: 'Calendar', count: calendar.length },
+          ]}
+          active={activeView}
+          onChange={setActiveView}
+          className="mb-0"
+        />
       </div>
 
       {summary && (
@@ -140,33 +143,35 @@ export default function TaxManagementPage() {
           <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-red-600" /></div></div>
             <p className="text-xs text-gray-500 mb-1">Total Liability</p>
-            <p className="text-xl font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(summary.total_liability)}</p>
+            <p className="text-xl font-bold text-gray-900  tabular-nums">{formatCurrency(summary.total_liability)}</p>
           </div>
           <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"><FileText className="w-4 h-4 text-blue-600" /></div></div>
             <p className="text-xs text-gray-500 mb-1">Filed</p>
-            <p className="text-xl font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(summary.total_liability - summary.total_pending)}</p>
+            <p className="text-xl font-bold text-gray-900  tabular-nums">{formatCurrency(summary.total_liability - summary.total_pending)}</p>
           </div>
           <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"><Clock className="w-4 h-4 text-yellow-600" /></div></div>
             <p className="text-xs text-gray-500 mb-1">Pending</p>
-            <p className="text-xl font-bold text-yellow-600 font-mono tabular-nums">{formatCurrency(summary.total_pending)}</p>
+            <p className="text-xl font-bold text-yellow-600  tabular-nums">{formatCurrency(summary.total_pending)}</p>
           </div>
           <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-[#0FD452]/10 rounded-lg flex items-center justify-center"><CheckCircle className="w-4 h-4 text-[#0FD452]" /></div></div>
             <p className="text-xs text-gray-500 mb-1">Paid</p>
-            <p className="text-xl font-bold text-[#0FD452] font-mono tabular-nums">{formatCurrency(summary.total_paid)}</p>
+            <p className="text-xl font-bold text-[#0FD452]  tabular-nums">{formatCurrency(summary.total_paid)}</p>
           </div>
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2">
-        {TAX_TYPES.map((t) => (
-          <button key={t.id} onClick={() => setActiveType(t.id)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${activeType === t.id ? `${TYPE_COLORS[t.id]}` : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
-            {t.label} ({t.rate}%)
-          </button>
-        ))}
-      </div>
+      <Tabs
+        tabs={TAX_TYPES.map((t) => ({
+          id: t.id,
+          label: `${t.label} (${t.rate}%)`,
+          count: records.filter((r) => r.tax_type === t.id).length,
+        }))}
+        active={activeType}
+        onChange={setActiveType}
+      />
 
       {activeView === 'records' ? (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -234,8 +239,8 @@ export default function TaxManagementPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4"><span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${TYPE_COLORS[rec.tax_type]}`}>{rec.tax_type}</span></td>
-                    <td className="px-6 py-4 text-sm font-mono tabular-nums text-right text-gray-900">{formatCurrency(rec.taxable_amount)}</td>
-                    <td className="px-6 py-4 text-sm font-mono tabular-nums text-right text-gray-900 font-medium">{formatCurrency(rec.tax_amount)}</td>
+                    <td className="px-6 py-4 text-sm  tabular-nums text-right text-gray-900">{formatCurrency(rec.taxable_amount)}</td>
+                    <td className="px-6 py-4 text-sm  tabular-nums text-right text-gray-900 font-medium">{formatCurrency(rec.tax_amount)}</td>
                     <td className="px-6 py-4 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${STATUS_COLORS[rec.status]}`}>{rec.status}</span></td>
                     <td className="px-6 py-4 text-xs text-gray-500">
                       {rec.filed_date && <span>Filed: {rec.filed_date}</span>}
@@ -268,7 +273,7 @@ export default function TaxManagementPage() {
                   </div>
                   <p className="text-xs text-gray-500">{MONTHS[item.period_month - 1]}</p>
                   <p className="text-[10px] text-gray-400">Due: {item.deadline}</p>
-                  {item.tax_amount && <p className="text-xs font-mono text-gray-900 mt-1">{formatCurrency(item.tax_amount)}</p>}
+                  {item.tax_amount && <p className="text-xs  text-gray-900 mt-1">{formatCurrency(item.tax_amount)}</p>}
                 </div>
               )
             })}
@@ -343,10 +348,10 @@ export default function TaxManagementPage() {
               {calcResult && (
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
                   <div className="flex justify-between text-sm"><span className="text-gray-500">Tax Type<span className="text-gray-900 font-medium">{calcResult.tax_type}</span></span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Taxable Amount<span className="text-gray-900 font-mono">{formatCurrency(calcResult.taxable_amount)}</span></span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">Taxable Amount<span className="text-gray-900 ">{formatCurrency(calcResult.taxable_amount)}</span></span></div>
                   <div className="flex justify-between text-sm"><span className="text-gray-500">Tax Rate<span className="text-gray-900">{calcResult.tax_rate}%</span></span></div>
-                  <div className="flex justify-between text-sm border-t border-gray-200 pt-2"><span className="text-gray-500">Tax Amount<span className="text-[#0FD452] font-bold font-mono">{formatCurrency(calcResult.tax_amount)}</span></span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Total<span className="text-gray-900 font-bold font-mono">{formatCurrency(calcResult.total)}</span></span></div>
+                  <div className="flex justify-between text-sm border-t border-gray-200 pt-2"><span className="text-gray-500">Tax Amount<span className="text-[#0FD452] font-bold ">{formatCurrency(calcResult.tax_amount)}</span></span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">Total<span className="text-gray-900 font-bold ">{formatCurrency(calcResult.total)}</span></span></div>
                 </div>
               )}
             </div>

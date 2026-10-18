@@ -19,7 +19,7 @@ const CACHE_TTL_MS = 12 * 60 * 60 * 1000 // rates move slowly; a day-old rate is
 
 export const STORED_CURRENCY = 'TZS'
 export const SUPPORTED_DISPLAY = ['USD', 'TZS', 'EUR', 'GBP', 'KES', 'ZAR', 'INR']
-export const DEFAULT_DISPLAY = 'USD'
+export const DEFAULT_DISPLAY = 'TZS'
 
 const FRANKFURTER_URL = 'https://api.frankfurter.app/latest?from=USD'
 const ER_API_URL = 'https://open.er-api.com/v6/latest/USD'
@@ -119,6 +119,30 @@ function getDisplayCurrency() {
 }
 
 /**
+ * Syncs the display currency from a source of truth (the pharmacy's saved
+ * currency setting). Amounts are always stored in TZS, so a pharmacy that
+ * bookkeeps in USD only re-labelled its figures: the source of truth is still
+ * TZS and formatting still converts with live rates.
+ *
+ * Writes localStorage directly (so formatMoney reflects it immediately and on
+ * future visits) and notifies the CurrencyProvider with a custom event so the
+ * context value follows along. No-op when the currency is unsupported or
+ * already active.
+ */
+export function applyDisplayCurrency(currency) {
+  const code = String(currency || '').toUpperCase()
+  if (!SUPPORTED_DISPLAY.includes(code)) return false
+  if (getDisplayCurrency() === code) return false
+  try {
+    window.localStorage.setItem(DISPLAY_KEY, code)
+  } catch {
+    // ignore
+  }
+  window.dispatchEvent(new Event('helix-currency'))
+  return true
+}
+
+/**
  * Converts an amount from the stored currency into `currency`.
  * Returns null when no live rate is available yet, so callers can avoid
  * printing a made-up number.
@@ -191,6 +215,29 @@ export function tzsFromUsd(usd, rates = readCache()?.rates) {
   return Math.round(value * rate)
 }
 
+/**
+ * Formats a price that is stored in USD (subscription plan prices) into the
+ * active display currency. Falls back to the raw USD figure when no live rate
+ * is available rather than printing a made-up number.
+ */
+export function formatUsdPrice(usd, options = {}) {
+  const { decimals = 2, currency = getDisplayCurrency() } = options
+  const value = Number(usd)
+  if (!Number.isFinite(value)) return ''
+  if (currency === 'USD') return formatAs(value, 'USD', decimals, false)
+  const rates = readCache()?.rates
+  if (currency === STORED_CURRENCY) {
+    const tzs = rates ? Number(rates.TZS) : NaN
+    return Number.isFinite(tzs) && tzs > 0
+      ? formatAs(value * tzs, 'TZS', decimals, false)
+      : formatAs(value, 'USD', decimals, false)
+  }
+  const targetRate = rates ? Number(rates[currency]) : NaN
+  return Number.isFinite(targetRate) && targetRate > 0
+    ? formatAs(value * targetRate, currency, decimals, false)
+    : formatAs(value, 'USD', decimals, false)
+}
+
 const CurrencyContext = createContext(null)
 
 export function CurrencyProvider({ children }) {
@@ -198,6 +245,12 @@ export function CurrencyProvider({ children }) {
   const [rateDate, setRateDate] = useState(() => readCache()?.date ?? null)
   const [currency, setCurrencyState] = useState(getDisplayCurrency)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const sync = () => setCurrencyState(getDisplayCurrency())
+    window.addEventListener('helix-currency', sync)
+    return () => window.removeEventListener('helix-currency', sync)
+  }, [])
 
   const refresh = useCallback(async () => {
     // The backend decides what customers are charged, so prefer its rate and

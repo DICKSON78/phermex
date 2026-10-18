@@ -3,6 +3,7 @@ import { toArray } from '../../utils/safeData';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Phone, AlertTriangle, Pill, FileText } from 'lucide-react';
 import { currentBase } from '../../utils/roles'
+import PageHeader from '../../components/PageHeader'
 import api from '../../services/api';
 
 const typeIcons = {
@@ -36,11 +37,8 @@ export default function PharmacyChatListPage() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Customer Messages</h1>
-        <p className="text-sm text-gray-500 mt-1">Respond to customer inquiries and urgent requests</p>
-      </div>
+    <div className="p-6">
+      <PageHeader icon={MessageCircle} title="Customer Messages" subtitle="Respond to customer inquiries and urgent requests" />
 
       {loading ? (
         <div className="space-y-3">

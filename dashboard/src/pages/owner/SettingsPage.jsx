@@ -27,7 +27,11 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { currentBase } from '../../utils/roles'
-import { formatMoney } from '../../utils/currency'
+import {
+  useCurrency,
+  formatMoney,
+  formatUsdPrice,
+} from '../../utils/currency'
 
 const WORKING_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -45,38 +49,58 @@ const PLAN_FEATURES = {
     'Basic reports',
     'Email support',
   ],
+  starter: [
+    'Up to 3 branches',
+    'Up to 200 drugs in inventory',
+    'Sales & purchase tracking',
+    '5 staff members',
+    'Basic reports',
+    'Email support',
+  ],
   pro: [
     'Unlimited drugs in inventory',
     'Advanced analytics & reports',
-    '25 staff members',
+    'Unlimited staff members',
     'Prescription management',
     'Delivery tracking',
+    'Insurance claims',
+    'Telemedicine',
+    'Accounting & HR tools',
+    'Priority support',
+  ],
+  professional: [
+    'Unlimited drugs in inventory',
+    'Advanced analytics & reports',
+    'Unlimited staff members',
+    'Prescription management',
+    'Delivery tracking',
+    'Insurance claims',
+    'Telemedicine',
+    'Accounting & HR tools',
     'Priority support',
   ],
   enterprise: [
-    'Everything in Pro',
-    'Unlimited staff',
-    'Multi-branch support',
-    'Custom integrations',
+    'Everything in Professional',
+    'Consolidated multi-branch reports',
+    'Outbreak & demand prediction',
+    'Custom integrations & API access',
     'Dedicated account manager',
-    'API access',
   ],
 }
 
 const PLAN_COLORS = {
   trial: 'bg-gray-100 text-gray-700',
   basic: 'bg-blue-100 text-blue-700',
+  starter: 'bg-blue-100 text-blue-700',
   pro: 'bg-[#0FD452]/10 text-[#0FD452]',
+  professional: 'bg-[#0FD452]/10 text-[#0FD452]',
   enterprise: 'bg-purple-100 text-purple-700',
-}
-
-function formatCurrency(amount) {
-  return formatMoney(amount, { decimals: 2 })
 }
 
 export default function SettingsPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { currency: displayCurrency, setCurrency } = useCurrency()
   const [pharmacy, setPharmacy] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -84,6 +108,11 @@ export default function SettingsPage() {
   const [error, setError] = useState(null)
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false)
   const fileInputRef = useRef(null)
+  const [subStatus, setSubStatus] = useState({
+    plan: 'trial',
+    subscription_type: 'trial',
+    payment_history: [],
+  })
 
   const [form, setForm] = useState({
     name: '',
@@ -111,7 +140,27 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchPharmacy()
+    fetchSubscription()
   }, [])
+
+  const fetchSubscription = async () => {
+    try {
+      const res = await api.get('/subscriptions/status')
+      if (res.data?.has_pharmacy) {
+        setSubStatus({
+          plan: res.data.plan || 'trial',
+          plan_name: res.data.plan_name || null,
+          subscription_type: res.data.subscription_type,
+          payment_status: res.data.payment_status,
+          expiry: res.data.subscription_end_date || res.data.trial_ends_at,
+          days_remaining: res.data.days_remaining,
+          payment_history: res.data.payment_history || [],
+        })
+      }
+    } catch {
+      // Subscription info unavailable; keep the trial fallback
+    }
+  }
 
   const fetchPharmacy = async () => {
     try {
@@ -192,7 +241,7 @@ export default function SettingsPage() {
         } else if (key === 'working_days') {
           formData.append(key, JSON.stringify(form[key]))
         } else if (key === 'subscription' || key === 'payment_history') {
-          formData.append(key, JSON.stringify(form[key]))
+          // Read-only subscription data is not persisted through pharmacy settings.
         } else {
           formData.append(key, form[key])
         }
@@ -202,8 +251,15 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
+      // The saved pharmacy currency becomes the display currency for the whole
+      // dashboard so every page shows amounts in the same currency.
+      if (form.currency !== displayCurrency) {
+        setCurrency(form.currency)
+      }
+
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)
+      toast.success('Settings saved successfully')
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save settings')
     } finally {
@@ -525,10 +581,10 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Opening Capital (TZS)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Opening Capital ({form.currency || 'TZS'})</label>
             <input
               type="text"
-              value={formatCurrency(form.opening_capital)}
+              value={formatMoney(form.opening_capital, { decimals: 0 })}
               readOnly
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-600 cursor-not-allowed"
             />
@@ -536,12 +592,16 @@ export default function SettingsPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Currency</label>
-            <input
-              type="text"
+            <select
+              name="currency"
               value={form.currency}
-              readOnly
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-600 cursor-not-allowed"
-            />
+              onChange={handleChange}
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#0FD452]"
+            >
+              <option value="TZS">TZS</option>
+              <option value="USD">USD</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">Amounts across the whole system are shown in this currency</p>
           </div>
         </div>
       </div>
@@ -559,14 +619,18 @@ export default function SettingsPage() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <span className="text-sm font-medium text-gray-500">Current Plan</span>
-              <span className={`px-3 py-0.5 rounded-full text-xs font-semibold uppercase ${PLAN_COLORS[form.subscription.plan] || PLAN_COLORS.trial}`}>
-                {form.subscription.plan || 'Trial'}
+              <span className={`px-3 py-0.5 rounded-full text-xs font-semibold uppercase ${PLAN_COLORS[subStatus.plan] || PLAN_COLORS.trial}`}>
+                {subStatus.plan_name || subStatus.plan || 'Trial'}
               </span>
-              
+              <span className={`px-3 py-0.5 rounded-full text-xs font-semibold uppercase ${
+                subStatus.payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {subStatus.payment_status === 'paid' ? 'Active' : 'Trial'}
+              </span>
             </div>
-            {form.subscription.expiry && (
+            {subStatus.expiry && (
               <p className="text-sm text-gray-500">
-                Expires: {new Date(form.subscription.expiry).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                Expires: {new Date(subStatus.expiry).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             )}
           </div>
@@ -581,7 +645,7 @@ export default function SettingsPage() {
         <div className="mb-6">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Plan Features</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {(PLAN_FEATURES[form.subscription.plan] || PLAN_FEATURES.trial).map((feature, idx) => (
+            {(PLAN_FEATURES[subStatus.plan] || PLAN_FEATURES.trial).map((feature, idx) => (
               <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
                 <Check className="w-4 h-4 text-[#0FD452] shrink-0" />
                 {feature}
@@ -590,7 +654,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {form.payment_history.length > 0 && (
+        {subStatus.payment_history.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-3">Payment History</h3>
             <div className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -625,7 +689,7 @@ export default function SettingsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {form.payment_history.map((payment, idx) => (
+                    {subStatus.payment_history.map((payment, idx) => (
                       <tr key={idx} className="transition-colors hover:bg-[#0FD452]/5">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -633,17 +697,17 @@ export default function SettingsPage() {
                               <Receipt className="h-4 w-4 text-[#0FD452]" />
                             </div>
                             <span className="text-sm text-gray-600">
-                              {new Date(payment.date).toLocaleDateString()}
+                              {payment.start_date ? new Date(payment.start_date).toLocaleDateString() : '—'}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm font-medium text-[#000F14]">
-                          {formatCurrency(payment.amount)}
+                          {formatUsdPrice(payment.amount)}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 capitalize">{payment.plan}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            payment.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                            payment.status === 'paid' || payment.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                           }`}>
                             {payment.status}
                           </span>
@@ -657,7 +721,7 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {form.payment_history.length === 0 && (
+        {subStatus.payment_history.length === 0 && (
           <div className="text-center py-6 text-gray-400 text-sm">
             No payment history yet
           </div>

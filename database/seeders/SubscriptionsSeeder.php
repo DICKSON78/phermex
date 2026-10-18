@@ -30,7 +30,7 @@ class SubscriptionsSeeder extends Seeder
                 'transaction_id' => $plan['amount'] > 0 ? 'TXN-' . strtoupper(uniqid()) : null,
                 'status' => $plan['status'],
                 'start_date' => now()->subMonths(2),
-                'end_date' => $plan['plan'] === 'trial' ? now()->addDays(7) : now()->addMonths(12),
+                'end_date' => $plan['plan'] === 'trial' ? now()->addDays(30) : now()->addMonths(12),
                 'created_at' => now()->subDays(rand(20, 29)),
             ]);
         }

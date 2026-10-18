@@ -12,6 +12,7 @@ import {
   RefreshCw,
   User,
 } from 'lucide-react'
+import PageHeader from '../../components/PageHeader'
 
 function Stars({ rating }) {
   const value = Math.max(0, Math.min(5, Number(rating) || 0))
@@ -145,24 +146,19 @@ export default function PharmacyReviewsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
-            <MessageSquareQuote className="w-5 h-5 text-[#0FD452]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Customer Reviews</h1>
-            <p className="text-sm text-gray-500">
-              {pharmacy.pharmacy_name || 'Your pharmacy'} &mdash; see what customers are saying.
-            </p>
-          </div>
-        </div>
-        <button onClick={refresh} className="btn-ghost" disabled={loading}>
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
-      </div>
+    <div className="p-6 space-y-6">
+      <PageHeader
+        icon={MessageSquareQuote}
+        title="Customer Reviews"
+        subtitle={`${pharmacy.pharmacy_name || 'Your pharmacy'} — see what customers are saying.`}
+        className="mb-0"
+        actions={
+          <button onClick={refresh} className="btn-ghost" disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        }
+      />
 
       {/* Summary */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col sm:flex-row sm:items-center gap-4">

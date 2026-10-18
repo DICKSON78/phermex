@@ -37,6 +37,7 @@ import {
   Legend,
 } from 'recharts'
 import toast from 'react-hot-toast'
+import Tabs from '../../components/Tabs'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
 
@@ -180,25 +181,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap items-center gap-2">
-        {TABS.map((tab) => {
-          const Icon = tab.icon
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                activeTab === tab.id
-                  ? 'bg-[#000F14] text-white'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          )
-        })}
-      </div>
+      <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
       {/* Date Range + Export */}
       <div className="flex flex-wrap items-center gap-3">

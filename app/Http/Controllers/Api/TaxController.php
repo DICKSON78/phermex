@@ -101,6 +101,118 @@ class TaxController extends Controller
         }
     }
 
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+            $record = TaxRecord::findOrFail($id);
+
+            if (!in_array($record->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
+            if ($record->status !== 'draft') {
+                return response()->json([
+                    'message' => 'Only draft records can be edited.',
+                ], 422);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'tax_type' => 'required|in:VAT,PAYE,NSSF,NHIF,Housing',
+                'period_month' => 'required|integer|min:1|max:12',
+                'period_year' => 'required|integer|min:2020|max:2100',
+                'taxable_amount' => 'required|numeric|min:0',
+                'tax_amount' => 'nullable|numeric|min:0',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            $duplicate = TaxRecord::where('pharmacy_id', $record->pharmacy_id)
+                ->where('tax_type', $validated['tax_type'])
+                ->where('period_month', $validated['period_month'])
+                ->where('period_year', $validated['period_year'])
+                ->where('id', '!=', $record->id)
+                ->exists();
+
+            if ($duplicate) {
+                return response()->json([
+                    'message' => 'Tax record already exists for this period and type.',
+                ], 422);
+            }
+
+            if (empty($validated['tax_amount'])) {
+                $record->tax_type = $validated['tax_type'];
+                $record->taxable_amount = $validated['taxable_amount'];
+                $record->calculate();
+                $validated['tax_amount'] = $record->tax_amount;
+            }
+
+            $record->update($validated);
+
+            return response()->json([
+                'message' => 'Tax record updated successfully.',
+                'record' => $record->fresh(),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Tax record not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update tax record.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function destroy(Request $request, $id): JsonResponse
+    {
+        try {
+            $record = TaxRecord::findOrFail($id);
+
+            if (!in_array($record->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
+            if ($record->status !== 'draft') {
+                return response()->json([
+                    'message' => 'Only draft records can be deleted.',
+                ], 422);
+            }
+
+            $record->delete();
+
+            return response()->json(['message' => 'Tax record deleted successfully.']);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Tax record not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete tax record.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function show($id): JsonResponse
+    {
+        try {
+            $record = TaxRecord::findOrFail($id);
+
+            return response()->json(['record' => $record]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Tax record not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch tax record.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
     public function calculate(Request $request): JsonResponse
     {
         try {

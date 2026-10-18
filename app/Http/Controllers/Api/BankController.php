@@ -135,6 +135,84 @@ class BankController extends Controller
         }
     }
 
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+            $bankAccount = BankAccount::findOrFail($id);
+
+            if (!in_array($bankAccount->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'bank_name' => 'required|string|max:255',
+                'account_name' => 'required|string|max:255',
+                'account_number' => 'required|string|max:50',
+                'swift_code' => 'nullable|string|max:20',
+                'opening_balance' => 'nullable|numeric|min:0',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            if (array_key_exists('opening_balance', $validated) && $bankAccount->transactions()->exists()) {
+                unset($validated['opening_balance']);
+            }
+
+            if (array_key_exists('opening_balance', $validated)) {
+                $validated['current_balance'] = $validated['opening_balance'];
+            }
+
+            $bankAccount->update($validated);
+
+            return response()->json([
+                'message' => 'Bank account updated successfully.',
+                'account' => $bankAccount->fresh(),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Bank account not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update bank account.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function destroy(Request $request, $id): JsonResponse
+    {
+        try {
+            $bankAccount = BankAccount::findOrFail($id);
+
+            if (!in_array($bankAccount->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
+            if ($bankAccount->transactions()->exists()) {
+                return response()->json([
+                    'message' => 'Cannot delete a bank account that has transactions.',
+                ], 422);
+            }
+
+            $bankAccount->delete();
+
+            return response()->json(['message' => 'Bank account deleted successfully.']);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Bank account not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete bank account.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
     public function reconcile(Request $request, $id): JsonResponse
     {
         try {

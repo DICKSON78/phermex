@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { formatUsdPrice } from '../../utils/currency'
 import {
   Clock,
   CreditCard,
@@ -165,7 +166,7 @@ export default function SubscriptionsPage() {
               </div>
               <h3 className="text-lg font-extrabold text-gray-900">{plan.name}</h3>
               <p className="text-2xl font-black text-gray-900 mt-2">
-                ${Number(plan.price).toLocaleString()}
+                {formatUsdPrice(plan.price, { decimals: 0 })}
                 <span className="text-sm text-gray-400 font-medium">/year</span>
               </p>
               <p className="text-xs text-gray-400 mt-1 leading-relaxed line-clamp-2">{plan.description}</p>

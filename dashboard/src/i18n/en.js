@@ -86,6 +86,8 @@ export const en = {
       stockTransfers: 'Stock Transfers',
       stockReturns: 'Stock Returns',
       damagedGoods: 'Damaged Goods',
+      stockTakes: 'Stock Taking',
+      supplierOrders: 'Supplier Orders',
       stockMovements: 'Stock Movements',
       lowStock: 'Low Stock',
       expiringSoon: 'Expiring Soon',

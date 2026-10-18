@@ -8,6 +8,7 @@ import {
 import toast from 'react-hot-toast'
 import { employees } from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import Tabs from '../../components/Tabs'
 
 function formatCurrency(amount) {
   return formatMoney(amount || 0, { decimals: 2 })
@@ -119,13 +120,7 @@ export default function EmployeeDetailPage() {
           </div>
         </div>
 
-        <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 overflow-x-auto">
-          {TABS.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.id ? 'bg-[#0FD452]/10 text-[#0FD452]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200'}`}>
-              <tab.icon className="w-4 h-4" /> {tab.label}
-            </button>
-          ))}
-        </div>
+        <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
         {activeTab === 'overview' && (
           <div className="space-y-6">

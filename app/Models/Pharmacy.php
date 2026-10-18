@@ -41,6 +41,7 @@ class Pharmacy extends Model
         'loyalty_points_per_tsh',
         'loyalty_redeem_tsh_per_point',
         'opening_capital',
+        'currency',
         'monthly_revenue',
         'rating',
         'total_reviews',

@@ -1,19 +1,15 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
-  BookOpen, Plus, Search, Filter, X, Send, RotateCcw, Eye,
+  BookOpen, Plus, Search, X, Send, RotateCcw, Eye, Pencil, Trash2,
   Calendar, Loader2, CheckCircle, AlertCircle, FileText, ArrowLeftRight,
-  Hash, Settings, Building, DollarSign,
+  Hash, Settings, Building, DollarSign, ArrowDownRight, ArrowUpRight, Clock,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
-
-const STATUS_TABS = [
-  { id: 'all', label: 'All' },
-  { id: 'draft', label: 'Draft' },
-  { id: 'posted', label: 'Posted' },
-  { id: 'reversed', label: 'Reversed' },
-]
+import PageHeader from '../../components/PageHeader'
+import Tabs from '../../components/Tabs'
 
 const STATUS_COLORS = {
   draft: 'bg-yellow-100 text-yellow-700',
@@ -27,6 +23,7 @@ function formatCurrency(amount) {
 }
 
 export default function JournalEntriesPage() {
+  const navigate = useNavigate()
   const [entries, setEntries] = useState([])
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -110,6 +107,18 @@ export default function JournalEntriesPage() {
     }
   }
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this draft journal entry?')) return
+    setProcessing(id)
+    try {
+      await api.delete(`/journal/${id}`)
+      toast.success('Journal entry deleted')
+      fetchData()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete')
+    } finally { setProcessing(null) }
+  }
+
   const handlePost = async (id) => {
     setProcessing(id)
     try {
@@ -137,48 +146,52 @@ export default function JournalEntriesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-[#0FD452]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Journal Entries</h1>
-            <p className="text-sm text-gray-500 mt-1">Record and manage accounting journal entries.</p>
-          </div>
-        </div>
-        <button onClick={() => setShowForm(true)} className="btn-primary">
-          <Plus className="w-4 h-4" /> New Entry
-        </button>
-      </div>
+      <PageHeader
+        icon={BookOpen}
+        title="Journal Entries"
+        subtitle="Record and manage accounting journal entries."
+        actions={
+          <button onClick={() => navigate('/dashboard/journal-entries/new')} className="btn-primary">
+            <Plus className="w-4 h-4" /> New Entry
+          </button>
+        }
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-[#0FD452]/10 rounded-lg flex items-center justify-center"><BookOpen className="w-4 h-4 text-[#0FD452]" /></div></div>
           <p className="text-xs text-gray-500 mb-1">Total Entries</p>
-          <p className="text-xl font-bold text-gray-900 font-mono">{filtered.length}</p>
+          <p className="text-xl font-bold text-gray-900">{filtered.length}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"><ArrowDownRight className="w-4 h-4 text-red-600" /></div></div>
           <p className="text-xs text-gray-500 mb-1">Total Debit</p>
-          <p className="text-xl font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(totalDebit)}</p>
+          <p className="text-xl font-bold text-gray-900 tabular-nums">{formatCurrency(totalDebit)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"><ArrowUpRight className="w-4 h-4 text-green-600" /></div></div>
           <p className="text-xs text-gray-500 mb-1">Total Credit</p>
-          <p className="text-xl font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(totalCredit)}</p>
+          <p className="text-xl font-bold text-gray-900 tabular-nums">{formatCurrency(totalCredit)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"><Clock className="w-4 h-4 text-yellow-600" /></div></div>
           <p className="text-xs text-gray-500 mb-1">Draft Entries</p>
-          <p className="text-xl font-bold text-yellow-600 font-mono">{entries.filter((e) => e.status === 'draft').length}</p>
+          <p className="text-xl font-bold text-yellow-600">{entries.filter((e) => e.status === 'draft').length}</p>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex bg-white rounded-xl border border-gray-200 p-1">
-          {STATUS_TABS.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveStatus(tab.id)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeStatus === tab.id ? 'bg-[#0FD452] text-[#000F14]' : 'text-gray-500 hover:text-gray-900'}`}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-wrap items-end gap-3">
+        <Tabs
+          tabs={[
+            { id: 'all', label: 'All', count: entries.length },
+            { id: 'draft', label: 'Draft', count: entries.filter((e) => e.status === 'draft').length },
+            { id: 'posted', label: 'Posted', count: entries.filter((e) => e.status === 'posted').length },
+            { id: 'reversed', label: 'Reversed', count: entries.filter((e) => e.status === 'reversed').length },
+          ]}
+          active={activeStatus}
+          onChange={setActiveStatus}
+          className="mb-0"
+        />
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 flex-1 max-w-sm">
           <Search className="w-4 h-4 text-gray-400" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search entries..." className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
@@ -248,13 +261,13 @@ export default function JournalEntriesPage() {
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">
                         <BookOpen className="h-4 w-4 text-[#0FD452]" />
                       </div>
-                      <span className="text-sm font-mono text-gray-900">{entry.entry_number}</span>
+                      <span className="text-sm  text-gray-900">{entry.entry_number}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">{entry.entry_date}</td>
                   <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{entry.description}</td>
-                  <td className="px-6 py-4 text-sm font-mono tabular-nums text-right text-gray-900">{formatCurrency(entry.total_debit)}</td>
-                  <td className="px-6 py-4 text-sm font-mono tabular-nums text-right text-green-600">{formatCurrency(entry.total_credit)}</td>
+                  <td className="px-6 py-4 text-sm  tabular-nums text-right text-gray-900">{formatCurrency(entry.total_debit)}</td>
+                  <td className="px-6 py-4 text-sm  tabular-nums text-right text-green-600">{formatCurrency(entry.total_credit)}</td>
                   <td className="px-6 py-4 text-center">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${STATUS_COLORS[entry.status]}`}>
                       {entry.status}
@@ -262,9 +275,19 @@ export default function JournalEntriesPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => setViewEntry(entry)} className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="View">
+                      <button onClick={() => navigate(`/dashboard/journal-entries/${entry.id}`)} className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="View">
                         <Eye className="w-3.5 h-3.5" />
                       </button>
+                      {entry.status === 'draft' && (
+                        <button onClick={() => navigate(`/dashboard/journal-entries/${entry.id}/edit`)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors" title="Edit">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {entry.status === 'draft' && (
+                        <button onClick={() => handleDelete(entry.id)} disabled={processing === entry.id} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-lg transition-colors" title="Delete">
+                          {processing === entry.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        </button>
+                      )}
                       {entry.status === 'draft' && (
                         <button onClick={() => handlePost(entry.id)} disabled={processing === entry.id} className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-gray-100 rounded-lg transition-colors" title="Post">
                           {processing === entry.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
@@ -284,158 +307,6 @@ export default function JournalEntriesPage() {
         </div>
       </div>
 
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">New Journal Entry</h2>
-              <button onClick={() => setShowForm(false)} className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
-            </div>
-            <form onSubmit={handleCreate} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Entry Date</label>
-                  <input type="date" value={formData.entry_date} onChange={(e) => setFormData({ ...formData, entry_date: e.target.value })} className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#0FD452]" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Description</label>
-                  <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0FD452]" placeholder="Entry description" required />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-gray-500">Journal Lines</label>
-                  <button type="button" onClick={addLine} className="text-xs text-[#0FD452] hover:text-[#0FD452]/80 flex items-center gap-1"><Plus className="w-3 h-3" /> Add Line</button>
-                </div>
-                {formData.lines.map((line, idx) => (
-                  <div key={idx} className="grid grid-cols-12 gap-2 items-start">
-                    <div className="col-span-4">
-                      <select value={line.account_id} onChange={(e) => updateLine(idx, 'account_id', e.target.value)} className="w-full bg-gray-100 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-900 outline-none focus:border-[#0FD452]">
-                        <option value="">Account</option>
-                        {accounts.map((a) => <option key={a.id} value={a.id}>{a.account_code} - {a.account_name}</option>)}
-                      </select>
-                    </div>
-                    <div className="col-span-3">
-                      <input type="number" step="0.01" min="0" value={line.debit} onChange={(e) => updateLine(idx, 'debit', e.target.value)} className="w-full bg-gray-100 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none focus:border-[#0FD452]" placeholder="Debit" />
-                    </div>
-                    <div className="col-span-3">
-                      <input type="number" step="0.01" min="0" value={line.credit} onChange={(e) => updateLine(idx, 'credit', e.target.value)} className="w-full bg-gray-100 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none focus:border-[#0FD452]" placeholder="Credit" />
-                    </div>
-                    <div className="col-span-2 flex items-center justify-end">
-                      {formData.lines.length > 2 && <button type="button" onClick={() => removeLine(idx)} className="p-1.5 text-gray-400 hover:text-red-600"><X className="w-3.5 h-3.5" /></button>}
-                    </div>
-                  </div>
-                ))}
-                <div className="flex items-center justify-end gap-6 pt-2 text-sm font-mono">
-                  <span className="text-gray-500">Debit: <span className="text-gray-900">{formatCurrency(lineTotals.debit)}</span></span>
-                  <span className="text-gray-500">Credit: <span className="text-green-600">{formatCurrency(lineTotals.credit)}</span></span>
-                  <span className={`font-bold ${isBalanced ? 'text-[#0FD452]' : 'text-red-600'}`}>
-                    {isBalanced ? 'Balanced' : 'Unbalanced'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" disabled={!isBalanced} className="btn-primary">
-                  Create Entry
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {viewEntry && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">{viewEntry.entry_number}</h2>
-                <p className="text-xs text-gray-500">{viewEntry.entry_date} | {viewEntry.description}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${STATUS_COLORS[viewEntry.status]}`}>{viewEntry.status}</span>
-                <button onClick={() => setViewEntry(null)} className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                          <div className="flex items-center gap-1.5">
-                            <Building className="w-3.5 h-3.5 text-[#0FD452]" />
-                            <span>Account</span>
-                          </div>
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                            <span>Debit</span>
-                          </div>
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                            <span>Credit</span>
-                          </div>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {viewEntry.lines?.map((line) => (
-                        <tr key={line.id} className="transition-colors hover:bg-[#0FD452]/5">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">
-                                <Building className="h-4 w-4 text-[#0FD452]" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">{line.account?.account_name}</p>
-                                <p className="text-xs text-gray-500">{line.account?.account_code}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm font-mono tabular-nums text-right text-gray-900">{line.debit > 0 ? formatCurrency(line.debit) : '-'}</td>
-                          <td className="px-6 py-4 text-sm font-mono tabular-nums text-right text-green-600">{line.credit > 0 ? formatCurrency(line.credit) : '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="border-t border-gray-200 font-bold">
-                        <td className="px-6 py-4 text-sm text-gray-900">Total</td>
-                        <td className="px-6 py-4 text-sm text-right font-mono tabular-nums text-gray-900">{formatCurrency(viewEntry.total_debit)}</td>
-                        <td className="px-6 py-4 text-sm text-right font-mono tabular-nums text-green-600">{formatCurrency(viewEntry.total_credit)}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </div>
-              {viewEntry.reversal_reason && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-                  <p className="text-xs text-red-600 font-medium">Reversal Reason: {viewEntry.reversal_reason}</p>
-                </div>
-              )}
-              <div className="mt-4 flex gap-3">
-                {viewEntry.status === 'draft' && (
-                  <button onClick={() => { handlePost(viewEntry.id); setViewEntry(null) }} className="flex items-center gap-2 bg-[#0FD452] hover:bg-[#0FD452]/90 text-[#000F14] font-semibold px-4 py-2 rounded-xl transition-colors text-sm">
-                    <Send className="w-4 h-4" /> Post Entry
-                  </button>
-                )}
-                {viewEntry.status === 'posted' && (
-                  <button onClick={() => { setViewEntry(null); setShowReverseModal(viewEntry.id) }} className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-4 py-2 rounded-xl transition-colors text-sm">
-                    <RotateCcw className="w-4 h-4" /> Reverse
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showReverseModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

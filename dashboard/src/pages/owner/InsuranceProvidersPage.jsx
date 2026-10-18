@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { toArray } from '../../utils/safeData'
 import { Loader2, Plus, X, Pencil, Trash2, ShieldCheck, Phone, Mail, Globe } from 'lucide-react'
+import PageHeader from '../../components/PageHeader'
 import { insurance } from '../../services/api'
 
 const emptyForm = { id: null, name: '', code: '', contact_phone: '', contact_email: '', website: '', is_active: true }
@@ -85,20 +86,21 @@ export default function InsuranceProvidersPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="p-6">
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>{toast.msg}</div>
       )}
 
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Insurance Providers</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage NHIF and private insurers your pharmacy works with</p>
-        </div>
-        <button onClick={() => openForm()} className="px-5 py-2.5 bg-[#000F14] text-white rounded-xl text-sm font-semibold hover:bg-[#0a2015] flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Provider
-        </button>
-      </div>
+      <PageHeader
+        icon={ShieldCheck}
+        title="Insurance Providers"
+        subtitle="Manage NHIF and private insurers your pharmacy works with"
+        actions={
+          <button onClick={() => openForm()} className="btn-primary">
+            <Plus className="w-4 h-4" /> Add Provider
+          </button>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {providers.length === 0 ? (

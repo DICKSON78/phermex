@@ -42,6 +42,8 @@ use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\GoodsReceivedController;
 use App\Http\Controllers\Api\StockTransferController;
 use App\Http\Controllers\Api\StockReturnController;
+use App\Http\Controllers\Api\StockTakeController;
+use App\Http\Controllers\Api\SupplierOrderController;
 use App\Http\Controllers\Api\DamagedGoodsController;
 use App\Http\Controllers\Api\ControlledSubstanceController;
 use App\Http\Controllers\Api\LicenseController;
@@ -332,6 +334,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/journal', [JournalController::class, 'index']);
         Route::post('/journal', [JournalController::class, 'store']);
         Route::get('/journal/{id}', [JournalController::class, 'show']);
+        Route::put('/journal/{id}', [JournalController::class, 'update']);
+        Route::delete('/journal/{id}', [JournalController::class, 'destroy']);
         Route::post('/journal/{id}/post', [JournalController::class, 'post']);
         Route::post('/journal/{id}/reverse', [JournalController::class, 'reverse']);
 
@@ -339,6 +343,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/bank', [BankController::class, 'index']);
         Route::post('/bank', [BankController::class, 'store']);
         Route::get('/bank/{id}', [BankController::class, 'show']);
+        Route::put('/bank/{id}', [BankController::class, 'update']);
+        Route::delete('/bank/{id}', [BankController::class, 'destroy']);
         Route::get('/bank/{id}/transactions', [BankController::class, 'getTransactions']);
         Route::post('/bank/{id}/reconcile', [BankController::class, 'reconcile']);
         Route::post('/bank/transfer', [BankController::class, 'transfer']);
@@ -348,12 +354,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/budgets', [BudgetController::class, 'index']);
         Route::post('/budgets', [BudgetController::class, 'store']);
         Route::get('/budgets/{id}', [BudgetController::class, 'show']);
+        Route::put('/budgets/{id}', [BudgetController::class, 'update']);
+        Route::delete('/budgets/{id}', [BudgetController::class, 'destroy']);
 
         Route::get('/tax/calendar', [TaxController::class, 'getCalendar']);
         Route::get('/tax/summary', [TaxController::class, 'getSummary']);
         Route::post('/tax/calculate', [TaxController::class, 'calculate']);
         Route::get('/tax', [TaxController::class, 'index']);
         Route::post('/tax', [TaxController::class, 'store']);
+        Route::get('/tax/{id}', [TaxController::class, 'show']);
+        Route::put('/tax/{id}', [TaxController::class, 'update']);
+        Route::delete('/tax/{id}', [TaxController::class, 'destroy']);
         Route::post('/tax/{id}/file', [TaxController::class, 'file']);
         Route::post('/tax/{id}/pay', [TaxController::class, 'markPaid']);
 
@@ -392,6 +403,23 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/stock-returns/{id}/approve', [StockReturnController::class, 'approve']);
         Route::post('/stock-returns/{id}/ship', [StockReturnController::class, 'ship']);
         Route::post('/stock-returns/{id}/refund', [StockReturnController::class, 'refund']);
+
+        Route::get('/stock-takes', [StockTakeController::class, 'index']);
+        Route::get('/stock-takes/{id}', [StockTakeController::class, 'show']);
+        Route::post('/stock-takes', [StockTakeController::class, 'store'])->middleware('role:owner,pharmacist');
+        Route::post('/stock-takes/{id}/record', [StockTakeController::class, 'record'])->middleware('role:owner,pharmacist');
+        Route::post('/stock-takes/{id}/complete', [StockTakeController::class, 'complete'])->middleware('role:owner,pharmacist');
+        Route::post('/stock-takes/{id}/approve', [StockTakeController::class, 'approve'])->middleware('role:owner,pharmacist');
+        Route::post('/stock-takes/{id}/cancel', [StockTakeController::class, 'cancel'])->middleware('role:owner,pharmacist');
+
+        Route::get('/supplier-orders', [SupplierOrderController::class, 'index']);
+        Route::get('/supplier-orders/{id}', [SupplierOrderController::class, 'show']);
+        Route::post('/supplier-orders', [SupplierOrderController::class, 'store'])->middleware('role:owner,pharmacist');
+        Route::put('/supplier-orders/{id}', [SupplierOrderController::class, 'update'])->middleware('role:owner,pharmacist');
+        Route::post('/supplier-orders/{id}/submit', [SupplierOrderController::class, 'submit'])->middleware('role:owner,pharmacist');
+        Route::post('/supplier-orders/{id}/approve', [SupplierOrderController::class, 'approve'])->middleware('role:owner,pharmacist');
+        Route::post('/supplier-orders/{id}/complete', [SupplierOrderController::class, 'complete'])->middleware('role:owner,pharmacist');
+        Route::post('/supplier-orders/{id}/cancel', [SupplierOrderController::class, 'cancel'])->middleware('role:owner,pharmacist');
 
         Route::get('/damaged-goods/report', [DamagedGoodsController::class, 'getReport']);
         Route::get('/damaged-goods', [DamagedGoodsController::class, 'index']);

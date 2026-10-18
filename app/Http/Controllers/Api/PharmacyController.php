@@ -180,6 +180,7 @@ class PharmacyController extends Controller
                 'working_days' => 'sometimes|nullable|array',
                 'working_hours' => 'sometimes|nullable|array',
                 'opening_capital' => 'sometimes|numeric|min:0',
+                'currency' => 'sometimes|in:TZS,USD',
                 'status' => 'sometimes|in:pending,active,suspended,closed',
                 'is_published' => 'sometimes|boolean',
             ]);

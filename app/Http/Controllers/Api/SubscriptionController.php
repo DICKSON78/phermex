@@ -46,17 +46,35 @@ class SubscriptionController extends Controller
             ]);
         }
 
+        $latestSubscription = $pharmacy->subscriptions()->latest('id')->first();
+
         return response()->json([
             'has_pharmacy' => true,
             'application_status' => $pharmacy->application_status,
             'subscription_type' => $pharmacy->subscriptionType(),
-            'plan' => $pharmacy->subscriptions()->latest('id')->value('plan'),
+            'plan' => $latestSubscription?->plan ?? ($pharmacy->hasTrial() ? 'trial' : null),
+            'plan_name' => $latestSubscription
+                ? ucfirst(str_replace('-', ' ', $latestSubscription->plan))
+                : ($pharmacy->hasTrial() ? 'Trial' : null),
             'days_remaining' => $pharmacy->daysRemaining(),
             'trial_ends_at' => $pharmacy->trial_ends_at?->toISOString(),
             'subscription_end_date' => $pharmacy->subscription_end_date?->toISOString(),
             'payment_status' => $pharmacy->payment_status,
             'rejection_reason' => $pharmacy->rejection_reason,
             'pharmacy_name' => $pharmacy->pharmacy_name,
+            'payment_history' => $pharmacy->subscriptions()
+                ->orderByDesc('id')
+                ->limit(20)
+                ->get(['plan', 'amount', 'status', 'start_date', 'end_date'])
+                ->map(function ($sub) {
+                    return [
+                        'plan' => $sub->plan,
+                        'amount' => (float) $sub->amount,
+                        'status' => $sub->status,
+                        'start_date' => $sub->start_date?->toISOString(),
+                        'end_date' => $sub->end_date?->toISOString(),
+                    ];
+                }),
         ]);
     }
 

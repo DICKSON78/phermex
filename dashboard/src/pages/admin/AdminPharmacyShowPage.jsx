@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../../services/api'
+import Tabs from '../../components/Tabs'
 import { MapContainer, TileLayer, Marker, LayersControl } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -572,28 +573,17 @@ export default function AdminPharmacyShowPage() {
             <h3 className="text-sm font-semibold text-[#000F14]">Operational Data</h3>
             <p className="text-xs text-gray-500">Drugs, orders, expenses &amp; prescriptions for this pharmacy</p>
           </div>
-          <div className="flex flex-wrap items-center gap-1 bg-gray-100 rounded-lg p-1 ml-auto">
-            {[
-              { key: 'drugs', label: 'Drugs', icon: Pill },
-              { key: 'orders', label: 'Orders', icon: ShoppingCart },
-              { key: 'expenses', label: 'Expenses', icon: DollarSign },
-              { key: 'prescriptions', label: 'Prescriptions', icon: FileText },
-            ].map((t) => {
-              const TIc = t.icon
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => fetchTab(t.key, 1)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeTab === t.key ? 'bg-white text-[#0FD452] shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <TIc className="w-3.5 h-3.5" />
-                  {t.label}
-                </button>
-              )
-            })}
-          </div>
+          <Tabs
+            className="mb-0 ml-auto max-w-full"
+            tabs={[
+              { id: 'drugs', label: 'Drugs', icon: Pill },
+              { id: 'orders', label: 'Orders', icon: ShoppingCart },
+              { id: 'expenses', label: 'Expenses', icon: DollarSign },
+              { id: 'prescriptions', label: 'Prescriptions', icon: FileText },
+            ]}
+            active={activeTab}
+            onChange={(tab) => fetchTab(tab, 1)}
+          />
         </div>
         <div className="p-5">
           {tabLoading && !tabData[activeTab]?.list?.length ? (

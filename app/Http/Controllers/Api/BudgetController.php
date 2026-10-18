@@ -104,6 +104,83 @@ class BudgetController extends Controller
         }
     }
 
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+            $budget = Budget::findOrFail($id);
+
+            if (!in_array($budget->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'account_id' => 'required|exists:accounts,id',
+                'budget_year' => 'required|integer|min:2020|max:2100',
+                'budget_month' => 'required|integer|min:1|max:12',
+                'budgeted_amount' => 'required|numeric|min:0',
+                'notes' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            $duplicate = Budget::where('pharmacy_id', $budget->pharmacy_id)
+                ->where('account_id', $validated['account_id'])
+                ->where('budget_year', $validated['budget_year'])
+                ->where('budget_month', $validated['budget_month'])
+                ->where('id', '!=', $budget->id)
+                ->exists();
+
+            if ($duplicate) {
+                return response()->json([
+                    'message' => 'A budget already exists for this account and period.',
+                ], 422);
+            }
+
+            $budget->update($validated);
+
+            return response()->json([
+                'message' => 'Budget updated successfully.',
+                'budget' => $budget->fresh()->load(['account', 'creator']),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Budget not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update budget.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function destroy(Request $request, $id): JsonResponse
+    {
+        try {
+            $budget = Budget::findOrFail($id);
+
+            if (!in_array($budget->pharmacy_id, $request->user()->accessiblePharmacyIds(), true)) {
+                return response()->json(['message' => 'You do not have access to this pharmacy.'], 403);
+            }
+
+            $budget->delete();
+
+            return response()->json(['message' => 'Budget deleted successfully.']);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Budget not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete budget.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
     public function show($id): JsonResponse
     {
         try {

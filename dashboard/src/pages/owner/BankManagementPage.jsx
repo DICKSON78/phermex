@@ -9,6 +9,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import PageHeader from '../../components/PageHeader'
+import Tabs from '../../components/Tabs'
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
@@ -113,25 +115,21 @@ export default function BankManagementPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
-            <Landmark className="w-5 h-5 text-[#0FD452]" />
+      <PageHeader
+        icon={Landmark}
+        title="Bank Management"
+        subtitle="Manage bank accounts and transactions"
+        actions={
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowTransfer(true)} className="btn-secondary">
+              <ArrowLeftRight className="w-4 h-4" /> Transfer
+            </button>
+            <button onClick={() => setShowForm(true)} className="btn-primary">
+              <Plus className="w-4 h-4" /> Add Account
+            </button>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Bank Management</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage bank accounts and transactions</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowTransfer(true)} className="btn-secondary">
-            <ArrowLeftRight className="w-4 h-4" /> Transfer
-          </button>
-          <button onClick={() => setShowForm(true)} className="btn-primary">
-            <Plus className="w-4 h-4" /> Add Account
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {bankAccounts.map((account) => (
@@ -149,31 +147,35 @@ export default function BankManagementPage() {
               {account.is_default && <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#0FD452]/20 text-[#0FD452]">Default</span>}
             </div>
             <p className="text-xs text-gray-500 mb-1">Account: {account.account_number}</p>
-            <p className="text-2xl font-bold text-gray-900 font-mono tabular-nums">{formatCurrency(account.current_balance)}</p>
+            <p className="text-2xl font-bold text-gray-900  tabular-nums">{formatCurrency(account.current_balance)}</p>
           </div>
         ))}
       </div>
 
       {selectedAccount && (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between px-6 pt-4 pb-3">
             <div>
               <h2 className="text-lg font-bold text-gray-900">{selectedAccount.bank_name} - Transactions</h2>
               <p className="text-xs text-gray-500">Balance: {formatCurrency(selectedAccount.current_balance)}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => { setShowReconcile(true); setSelectedTx([]) }} className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-medium transition-colors">
-                <CheckCircle className="w-3.5 h-3.5" /> Reconcile
-              </button>
-              <div className="flex bg-gray-100 rounded-lg p-0.5">
-                {['all', 'deposit', 'withdrawal', 'transfer', 'reconciled', 'unreconciled'].map((f) => (
-                  <button key={f} onClick={() => setTxFilter(f)} className={`px-2.5 py-1 rounded-md text-[10px] font-medium capitalize transition-colors ${txFilter === f ? 'bg-[#0FD452] text-[#000F14]' : 'text-gray-500 hover:text-gray-900'}`}>
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <button onClick={() => { setShowReconcile(true); setSelectedTx([]) }} className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-medium transition-colors">
+              <CheckCircle className="w-3.5 h-3.5" /> Reconcile
+            </button>
           </div>
+          <Tabs
+            tabs={[
+              { id: 'all', label: 'All', count: transactions.length },
+              { id: 'deposit', label: 'Deposits', count: transactions.filter((t) => t.type === 'deposit').length },
+              { id: 'withdrawal', label: 'Withdrawals', count: transactions.filter((t) => t.type === 'withdrawal').length },
+              { id: 'transfer', label: 'Transfers', count: transactions.filter((t) => t.type === 'transfer').length },
+              { id: 'reconciled', label: 'Reconciled', count: transactions.filter((t) => t.reconciled).length },
+              { id: 'unreconciled', label: 'Unreconciled', count: transactions.filter((t) => !t.reconciled).length },
+            ]}
+            active={txFilter}
+            onChange={setTxFilter}
+            className="px-6 mb-0"
+          />
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -243,10 +245,10 @@ export default function BankManagementPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">{tx.description}</td>
-                      <td className={`px-6 py-4 text-sm font-mono tabular-nums text-right font-medium ${tx.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <td className={`px-6 py-4 text-sm  tabular-nums text-right font-medium ${tx.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {tx.amount >= 0 ? '+' : ''}{formatCurrency(tx.amount)}
                       </td>
-                      <td className="px-6 py-4 text-sm font-mono tabular-nums text-right text-gray-900">{formatCurrency(tx.balance_after)}</td>
+                      <td className="px-6 py-4 text-sm  tabular-nums text-right text-gray-900">{formatCurrency(tx.balance_after)}</td>
                       <td className="px-6 py-4 text-center">
                         {tx.reconciled ? (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700">Reconciled</span>

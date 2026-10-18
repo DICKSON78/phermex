@@ -86,6 +86,8 @@ export const sw = {
       stockTransfers: 'Uhamisho wa Bidhaa',
       stockReturns: 'Kurudisha Bidhaa',
       damagedGoods: 'Bidhaa Zilizoharibika',
+      stockTakes: 'Kukokota Hifadhi',
+      supplierOrders: 'Maagizo ya Wasambazaji',
       stockMovements: 'Mabadiliko ya Hifadhi',
       lowStock: 'Hifadhi Ndogo',
       expiringSoon: 'Zinazokaribia Kumalika',

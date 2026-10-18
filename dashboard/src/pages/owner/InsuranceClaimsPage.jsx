@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { toArray } from '../../utils/safeData'
 import { Loader2, Plus, X, Search, FileText, Send, CheckCircle2, XCircle, BadgeCheck, Eye, ShieldCheck } from 'lucide-react'
 import { insurance } from '../../services/api'
+import PageHeader from '../../components/PageHeader'
+import Tabs from '../../components/Tabs'
 import { formatMoney as sharedMoney } from '../../utils/currency'
 
 const STATUS_COLORS = {
@@ -134,20 +136,21 @@ export default function InsuranceClaimsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="p-6">
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>{toast.msg}</div>
       )}
 
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Insurance Claims</h1>
-          <p className="text-gray-500 text-sm mt-1">Track insurance reimbursements from submission to payment</p>
-        </div>
-        <button onClick={openForm} className="px-5 py-2.5 bg-[#000F14] text-white rounded-xl text-sm font-semibold hover:bg-[#0a2015] flex items-center gap-2">
-          <Plus className="w-4 h-4" /> New Claim
-        </button>
-      </div>
+      <PageHeader
+        icon={FileText}
+        title="Insurance Claims"
+        subtitle="Track insurance reimbursements from submission to payment"
+        actions={
+          <button onClick={openForm} className="btn-primary">
+            <Plus className="w-4 h-4" /> New Claim
+          </button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -170,20 +173,18 @@ export default function InsuranceClaimsPage() {
       </div>
 
       {/* Status filter */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {STATUS_FILTERS.map((s) => {
-          const count = s === 'all' ? claims?.reduce((_, __, i, arr) => arr.length, 0) : 0
-          return (
-            <button
-              key={s}
-              onClick={() => setStatus(s)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold capitalize border transition-colors ${status === s ? 'bg-[#000F14] text-white border-[#000F14]' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}
-            >
-              {s === 'all' ? `All (${count})` : s}
-            </button>
-          )
-        })}
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'all', label: 'All', count: claims.length },
+          ...STATUS_FILTERS.filter((s) => s !== 'all').map((s) => ({
+            id: s,
+            label: s.charAt(0).toUpperCase() + s.slice(1),
+            count: claims.filter((c) => c.status === s).length,
+          })),
+        ]}
+        active={status}
+        onChange={setStatus}
+      />
 
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">

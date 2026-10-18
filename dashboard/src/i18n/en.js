@@ -52,6 +52,8 @@ export const en = {
     completed: 'Completed',
     active: 'Active',
     inactive: 'Inactive',
+    markAllRead: 'Mark all read',
+    viewAll: 'View all',
   },
   nav: {
     main: 'MAIN',

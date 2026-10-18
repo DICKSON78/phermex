@@ -52,6 +52,8 @@ export const sw = {
     completed: 'Imekamilika',
     active: 'Inafanya kazi',
     inactive: 'Haifanyi kazi',
+    markAllRead: 'Weka zote kama zimesomwa',
+    viewAll: 'Ona zote',
   },
   nav: {
     main: 'KUU',

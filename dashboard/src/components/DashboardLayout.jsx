@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, Navigate, useLocation, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import api from '../services/api'
+import api, { notifications } from '../services/api'
 
 import {
   LayoutDashboard,
@@ -410,6 +410,9 @@ export default function DashboardLayout({ role }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [collapsedGroups, setCollapsedGroups] = useState({})
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [notifList, setNotifList] = useState([])
+  const [notifLoading, setNotifLoading] = useState(false)
   const [pharmacyDropdownOpen, setPharmacyDropdownOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [notifications, setNotifications] = useState(0)
@@ -490,6 +493,43 @@ export default function DashboardLayout({ role }) {
 
   const toggleGroup = (gi) => {
     setCollapsedGroups(prev => ({ ...prev, [gi]: !prev[gi] }))
+  }
+
+  const toggleNotif = async () => {
+    const next = !notifOpen
+    setNotifOpen(next)
+    if (next && notifList.length === 0) {
+      setNotifLoading(true)
+      try {
+        const { data } = await notifications.getAll({ per_page: 8 })
+        setNotifList(data.notifications || [])
+      } catch {
+        setNotifList([])
+      } finally {
+        setNotifLoading(false)
+      }
+    }
+  }
+
+  const closeNotif = () => setNotifOpen(false)
+
+  const handleNotifClick = async (n) => {
+    try {
+      if (!n.is_read) {
+        await notifications.markAsRead(n.id)
+        setNotifications(prev => Math.max(0, prev - 1))
+      }
+    } catch { /* non-blocking */ }
+    setNotifOpen(false)
+    navigate(n.link || `${basePath}/notifications`)
+  }
+
+  const handleMarkAllRead = async () => {
+    try {
+      await notifications.markAllRead()
+      setNotifications(0)
+      setNotifList(prev => prev.map(n => ({ ...n, is_read: true })))
+    } catch { /* non-blocking */ }
   }
 
   const handleLogout = async () => {
@@ -800,17 +840,82 @@ export default function DashboardLayout({ role }) {
             <LanguageSwitcher compact />
 
             {/* Notifications */}
-            <button
-              onClick={() => navigate(`${basePath}/notifications`)}
-              className="relative w-9 h-9 rounded-full bg-primary-light flex items-center justify-center hover:bg-primary/20 transition-colors"
-            >
-              <Bell className="w-[18px] h-[18px] text-primary-dark" />
-              {notifications > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] text-white font-bold border-2 border-white">
-                  {notifications}
-                </span>
+            <div className="relative">
+              <button
+                onClick={toggleNotif}
+                aria-label={t('common.notifications')}
+                className="relative w-9 h-9 rounded-full bg-primary-light flex items-center justify-center hover:bg-primary/20 transition-colors"
+              >
+                <Bell className="w-[18px] h-[18px] text-primary-dark" />
+                {notifications > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] text-white font-bold border-2 border-white">
+                    {notifications}
+                  </span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={closeNotif} />
+                  <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-gray-900">{t('common.notifications')}</p>
+                      {notifications > 0 && (
+                        <button
+                          onClick={handleMarkAllRead}
+                          className="text-xs font-medium text-primary-dark hover:text-primary transition-colors"
+                        >
+                          {t('common.markAllRead')}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-80 overflow-y-auto">
+                      {notifLoading ? (
+                        <div className="px-4 py-8 text-center text-sm text-gray-400">
+                          {t('common.loading')}
+                        </div>
+                      ) : notifList.length === 0 ? (
+                        <div className="px-4 py-8 text-center text-sm text-gray-400">
+                          {t('common.noData')}
+                        </div>
+                      ) : (
+                        notifList.map(n => (
+                          <button
+                            key={n.id}
+                            onClick={() => handleNotifClick(n)}
+                            className={`w-full text-left px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors ${
+                              n.is_read ? '' : 'bg-primary-light/40'
+                            }`}
+                          >
+                            <div className="flex items-start gap-2.5">
+                              {!n.is_read && (
+                                <span className="mt-1.5 w-2 h-2 rounded-full bg-primary shrink-0" />
+                              )}
+                              <div className={!n.is_read ? '' : 'ml-[18px]'}>
+                                <p className={`text-sm text-gray-900 leading-snug ${n.is_read ? 'font-normal' : 'font-semibold'}`}>
+                                  {n.title}
+                                </p>
+                                {n.message && (
+                                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => { closeNotif(); navigate(`${basePath}/notifications`) }}
+                      className="w-full px-4 py-2.5 text-sm font-medium text-primary-dark hover:bg-gray-50 border-t border-gray-100 transition-colors"
+                    >
+                      {t('common.viewAll')}
+                    </button>
+                  </div>
+                </>
               )}
-            </button>
+            </div>
 
             {/* User Dropdown */}
             <div className="relative">

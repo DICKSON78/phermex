@@ -32,7 +32,7 @@
             for (const reg of regs) {
               reg.unregister();
             }
-            navigator.serviceWorker.register('/sw.js').catch(() => {});
+            navigator.serviceWorker.register('/dashboard/sw.js').catch(() => {});
           });
         });
       }

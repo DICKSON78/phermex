@@ -56,19 +56,26 @@ function formatCurrency(amount) {
   return formatMoney(amount, { decimals: 0 })
 }
 
-const STATUS_MAP = {
-  pending: { label: 'Pending', className: 'badge badge-yellow' },
-  confirmed: { label: 'Confirmed', className: 'badge badge-blue' },
-  preparing: { label: 'Preparing', className: 'badge badge-blue' },
-  ready: { label: 'Ready', className: 'badge badge-indigo' },
-  out_for_delivery: { label: 'Out for Delivery', className: 'badge badge-orange' },
-  delivered: { label: 'Delivered', className: 'badge badge-green' },
-  dispensed: { label: 'Dispensed', className: 'badge badge-green' },
-  cancelled: { label: 'Cancelled', className: 'badge badge-red' },
-  failed: { label: 'Failed', className: 'badge badge-red' },
+const STATUS_CLASSES = {
+  pending: 'badge badge-yellow',
+  confirmed: 'badge badge-blue',
+  preparing: 'badge badge-blue',
+  ready: 'badge badge-indigo',
+  out_for_delivery: 'badge badge-orange',
+  delivered: 'badge badge-green',
+  dispensed: 'badge badge-green',
+  cancelled: 'badge badge-red',
+  failed: 'badge badge-red',
+}
+
+function statusConfig(t, status) {
+  const key = STATUS_CLASSES[status] ? status : 'pending'
+  return { label: t(`orders.${key}`, key), className: STATUS_CLASSES[key] }
 }
 
 function OwnerDashboard() {
+  const { t } = useLanguage()
+  const { subscription } = useAuth()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -103,7 +110,7 @@ function OwnerDashboard() {
         })()
 
         const topSellingDrugs = (apiData.top_selling_drugs || []).map((item) => ({
-          name: item.name || item.drug?.name || 'Unknown',
+          name: item.name || item.drug?.name || t('dashboard.unknown'),
           quantitySold: item.quantitySold ?? item.total_sold ?? 0,
           revenue: item.revenue ?? 0,
         }))
@@ -111,14 +118,14 @@ function OwnerDashboard() {
         const recentOrders = (apiData.recent_orders || []).map((order) => ({
           id: order.id,
           code: order.order_code || order.code,
-          customer: order.customer || 'Walk-in',
+          customer: order.customer || t('dashboard.walkIn'),
           total: order.total ?? 0,
           status: order.status || order.order_status || 'pending',
           time: order.time || '',
         }))
 
         const lowStockDrugs = (apiData.low_stock_drugs || []).map((drug) => ({
-          name: drug.name || 'Unknown',
+          name: drug.name || t('dashboard.unknown'),
           reorderLevel: drug.reorder_level,
           currentStock: drug.quantity ?? drug.current_stock ?? 0,
         }))
@@ -166,15 +173,13 @@ function OwnerDashboard() {
 
   if (!data) return null
 
-  const { t } = useLanguage()
   const greeting = getGreeting(t)
-  const { subscription } = useAuth()
 
   return (
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Using offline data — could not reach server.
+          {t('dashboard.usingOfflineData')}
         </div>
       )}
 
@@ -185,8 +190,8 @@ function OwnerDashboard() {
             <LayoutDashboardIcon className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-sm text-gray-500">Your pharmacy overview and quick actions.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+            <p className="text-sm text-gray-500">{t('dashboard.overview')}</p>
           </div>
         </div>
         {subscription && subscription.subscription_type === 'trial' && subscription.days_remaining > 0 && (
@@ -195,11 +200,11 @@ function OwnerDashboard() {
               <Clock className="w-4.5 h-4.5 text-[#0FD452]" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-wider">Free Trial</p>
-              <p className="text-sm font-bold text-gray-900">{subscription.days_remaining} day{subscription.days_remaining === 1 ? '' : 's'} remaining</p>
+              <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-wider">{t('subscription.freeTrial')}</p>
+              <p className="text-sm font-bold text-gray-900">{subscription.days_remaining} {t('subscription.daysRemaining')}</p>
             </div>
             <button onClick={() => window.location.href = '/subscribe'} className="ml-2 px-3.5 py-1.5 bg-[#0FD452] text-[#000F14] rounded-xl text-xs font-bold hover:bg-[#0cb843] transition-all active:scale-95">
-              Subscribe
+              {t('subscription.subscribe')}
             </button>
           </div>
         )}
@@ -209,8 +214,8 @@ function OwnerDashboard() {
               <CheckCircle className="w-4.5 h-4.5 text-[#0FD452]" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-wider">Subscription</p>
-              <p className="text-sm font-bold text-gray-900">{subscription.days_remaining} day{subscription.days_remaining === 1 ? '' : 's'} remaining</p>
+              <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-wider">{t('subscription.subscriptionLabel')}</p>
+              <p className="text-sm font-bold text-gray-900">{subscription.days_remaining} {t('subscription.daysRemaining')}</p>
             </div>
           </div>
         )}
@@ -220,11 +225,11 @@ function OwnerDashboard() {
               <AlertTriangle className="w-4.5 h-4.5 text-red-500" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Expired</p>
-              <p className="text-sm font-bold text-gray-900">Renew to continue</p>
+              <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider">{t('subscription.expiredLabel')}</p>
+              <p className="text-sm font-bold text-gray-900">{t('subscription.renewToContinue')}</p>
             </div>
             <button onClick={() => window.location.href = '/subscribe'} className="ml-2 px-3.5 py-1.5 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-all active:scale-95">
-              Renew
+              {t('subscription.renew')}
             </button>
           </div>
         )}
@@ -233,7 +238,7 @@ function OwnerDashboard() {
       {/* Primary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          label="Today's Sales"
+          label={t('dashboard.todaySales')}
           value={formatCurrency(data.todaySales)}
           icon={<DollarIcon />}
           iconColor="text-primary"
@@ -242,28 +247,28 @@ function OwnerDashboard() {
           up={data.salesTrend >= 0}
         />
         <StatCard
-          label="Monthly Revenue"
+          label={t('dashboard.monthlyRevenue')}
           value={formatCurrency(data.monthlyRevenue)}
           icon={<TrendingUpIcon />}
           iconColor="text-emerald-600"
           bg="bg-emerald-100"
-          suffix="This month"
+          suffix={t('dashboard.thisMonth')}
         />
         <StatCard
-          label="Pending Prescriptions"
+          label={t('dashboard.pendingPrescriptions')}
           value={data.pendingPrescriptions}
           icon={<FileTextIcon />}
           iconColor="text-yellow-600"
           bg="bg-yellow-100"
-          suffix={data.pendingPrescriptions > 5 ? 'Needs attention' : 'Awaiting review'}
+          suffix={data.pendingPrescriptions > 5 ? t('dashboard.needsAttention') : t('dashboard.awaitingReview')}
         />
         <StatCard
-          label="Low Stock Alerts"
+          label={t('dashboard.lowStockAlert')}
           value={data.lowStockAlerts}
           icon={<AlertIcon />}
           iconColor={data.lowStockAlerts > 0 ? 'text-red-600' : 'text-primary'}
           bg={data.lowStockAlerts > 0 ? 'bg-red-100' : 'bg-primary-light'}
-          suffix={data.lowStockAlerts > 0 ? 'Restock needed' : 'All stocked up'}
+          suffix={data.lowStockAlerts > 0 ? t('dashboard.restockNeeded') : t('dashboard.allStockedUp')}
         />
       </div>
 
@@ -272,16 +277,16 @@ function OwnerDashboard() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <ZapIcon className="w-5 h-5 text-yellow-500" />
-            Quick Actions
+            {t('dashboard.quickActions')}
           </h3>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'New Sale', desc: 'Open POS', to: '/dashboard/pos', bg: 'bg-primary-light', color: 'text-primary', icon: <CartIcon /> },
-              { label: 'Add Drug', desc: 'New inventory item', to: '/dashboard/drugs/new', bg: 'bg-blue-100', color: 'text-blue-600', icon: <PlusIcon /> },
-              { label: 'Prescriptions', desc: 'Manage rx', to: '/dashboard/prescriptions', bg: 'bg-purple-100', color: 'text-purple-600', icon: <RxIcon /> },
-              { label: 'Reports', desc: 'View analytics', to: '/dashboard/reports', bg: 'bg-amber-100', color: 'text-amber-600', icon: <ChartIcon /> },
+              { label: t('dashboard.newSale'), desc: t('dashboard.openPos'), to: '/dashboard/pos', bg: 'bg-primary-light', color: 'text-primary', icon: <CartIcon /> },
+              { label: t('dashboard.addDrug'), desc: t('dashboard.newInventoryItem'), to: '/dashboard/drugs/new', bg: 'bg-blue-100', color: 'text-blue-600', icon: <PlusIcon /> },
+              { label: t('dashboard.prescriptionsQuick'), desc: t('dashboard.manageRx'), to: '/dashboard/prescriptions', bg: 'bg-purple-100', color: 'text-purple-600', icon: <RxIcon /> },
+              { label: t('dashboard.reports'), desc: t('dashboard.viewAnalytics'), to: '/dashboard/reports', bg: 'bg-amber-100', color: 'text-amber-600', icon: <ChartIcon /> },
             ].map((action) => (
               <Link key={action.to} to={action.to} className="quick-action">
                 <div className="flex items-center gap-3">
@@ -356,21 +361,21 @@ function OwnerDashboard() {
                       boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                       fontSize: '13px',
                     }}
-                    formatter={(value) => [formatCurrency(value), 'Revenue']}
+                    formatter={(value) => [formatCurrency(value), t('dashboard.revenue')]}
                   />
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-xs text-gray-500">{selectedWeek === 0 ? 'Total' : `Week ${selectedWeek}`}</p>
+                <p className="text-xs text-gray-500">{selectedWeek === 0 ? t('dashboard.total') : `${t('dashboard.week')} ${selectedWeek}`}</p>
                 <p className="text-lg font-bold text-gray-900">
                   {formatCurrency(selectedWeek === 0 ? data.revenueBreakdown.reduce((s, w) => s + w.value, 0) : (data.revenueBreakdown[selectedWeek - 1]?.value ?? 0))}
                 </p>
                 <p className="text-[10px] text-gray-400">
                   {selectedWeek === 0
-                    ? 'Last 30 days'
+                    ? t('dashboard.last30days')
                     : (() => {
                         const total = data.revenueBreakdown.reduce((s, w) => s + w.value, 0)
-                        return total > 0 ? `${Math.round(((data.revenueBreakdown[selectedWeek - 1]?.value ?? 0) / total) * 100)}% of total` : ''
+                        return total > 0 ? `${Math.round(((data.revenueBreakdown[selectedWeek - 1]?.value ?? 0) / total) * 100)}% ${t('dashboard.ofTotal')}` : ''
                       })()}
                 </p>
               </div>
@@ -415,13 +420,13 @@ function OwnerDashboard() {
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <CartIcon className="w-5 h-5 text-blue-600" />
-              Recent Orders
+              {t('dashboard.recentOrders')}
             </h3>
             <Link
               to="/dashboard/orders"
               className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
             >
-              View All <ArrowRight className="h-4 w-4" />
+              {t('common.viewAll')} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -432,38 +437,38 @@ function OwnerDashboard() {
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Order Code</span>
+                        <span>{t('dashboard.orderCode')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Customer</span>
+                        <span>{t('dashboard.customer')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Total</span>
+                        <span>{t('common.total')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <CheckCircle className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Status</span>
+                        <span>{t('common.status')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Time</span>
+                        <span>{t('dashboard.time')}</span>
                       </div>
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {data.recentOrders?.length > 0 ? data.recentOrders.map((order) => {
-                    const statusCfg = STATUS_MAP[order.status] || STATUS_MAP.pending
+                    const statusCfg = statusConfig(t, order.status)
                     return (
                       <tr key={order.id} className="transition-colors hover:bg-[#0FD452]/5">
                         <td className="px-6 py-4">
@@ -491,7 +496,7 @@ function OwnerDashboard() {
                     <tr>
                       <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
                         <Receipt className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                        <p className="text-sm font-medium">No recent orders</p>
+                        <p className="text-sm font-medium">{t('dashboard.noRecentOrders')}</p>
                       </td>
                     </tr>
                   )}
@@ -508,7 +513,7 @@ function OwnerDashboard() {
             <div className="px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <PillIcon className="w-5 h-5 text-primary" />
-                Top Selling Drugs
+                {t('dashboard.topSelling')}
               </h3>
             </div>
             <div className="p-6 space-y-4">
@@ -516,7 +521,7 @@ function OwnerDashboard() {
                 <div key={idx}>
                   <div className="mb-1.5 flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-900">{drug.name}</span>
-                    <span className="text-xs text-gray-500">{drug.quantitySold} sold</span>
+                    <span className="text-xs text-gray-500">{drug.quantitySold} {t('dashboard.sold')}</span>
                   </div>
                   <div className="progress-bar">
                     <div
@@ -527,13 +532,13 @@ function OwnerDashboard() {
                     />
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
-                    {formatCurrency(drug.revenue)} revenue
+                    {formatCurrency(drug.revenue)} {t('dashboard.revenue')}
                   </p>
                 </div>
               )) : (
                 <div className="text-center py-8 text-gray-400">
                   <PillIcon className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                  <p className="text-sm font-medium">No sales data yet</p>
+                  <p className="text-sm font-medium">{t('dashboard.noSalesDataYet')}</p>
                 </div>
               )}
             </div>
@@ -544,12 +549,12 @@ function OwnerDashboard() {
             <div className="px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <AlertIcon className="w-5 h-5 text-red-500" />
-                Low Stock Alerts
+                {t('dashboard.lowStockAlert')}
               </h3>
             </div>
             <div className="p-6">
               {data.lowStockDrugs?.length === 0 ? (
-                <p className="text-sm text-gray-500">All items are well-stocked.</p>
+                <p className="text-sm text-gray-500">{t('dashboard.allItemsWellStocked')}</p>
               ) : (
                 <div className="space-y-3">
                   {data.lowStockDrugs?.map((drug, idx) => (
@@ -559,12 +564,12 @@ function OwnerDashboard() {
                     >
                       <div>
                         <p className="text-sm font-medium text-gray-900">{drug.name}</p>
-                        <p className="text-xs text-gray-500">Reorder at {drug.reorderLevel}</p>
+                        <p className="text-xs text-gray-500">{t('dashboard.reorderAt')} {drug.reorderLevel}</p>
                       </div>
                       {drug.currentStock === 0 ? (
-                        <span className="badge badge-red">Out of stock</span>
+                        <span className="badge badge-red">{t('dashboard.outOfStock')}</span>
                       ) : (
-                        <span className="badge badge-yellow">{drug.currentStock} left</span>
+                        <span className="badge badge-yellow">{drug.currentStock} {t('dashboard.left')}</span>
                       )}
                     </div>
                   ))}

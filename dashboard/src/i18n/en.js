@@ -54,6 +54,15 @@ export const en = {
     inactive: 'Inactive',
     markAllRead: 'Mark all read',
     viewAll: 'View all',
+    currentPharmacy: 'Current Pharmacy',
+    pharmacySystem: 'Pharmacy System',
+    adminPanel: 'Admin Panel',
+    roleAdmin: 'Administrator',
+    roleOwner: 'Pharmacy Owner',
+    rolePharmacist: 'Pharmacist',
+    roleCashier: 'Cashier',
+    roleDelivery: 'Delivery',
+    roleCustomer: 'Customer',
   },
   nav: {
     main: 'MAIN',
@@ -379,6 +388,10 @@ export const en = {
     viewPlans: 'View Plans',
     paymentSuccess: 'Subscription updated successfully',
     billing: 'Subscription & Billing',
+    required: 'Subscription Required',
+    expiredMessage: "Your subscription has expired. Renew your plan to keep using Helix's pharmacy modules — your data stays safe while you're away.",
+    choosePlan: 'Choose a Plan',
+    goToSettings: 'Go to Pharmacy Settings',
   },
 }
 

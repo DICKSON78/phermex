@@ -54,6 +54,15 @@ export const sw = {
     inactive: 'Haifanyi kazi',
     markAllRead: 'Weka zote kama zimesomwa',
     viewAll: 'Ona zote',
+    currentPharmacy: 'Farmasia ya Sasa',
+    pharmacySystem: 'Mfumo wa Farmasia',
+    adminPanel: 'Paneli ya Msimamizi',
+    roleAdmin: 'Msimamizi',
+    roleOwner: 'Mmiliki wa Farmasia',
+    rolePharmacist: 'Mfamasia',
+    roleCashier: 'Mhudumu wa Fedha',
+    roleDelivery: 'Msafirishaji',
+    roleCustomer: 'Mteja',
   },
   nav: {
     main: 'KUU',
@@ -379,6 +388,10 @@ export const sw = {
     viewPlans: 'Ona Mipango',
     paymentSuccess: 'Usajili umesasishwa kwa mafanikio',
     billing: 'Usajili na Bili',
+    required: 'Usajili Unahitajika',
+    expiredMessage: 'Usajili wako umeisha muda. Sasisha mpango wako ili kuendelea kutumia moduli za farmasia za Helix — data yako iko salama wakati unapokaa mbali.',
+    choosePlan: 'Chagua Mpango',
+    goToSettings: 'Nenda kwenye Mipangilio ya Farmasia',
   },
 }
 

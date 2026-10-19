@@ -556,7 +556,7 @@ export default function DashboardLayout({ role }) {
   }
 
   const userInitials = (user?.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-  const roleLabel = { admin: 'Administrator', owner: 'Pharmacy Owner', pharmacist: 'Pharmacist', cashier: 'Cashier', delivery: 'Delivery', customer: 'Customer' }[user?.role || role] || role
+  const roleLabel = { admin: t('common.roleAdmin'), owner: t('common.roleOwner'), pharmacist: t('common.rolePharmacist'), cashier: t('common.roleCashier'), delivery: t('common.roleDelivery'), customer: t('common.roleCustomer') }[user?.role || role] || role
 
   const sidebarContent = (
     <>
@@ -570,7 +570,7 @@ export default function DashboardLayout({ role }) {
           <div>
             <h1 className="text-white font-bold text-[15px] leading-tight">HELIX</h1>
             <p className="text-green-200/60 text-[11px]">
-              {role === 'admin' ? 'Admin Panel' : 'Pharmacy System'}
+              {role === 'admin' ? t('common.adminPanel') : t('common.pharmacySystem')}
             </p>
           </div>
         </Link>
@@ -592,7 +592,7 @@ export default function DashboardLayout({ role }) {
               <Stethoscope className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-green-200/70 font-semibold">Current Pharmacy</p>
+              <p className="text-[10px] uppercase tracking-wider text-green-200/70 font-semibold">{t('common.currentPharmacy')}</p>
               <p className="text-sm font-semibold text-white truncate">{currentPharmacy?.pharmacy_name || 'Select Pharmacy'}</p>
             </div>
             <span
@@ -687,7 +687,7 @@ export default function DashboardLayout({ role }) {
                       ? item.path !== `${basePath}/settings`
                       : !!required && !hasPlanAccess(currentPlan, required)
                     if (locked) {
-                      const label = ownerExpired ? 'Upgrade' : (PLAN_LABELS[required] || required)
+                      const label = ownerExpired ? t('subscription.upgrade') : (PLAN_LABELS[required] || required)
                       return (
                         <Link
                           key={item.path}
@@ -752,7 +752,7 @@ export default function DashboardLayout({ role }) {
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 transition-all duration-200"
           >
             <Settings className="w-5 h-5" />
-            <span>Settings</span>
+            <span>{t('common.settings')}</span>
           </NavLink>
         )}
         <div className="h-px bg-white/10 my-2" />

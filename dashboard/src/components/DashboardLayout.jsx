@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, Navigate, useLocation, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import api, { notifications } from '../services/api'
+import api, { notifications as notificationsApi } from '../services/api'
 
 import {
   LayoutDashboard,
@@ -501,7 +501,7 @@ export default function DashboardLayout({ role }) {
     if (next && notifList.length === 0) {
       setNotifLoading(true)
       try {
-        const { data } = await notifications.getAll({ per_page: 8 })
+        const { data } = await notificationsApi.getAll({ per_page: 8 })
         setNotifList(data.notifications || [])
       } catch {
         setNotifList([])
@@ -516,7 +516,7 @@ export default function DashboardLayout({ role }) {
   const handleNotifClick = async (n) => {
     try {
       if (!n.is_read) {
-        await notifications.markAsRead(n.id)
+        await notificationsApi.markAsRead(n.id)
         setNotifications(prev => Math.max(0, prev - 1))
       }
     } catch { /* non-blocking */ }
@@ -526,7 +526,7 @@ export default function DashboardLayout({ role }) {
 
   const handleMarkAllRead = async () => {
     try {
-      await notifications.markAllRead()
+      await notificationsApi.markAllRead()
       setNotifications(0)
       setNotifList(prev => prev.map(n => ({ ...n, is_read: true })))
     } catch { /* non-blocking */ }

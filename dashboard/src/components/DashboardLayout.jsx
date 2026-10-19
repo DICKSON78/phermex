@@ -781,7 +781,11 @@ export default function DashboardLayout({ role }) {
       )}
 
       {/* Mobile sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 md:hidden">
+      <div
+        className={`fixed inset-y-0 left-0 z-50 md:hidden ${
+          sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'
+        }`}
+      >
         <div
           className={`h-full w-[272px] flex flex-col transition-transform duration-300 ease-in-out ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'

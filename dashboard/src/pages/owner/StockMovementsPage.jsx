@@ -7,21 +7,32 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useLanguage } from '../../contexts/LanguageContext'
 
-
-const TYPE_CONFIG = {
-  purchase: { color: 'bg-green-100 text-green-700', icon: ArrowDown, label: 'Purchase' },
-  sale: { color: 'bg-blue-100 text-blue-700', icon: ArrowUp, label: 'Sale' },
-  adjustment: { color: 'bg-yellow-100 text-yellow-700', icon: RefreshCw, label: 'Adjustment' },
-  return: { color: 'bg-orange-100 text-orange-700', icon: Undo2, label: 'Return' },
-  expiry: { color: 'bg-red-100 text-red-700', icon: XCircle, label: 'Expiry' },
-  transfer: { color: 'bg-purple-100 text-purple-700', icon: ArrowRight, label: 'Transfer' },
-}
-
-const TYPE_OPTIONS = ['All', 'Purchase', 'Sale', 'Adjustment', 'Return', 'Expiry', 'Transfer']
 
 export default function StockMovementsPage() {
+  const { t } = useLanguage()
   const [movements, setMovements] = useState([])
+
+  const TYPE_CONFIG = {
+    purchase: { color: 'bg-green-100 text-green-700', icon: ArrowDown, label: t('inventory.movements.typePurchase') },
+    sale: { color: 'bg-blue-100 text-blue-700', icon: ArrowUp, label: t('inventory.movements.typeSale') },
+    adjustment: { color: 'bg-yellow-100 text-yellow-700', icon: RefreshCw, label: t('inventory.movements.typeAdjustment') },
+    return: { color: 'bg-orange-100 text-orange-700', icon: Undo2, label: t('inventory.movements.typeReturn') },
+    expiry: { color: 'bg-red-100 text-red-700', icon: XCircle, label: t('inventory.movements.typeExpiry') },
+    transfer: { color: 'bg-purple-100 text-purple-700', icon: ArrowRight, label: t('inventory.movements.typeTransfer') },
+  }
+
+  const TYPE_OPTIONS = ['All', 'Purchase', 'Sale', 'Adjustment', 'Return', 'Expiry', 'Transfer']
+  const TYPE_LABELS = {
+    All: t('inventory.movements.allTypes'),
+    Purchase: t('inventory.movements.typePurchase'),
+    Sale: t('inventory.movements.typeSale'),
+    Adjustment: t('inventory.movements.typeAdjustment'),
+    Return: t('inventory.movements.typeReturn'),
+    Expiry: t('inventory.movements.typeExpiry'),
+    Transfer: t('inventory.movements.typeTransfer'),
+  }
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
@@ -81,17 +92,17 @@ export default function StockMovementsPage() {
   }
 
   const statCards = [
-    { label: 'Total Movements', value: stats.total, icon: Activity, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
-    { label: 'Purchases', value: stats.purchases, icon: ArrowDown, color: 'bg-green-100 text-green-600' },
-    { label: 'Sales', value: stats.sales, icon: ArrowUp, color: 'bg-blue-100 text-blue-600' },
-    { label: 'Adjustments', value: stats.adjustments, icon: RefreshCw, color: 'bg-yellow-100 text-yellow-600' },
-    { label: 'Returns', value: stats.returns, icon: Undo2, color: 'bg-orange-100 text-orange-600' },
-    { label: 'Expiries', value: stats.expiries, icon: XCircle, color: 'bg-red-100 text-red-600' },
+    { label: t('inventory.movements.totalMovements'), value: stats.total, icon: Activity, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
+    { label: t('inventory.movements.purchases'), value: stats.purchases, icon: ArrowDown, color: 'bg-green-100 text-green-600' },
+    { label: t('inventory.movements.sales'), value: stats.sales, icon: ArrowUp, color: 'bg-blue-100 text-blue-600' },
+    { label: t('inventory.movements.adjustments'), value: stats.adjustments, icon: RefreshCw, color: 'bg-yellow-100 text-yellow-600' },
+    { label: t('inventory.movements.returns'), value: stats.returns, icon: Undo2, color: 'bg-orange-100 text-orange-600' },
+    { label: t('inventory.movements.expiries'), value: stats.expiries, icon: XCircle, color: 'bg-red-100 text-red-600' },
   ]
 
   const handleManualAdjustment = async () => {
     if (!adjustmentForm.drug_id || !adjustmentForm.quantity || !adjustmentForm.reason) {
-      toast.error('Please fill in all required fields')
+      toast.error(t('inventory.movements.toastRequired'))
       return
     }
     try {
@@ -104,10 +115,10 @@ export default function StockMovementsPage() {
       })
       setShowAdjustForm(false)
       setAdjustmentForm({ drug_id: '', type: 'adjustment_in', quantity: '', reason: '', unit_cost: '' })
-      toast.success('Stock adjustment recorded')
+      toast.success(t('inventory.movements.toastRecorded'))
       fetchMovements()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to record adjustment')
+      toast.error(err.response?.data?.message || t('inventory.movements.toastFailed'))
     }
   }
 
@@ -119,8 +130,8 @@ export default function StockMovementsPage() {
             <Package className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Stock Movements</h1>
-            <p className="text-sm text-gray-500">Track all inventory changes and adjustments.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('inventory.movements.title')}</h1>
+            <p className="text-sm text-gray-500">{t('inventory.movements.subtitle')}</p>
           </div>
         </div>
         <button
@@ -128,7 +139,7 @@ export default function StockMovementsPage() {
           className="flex items-center gap-2 bg-[#0FD452] text-white px-5 py-2.5 rounded-lg font-medium hover:bg-[#0bc246] transition-colors shadow-sm text-sm"
         >
           <Plus className="w-4 h-4" />
-          Record Manual Adjustment
+          {t('inventory.movements.recordManual')}
         </button>
       </div>
 
@@ -156,7 +167,7 @@ export default function StockMovementsPage() {
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-              placeholder="Search by drug, reference, or user..."
+              placeholder={t('inventory.movements.searchPlaceholder')}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-[#000F14] placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0FD452]/20 focus:border-[#0FD452] transition-all"
             />
           </div>
@@ -165,8 +176,8 @@ export default function StockMovementsPage() {
             onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1) }}
             className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-[#000F14] outline-none focus:ring-2 focus:ring-[#0FD452]/20 focus:border-[#0FD452] transition-all"
           >
-            {TYPE_OPTIONS.map((t) => (
-              <option key={t} value={t}>{t === 'All' ? 'All Types' : t}</option>
+            {TYPE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{TYPE_LABELS[opt]}</option>
             ))}
           </select>
           <div className="flex gap-2">
@@ -194,55 +205,55 @@ export default function StockMovementsPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>DateTime</span>
+                    <span>{t('inventory.movements.dateTime')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Pill className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Drug</span>
+                    <span>{t('inventory.movements.drug')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Type</span>
+                    <span>{t('inventory.movements.type')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Package className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Quantity</span>
+                    <span>{t('inventory.movements.quantity')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell">
                   <div className="flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Unit Cost</span>
+                    <span>{t('inventory.drug.unitCost')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell">
                   <div className="flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Total Value</span>
+                    <span>{t('inventory.movements.totalValue')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell">
                   <div className="flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Reference</span>
+                    <span>{t('inventory.movements.reference')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden xl:table-cell">
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Performed By</span>
+                    <span>{t('inventory.movements.performedBy')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden xl:table-cell">
                   <div className="flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Notes</span>
+                    <span>{t('inventory.labels.notes')}</span>
                   </div>
                 </th>
               </tr>
@@ -258,7 +269,7 @@ export default function StockMovementsPage() {
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-gray-400">
                     <Activity className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                    <p>No stock movements found</p>
+                    <p>{t('inventory.movements.noRecords')}</p>
                   </td>
                 </tr>
               ) : (
@@ -301,8 +312,8 @@ export default function StockMovementsPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
             <p className="text-sm text-gray-500">
-              Showing {(currentPage - 1) * pageSize + 1} to{' '}
-              {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length}
+              {t('inventory.pagination.showing')} {(currentPage - 1) * pageSize + 1} {t('inventory.pagination.to')}{' '}
+              {Math.min(currentPage * pageSize, filtered.length)} {t('inventory.pagination.of')} {filtered.length}
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -350,40 +361,40 @@ export default function StockMovementsPage() {
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#000F14]">Record Manual Adjustment</h3>
+                <h3 className="text-lg font-semibold text-[#000F14]">{t('inventory.movements.recordManual')}</h3>
                 <button onClick={() => setShowAdjustForm(false)} className="text-gray-400 hover:text-gray-600">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Drug</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('inventory.movements.drug')}</label>
                   <select
                     value={adjustmentForm.drug_id}
                     onChange={(e) => setAdjustmentForm({ ...adjustmentForm, drug_id: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
                   >
-                    <option value="">Select drug</option>
+                    <option value="">{t('inventory.movements.selectDrug')}</option>
                     {drugs.map((d) => (
                       <option key={d.id} value={d.id}>{d.name}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('inventory.movements.type')}</label>
                   <select
                     value={adjustmentForm.type}
                     onChange={(e) => setAdjustmentForm({ ...adjustmentForm, type: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
                   >
-                    <option value="adjustment_in">Adjustment In (+)</option>
-                    <option value="adjustment_out">Adjustment Out (-)</option>
-                    <option value="return">Return</option>
-                    <option value="expiry">Expiry</option>
+                    <option value="adjustment_in">{t('inventory.movements.adjIn')}</option>
+                    <option value="adjustment_out">{t('inventory.movements.adjOut')}</option>
+                    <option value="return">{t('inventory.movements.typeReturn')}</option>
+                    <option value="expiry">{t('inventory.movements.typeExpiry')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Quantity</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('inventory.movements.quantity')}</label>
                   <input
                     type="number"
                     value={adjustmentForm.quantity}
@@ -394,17 +405,17 @@ export default function StockMovementsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Reason</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('inventory.movements.reason')}</label>
                   <input
                     type="text"
                     value={adjustmentForm.reason}
                     onChange={(e) => setAdjustmentForm({ ...adjustmentForm, reason: e.target.value })}
-                    placeholder="Reason for adjustment"
+                    placeholder={t('inventory.movements.reasonPlaceholder')}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Unit Cost (Optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('inventory.movements.unitCostOptional')}</label>
                   <input
                     type="number"
                     value={adjustmentForm.unit_cost}
@@ -421,7 +432,7 @@ export default function StockMovementsPage() {
                   onClick={() => setShowAdjustForm(false)}
                   className="btn-secondary"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleManualAdjustment}
@@ -429,7 +440,7 @@ export default function StockMovementsPage() {
                   className="flex items-center gap-2 px-4 py-2.5 bg-[#0FD452] text-white rounded-xl text-sm font-semibold hover:bg-[#0bc246] disabled:opacity-50 transition-colors"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Record Adjustment
+                  {t('inventory.movements.recordAdjustment')}
                 </button>
               </div>
             </div>

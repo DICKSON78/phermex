@@ -33,6 +33,7 @@ import toast from 'react-hot-toast'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import Modal from '../../components/Modal'
 import { formatMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const ROLE_STYLES = {
   admin: 'bg-red-100 text-red-700',
@@ -65,6 +66,7 @@ function formatDate(dateStr) {
 export default function AdminUserShowPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -82,7 +84,7 @@ export default function AdminUserShowPage() {
       const res = await api.get(`/admin/users/${id}`)
       setUser(res.data.data || res.data)
     } catch {
-      setError('Failed to load user details')
+      setError(t('adminUsers.users.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -93,20 +95,20 @@ export default function AdminUserShowPage() {
       await api.delete(`/admin/users/${id}`)
     } catch {}
     setConfirmOpen(false)
-    setSuccessMsg('User deleted successfully')
+    setSuccessMsg(t('adminUsers.users.deletedSuccess'))
     setSuccessModal(true)
     setTimeout(() => navigate('/dashboard/users'), 1500)
   }
 
   const handleSendMessage = async () => {
-    const body = window.prompt('Enter the message to send to this user:')
+    const body = window.prompt(t('adminUsers.users.messagePrompt'))
     if (body === null || body.trim() === '') return
     setActing('message')
     try {
       await api.post(`/admin/users/${id}/message`, { message: body.trim() })
-      toast.success('Message sent to user')
+      toast.success(t('adminUsers.users.messageSent'))
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send message')
+      toast.error(err.response?.data?.message || t('adminUsers.users.messageFailed'))
     } finally {
       setActing(null)
     }
@@ -116,9 +118,9 @@ export default function AdminUserShowPage() {
     setActing('password')
     try {
       await api.post('/forgot-password', { identifier: user.email })
-      toast.success('Password reset code sent to user')
+      toast.success(t('adminUsers.users.passwordResetSent'))
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to reset password')
+      toast.error(err.response?.data?.message || t('adminUsers.users.passwordResetFailed'))
     } finally {
       setActing(null)
     }
@@ -129,9 +131,9 @@ export default function AdminUserShowPage() {
     try {
       await api.patch(`/admin/users/${id}`, { status: 'inactive' })
       setUser((prev) => (prev ? { ...prev, status: 'inactive', is_active: false } : prev))
-      toast.success('User deactivated')
+      toast.success(t('adminUsers.users.deactivated'))
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to deactivate user')
+      toast.error(err.response?.data?.message || t('adminUsers.users.deactivateFailed'))
     } finally {
       setActing(null)
     }
@@ -169,7 +171,7 @@ export default function AdminUserShowPage() {
             onClick={() => navigate('/dashboard/users')}
             className="text-[#0FD452] mt-2 text-sm font-medium hover:underline"
           >
-            Go back
+            {t('common.back')}
           </button>
         </div>
       </div>
@@ -181,12 +183,12 @@ export default function AdminUserShowPage() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">User not found</p>
+          <p className="text-gray-500">{t('adminUsers.users.notFound')}</p>
           <button
             onClick={() => navigate('/dashboard/users')}
             className="text-[#0FD452] mt-2 text-sm font-medium hover:underline"
           >
-            Go back
+            {t('common.back')}
           </button>
         </div>
       </div>
@@ -225,15 +227,15 @@ export default function AdminUserShowPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-2">{user.email} — {user.role} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${ROLE_STYLES[user.role] || 'bg-gray-100 text-gray-600'}`}>{user.role} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[user.status] || 'bg-gray-100 text-gray-600'}`}>{user.status}</span></span></p>
+            <p className="text-sm text-gray-500 flex items-center gap-2">{user.email} — {user.role ? t('common.role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : user.role} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${ROLE_STYLES[user.role] || 'bg-gray-100 text-gray-600'}`}>{user.role ? t('common.role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : user.role} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[user.status] || 'bg-gray-100 text-gray-600'}`}>{t('common.' + user.status, user.status)}</span></span></p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Link to={`/dashboard/users/${id}/edit`} className="btn-secondary">
-            <Edit className="w-4 h-4" /> Edit
+            <Edit className="w-4 h-4" /> {t('common.edit')}
           </Link>
           <button onClick={() => setConfirmOpen(true)} className="btn-danger-outline">
-            <Trash2 className="w-4 h-4" /> Delete
+            <Trash2 className="w-4 h-4" /> {t('common.delete')}
           </button>
         </div>
       </div>
@@ -248,8 +250,8 @@ export default function AdminUserShowPage() {
                 <Shield className="w-5 h-5 text-blue-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Role</p>
-                <p className="text-sm font-bold text-[#000F14] capitalize">{user.role}</p>
+                <p className="text-xs text-gray-500 truncate">{t('adminUsers.shared.role')}</p>
+                <p className="text-sm font-bold text-[#000F14] capitalize">{user.role ? t('common.role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : user.role}</p>
               </div>
             </div>
           </div>
@@ -259,7 +261,7 @@ export default function AdminUserShowPage() {
                 <Building2 className="w-5 h-5 text-purple-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Pharmacy</p>
+                <p className="text-xs text-gray-500 truncate">{t('adminUsers.shared.pharmacy')}</p>
                 <p className="text-sm font-bold text-[#000F14] truncate">{pharmacyName}</p>
               </div>
             </div>
@@ -270,8 +272,8 @@ export default function AdminUserShowPage() {
                 <span className={`w-3 h-3 rounded-full ${user.status === 'active' ? 'bg-green-500' : 'bg-red-500'}`} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Status</p>
-                <p className="text-sm font-bold text-[#000F14] capitalize">{user.status}</p>
+                <p className="text-xs text-gray-500 truncate">{t('common.status')}</p>
+                <p className="text-sm font-bold text-[#000F14] capitalize">{t('common.' + user.status, user.status)}</p>
               </div>
             </div>
           </div>
@@ -281,7 +283,7 @@ export default function AdminUserShowPage() {
                 <Clock className="w-5 h-5 text-orange-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Last Active</p>
+                <p className="text-xs text-gray-500 truncate">{t('adminUsers.users.lastActive')}</p>
                 <p className="text-sm font-bold text-[#000F14]">{formatDate(user.last_active)}</p>
               </div>
             </div>
@@ -292,7 +294,7 @@ export default function AdminUserShowPage() {
                 <Calendar className="w-5 h-5 text-teal-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Joined</p>
+                <p className="text-xs text-gray-500 truncate">{t('adminUsers.users.joined')}</p>
                 <p className="text-sm font-bold text-[#000F14]">{formatDate(user.joined)}</p>
               </div>
             </div>
@@ -310,66 +312,66 @@ export default function AdminUserShowPage() {
                   <User className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#000F14]">Personal Information</h3>
-                  <p className="text-xs text-gray-500">User personal details</p>
+                  <h3 className="text-sm font-semibold text-[#000F14]">{t('profile.personalInfo')}</h3>
+                  <p className="text-xs text-gray-500">{t('adminUsers.users.personalDetails')}</p>
                 </div>
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <User className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Name</span>
+                    <span className="text-xs text-gray-500">{t('common.name')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{user.name}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Mail className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Email</span>
+                    <span className="text-xs text-gray-500">{t('common.email')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{user.email || '—'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Phone className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Phone</span>
+                    <span className="text-xs text-gray-500">{t('common.phone')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{user.phone || '—'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Hash className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Code</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.shared.code')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14] font-mono">{userCode}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Shield className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Role</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.shared.role')}</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14] capitalize">{user.role}</p>
+                  <p className="text-sm font-medium text-[#000F14] capitalize">{user.role ? t('common.role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : user.role}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`w-2 h-2 rounded-full ${user.status === 'active' ? 'bg-green-500' : user.status === 'inactive' ? 'bg-red-500' : 'bg-yellow-500'}`} />
-                    <span className="text-xs text-gray-500">Status</span>
+                    <span className="text-xs text-gray-500">{t('common.status')}</span>
                   </div>
                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[user.status] || 'bg-gray-100 text-gray-600'}`}>
-                     {user.status}
+                     {t('common.' + user.status, user.status)}
                    </span>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Date of Birth</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.users.dob')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{formatDate(user.date_of_birth)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Heart className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Gender</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.users.gender')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{user.gender || '—'}</p>
                 </div>
@@ -383,43 +385,43 @@ export default function AdminUserShowPage() {
                   <Briefcase className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#000F14]">Employment Information</h3>
-                  <p className="text-xs text-gray-500">Work and employment details</p>
+                  <h3 className="text-sm font-semibold text-[#000F14]">{t('adminUsers.users.employmentInfo')}</h3>
+                  <p className="text-xs text-gray-500">{t('adminUsers.users.employmentInfoSub')}</p>
                 </div>
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Building2 className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Pharmacy</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.shared.pharmacy')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{pharmacyName}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Briefcase className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Position</span>
+                    <span className="text-xs text-gray-500">{t('employees.position')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{user.position || '—'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <FileText className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Department</span>
+                    <span className="text-xs text-gray-500">{t('employees.department')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{user.department || '—'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Briefcase className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Employment Type</span>
+                    <span className="text-xs text-gray-500">{t('employees.employmentType')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{user.employment_type || '—'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <DollarSign className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Salary</span>
+                    <span className="text-xs text-gray-500">{t('employees.salary')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">
                     {user.salary ? formatMoney(user.salary, { decimals: 0 }) : '—'}
@@ -428,14 +430,14 @@ export default function AdminUserShowPage() {
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Hire Date</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.users.hireDate')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{formatDate(user.hire_date || user.joined)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <User className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Manager</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.users.manager')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{user.manager || '—'}</p>
                 </div>
@@ -452,23 +454,23 @@ export default function AdminUserShowPage() {
                   <BarChart3 className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#000F14]">Quick Stats</h3>
-                  <p className="text-xs text-gray-500">Key metrics overview</p>
+                  <h3 className="text-sm font-semibold text-[#000F14]">{t('adminUsers.shared.quickStats')}</h3>
+                  <p className="text-xs text-gray-500">{t('adminUsers.users.quickStatsSub')}</p>
                 </div>
               </div>
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Account Age</span>
+                    <span className="text-sm text-gray-500">{t('adminUsers.users.accountAge')}</span>
                   </div>
-                  <span className="text-sm font-medium text-[#000F14]">{accountAge} days</span>
+                  <span className="text-sm font-medium text-[#000F14]">{accountAge} {t('adminUsers.shared.days')}</span>
                 </div>
                 <div className="border-t border-gray-100" />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Last Login</span>
+                    <span className="text-sm text-gray-500">{t('adminUsers.users.lastLogin')}</span>
                   </div>
                   <span className="text-sm font-medium text-[#000F14]">{formatDate(user.last_active)}</span>
                 </div>
@@ -476,7 +478,7 @@ export default function AdminUserShowPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Activity className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Orders Processed</span>
+                    <span className="text-sm text-gray-500">{t('adminUsers.users.ordersProcessed')}</span>
                   </div>
                   <span className="text-sm font-medium text-[#000F14]">{user.orders_processed || 0}</span>
                 </div>
@@ -484,7 +486,7 @@ export default function AdminUserShowPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Award className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Performance</span>
+                    <span className="text-sm text-gray-500">{t('nav.items.performance')}</span>
                   </div>
                   <span className="text-sm font-medium text-[#000F14]">{user.performance_score || 0}%</span>
                 </div>
@@ -498,8 +500,8 @@ export default function AdminUserShowPage() {
                   <Activity className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#000F14]">Actions</h3>
-                  <p className="text-xs text-gray-500">Quick actions</p>
+                  <h3 className="text-sm font-semibold text-[#000F14]">{t('common.actions')}</h3>
+                  <p className="text-xs text-gray-500">{t('dashboard.quickActions')}</p>
                 </div>
               </div>
               <div className="p-4 space-y-2">
@@ -511,8 +513,8 @@ export default function AdminUserShowPage() {
                     <Activity className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-[#000F14]">View Activity</p>
-                    <p className="text-xs text-gray-500">Browse activity log</p>
+                    <p className="text-sm font-medium text-[#000F14]">{t('adminUsers.users.viewActivity')}</p>
+                    <p className="text-xs text-gray-500">{t('adminUsers.users.browseActivity')}</p>
                   </div>
                 </Link>
                 <button onClick={handleSendMessage} disabled={acting === 'message'} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full disabled:opacity-50">
@@ -520,8 +522,8 @@ export default function AdminUserShowPage() {
                     <MessageSquare className="w-4 h-4 text-green-600" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium text-[#000F14]">Send Message</p>
-                    <p className="text-xs text-gray-500">Message this user</p>
+                    <p className="text-sm font-medium text-[#000F14]">{t('adminUsers.users.sendMessage')}</p>
+                    <p className="text-xs text-gray-500">{t('adminUsers.users.messageThisUser')}</p>
                   </div>
                 </button>
                 <button onClick={handleResetPassword} disabled={acting === 'password'} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full disabled:opacity-50">
@@ -529,8 +531,8 @@ export default function AdminUserShowPage() {
                     <KeyRound className="w-4 h-4 text-orange-600" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium text-[#000F14]">Reset Password</p>
-                    <p className="text-xs text-gray-500">Generate new password</p>
+                    <p className="text-sm font-medium text-[#000F14]">{t('adminUsers.users.resetPassword')}</p>
+                    <p className="text-xs text-gray-500">{t('adminUsers.users.generatePassword')}</p>
                   </div>
                 </button>
                 <button onClick={handleDeactivate} disabled={acting === 'deactivate'} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full disabled:opacity-50">
@@ -538,8 +540,8 @@ export default function AdminUserShowPage() {
                     <UserX className="w-4 h-4 text-red-600" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium text-[#000F14]">Deactivate</p>
-                    <p className="text-xs text-gray-500">Disable this account</p>
+                    <p className="text-sm font-medium text-[#000F14]">{t('adminUsers.users.deactivate')}</p>
+                    <p className="text-xs text-gray-500">{t('adminUsers.users.disableAccount')}</p>
                   </div>
                 </button>
               </div>
@@ -550,9 +552,9 @@ export default function AdminUserShowPage() {
 
       <ConfirmDialog
         isOpen={confirmOpen}
-        title="Delete User"
-        message={`Are you sure you want to delete "${user.name}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('adminUsers.users.deleteUser')}
+        message={`${t('adminUsers.users.deleteUserQuestion')}"${user.name}"? ${t('common.cannotBeUndone')}`}
+        confirmText={t('common.delete')}
         onConfirm={handleDelete}
         onCancel={() => setConfirmOpen(false)}
         variant="danger"
@@ -563,7 +565,7 @@ export default function AdminUserShowPage() {
           <div className="w-16 h-16 rounded-full bg-[#0FD452]/10 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-[#0FD452]" />
           </div>
-          <h3 className="text-lg font-bold text-[#000F14] mb-1">Success</h3>
+          <h3 className="text-lg font-bold text-[#000F14] mb-1">{t('adminUsers.shared.success')}</h3>
           <p className="text-sm text-gray-500">{successMsg}</p>
         </div>
       </Modal>

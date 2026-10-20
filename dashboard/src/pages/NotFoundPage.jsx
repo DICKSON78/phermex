@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { Home, ArrowLeft, Stethoscope } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
 
 export default function NotFoundPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
 
   return (
     <div className="min-h-screen bg-dark flex items-center justify-center relative overflow-hidden">
@@ -42,10 +44,10 @@ export default function NotFoundPage() {
         </h1>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mt-4 mb-3">
-          Page Not Found
+          {t('common.pageNotFound')}
         </h2>
         <p className="text-gray-400 text-sm md:text-base max-w-md mx-auto mb-8">
-          The page you're looking for doesn't exist or has been moved.
+          {t('common.pageNotFoundDesc')}
         </p>
 
         <div className="flex items-center justify-center gap-4">
@@ -54,14 +56,14 @@ export default function NotFoundPage() {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0FD452] text-[#000F14] text-sm font-semibold hover:bg-[#0bc246] transition-colors shadow-lg shadow-[#0FD452]/20"
           >
             <Home className="w-4 h-4" />
-            Go Home
+            {t('common.goHome')}
           </button>
           <button
             onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/10 text-white text-sm font-medium hover:bg-white/5 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Go Back
+            {t('common.goBack')}
           </button>
         </div>
       </div>

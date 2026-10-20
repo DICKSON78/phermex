@@ -7,8 +7,7 @@ import {
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
-import PageHeader from '../../components/PageHeader'
-import Tabs from '../../components/Tabs'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const TAX_TYPES = [
   { id: 'VAT', label: 'VAT', rate: 18, color: 'blue' },
@@ -28,6 +27,7 @@ function formatCurrency(amount) {
 }
 
 export default function TaxManagementPage() {
+  const { t } = useLanguage()
   const [records, setRecords] = useState([])
   const [calendar, setCalendar] = useState([])
   const [loading, setLoading] = useState(true)

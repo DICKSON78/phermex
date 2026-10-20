@@ -4,11 +4,13 @@ import { ArrowLeft, Save, X, Loader2, Landmark, Building2, Hash, Globe, FileText
 import toast from 'react-hot-toast'
 import { bank } from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function BankAccountFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { pharmacyId } = useAuth()
+  const { t } = useLanguage()
   const isEdit = Boolean(id)
 
   const [form, setForm] = useState({ bank_name: '', account_name: '', account_number: '', swift_code: '', opening_balance: '' })
@@ -34,15 +36,15 @@ export default function BankAccountFormPage() {
         opening_balance: a.opening_balance ?? '',
       })
     } catch {
-      toast.error('Failed to load bank account')
+      toast.error(t('accounting.bank.loadFailed'))
     } finally { setFetching(false) }
   }
 
   const validate = () => {
     const errs = {}
-    if (!form.bank_name.trim()) errs.bank_name = 'Bank name is required'
-    if (!form.account_name.trim()) errs.account_name = 'Account name is required'
-    if (!form.account_number.trim()) errs.account_number = 'Account number is required'
+    if (!form.bank_name.trim()) errs.bank_name = t('accounting.bank.bankNameRequired')
+    if (!form.account_name.trim()) errs.account_name = t('accounting.bank.accountNameRequired')
+    if (!form.account_number.trim()) errs.account_number = t('accounting.bank.accountNumberRequired')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -64,10 +66,10 @@ export default function BankAccountFormPage() {
       } else {
         await bank.create({ ...form, pharmacy_id: pharmacyId, opening_balance: parseFloat(form.opening_balance) || 0 })
       }
-      toast.success(isEdit ? 'Bank account updated' : 'Bank account created')
+      toast.success(isEdit ? t('accounting.bank.updated') : t('accounting.bank.created'))
       navigate('/dashboard/bank-management')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save bank account')
+      toast.error(err.response?.data?.message || t('accounting.bank.saveFailed'))
     } finally { setLoading(false) }
   }
 
@@ -86,9 +88,9 @@ export default function BankAccountFormPage() {
           <Link to="/dashboard/bank-management" className="btn-ghost">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Bank Account' : 'New Bank Account'}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{isEdit ? t('accounting.bank.editTitle') : t('accounting.bank.newTitle')}</h1>
         </div>
-        <p className="text-gray-600">{isEdit ? 'Update this bank account' : 'Add a bank account to your pharmacy'}</p>
+        <p className="text-gray-600">{isEdit ? t('accounting.bank.editSubtitle') : t('accounting.bank.newSubtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="divide-y divide-gray-200">
@@ -99,13 +101,13 @@ export default function BankAccountFormPage() {
                 <Landmark className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Bank Details</h3>
-                <p className="text-sm text-gray-600">Bank, account holder and number</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('accounting.bank.detailsTitle')}</h3>
+                <p className="text-sm text-gray-600">{t('accounting.bank.detailsSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Bank Name <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.bank.bankName')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Building2 className="w-4 h-4 text-gray-400" />
@@ -114,14 +116,14 @@ export default function BankAccountFormPage() {
                     type="text"
                     value={form.bank_name}
                     onChange={(e) => setForm({ ...form, bank_name: e.target.value })}
-                    placeholder="e.g. CRDB Bank"
+                    placeholder={t('accounting.bank.bankNamePlaceholder')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
                 {errors.bank_name && <p className="text-xs text-red-500 mt-1">{errors.bank_name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Account Name <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.accountName')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FileText className="w-4 h-4 text-gray-400" />
@@ -130,14 +132,14 @@ export default function BankAccountFormPage() {
                     type="text"
                     value={form.account_name}
                     onChange={(e) => setForm({ ...form, account_name: e.target.value })}
-                    placeholder="e.g. Business Account"
+                    placeholder={t('accounting.bank.accountNamePlaceholder')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
                 {errors.account_name && <p className="text-xs text-red-500 mt-1">{errors.account_name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Account Number <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.bank.accountNumber')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Hash className="w-4 h-4 text-gray-400" />
@@ -146,14 +148,14 @@ export default function BankAccountFormPage() {
                     type="text"
                     value={form.account_number}
                     onChange={(e) => setForm({ ...form, account_number: e.target.value })}
-                    placeholder="Account number"
+                    placeholder={t('accounting.bank.accountNumberPlaceholder')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
                 {errors.account_number && <p className="text-xs text-red-500 mt-1">{errors.account_number}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">SWIFT Code</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.bank.swiftCode')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Globe className="w-4 h-4 text-gray-400" />
@@ -162,13 +164,13 @@ export default function BankAccountFormPage() {
                     type="text"
                     value={form.swift_code}
                     onChange={(e) => setForm({ ...form, swift_code: e.target.value })}
-                    placeholder="Optional"
+                    placeholder={t('common.optional')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Opening Balance</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.bank.openingBalance')}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -179,7 +181,7 @@ export default function BankAccountFormPage() {
                   placeholder="0.00"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm tabular-nums disabled:bg-gray-50 disabled:text-gray-500"
                 />
-                {hasTransactions && <p className="text-xs text-red-500 mt-1">Opening balance cannot be changed after transactions exist.</p>}
+                {hasTransactions && <p className="text-xs text-red-500 mt-1">{t('accounting.bank.openingBalanceLocked')}</p>}
               </div>
             </div>
           </div>
@@ -187,11 +189,11 @@ export default function BankAccountFormPage() {
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
             <Link to="/dashboard/bank-management" className="btn-secondary">
               <X className="w-4 h-4" />
-              <span>Cancel</span>
+              <span>{t('common.cancel')}</span>
             </Link>
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isEdit ? 'Update Account' : 'Create Account'}</span>
+              <span>{isEdit ? t('accounting.ui.updateAccount') : t('accounting.ui.createAccount')}</span>
             </button>
           </div>
         </div>

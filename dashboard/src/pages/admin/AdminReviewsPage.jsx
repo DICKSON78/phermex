@@ -8,6 +8,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import api from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 function Stars({ rating }) {
   const value = Math.max(0, Math.min(5, Number(rating) || 0))
@@ -35,6 +36,7 @@ function formatDate(dateStr) {
 const PAGE_SIZE = 10
 
 export default function AdminReviewsPage() {
+  const { t } = useLanguage()
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -71,8 +73,8 @@ export default function AdminReviewsPage() {
           <Star className="w-5 h-5 text-[#0FD452]" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reviews</h1>
-          <p className="text-sm text-gray-500">All customer reviews across pharmacies.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('nav.items.reviews', 'Reviews')}</h1>
+          <p className="text-sm text-gray-500">{t('adminUsers.reviews.subtitle', 'All customer reviews across pharmacies.')}</p>
         </div>
       </div>
 
@@ -85,8 +87,8 @@ export default function AdminReviewsPage() {
       ) : reviews.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl bg-white py-16 shadow-sm">
           <Star className="mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-semibold text-gray-900">No reviews yet</h3>
-          <p className="text-sm text-gray-500">Customer reviews will appear here.</p>
+          <h3 className="text-lg font-semibold text-gray-900">{t('adminUsers.reviews.noReviewsYet', 'No reviews yet')}</h3>
+          <p className="text-sm text-gray-500">{t('adminUsers.reviews.emptySub', 'Customer reviews will appear here.')}</p>
         </div>
       ) : (
         <>
@@ -98,31 +100,31 @@ export default function AdminReviewsPage() {
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Building2 className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Pharmacy</span>
+                        <span>{t('adminUsers.shared.pharmacy', 'Pharmacy')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Customer</span>
+                        <span>{t('orders.customer', 'Customer')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Star className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Rating</span>
+                        <span>{t('adminUsers.reviews.rating', 'Rating')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Review</span>
+                        <span>{t('adminUsers.reviews.review', 'Review')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Star className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Date</span>
+                        <span>{t('common.date', 'Date')}</span>
                       </div>
                     </th>
                   </tr>
@@ -136,16 +138,16 @@ export default function AdminReviewsPage() {
                             <Building2 className="h-4 w-4 text-[#0FD452]" />
                           </div>
                           <span className="text-sm font-medium text-gray-900">
-                            {r.pharmacy?.pharmacy_name || 'Unknown Pharmacy'}
+                            {r.pharmacy?.pharmacy_name || t('adminUsers.reviews.unknownPharmacy', 'Unknown Pharmacy')}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{r.user?.name || 'Anonymous'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{r.user?.name || t('adminUsers.reviews.anonymous', 'Anonymous')}</td>
                       <td className="px-6 py-4"><Stars rating={r.rating} /></td>
                       <td className="px-6 py-4">
                         <div className="flex items-start gap-3 min-w-[220px]">
                           <span className="text-sm text-gray-600 max-w-xs">
-                            {r.review || <span className="text-gray-400 italic">No written review</span>}
+                            {r.review || <span className="text-gray-400 italic">{t('adminUsers.reviews.noWrittenReview', 'No written review')}</span>}
                           </span>
                         </div>
                       </td>
@@ -157,7 +159,7 @@ export default function AdminReviewsPage() {
             </div>
             {lastPage > 1 && (
               <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
-                <p className="text-sm text-gray-500">Total {total} reviews</p>
+                <p className="text-sm text-gray-500">{t('common.total', 'Total')} {total} {t('adminUsers.reviews.reviewsWord', 'reviews')}</p>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => fetchReviews(page - 1)}

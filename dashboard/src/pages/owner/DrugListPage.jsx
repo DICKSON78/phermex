@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 function LoadingSkeleton() {
   return (
@@ -60,21 +61,22 @@ function LoadingSkeleton() {
 }
 
 function EmptyState() {
+  const { t } = useLanguage()
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6">
       <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
         <PackageOpen className="w-12 h-12 text-gray-300" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">No drugs found</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('inventory.drugs.noDrugs')}</h3>
       <p className="text-gray-500 text-center max-w-sm mb-6">
-        Your drug inventory is empty. Add your first drug to get started with inventory management.
+        {t('inventory.drugs.emptyHint')}
       </p>
       <button
         onClick={() => window.location.href = `${base}/drugs/new`}
         className="btn-primary"
       >
         <Plus className="w-5 h-5" />
-        Add Your First Drug
+        {t('inventory.drugs.addFirst')}
       </button>
     </div>
   )
@@ -83,6 +85,7 @@ function EmptyState() {
 export default function DrugListPage() {
   const navigate = useNavigate()
   const base = currentBase()
+  const { t } = useLanguage()
   const [drugs, setDrugs] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -184,9 +187,9 @@ export default function DrugListPage() {
   const paginatedDrugs = filteredDrugs.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const getStockBadge = (quantity, reorderLevel) => {
-    if (quantity === 0) return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Out of Stock</span>
-    if (quantity <= reorderLevel) return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Low Stock ({quantity})</span>
-    return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">In Stock ({quantity})</span>
+    if (quantity === 0) return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{t('inventory.drugs.outOfStock')}</span>
+    if (quantity <= reorderLevel) return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">{t('inventory.drugs.lowStock')} ({quantity})</span>
+    return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{t('inventory.drugs.inStock')} ({quantity})</span>
   }
 
   const getExpiryBadge = (date) => {
@@ -194,7 +197,7 @@ export default function DrugListPage() {
     const exp = new Date(date)
     const now = new Date()
     const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-    if (exp < now) return <span className="text-red-600 font-medium">Expired</span>
+    if (exp < now) return <span className="text-red-600 font-medium">{t('inventory.drugs.expired')}</span>
     if (exp <= thirtyDays) return <span className="text-yellow-600 font-medium">{exp.toLocaleDateString()}</span>
     return <span className="text-gray-700">{exp.toLocaleDateString()}</span>
   }
@@ -210,8 +213,8 @@ export default function DrugListPage() {
             <Pill className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Drug Inventory</h1>
-            <p className="text-sm text-gray-500">Manage your pharmacy drug stock and pricing.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('inventory.drugs.title')}</h1>
+            <p className="text-sm text-gray-500">{t('inventory.drugs.subtitle')}</p>
           </div>
         </div>
         <button
@@ -219,7 +222,7 @@ export default function DrugListPage() {
           className="btn-primary"
         >
           <Plus className="w-5 h-5" />
-          Add Drug
+          {t('products.addDrug')}
         </button>
       </div>
 
@@ -231,7 +234,7 @@ export default function DrugListPage() {
               <Pill className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Drugs</p>
+              <p className="text-sm text-gray-500">{t('inventory.drugs.totalDrugs')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
           </div>
@@ -242,7 +245,7 @@ export default function DrugListPage() {
               <AlertTriangle className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Low Stock</p>
+              <p className="text-sm text-gray-500">{t('inventory.drugs.lowStock')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.lowStock}</p>
             </div>
           </div>
@@ -253,7 +256,7 @@ export default function DrugListPage() {
               <Clock className="w-6 h-6 text-red-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Expiring Soon</p>
+              <p className="text-sm text-gray-500">{t('inventory.expiring.title')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.expiringSoon}</p>
             </div>
           </div>
@@ -264,7 +267,7 @@ export default function DrugListPage() {
               <DollarSign className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Value</p>
+              <p className="text-sm text-gray-500">{t('inventory.drugs.totalValue')}</p>
               <p className="text-2xl font-bold text-gray-900">TZS {stats.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             </div>
           </div>
@@ -280,7 +283,7 @@ export default function DrugListPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search drugs..."
+              placeholder={t('products.searchDrugs')}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
@@ -289,7 +292,7 @@ export default function DrugListPage() {
             onChange={(e) => setCategory(e.target.value)}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           >
-            <option value="">All Categories</option>
+            <option value="">{t('inventory.drugs.allCategories')}</option>
             {categories.map(cat => (
               <option key={cat.id} value={cat.name}>{cat.name}</option>
             ))}
@@ -299,19 +302,19 @@ export default function DrugListPage() {
             onChange={(e) => setStockStatus(e.target.value)}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           >
-            <option value="">All Stock Status</option>
-            <option value="in_stock">In Stock</option>
-            <option value="low_stock">Low Stock</option>
-            <option value="out_of_stock">Out of Stock</option>
+            <option value="">{t('inventory.drugs.allStockStatus')}</option>
+            <option value="in_stock">{t('inventory.drugs.inStock')}</option>
+            <option value="low_stock">{t('inventory.drugs.lowStock')}</option>
+            <option value="out_of_stock">{t('inventory.drugs.outOfStock')}</option>
           </select>
           <select
             value={expiryFilter}
             onChange={(e) => setExpiryFilter(e.target.value)}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           >
-            <option value="">All Expiry</option>
-            <option value="expiring_soon">Expiring Soon</option>
-            <option value="expired">Expired</option>
+            <option value="">{t('inventory.drugs.allExpiry')}</option>
+            <option value="expiring_soon">{t('inventory.expiring.title')}</option>
+            <option value="expired">{t('inventory.drugs.expired')}</option>
           </select>
         </div>
       </div>
@@ -335,42 +338,42 @@ export default function DrugListPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Pill className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Drug Name</span>
+                      <span>{t('products.drugName')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Tag className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Category</span>
+                      <span>{t('products.category')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Buying Price</span>
+                      <span>{t('inventory.drug.buyingPrice')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Selling Price</span>
+                      <span>{t('inventory.drug.sellingPrice')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Stock</span>
+                      <span>{t('products.stock')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Expiry Date</span>
+                      <span>{t('products.expiryDate')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center justify-end gap-1.5">
-                      <span>Actions</span>
+                      <span>{t('common.actions')}</span>
                     </div>
                   </th>
                 </tr>
@@ -409,21 +412,21 @@ export default function DrugListPage() {
                         <button
                           onClick={() => navigate(`${base}/drugs/${drug.id}`)}
                           className="btn-icon-primary"
-                          title="View"
+                          title={t('common.view')}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => navigate(`${base}/drugs/${drug.id}/edit`)}
                           className="btn-icon-blue"
-                          title="Edit"
+                          title={t('common.edit')}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeleteModal({ open: true, drug })}
                           className="btn-icon-red"
-                          title="Delete"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -439,8 +442,8 @@ export default function DrugListPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
               <p className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                {Math.min(currentPage * pageSize, filteredDrugs.length)} of {filteredDrugs.length} entries
+                {t('inventory.pagination.showing')} {(currentPage - 1) * pageSize + 1} {t('inventory.pagination.to')}{' '}
+                {Math.min(currentPage * pageSize, filteredDrugs.length)} {t('inventory.pagination.of')} {filteredDrugs.length} {t('inventory.pagination.entries')}
               </p>
               <div className="flex items-center gap-1">
                 <button
@@ -492,23 +495,23 @@ export default function DrugListPage() {
               <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                 <Trash2 className="w-5 h-5 text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Delete Drug</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('inventory.drugs.deleteTitle')}</h3>
             </div>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete <strong>{deleteModal.drug?.name}</strong>? This action cannot be undone.
+              {t('inventory.drugs.deleteConfirmPrefix')} <strong>{deleteModal.drug?.name}</strong>? {t('inventory.drugs.deleteConfirmSuffix')}
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteModal({ open: false, drug: null })}
                 className="btn-secondary"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => handleDelete(deleteModal.drug)}
                 className="btn-danger"
               >
-                Delete
+                {t('common.delete')}
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import api from '../../services/api'
 import {
   Store,
@@ -19,10 +20,10 @@ import {
 } from 'lucide-react'
 
 const pharmacyTypes = [
-  { value: 'independent', label: 'Independent' },
-  { value: 'chain', label: 'Chain' },
-  { value: 'hospital', label: 'Hospital' },
-  { value: 'online', label: 'Online' },
+  { value: 'independent', label: 'supply.addPharmacy.types.independent' },
+  { value: 'chain', label: 'supply.addPharmacy.types.chain' },
+  { value: 'hospital', label: 'supply.addPharmacy.types.hospital' },
+  { value: 'online', label: 'supply.addPharmacy.types.online' },
 ]
 
 const workingDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -33,6 +34,7 @@ function LocationMap({ latitude, longitude, onChange }) {
   const [mapReady, setMapReady] = useState(false)
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
+  const { t } = useLanguage()
 
   // Same defect as the registration map: the button had both a JSX onClick
   // that only set the form value and an imperative onclick in an effect that
@@ -47,7 +49,7 @@ function LocationMap({ latitude, longitude, onChange }) {
 
   const handleDetectLocation = React.useCallback(() => {
     if (!navigator.geolocation) {
-      setLocationError('This browser cannot detect your location.')
+      setLocationError(t('supply.addPharmacy.geoUnsupported'))
       return
     }
 
@@ -78,8 +80,8 @@ function LocationMap({ latitude, longitude, onChange }) {
         setLocating(false)
         setLocationError(
           err.code === err.PERMISSION_DENIED
-            ? 'Location access was blocked. Allow it in your browser settings, or click the map to place the pin.'
-            : 'Could not detect your location. Click the map to place the pin instead.'
+            ? t('supply.addPharmacy.geoBlocked')
+            : t('supply.addPharmacy.geoFailed')
         )
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
@@ -168,12 +170,12 @@ function LocationMap({ latitude, longitude, onChange }) {
         ) : (
           <Crosshair className="w-4 h-4" />
         )}
-        {locating ? 'Detecting your location...' : 'Detect My Current Location'}
+        {locating ? t('supply.addPharmacy.detecting') : t('supply.addPharmacy.detectLocation')}
       </button>
       {locationError && (
         <p className="text-xs text-amber-600 text-center">{locationError}</p>
       )}
-      <p className="text-xs text-gray-400 text-center">Click on the map to set your pharmacy location, or use detect above.</p>
+      <p className="text-xs text-gray-400 text-center">{t('supply.addPharmacy.mapHint')}</p>
     </div>
   )
 }
@@ -181,6 +183,7 @@ function LocationMap({ latitude, longitude, onChange }) {
 export default function AddPharmacyPage() {
   const navigate = useNavigate()
   const { user, switchPharmacy } = useAuth()
+  const { t } = useLanguage()
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -235,12 +238,12 @@ export default function AddPharmacyPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.pharmacy_name.trim()) errs.pharmacy_name = 'Pharmacy name is required'
-    if (!form.region.trim()) errs.region = 'Region is required'
-    if (!form.district.trim()) errs.district = 'District is required'
-    if (form.latitude === null || form.longitude === null) errs.location = 'Please pick this pharmacy\'s location on the map'
-    if (form.working_days.length === 0) errs.working_days = 'Select at least one working day'
-    if (!form.subscription_plan_id) errs.subscription_plan_id = 'Please select a subscription plan'
+    if (!form.pharmacy_name.trim()) errs.pharmacy_name = t('supply.addPharmacy.nameRequired')
+    if (!form.region.trim()) errs.region = t('supply.addPharmacy.regionRequired')
+    if (!form.district.trim()) errs.district = t('supply.addPharmacy.districtRequired')
+    if (form.latitude === null || form.longitude === null) errs.location = t('supply.addPharmacy.locationRequired')
+    if (form.working_days.length === 0) errs.working_days = t('supply.addPharmacy.daysRequired')
+    if (!form.subscription_plan_id) errs.subscription_plan_id = t('supply.addPharmacy.planRequired')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -274,7 +277,7 @@ export default function AddPharmacyPage() {
       })
       const pharmacy = res.data?.pharmacy || res.data?.data
 
-      setSuccess(res.data?.message || 'Pharmacy created successfully.')
+      setSuccess(res.data?.message || t('supply.addPharmacy.created'))
 
       if (pharmacy?.id) {
         try {
@@ -286,7 +289,7 @@ export default function AddPharmacyPage() {
 
       setTimeout(() => navigate('/dashboard/settings'), 1600)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create pharmacy. Please try again.')
+      setError(err.response?.data?.message || t('supply.addPharmacy.createFailed'))
       if (err.response?.data?.errors) setErrors(err.response.data.errors)
     } finally {
       setLoading(false)
@@ -302,13 +305,13 @@ export default function AddPharmacyPage() {
           onClick={() => navigate('/dashboard/settings')}
           className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors mb-6"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Settings
+          <ArrowLeft className="w-4 h-4" /> {t('supply.addPharmacy.backToSettings')}
         </button>
 
         <div className="mb-8">
-          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-2">Add A Pharmacy</p>
-          <h1 className="text-3xl font-black text-gray-800">Add a New Branch</h1>
-          <p className="text-gray-500 mt-1">Register another pharmacy under your account. It will be submitted for approval.</p>
+          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-2">{t('supply.addPharmacy.eyebrow')}</p>
+          <h1 className="text-3xl font-black text-gray-800">{t('supply.addPharmacy.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('supply.addPharmacy.subtitle')}</p>
         </div>
 
         {error && (
@@ -325,32 +328,32 @@ export default function AddPharmacyPage() {
 
         <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 space-y-5 shadow-sm">
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Name</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.pharmacyName')}</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <Store className="w-5 h-5 text-gray-400" />
               </div>
-              <input type="text" value={form.pharmacy_name} onChange={(e) => updateForm('pharmacy_name', e.target.value)} className={`${inputClasses} ${errors.pharmacy_name ? 'border-red-400' : ''}`} placeholder="e.g. Helix Branch - Mikocheni" />
+              <input type="text" value={form.pharmacy_name} onChange={(e) => updateForm('pharmacy_name', e.target.value)} className={`${inputClasses} ${errors.pharmacy_name ? 'border-red-400' : ''}`} placeholder={t('supply.addPharmacy.namePlaceholder')} />
             </div>
             {errors.pharmacy_name && <p className="text-red-500 text-xs mt-1">{errors.pharmacy_name}</p>}
           </div>
 
           <div className="grid md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Type</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.pharmacyType')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <Building2 className="w-5 h-5 text-gray-400" />
                 </div>
                 <select value={form.pharmacy_type} onChange={(e) => updateForm('pharmacy_type', e.target.value)} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none">
-                  {pharmacyTypes.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                  {pharmacyTypes.map((pt) => (
+                    <option key={pt.value} value={pt.value}>{t(pt.label)}</option>
                   ))}
                 </select>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">Country</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.country')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <MapPin className="w-5 h-5 text-gray-400" />
@@ -367,22 +370,22 @@ export default function AddPharmacyPage() {
 
           <div className="grid md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">Region / State</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.region')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <MapPin className="w-5 h-5 text-gray-400" />
                 </div>
-                <input type="text" value={form.region} onChange={(e) => updateForm('region', e.target.value)} className={`${inputClasses} ${errors.region ? 'border-red-400' : ''}`} placeholder="e.g. Dar es Salaam" />
+                <input type="text" value={form.region} onChange={(e) => updateForm('region', e.target.value)} className={`${inputClasses} ${errors.region ? 'border-red-400' : ''}`} placeholder={t('supply.addPharmacy.regionPlaceholder')} />
               </div>
               {errors.region && <p className="text-red-500 text-xs mt-1">{errors.region}</p>}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">District / City</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.district')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <MapPin className="w-5 h-5 text-gray-400" />
                 </div>
-                <input type="text" value={form.district} onChange={(e) => updateForm('district', e.target.value)} className={`${inputClasses} ${errors.district ? 'border-red-400' : ''}`} placeholder="e.g. Kinondoni" />
+                <input type="text" value={form.district} onChange={(e) => updateForm('district', e.target.value)} className={`${inputClasses} ${errors.district ? 'border-red-400' : ''}`} placeholder={t('supply.addPharmacy.districtPlaceholder')} />
               </div>
               {errors.district && <p className="text-red-500 text-xs mt-1">{errors.district}</p>}
             </div>
@@ -390,27 +393,27 @@ export default function AddPharmacyPage() {
 
           <div className="grid md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">Ward</label>
-              <input type="text" value={form.ward} onChange={(e) => updateForm('ward', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="e.g. Mikocheni" />
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.ward')}</label>
+              <input type="text" value={form.ward} onChange={(e) => updateForm('ward', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder={t('supply.addPharmacy.wardPlaceholder')} />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">Street</label>
-              <input type="text" value={form.street} onChange={(e) => updateForm('street', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="e.g. Bagamoyo Road" />
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.street')}</label>
+              <input type="text" value={form.street} onChange={(e) => updateForm('street', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder={t('supply.addPharmacy.streetPlaceholder')} />
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">License Number</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.licenseNumber')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <FileText className="w-5 h-5 text-gray-400" />
                 </div>
-                <input type="text" value={form.license_number} onChange={(e) => updateForm('license_number', e.target.value)} className={inputClasses} placeholder="e.g. TMD-12345" />
+                <input type="text" value={form.license_number} onChange={(e) => updateForm('license_number', e.target.value)} className={inputClasses} placeholder={t('supply.addPharmacy.licensePlaceholder')} />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">License Expiry</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.licenseExpiry')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <Calendar className="w-5 h-5 text-gray-400" />
@@ -421,28 +424,28 @@ export default function AddPharmacyPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1.5">Opening Capital (TZS)</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.openingCapital')}</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <DollarSign className="w-5 h-5 text-gray-400" />
               </div>
-              <input type="number" value={form.opening_capital} onChange={(e) => updateForm('opening_capital', e.target.value)} className={inputClasses} placeholder="e.g. 5000000" />
+              <input type="number" value={form.opening_capital} onChange={(e) => updateForm('opening_capital', e.target.value)} className={inputClasses} placeholder={t('supply.addPharmacy.capitalPlaceholder')} />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Description</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.descriptionLabel')}</label>
             <div className="relative">
               <div className="absolute top-3 left-3.5 pointer-events-none">
                 <Info className="w-5 h-5 text-gray-400" />
               </div>
-              <textarea value={form.description} onChange={(e) => updateForm('description', e.target.value)} rows={3} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] resize-none" placeholder="Brief description of this pharmacy..." />
+              <textarea value={form.description} onChange={(e) => updateForm('description', e.target.value)} rows={3} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] resize-none" placeholder={t('supply.addPharmacy.descriptionPlaceholder')} />
             </div>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <p className="text-blue-700 text-sm font-medium">Set the location</p>
-            <p className="text-blue-600 text-xs mt-1 mb-3">Customers discover pharmacies near them on the Helix app. Accurate location helps patients find your pharmacy quickly.</p>
+            <p className="text-blue-700 text-sm font-medium">{t('supply.addPharmacy.setLocation')}</p>
+            <p className="text-blue-600 text-xs mt-1 mb-3">{t('supply.addPharmacy.locationInfo')}</p>
             <LocationMap
               latitude={form.latitude}
               longitude={form.longitude}
@@ -455,7 +458,7 @@ export default function AddPharmacyPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-2">Working Days</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-2">{t('supply.addPharmacy.workingDays')}</label>
             <div className="flex flex-wrap gap-2">
               {workingDays.map((day) => (
                 <button
@@ -468,7 +471,7 @@ export default function AddPharmacyPage() {
                       : 'bg-gray-100 text-gray-400 border border-gray-200 hover:border-[#0FD452]/50'
                   }`}
                 >
-                  {day}
+                  {t(`supply.addPharmacy.days.${day}`)}
                 </button>
               ))}
             </div>
@@ -477,7 +480,7 @@ export default function AddPharmacyPage() {
 
           <div className="grid md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">Opening Time</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.openingTime')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <Clock className="w-5 h-5 text-gray-400" />
@@ -486,7 +489,7 @@ export default function AddPharmacyPage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1.5">Closing Time</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.closingTime')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <Clock className="w-5 h-5 text-gray-400" />
@@ -497,7 +500,7 @@ export default function AddPharmacyPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1.5">Subscription Plan</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.subscriptionPlan')}</label>
             <div className="grid gap-2">
               {plans.length > 0 ? plans.map((plan) => (
                 <button
@@ -519,7 +522,7 @@ export default function AddPharmacyPage() {
                   </div>
                 </button>
               )) : (
-                <p className="text-sm text-gray-400">Loading plans...</p>
+                <p className="text-sm text-gray-400">{t('supply.addPharmacy.loadingPlans')}</p>
               )}
             </div>
             {errors.subscription_plan_id && <p className="text-red-500 text-xs mt-1">{errors.subscription_plan_id}</p>}
@@ -529,10 +532,10 @@ export default function AddPharmacyPage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Creating Pharmacy...
+                {t('supply.addPharmacy.creating')}
               </span>
             ) : (
-              'Create Pharmacy'
+              t('supply.addPharmacy.create')
             )}
           </button>
         </form>

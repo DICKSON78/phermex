@@ -70,7 +70,7 @@ export default function LoginPage() {
   // Routes a finished sign-in the same way as the password flow.
   const routeAfterLogin = (userData, subData, emailVerified) => {
     if (subData?.application_status === 'rejected') {
-      setError('Your application has been rejected. ' + (subData.rejection_reason || ''))
+      setError(t('authPages.login.applicationRejected') + ' ' + (subData.rejection_reason || ''))
       return
     }
     if (subData?.application_status === 'pending') {
@@ -110,16 +110,16 @@ export default function LoginPage() {
       if (firebaseCode === 'auth/popup-closed-by-user') {
         // User dismissed the Google chooser; not an error worth showing.
       } else if (data?.application_status === 'rejected') {
-        setError('Your application has been rejected. ' + (data.rejection_reason || ''))
+        setError(t('authPages.login.applicationRejected') + ' ' + (data.rejection_reason || ''))
       } else if (firebaseCode) {
         // Surface the Firebase code, otherwise every Firebase-side problem
         // (unauthorized domain, provider disabled, blocked request) collapses
         // into the same generic message with no way to tell them apart.
         console.error('Google sign-in failed:', firebaseCode, err)
-        setError(`Google sign-in failed (${firebaseCode}).`)
+        setError(`${t('authPages.login.googleSignInFailed')} (${firebaseCode}).`)
       } else {
         console.error('Google sign-in failed:', code, data, err)
-        setError(data?.message || 'Google sign-in failed. Please try again.')
+        setError(data?.message || t('authPages.login.googleSignInFailedRetry'))
       }
     } finally {
       setGoogleLoading(false)
@@ -139,7 +139,7 @@ export default function LoginPage() {
     } catch (err) {
       const data = err.response?.data
       if (data?.application_status === 'rejected') {
-        setError('Your application has been rejected. ' + (data.rejection_reason || ''))
+        setError(t('authPages.login.applicationRejected') + ' ' + (data.rejection_reason || ''))
       } else {
         setError(data?.message || t('auth.invalidCredentials'))
       }
@@ -228,7 +228,7 @@ export default function LoginPage() {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-4 text-gray-400">or continue with</span>
+            <span className="bg-white px-4 text-gray-400">{t('authPages.login.orContinueWith')}</span>
           </div>
         </div>
 

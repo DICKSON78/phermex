@@ -30,10 +30,11 @@ function getPasswordStrength(password) {
   return score
 }
 
-const STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong']
+const STRENGTH_LABELS = ['', 'people.profile.strengthWeak', 'people.profile.strengthFair', 'people.profile.strengthGood', 'people.profile.strengthStrong', 'people.profile.strengthVeryStrong']
 const STRENGTH_COLORS = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-[#0FD452]']
 
 export default function ProfilePage() {
+  const { t } = useLanguage()
   const { user, setUser } = useAuth()
   const toast = useToast()
   const fileInputRef = useRef(null)
@@ -97,9 +98,9 @@ export default function ProfilePage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       setUser(response.data.user || response.data)
-      toast.success('Profile updated successfully!')
+      toast.success(t('profile.profileUpdated'))
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update profile')
+      toast.error(err.response?.data?.message || t('people.profile.updateFailed'))
     } finally {
       setSavingProfile(false)
     }
@@ -107,11 +108,11 @@ export default function ProfilePage() {
 
   const handleChangePassword = async () => {
     if (passwordForm.new_password !== passwordForm.confirm_password) {
-      toast.error('Passwords do not match')
+      toast.error(t('people.employeeForm.passwordsNoMatch'))
       return
     }
     if (passwordForm.new_password.length < 6) {
-      toast.error('Password must be at least 6 characters')
+      toast.error(t('people.profile.passwordTooShort'))
       return
     }
 
@@ -123,9 +124,9 @@ export default function ProfilePage() {
         password_confirmation: passwordForm.confirm_password,
       })
       setPasswordForm({ current_password: '', new_password: '', confirm_password: '' })
-      toast.success('Password changed successfully!')
+      toast.success(t('profile.passwordChanged'))
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to change password')
+      toast.error(err.response?.data?.message || t('people.profile.changeFailed'))
     } finally {
       setSavingPassword(false)
     }
@@ -178,7 +179,7 @@ export default function ProfilePage() {
             />
           </div>
 
-          <h2 className="text-xl font-bold text-[#000F14]">{user?.name || 'User'}</h2>
+          <h2 className="text-xl font-bold text-[#000F14]">{user?.name || t('people.profile.userFallback')}</h2>
           <p className="text-sm text-gray-500 mt-1">{user?.email}</p>
           {user?.phone && (
             <p className="text-sm text-gray-500">{user.phone}</p>
@@ -187,7 +188,7 @@ export default function ProfilePage() {
           <div className="mt-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0FD452]/10 text-[#0FD452] text-xs font-semibold capitalize">
               <Shield className="w-3 h-3" />
-              {user?.role || 'Owner'}
+              {user?.role ? t(`common.role${user.role.charAt(0).toUpperCase()}${user.role.slice(1)}`, user.role) : t('common.roleOwner')}
             </span>
             
           </div>
@@ -199,7 +200,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
               <Calendar className="w-3.5 h-3.5" />
-              <span>Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024'}</span>
+              <span>{t('people.profile.memberSince')} {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024'}</span>
             </div>
           </div>
         </div>
@@ -233,7 +234,7 @@ export default function ProfilePage() {
                   readOnly
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 cursor-not-allowed"
                 />
-                <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+                <p className="text-xs text-gray-400 mt-1">{t('people.profile.emailLocked')}</p>
               </div>
 
               <div>
@@ -248,7 +249,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Photo</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('people.profile.photo')}</label>
                 <div className="flex items-center gap-4">
                   {form.photoPreview ? (
                     <div className="relative w-16 h-16 rounded-full border-2 border-gray-200 overflow-hidden">
@@ -264,9 +265,9 @@ export default function ProfilePage() {
                       onClick={() => fileInputRef.current?.click()}
                       className="text-sm text-[#0FD452] hover:underline font-medium"
                     >
-                      {form.photoPreview ? 'Change Photo' : 'Upload Photo'}
+                      {form.photoPreview ? t('people.profile.changePhoto') : t('people.profile.uploadPhoto')}
                     </button>
-                    <p className="text-xs text-gray-400 mt-0.5">JPG, PNG. Max 2MB.</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{t('people.profile.photoHint')}</p>
                   </div>
                 </div>
               </div>
@@ -302,14 +303,14 @@ export default function ProfilePage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('profile.currentPassword')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type={showCurrentPassword ? 'text' : 'password'}
                     value={passwordForm.current_password}
                     onChange={(e) => setPasswordForm((p) => ({ ...p, current_password: e.target.value }))}
-                    placeholder="Enter current password"
+                    placeholder={t('people.profile.currentPasswordPh')}
                     className="w-full rounded-xl border border-gray-300 pl-10 pr-10 py-2.5 text-sm text-[#000F14] focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452] outline-none transition"
                   />
                   <button
@@ -323,14 +324,14 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('profile.newPassword')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type={showNewPassword ? 'text' : 'password'}
                     value={passwordForm.new_password}
                     onChange={(e) => setPasswordForm((p) => ({ ...p, new_password: e.target.value }))}
-                    placeholder="Enter new password"
+                    placeholder={t('people.profile.newPasswordPh')}
                     className="w-full rounded-xl border border-gray-300 pl-10 pr-10 py-2.5 text-sm text-[#000F14] focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452] outline-none transition"
                   />
                   <button
@@ -351,7 +352,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <span className="text-xs text-gray-500 w-16 text-right">
-                        {STRENGTH_LABELS[strengthScore]}
+                        {t(STRENGTH_LABELS[strengthScore])}
                       </span>
                       
                     </div>
@@ -360,14 +361,14 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('profile.confirmNewPassword')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type={showNewPassword ? 'text' : 'password'}
                     value={passwordForm.confirm_password}
                     onChange={(e) => setPasswordForm((p) => ({ ...p, confirm_password: e.target.value }))}
-                    placeholder="Confirm new password"
+                    placeholder={t('people.profile.confirmNewPasswordPh')}
                     className="w-full rounded-xl border border-gray-300 pl-10 pr-4 py-2.5 text-sm text-[#000F14] focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452] outline-none transition"
                   />
                 </div>
@@ -383,12 +384,12 @@ export default function ProfilePage() {
                 {savingPassword ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Changing...
+                    {t('people.profile.changing')}
                   </>
                 ) : (
                   <>
                     <KeyRound className="w-4 h-4" />
-                    Change Password
+                    {t('profile.changePassword')}
                   </>
                 )}
               </button>

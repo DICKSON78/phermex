@@ -4,11 +4,13 @@ import { ArrowLeft, Save, Loader2, CreditCard, DollarSign, Calendar, Building2 }
 import toast from 'react-hot-toast'
 import Modal from '../../components/Modal'
 import api from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const PLANS = ['Trial', 'Basic', 'Starter', 'Pro', 'Professional', 'Enterprise']
 const PLAN_AMOUNTS = { Trial: 0, Basic: 50000, Starter: 390000, Pro: 100000, Professional: 520000, Enterprise: 650000 }
 
 export default function AdminSubscriptionFormPage() {
+  const { t } = useLanguage()
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = Boolean(id)
@@ -53,7 +55,7 @@ export default function AdminSubscriptionFormPage() {
         expiryDate: data.expiryDate ? data.expiryDate.split('T')[0] : '',
       })
     } catch {
-      toast.error('Failed to load subscription data')
+      toast.error(t('adminUsers.subscriptions.loadDataFailed', 'Failed to load subscription data'))
     } finally {
       setFetching(false)
     }
@@ -70,12 +72,12 @@ export default function AdminSubscriptionFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.pharmacy_id) errs.pharmacy_id = 'Pharmacy is required'
-    if (!form.plan) errs.plan = 'Plan is required'
-    if (!form.startDate) errs.startDate = 'Start date is required'
-    if (!form.expiryDate) errs.expiryDate = 'Expiry date is required'
+    if (!form.pharmacy_id) errs.pharmacy_id = t('adminUsers.shared.pharmacyRequired', 'Pharmacy is required')
+    if (!form.plan) errs.plan = t('adminUsers.subscriptions.planRequired', 'Plan is required')
+    if (!form.startDate) errs.startDate = t('adminUsers.subscriptions.startDateRequired', 'Start date is required')
+    if (!form.expiryDate) errs.expiryDate = t('adminUsers.subscriptions.expiryDateRequired', 'Expiry date is required')
     if (form.startDate && form.expiryDate && new Date(form.startDate) >= new Date(form.expiryDate)) {
-      errs.expiryDate = 'Expiry date must be after start date'
+      errs.expiryDate = t('adminUsers.subscriptions.expiryAfterStart', 'Expiry date must be after start date')
     }
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -96,9 +98,9 @@ export default function AdminSubscriptionFormPage() {
     } catch (err) {
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors)
-        toast.error('Validation failed')
+        toast.error(t('adminUsers.shared.validationFailed', 'Validation failed'))
       } else {
-        toast.error(err.response?.data?.message || 'Failed to save subscription')
+        toast.error(err.response?.data?.message || t('adminUsers.subscriptions.saveFailed', 'Failed to save subscription'))
       }
     } finally {
       setLoading(false)
@@ -122,11 +124,11 @@ export default function AdminSubscriptionFormPage() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">
-              {isEdit ? 'Edit Subscription' : 'Create New Subscription'}
+              {isEdit ? t('adminUsers.subscriptions.editSubscription', 'Edit Subscription') : t('adminUsers.subscriptions.createNewSubscription', 'Create New Subscription')}
             </h1>
           </div>
           <p className="text-gray-600">
-            {isEdit ? 'Update existing subscription details' : 'Add a new subscription to the platform'}
+            {isEdit ? t('adminUsers.subscriptions.editSub', 'Update existing subscription details') : t('adminUsers.subscriptions.createSub', 'Add a new subscription to the platform')}
           </p>
         </div>
       </div>
@@ -140,14 +142,14 @@ export default function AdminSubscriptionFormPage() {
                 <CreditCard className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Plan Details</h3>
-                <p className="text-sm text-gray-600">Subscription plan and pharmacy assignment</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminUsers.subscriptions.planDetails', 'Plan Details')}</h3>
+                <p className="text-sm text-gray-600">{t('adminUsers.subscriptions.planDetailsSub', 'Subscription plan and pharmacy assignment')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Pharmacy <span className="text-red-500">*</span>
+                  {t('adminUsers.shared.pharmacy', 'Pharmacy')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -158,7 +160,7 @@ export default function AdminSubscriptionFormPage() {
                     onChange={(e) => handleChange('pharmacy_id', e.target.value)}
                     className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.pharmacy_id ? '!border-red-400' : ''}`}
                   >
-                    <option value="">Select a pharmacy</option>
+                    <option value="">{t('common.selectPharmacy', 'Select Pharmacy')}</option>
                     {pharmacies.map((p) => (
                       <option key={p.id} value={p.id}>{p.pharmacy_name || p.name}</option>
                     ))}
@@ -168,7 +170,7 @@ export default function AdminSubscriptionFormPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Plan <span className="text-red-500">*</span>
+                  {t('adminUsers.shared.plan', 'Plan')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -180,7 +182,7 @@ export default function AdminSubscriptionFormPage() {
                     className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.plan ? '!border-red-400' : ''}`}
                   >
                     {PLANS.map((p) => (
-                      <option key={p} value={p}>{p}</option>
+                      <option key={p} value={p}>{t('adminUsers.shared.plans.' + p, p)}</option>
                     ))}
                   </select>
                 </div>
@@ -196,13 +198,13 @@ export default function AdminSubscriptionFormPage() {
                 <DollarSign className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Payment</h3>
-                <p className="text-sm text-gray-600">Billing amount and payment details</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminUsers.subscriptions.payment', 'Payment')}</h3>
+                <p className="text-sm text-gray-600">{t('adminUsers.subscriptions.paymentSub', 'Billing amount and payment details')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Amount (TZS/month)</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('adminUsers.subscriptions.amountTzsMonth', 'Amount (TZS/month)')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <DollarSign className="w-4 h-4 text-gray-400" />
@@ -228,14 +230,14 @@ export default function AdminSubscriptionFormPage() {
                 <Calendar className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Dates</h3>
-                <p className="text-sm text-gray-600">Subscription start and expiry dates</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminUsers.subscriptions.dates', 'Dates')}</h3>
+                <p className="text-sm text-gray-600">{t('adminUsers.subscriptions.datesSub', 'Subscription start and expiry dates')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Start Date <span className="text-red-500">*</span>
+                  {t('adminUsers.subscriptions.startDate', 'Start Date')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -252,7 +254,7 @@ export default function AdminSubscriptionFormPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Expiry Date <span className="text-red-500">*</span>
+                  {t('products.expiryDate', 'Expiry Date')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -273,11 +275,11 @@ export default function AdminSubscriptionFormPage() {
           {/* Sticky bottom bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
             <Link to="/dashboard/subscriptions" className="btn-secondary">
-              <span>Cancel</span>
+              <span>{t('common.cancel', 'Cancel')}</span>
             </Link>
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isEdit ? 'Update Subscription' : 'Create Subscription'}</span>
+              <span>{isEdit ? t('adminUsers.subscriptions.updateSubscription', 'Update Subscription') : t('adminUsers.subscriptions.createSubscription', 'Create Subscription')}</span>
             </button>
           </div>
         </form>
@@ -289,8 +291,8 @@ export default function AdminSubscriptionFormPage() {
           setShowSuccess(false)
           navigate('/dashboard/subscriptions')
         }}
-        title={isEdit ? 'Subscription Updated' : 'Subscription Created'}
-        subtitle="The subscription has been saved successfully"
+        title={isEdit ? t('adminUsers.subscriptions.updated', 'Subscription Updated') : t('adminUsers.subscriptions.created', 'Subscription Created')}
+        subtitle={t('adminUsers.subscriptions.savedSub', 'The subscription has been saved successfully')}
       >
         <div className="text-center py-4">
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
@@ -298,8 +300,8 @@ export default function AdminSubscriptionFormPage() {
           </div>
           <p className="text-gray-600 mb-6">
             {isEdit
-              ? 'The subscription details have been updated.'
-              : 'The new subscription has been created and is now active.'}
+              ? t('adminUsers.subscriptions.updatedBody', 'The subscription details have been updated.')
+              : t('adminUsers.subscriptions.createdBody', 'The new subscription has been created and is now active.')}
           </p>
           <button
             onClick={() => {
@@ -308,7 +310,7 @@ export default function AdminSubscriptionFormPage() {
             }}
             className="btn-primary w-full"
           >
-            Back to Subscriptions
+            {t('adminUsers.subscriptions.backTo', 'Back to Subscriptions')}
           </button>
         </div>
       </Modal>

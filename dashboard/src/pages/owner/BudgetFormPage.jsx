@@ -4,11 +4,13 @@ import { ArrowLeft, Save, X, Loader2, Calculator, Hash, Calendar, DollarSign, Fi
 import toast from 'react-hot-toast'
 import { budgets, accounts } from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function BudgetFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { pharmacyId } = useAuth()
+  const { t, lang } = useLanguage()
   const isEdit = Boolean(id)
 
   const now = new Date()
@@ -48,7 +50,7 @@ export default function BudgetFormPage() {
         notes: b.notes || '',
       })
     } catch {
-      toast.error('Failed to load budget')
+      toast.error(t('accounting.budget.loadFailed'))
     } finally { setFetching(false) }
   }
 
@@ -59,10 +61,10 @@ export default function BudgetFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.account_id) errs.account_id = 'Select an account'
-    if (!form.budget_year) errs.budget_year = 'Year is required'
-    if (!form.budget_month) errs.budget_month = 'Month is required'
-    if (!form.budgeted_amount || parseFloat(form.budgeted_amount) < 0) errs.budgeted_amount = 'Enter a valid amount'
+    if (!form.account_id) errs.account_id = t('accounting.ui.selectAccount')
+    if (!form.budget_year) errs.budget_year = t('accounting.ui.yearRequired')
+    if (!form.budget_month) errs.budget_month = t('accounting.ui.monthRequired')
+    if (!form.budgeted_amount || parseFloat(form.budgeted_amount) < 0) errs.budgeted_amount = t('accounting.ui.validAmount')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -81,10 +83,10 @@ export default function BudgetFormPage() {
     try {
       if (isEdit) await budgets.update(id, payload)
       else await budgets.create({ ...payload, pharmacy_id: pharmacyId })
-      toast.success(isEdit ? 'Budget updated' : 'Budget created')
+      toast.success(isEdit ? t('accounting.budget.updated') : t('accounting.budget.created'))
       navigate('/dashboard/budgets')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save budget')
+      toast.error(err.response?.data?.message || t('accounting.budget.saveFailed'))
     } finally { setLoading(false) }
   }
 
@@ -106,9 +108,9 @@ export default function BudgetFormPage() {
           <Link to="/dashboard/budgets" className="btn-ghost">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Budget' : 'New Budget'}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{isEdit ? t('accounting.budget.editTitle') : t('accounting.budget.newTitle')}</h1>
         </div>
-        <p className="text-gray-600">{isEdit ? 'Update this budget line' : 'Plan a budget for an account'}</p>
+        <p className="text-gray-600">{isEdit ? t('accounting.budget.editSubtitle') : t('accounting.budget.newSubtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="divide-y divide-gray-200">
@@ -119,25 +121,25 @@ export default function BudgetFormPage() {
                 <Calculator className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Budget Details</h3>
-                <p className="text-sm text-gray-600">Account, period and amount</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('accounting.budget.detailsTitle')}</h3>
+                <p className="text-sm text-gray-600">{t('accounting.budget.detailsSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Account <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.ui.account')} <span className="text-red-500">*</span></label>
                 <select
                   value={form.account_id}
                   onChange={(e) => handleChange('account_id', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                 >
-                  <option value="">Select account</option>
+                  <option value="">{t('accounting.ui.selectAccount')}</option>
                   {accountOptions.map((a) => <option key={a.id} value={a.id}>{a.account_code} - {a.account_name} ({a.account_type})</option>)}
                 </select>
                 {errors.account_id && <p className="text-xs text-red-500 mt-1">{errors.account_id}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Year <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.budget.year')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Calendar className="w-4 h-4 text-gray-400" />
@@ -153,7 +155,7 @@ export default function BudgetFormPage() {
                 {errors.budget_year && <p className="text-xs text-red-500 mt-1">{errors.budget_year}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Month <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.budget.month')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Hash className="w-4 h-4 text-gray-400" />
@@ -163,13 +165,13 @@ export default function BudgetFormPage() {
                     onChange={(e) => handleChange('budget_month', e.target.value)}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   >
-                    {months.map((m) => <option key={m} value={m}>{new Date(2024, m - 1, 1).toLocaleString('en', { month: 'long' })}</option>)}
+                    {months.map((m) => <option key={m} value={m}>{new Date(2024, m - 1, 1).toLocaleString(lang === 'sw' ? 'sw' : 'en', { month: 'long' })}</option>)}
                   </select>
                 </div>
                 {errors.budget_month && <p className="text-xs text-red-500 mt-1">{errors.budget_month}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Budgeted Amount <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.budget.budgetedAmount')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <DollarSign className="w-4 h-4 text-gray-400" />
@@ -187,7 +189,7 @@ export default function BudgetFormPage() {
                 {errors.budgeted_amount && <p className="text-xs text-red-500 mt-1">{errors.budgeted_amount}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.budget.notes')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FileText className="w-4 h-4 text-gray-400" />
@@ -196,7 +198,7 @@ export default function BudgetFormPage() {
                     type="text"
                     value={form.notes}
                     onChange={(e) => handleChange('notes', e.target.value)}
-                    placeholder="Optional"
+                    placeholder={t('common.optional')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
@@ -207,11 +209,11 @@ export default function BudgetFormPage() {
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
             <Link to="/dashboard/budgets" className="btn-secondary">
               <X className="w-4 h-4" />
-              <span>Cancel</span>
+              <span>{t('common.cancel')}</span>
             </Link>
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isEdit ? 'Update Budget' : 'Create Budget'}</span>
+              <span>{isEdit ? t('accounting.budget.updateBtn') : t('accounting.budget.createBtn')}</span>
             </button>
           </div>
         </div>

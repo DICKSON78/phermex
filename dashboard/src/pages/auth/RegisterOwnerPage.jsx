@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import { TANZANIA_REGIONS } from '../../data/tanzaniaLocations'
 import { useCurrency, tzsFromUsd } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 // Required fields are marked with this. The browser's own required attribute
 // cannot be used: validation runs per step so the wizard can advance, and these
@@ -107,6 +108,7 @@ const workingDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const DEFAULT_CENTER = [-6.7924, 39.2083]
 
 function LocationMap({ latitude, longitude, onChange }) {
+  const { t } = useLanguage()
   const [mapReady, setMapReady] = useState(false)
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
@@ -127,7 +129,7 @@ function LocationMap({ latitude, longitude, onChange }) {
 
   const handleDetectLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocationError('This browser cannot detect your location.')
+      setLocationError(t('authPages.registerOwner.browserNoGeo'))
       return
     }
 
@@ -162,13 +164,13 @@ function LocationMap({ latitude, longitude, onChange }) {
         setLocating(false)
         setLocationError(
           err.code === err.PERMISSION_DENIED
-            ? 'Location access was blocked. Allow it in your browser settings, or click the map to place the pin.'
-            : 'Could not detect your location. Click the map to place the pin instead.'
+            ? t('authPages.registerOwner.locationBlocked')
+            : t('authPages.registerOwner.locationFailed')
         )
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     )
-  }, [onChange])
+  }, [onChange, t])
 
   // Ask once on mount: a pharmacy owner registering at the premises should not
   // have to tap anything.
@@ -263,12 +265,12 @@ function LocationMap({ latitude, longitude, onChange }) {
         ) : (
           <Crosshair className="w-4 h-4" />
         )}
-        {locating ? 'Detecting your location...' : 'Detect My Current Location'}
+        {locating ? t('authPages.registerOwner.detectingLocation') : t('authPages.registerOwner.detectLocation')}
       </button>
       {locationError && (
         <p className="text-xs text-amber-600 text-center">{locationError}</p>
       )}
-      <p className="text-xs text-gray-400 text-center">Click on the map to set your pharmacy location, or use detect above.</p>
+      <p className="text-xs text-gray-400 text-center">{t('authPages.registerOwner.mapHint')}</p>
     </div>
   )
 }
@@ -338,6 +340,7 @@ export default function RegisterOwnerPage() {
   const navigate = useNavigate()
   const { register } = useAuth()
   const { rates } = useCurrency()
+  const { t } = useLanguage()
 
   // Plan prices are held in USD and charged in TZS. Labelling the raw USD
   // number "TZS" made a 150 dollar plan read as 150 shillings, a price that
@@ -573,27 +576,27 @@ export default function RegisterOwnerPage() {
     const errs = {}
     const name = form.name.trim()
 
-    if (!name) errs.name = 'Full name is required'
-    else if (name.length < 2) errs.name = 'Please enter your full name'
-    else if (name.length > 120) errs.name = 'Full name is too long'
+    if (!name) errs.name = t('authPages.registerOwner.fullNameRequired')
+    else if (name.length < 2) errs.name = t('authPages.registerOwner.fullNameEnter')
+    else if (name.length > 120) errs.name = t('authPages.registerOwner.fullNameTooLong')
 
     const email = form.email.trim()
-    if (!email) errs.email = 'Email is required'
-    else if (!isValidEmail(email)) errs.email = 'Enter a valid email address, for example name@example.com'
+    if (!email) errs.email = t('auth.emailRequired')
+    else if (!isValidEmail(email)) errs.email = t('authPages.validation.invalidEmail')
 
     const digits = phoneDigits(form.phone)
-    if (!digits) errs.phone = 'Phone number is required'
-    else if (!/^[0-9]+$/.test(digits)) errs.phone = 'Phone number can only contain digits'
-    else if (digits.length < PHONE_MIN) errs.phone = `Phone number needs at least ${PHONE_MIN} digits`
-    else if (digits.length > PHONE_MAX) errs.phone = `Phone number cannot be longer than ${PHONE_MAX} digits`
+    if (!digits) errs.phone = t('authPages.validation.phoneRequired')
+    else if (!/^[0-9]+$/.test(digits)) errs.phone = t('authPages.validation.phoneOnlyDigits')
+    else if (digits.length < PHONE_MIN) errs.phone = `${t('authPages.validation.phoneMinDigits')} ${PHONE_MIN} ${t('authPages.validation.digits')}`
+    else if (digits.length > PHONE_MAX) errs.phone = `${t('authPages.validation.phoneMaxDigits')} ${PHONE_MAX} ${t('authPages.validation.digits')}`
 
-    if (!form.password) errs.password = 'Password is required'
-    else if (form.password.length < 8) errs.password = 'Password must be at least 8 characters'
+    if (!form.password) errs.password = t('auth.passwordRequired')
+    else if (form.password.length < 8) errs.password = t('authPages.validation.passwordMin8')
     else if (!/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
-      errs.password = 'Password must contain at least one letter and one number'
+      errs.password = t('authPages.validation.passwordNeedsLetterNumber')
     }
     if (form.password_confirmation && form.password !== form.password_confirmation) {
-      errs.password_confirmation = 'Passwords do not match'
+      errs.password_confirmation = t('authPages.validation.passwordsNoMatch')
     }
 
     setErrors(errs)
@@ -605,30 +608,30 @@ export default function RegisterOwnerPage() {
     const p = pharmacies[i]
     const name = (p.pharmacy_name || '').trim()
 
-    if (!name) errs[`p${i}_pharmacy_name`] = 'Pharmacy name is required'
-    else if (name.length < 2) errs[`p${i}_pharmacy_name`] = 'Pharmacy name is too short'
-    else if (name.length > 255) errs[`p${i}_pharmacy_name`] = 'Pharmacy name is too long'
+    if (!name) errs[`p${i}_pharmacy_name`] = t('authPages.registerOwner.pharmacyNameRequired')
+    else if (name.length < 2) errs[`p${i}_pharmacy_name`] = t('authPages.registerOwner.pharmacyNameTooShort')
+    else if (name.length > 255) errs[`p${i}_pharmacy_name`] = t('authPages.registerOwner.pharmacyNameTooLong')
 
-    if (!p.region.trim()) errs[`p${i}_region`] = 'Region is required'
-    if (!p.district.trim()) errs[`p${i}_district`] = 'District is required'
+    if (!p.region.trim()) errs[`p${i}_region`] = t('authPages.registerOwner.regionRequired')
+    if (!p.district.trim()) errs[`p${i}_district`] = t('authPages.registerOwner.districtRequired')
 
     // A licence that expired before today would let an owner through the door
     // and fail later, so say so while they can still fix it.
     if (p.license_expiry && !isFutureDate(p.license_expiry)) {
-      errs[`p${i}_license_expiry`] = 'Licence expiry date must be in the future'
+      errs[`p${i}_license_expiry`] = t('authPages.registerOwner.licenseFuture')
     }
 
     const capital = (p.opening_capital || '').trim()
     if (capital) {
       if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(capital)) {
-        errs[`p${i}_opening_capital`] = 'Enter an amount, for example 5000000'
+        errs[`p${i}_opening_capital`] = t('authPages.registerOwner.amountInvalid')
       } else if (Number(capital) < 0) {
-        errs[`p${i}_opening_capital`] = 'Opening capital cannot be negative'
+        errs[`p${i}_opening_capital`] = t('authPages.registerOwner.capitalNegative')
       }
     }
 
     if ((p.description || '').length > 1000) {
-      errs[`p${i}_description`] = 'Description cannot be longer than 1000 characters'
+      errs[`p${i}_description`] = t('authPages.registerOwner.descTooLong')
     }
 
     setErrors(errs)
@@ -638,7 +641,7 @@ export default function RegisterOwnerPage() {
   const validateLocation = (i) => {
     const errs = {}
     const p = pharmacies[i]
-    if (p.latitude === null || p.longitude === null) errs[`p${i}_location`] = 'Please pick this pharmacy\'s location on the map'
+    if (p.latitude === null || p.longitude === null) errs[`p${i}_location`] = t('authPages.registerOwner.pickLocation')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -648,7 +651,7 @@ export default function RegisterOwnerPage() {
     const p = pharmacies[i]
 
     if (p.working_days.length === 0) {
-      errs[`p${i}_working_days`] = 'Select at least one working day'
+      errs[`p${i}_working_days`] = t('authPages.registerOwner.selectWorkingDay')
     }
 
     // Comparing as strings is safe here because both values are zero padded
@@ -656,7 +659,7 @@ export default function RegisterOwnerPage() {
     // true. Validating it catches the shop that would report itself open all
     // night.
     if (p.opening_time && p.closing_time && p.opening_time >= p.closing_time) {
-      errs[`p${i}_closing_time`] = 'Closing time must be later than opening time'
+      errs[`p${i}_closing_time`] = t('authPages.registerOwner.closingAfterOpening')
     }
 
     setErrors(errs)
@@ -665,7 +668,7 @@ export default function RegisterOwnerPage() {
 
   const validatePlan = () => {
     const errs = {}
-    if (!form.subscription_plan_id) errs.subscription_plan_id = 'Please select a subscription plan'
+    if (!form.subscription_plan_id) errs.subscription_plan_id = t('authPages.registerOwner.selectPlan')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -714,11 +717,11 @@ export default function RegisterOwnerPage() {
       return { ...p, pharmacy_logo_preview: null }
     }))
     if (!LOGO_TYPES.includes(file.type)) {
-      setErrors((prev) => ({ ...prev, [`p${i}_pharmacy_logo`]: 'Use a JPG, PNG, GIF or WEBP image.' }))
+      setErrors((prev) => ({ ...prev, [`p${i}_pharmacy_logo`]: t('authPages.registerOwner.logoTypeInvalid') }))
       return
     }
     if (file.size > MAX_LOGO_MB * 1024 * 1024) {
-      setErrors((prev) => ({ ...prev, [`p${i}_pharmacy_logo`]: `Logo must be smaller than ${MAX_LOGO_MB} MB.` }))
+      setErrors((prev) => ({ ...prev, [`p${i}_pharmacy_logo`]: `${t('authPages.registerOwner.logoTooBig')} ${MAX_LOGO_MB} MB.` }))
       return
     }
     setPharmacies((prev) => prev.map((p, idx) => (idx === i
@@ -735,8 +738,8 @@ export default function RegisterOwnerPage() {
     // the owner was left staring at a form that refused to send and no way to
     // tell why. Send them to the field that needs filling instead.
     if (!form.password) {
-      setError('Please re-enter your password to finish. We do not keep it saved for your security.')
-      setErrors((prev) => ({ ...prev, password: 'Password is required' }))
+      setError(t('authPages.registerOwner.reenterPassword'))
+      setErrors((prev) => ({ ...prev, password: t('auth.passwordRequired') }))
       goStep(1, 'left')
       return
     }
@@ -795,7 +798,7 @@ export default function RegisterOwnerPage() {
       clearDraft()
       navigate('/pending-approval')
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.')
+      setError(err.response?.data?.message || t('authPages.registerOwner.registrationFailed'))
       if (err.response?.data?.errors) setErrors(err.response.data.errors)
     } finally {
       setLoading(false)
@@ -805,13 +808,13 @@ export default function RegisterOwnerPage() {
   const inputClasses = "w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
 
   const stepLabel = () => {
-    if (step === 1) return 'Tell us about yourself'
-    if (step === totalSteps) return 'Choose your subscription plan'
+    if (step === 1) return t('authPages.registerOwner.stepPersonal')
+    if (step === totalSteps) return t('authPages.registerOwner.stepPlan')
     const i = pharmacyIndex(step)
     const type = stepType(step)
-    if (type === 'details') return multiple ? `Branch ${i + 1} — pharmacy details & address` : 'Pharmacy information & address'
-    if (type === 'location') return multiple ? `Branch ${i + 1} — pin it on the map` : 'Pin your pharmacy on the map'
-    return multiple ? `Branch ${i + 1} — working hours` : 'Working hours'
+    if (type === 'details') return multiple ? `${t('authPages.shared.branch')} ${i + 1} — ${t('authPages.registerOwner.stepDetailsMulti')}` : t('authPages.registerOwner.stepDetails')
+    if (type === 'location') return multiple ? `${t('authPages.shared.branch')} ${i + 1} — ${t('authPages.registerOwner.stepLocationMulti')}` : t('authPages.registerOwner.stepLocation')
+    return multiple ? `${t('authPages.shared.branch')} ${i + 1} — ${t('authPages.registerOwner.stepHoursMulti')}` : t('authPages.registerOwner.stepHours')
   }
 
   const pharm = (i) => pharmacies[i] || blankPharmacy(form.country)
@@ -832,27 +835,27 @@ export default function RegisterOwnerPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">
-            {multiple ? `Pharmacy Registration — ${pharmacies.length} Branches` : 'Pharmacy Registration'}
+            {multiple ? `${t('authPages.registerOwner.registrationSingle')} — ${pharmacies.length} ${t('authPages.registerOwner.registrationBranches')}` : t('authPages.registerOwner.registrationSingle')}
           </p>
-          <h1 className="text-4xl font-black text-gray-600 mb-3">Set Up Your Pharmacy</h1>
+          <h1 className="text-4xl font-black text-gray-600 mb-3">{t('authPages.registerOwner.setupTitle')}</h1>
           <p className="text-gray-500 text-lg">{stepLabel()}</p>
 
           {resumedFrom && (
             <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-[#0FD452]/30 bg-[#0FD452]/5 px-4 py-3 text-left">
               <p className="text-xs text-gray-600">
-                We saved your progress
+                {t('authPages.registerOwner.progressSaved')}
                 {resumedFrom
-                  ? ` on ${new Date(resumedFrom).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`
+                  ? ` ${t('authPages.registerOwner.progressSavedOn')} ${new Date(resumedFrom).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`
                   : ''}
-                . You are back on step {step} of {totalSteps}.
-                {step > 1 && ' Your password was not saved, so you will need to enter it again before submitting.'}
+                {`. ${t('authPages.registerOwner.progressStep')} ${step} ${t('authPages.registerOwner.progressStepOf')} ${totalSteps}.`}
+                {step > 1 && ` ${t('authPages.registerOwner.progressPassword')}`}
               </p>
               <button
                 type="button"
                 onClick={discardDraft}
                 className="shrink-0 text-xs font-semibold text-gray-500 underline hover:text-gray-800 transition-colors"
               >
-                Start over
+                {t('authPages.registerOwner.startOver')}
               </button>
             </div>
           )}
@@ -890,19 +893,19 @@ export default function RegisterOwnerPage() {
           {step === 1 && (
             <div key={`step1-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1.5">Full Name<Required /></label>
+                <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.fullName')}<Required /></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <User className="w-5 h-5 text-gray-400" />
                   </div>
-                  <input type="text" value={form.name} onChange={(e) => updateForm('name', e.target.value)} className={`${inputClasses} ${errors.name ? 'border-red-400' : ''}`} placeholder="Enter your full name" />
+                  <input type="text" value={form.name} onChange={(e) => updateForm('name', e.target.value)} className={`${inputClasses} ${errors.name ? 'border-red-400' : ''}`} placeholder={t('authPages.registerOwner.fullNamePh')} />
                 </div>
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
               </div>
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Email Address<Required /></label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('customers.emailAddress')}<Required /></label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                       <Mail className="w-5 h-5 text-gray-400" />
@@ -912,7 +915,7 @@ export default function RegisterOwnerPage() {
                   {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Phone Number<Required /></label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('customers.phoneNumber')}<Required /></label>
                   <div className="flex gap-2">
                     <select value={form.countryCode} onChange={(e) => updateForm('countryCode', e.target.value)} className="w-32 px-3 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white">
                       {COUNTRIES.map((c) => (
@@ -947,12 +950,12 @@ export default function RegisterOwnerPage() {
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Password<Required /></label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('auth.password')}<Required /></label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                       <Lock className="w-5 h-5 text-gray-400" />
                     </div>
-                    <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => updateForm('password', e.target.value)} className={`${inputClasses} pr-11 ${errors.password ? 'border-red-400' : ''}`} placeholder="Min. 8 characters" />
+                    <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => updateForm('password', e.target.value)} className={`${inputClasses} pr-11 ${errors.password ? 'border-red-400' : ''}`} placeholder={t('authPages.registerOwner.passwordPh')} />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors">
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -960,12 +963,12 @@ export default function RegisterOwnerPage() {
                   {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">Confirm Password<Required /></label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('auth.confirmPassword')}<Required /></label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                       <Lock className="w-5 h-5 text-gray-400" />
                     </div>
-                    <input type={showConfirmPassword ? 'text' : 'password'} value={form.password_confirmation} onChange={(e) => updateForm('password_confirmation', e.target.value)} className={`${inputClasses} ${errors.password_confirmation ? 'border-red-400' : ''}`} placeholder="Re-enter password" />
+                    <input type={showConfirmPassword ? 'text' : 'password'} value={form.password_confirmation} onChange={(e) => updateForm('password_confirmation', e.target.value)} className={`${inputClasses} ${errors.password_confirmation ? 'border-red-400' : ''}`} placeholder={t('authPages.registerOwner.reenterPasswordPh')} />
                   </div>
                   {errors.password_confirmation && <p className="text-red-500 text-xs mt-1">{errors.password_confirmation}</p>}
                 </div>
@@ -975,7 +978,7 @@ export default function RegisterOwnerPage() {
                   by pressing Enter inside a field. */}
               <div className="flex justify-end">
                 <button type="submit" className="w-full md:w-auto md:min-w-[220px] py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
-                  Continue →
+                  {t('authPages.shared.continueBtn')} →
                 </button>
               </div>
             </div>
@@ -992,14 +995,14 @@ export default function RegisterOwnerPage() {
                 <div key={`step-details-${i}-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
                   {multiple && (
                     <div className="flex items-center justify-between bg-[#0FD452]/5 border border-[#0FD452]/20 rounded-xl px-4 py-2.5">
-                      <p className="text-sm font-bold text-gray-700">Branch {i + 1} of {pharmacies.length}</p>
+                      <p className="text-sm font-bold text-gray-700">{t('authPages.shared.branch')} {i + 1} {t('authPages.shared.branchOf')} {pharmacies.length}</p>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => { addPharmacy(); goStep(3 * pharmacies.length + 2, 'left') }}
                           className="flex items-center gap-1.5 text-xs font-semibold text-[#0FD452] hover:text-[#0cb843]"
                         >
-                          <Plus className="w-4 h-4" /> Add Branch
+                          <Plus className="w-4 h-4" /> {t('authPages.registerOwner.addBranch')}
                         </button>
                         {pharmacies.length > 1 && (
                           <button
@@ -1007,7 +1010,7 @@ export default function RegisterOwnerPage() {
                             onClick={() => removePharmacy(i)}
                             className="flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-600"
                           >
-                            <Trash2 className="w-4 h-4" /> Remove
+                            <Trash2 className="w-4 h-4" /> {t('authPages.registerOwner.remove')}
                           </button>
                         )}
                       </div>
@@ -1015,26 +1018,26 @@ export default function RegisterOwnerPage() {
                   )}
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Name<Required /></label>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.pharmacyName')}<Required /></label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <Store className="w-5 h-5 text-gray-400" />
                       </div>
-                      <input type="text" value={p.pharmacy_name} onChange={(e) => updatePharmacy(i, 'pharmacy_name', e.target.value)} className={`${inputClasses} ${errors[`p${i}_pharmacy_name`] ? 'border-red-400' : ''}`} placeholder="e.g. Helix Central Pharmacy" />
+                      <input type="text" value={p.pharmacy_name} onChange={(e) => updatePharmacy(i, 'pharmacy_name', e.target.value)} className={`${inputClasses} ${errors[`p${i}_pharmacy_name`] ? 'border-red-400' : ''}`} placeholder={t('authPages.registerOwner.pharmacyNamePh')} />
                     </div>
                     {errors[`p${i}_pharmacy_name`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_pharmacy_name`]}</p>}
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-600 mb-1.5">
-                      Pharmacy Logo <span className="font-normal text-gray-400">(optional)</span>
+                      {t('authPages.registerOwner.logoLabel')} <span className="font-normal text-gray-400">({t('authPages.shared.optional')})</span>
                     </label>
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 shrink-0 rounded-2xl border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
                         {p.pharmacy_logo_preview ? (
                           <img
                             src={p.pharmacy_logo_preview}
-                            alt="Pharmacy logo preview"
+                            alt={t('authPages.registerOwner.logoAlt')}
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -1050,7 +1053,7 @@ export default function RegisterOwnerPage() {
                           className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-xl file:border-0 file:bg-[#0FD452] file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-[#000F14] hover:file:bg-[#0cb843] cursor-pointer"
                         />
                         <p className="text-xs text-gray-400 mt-1">
-                          JPG, PNG, GIF or WEBP up to 5 MB. Shown on your profile and in search results.
+                          {t('authPages.registerOwner.logoHelp')}
                         </p>
                         {errors[`p${i}_pharmacy_logo`] && (
                           <p className="text-red-500 text-xs mt-1">{errors[`p${i}_pharmacy_logo`]}</p>
@@ -1061,20 +1064,20 @@ export default function RegisterOwnerPage() {
 
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Type</label>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.pharmacyType')}</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <Building2 className="w-5 h-5 text-gray-400" />
                         </div>
                         <select value={p.pharmacy_type} onChange={(e) => updatePharmacy(i, 'pharmacy_type', e.target.value)} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none">
-                          {pharmacyTypes.map((t) => (
-                            <option key={t.value} value={t.value}>{t.label}</option>
+                          {pharmacyTypes.map((ptype) => (
+                            <option key={ptype.value} value={ptype.value}>{t(`authPages.registerOwner.pharmacyTypes.${ptype.value}`)}</option>
                           ))}
                         </select>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Country</label>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.country')}</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <MapPin className="w-5 h-5 text-gray-400" />
@@ -1090,7 +1093,7 @@ export default function RegisterOwnerPage() {
 
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Region / State<Required /></label>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.region')}<Required /></label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <MapPin className="w-5 h-5 text-gray-400" />
@@ -1100,7 +1103,7 @@ export default function RegisterOwnerPage() {
                           onChange={(e) => updatePharmacy(i, 'region', e.target.value)}
                           className={`w-full pl-11 pr-10 py-3 border rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] ${errors[`p${i}_region`] ? 'border-red-400' : 'border-gray-200'}`}
                         >
-                          <option value="">Select region</option>
+                          <option value="">{t('authPages.registerOwner.selectRegion')}</option>
                           {TANZANIA_REGIONS.map((r) => (
                             <option key={r.name} value={r.name}>{r.name}</option>
                           ))}
@@ -1110,7 +1113,7 @@ export default function RegisterOwnerPage() {
                       {errors[`p${i}_region`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_region`]}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">District / City<Required /></label>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.district')}<Required /></label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <MapPin className="w-5 h-5 text-gray-400" />
@@ -1121,7 +1124,7 @@ export default function RegisterOwnerPage() {
                           disabled={!p.region}
                           className={`w-full pl-11 pr-10 py-3 border rounded-xl text-sm outline-none bg-white appearance-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed ${errors[`p${i}_district`] ? 'border-red-400' : 'border-gray-200'}`}
                         >
-                          <option value="">{p.region ? 'Select district' : 'Select region first'}</option>
+                          <option value="">{p.region ? t('authPages.registerOwner.selectDistrict') : t('authPages.registerOwner.selectRegionFirst')}</option>
                           {districtsFor(p.region).map((d) => (
                             <option key={d} value={d}>{d}</option>
                           ))}
@@ -1134,7 +1137,7 @@ export default function RegisterOwnerPage() {
 
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Ward</label>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.ward')}</label>
                       <div className="relative">
                         <select
                           value={p.ward}
@@ -1142,7 +1145,7 @@ export default function RegisterOwnerPage() {
                           disabled={!p.district}
                           className="w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white appearance-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
                         >
-                          <option value="">{p.district ? 'Select ward' : 'Select district first'}</option>
+                          <option value="">{p.district ? t('authPages.registerOwner.selectWard') : t('authPages.registerOwner.selectDistrictFirst')}</option>
                           {wardsFor(p.region, p.district).map((w) => (
                             <option key={w} value={w}>{w}</option>
                           ))}
@@ -1151,24 +1154,24 @@ export default function RegisterOwnerPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Street</label>
-                      <input type="text" value={p.street} onChange={(e) => updatePharmacy(i, 'street', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="e.g. Bagamoyo Road" />
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.street')}</label>
+                      <input type="text" value={p.street} onChange={(e) => updatePharmacy(i, 'street', e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder={t('authPages.registerOwner.streetPh')} />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">License Number</label>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.licenseNumber')}</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <FileText className="w-5 h-5 text-gray-400" />
                       </div>
-                      <input type="text" value={p.license_number} onChange={(e) => updatePharmacy(i, 'license_number', e.target.value)} className={inputClasses} placeholder="e.g. TMD-12345" />
+                      <input type="text" value={p.license_number} onChange={(e) => updatePharmacy(i, 'license_number', e.target.value)} className={inputClasses} placeholder={t('authPages.registerOwner.licenseNumberPh')} />
                     </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">License Expiry</label>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.licenseExpiry')}</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <Calendar className="w-5 h-5 text-gray-400" />
@@ -1178,7 +1181,7 @@ export default function RegisterOwnerPage() {
                       {errors[`p${i}_license_expiry`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_license_expiry`]}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">Opening Capital (TZS)</label>
+                      <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.openingCapital')}</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                           <DollarSign className="w-5 h-5 text-gray-400" />
@@ -1190,19 +1193,19 @@ export default function RegisterOwnerPage() {
                         onChange={(e) => {
                           const clean = e.target.value.replace(/[^0-9.]/g, '').replace(/(\.[0-9]{0,2}).*$/, '$1')
                           updatePharmacy(i, 'opening_capital', clean)
-                        }} className={`${inputClasses} ${errors[`p${i}_opening_capital`] ? 'border-red-400' : ''}`} placeholder="e.g. 5000000" />
+                        }} className={`${inputClasses} ${errors[`p${i}_opening_capital`] ? 'border-red-400' : ''}`} placeholder={t('authPages.registerOwner.openingCapitalPh')} />
                       </div>
                       {errors[`p${i}_opening_capital`] && <p className="text-red-500 text-xs mt-1">{errors[`p${i}_opening_capital`]}</p>}
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Pharmacy Description</label>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.descriptionLabel')}</label>
                     <div className="relative">
                       <div className="absolute top-3 left-3.5 pointer-events-none">
                         <Info className="w-5 h-5 text-gray-400" />
                       </div>
-                      <textarea value={p.description} onChange={(e) => updatePharmacy(i, 'description', e.target.value)} rows={3} maxLength={1000} className={`w-full pl-11 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] resize-none ${errors[`p${i}_description`] ? 'border-red-400' : 'border-gray-200'}`} placeholder="Brief description of this pharmacy..." />
+                      <textarea value={p.description} onChange={(e) => updatePharmacy(i, 'description', e.target.value)} rows={3} maxLength={1000} className={`w-full pl-11 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] resize-none ${errors[`p${i}_description`] ? 'border-red-400' : 'border-gray-200'}`} placeholder={t('authPages.registerOwner.descriptionPh')} />
                     </div>
                     <div className="flex justify-between mt-1">
                       {errors[`p${i}_description`]
@@ -1214,10 +1217,10 @@ export default function RegisterOwnerPage() {
 
                   <div className="flex gap-3">
                     <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
-                      <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
+                      <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> {t('common.back')}</span>
                     </button>
                     <button type="submit" className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
-                      Continue →
+                      {t('authPages.shared.continueBtn')} →
                     </button>
                   </div>
                 </div>
@@ -1228,8 +1231,8 @@ export default function RegisterOwnerPage() {
               return (
                 <div key={`step-location-${i}-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-2">
-                    <p className="text-blue-700 text-sm font-medium">{multiple ? `Set the location for ${p.pharmacy_name || `Branch ${i + 1}`}` : 'Why is location important?'}</p>
-                    <p className="text-blue-600 text-xs mt-1">Customers discover pharmacies near them on the Helix app. Accurate location helps patients find your pharmacy quickly.</p>
+                    <p className="text-blue-700 text-sm font-medium">{multiple ? `${t('authPages.registerOwner.setLocationFor')} ${p.pharmacy_name || `${t('authPages.shared.branch')} ${i + 1}`}` : t('authPages.registerOwner.whyLocation')}</p>
+                    <p className="text-blue-600 text-xs mt-1">{t('authPages.registerOwner.locationWhyBody')}</p>
                   </div>
 
                   <LocationMap
@@ -1244,10 +1247,10 @@ export default function RegisterOwnerPage() {
 
                   <div className="flex gap-3">
                     <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
-                      <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
+                      <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> {t('common.back')}</span>
                     </button>
                     <button type="submit" className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
-                      Continue →
+                      {t('authPages.shared.continueBtn')} →
                     </button>
                   </div>
                 </div>
@@ -1257,7 +1260,7 @@ export default function RegisterOwnerPage() {
             return (
               <div key={`step-hours-${i}-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-2">Working Days<Required /></label>
+                  <label className="block text-sm font-semibold text-gray-600 mb-2">{t('authPages.registerOwner.workingDays')}<Required /></label>
                   <div className="flex flex-wrap gap-2">
                     {workingDays.map((day) => (
                       <button
@@ -1270,7 +1273,7 @@ export default function RegisterOwnerPage() {
                             : 'bg-gray-100 text-gray-400 border border-gray-200 hover:border-[#0FD452]/50'
                         }`}
                       >
-                        {day}
+                        {t(`authPages.registerOwner.dayNames.${day}`)}
                       </button>
                     ))}
                   </div>
@@ -1279,7 +1282,7 @@ export default function RegisterOwnerPage() {
 
                 <div className="grid md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Opening Time</label>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.openingTime')}</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <Clock className="w-5 h-5 text-gray-400" />
@@ -1288,7 +1291,7 @@ export default function RegisterOwnerPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Closing Time</label>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.registerOwner.closingTime')}</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <Clock className="w-5 h-5 text-gray-400" />
@@ -1301,10 +1304,10 @@ export default function RegisterOwnerPage() {
 
                 <div className="flex gap-3">
                   <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
-                    <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
+                    <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> {t('common.back')}</span>
                   </button>
                   <button type="submit" className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
-                    Continue →
+                    {t('authPages.shared.continueBtn')} →
                   </button>
                 </div>
               </div>
@@ -1315,8 +1318,8 @@ export default function RegisterOwnerPage() {
           {step === totalSteps && (
             <div key={`step-plan-${animKey}`} className={`space-y-5 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <p className="text-blue-700 text-sm font-medium">Choose Your Plan<Required /></p>
-                <p className="text-blue-600 text-xs mt-1">Select a subscription plan. You'll get a 7-day free trial while your application is reviewed. After approval and payment confirmation, your subscription begins.</p>
+                <p className="text-blue-700 text-sm font-medium">{t('authPages.shared.chooseYourPlan')}<Required /></p>
+                <p className="text-blue-600 text-xs mt-1">{t('authPages.registerOwner.planIntro')}</p>
               </div>
 
               <div className="grid gap-4">
@@ -1356,7 +1359,7 @@ export default function RegisterOwnerPage() {
                                 <span key={name} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{name}</span>
                               ))}
                               {chips.length > 4 && (
-                                <span className="text-[10px] text-gray-400">+{chips.length - 4} more</span>
+                                <span className="text-[10px] text-gray-400">+{chips.length - 4} {t('authPages.shared.more')}</span>
                               )}
                             </div>
                           )
@@ -1364,7 +1367,7 @@ export default function RegisterOwnerPage() {
                       </div>
                       <div className="text-right ml-4 shrink-0">
                         <p className="text-xl font-black text-[#000F14]">{planPrice(plan)}</p>
-                        <p className="text-xs text-gray-500">{plan.duration_months} month{plan.duration_months > 1 ? 's' : ''}</p>
+                        <p className="text-xs text-gray-500">{plan.duration_months} {plan.duration_months > 1 ? t('authPages.shared.months') : t('authPages.shared.month')}</p>
                       </div>
                     </div>
                   </button>
@@ -1374,13 +1377,13 @@ export default function RegisterOwnerPage() {
 
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-semibold text-gray-700">Registration Summary</h4>
+                  <h4 className="text-sm font-semibold text-gray-700">{t('authPages.registerOwner.registrationSummary')}</h4>
                   <button
                     type="button"
                     onClick={() => { addPharmacy(); goStep(3 * pharmacies.length + 2, 'left') }}
                     className="flex items-center gap-1.5 text-xs font-semibold text-[#0FD452] hover:text-[#0cb843]"
                   >
-                    <Plus className="w-4 h-4" /> Add Another Pharmacy
+                    <Plus className="w-4 h-4" /> {t('authPages.registerOwner.addAnotherPharmacy')}
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -1388,11 +1391,11 @@ export default function RegisterOwnerPage() {
                     <div key={`summary-${i}`} className="flex items-start justify-between bg-white border border-gray-200 rounded-xl p-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          {multiple && <span className="text-[10px] font-bold bg-[#0FD452]/10 text-[#0FD452] px-2 py-0.5 rounded-full shrink-0">Branch {i + 1}</span>}
-                          <p className="font-semibold text-gray-800 text-sm truncate">{p.pharmacy_name || 'Unnamed pharmacy'}</p>
+                          {multiple && <span className="text-[10px] font-bold bg-[#0FD452]/10 text-[#0FD452] px-2 py-0.5 rounded-full shrink-0">{t('authPages.shared.branch')} {i + 1}</span>}
+                          <p className="font-semibold text-gray-800 text-sm truncate">{p.pharmacy_name || t('authPages.registerOwner.unnamedPharmacy')}</p>
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {[p.ward, p.district, p.region].filter(Boolean).join(', ') || '—'} · {p.opening_time} — {p.closing_time} ({p.working_days.length} days)
+                          {[p.ward, p.district, p.region].filter(Boolean).join(', ') || '—'} · {p.opening_time} — {p.closing_time} ({p.working_days.length} {t('authPages.shared.days')})
                         </p>
                       </div>
                       <div className="flex gap-1 shrink-0 ml-2">
@@ -1400,7 +1403,7 @@ export default function RegisterOwnerPage() {
                           type="button"
                           onClick={() => goStep(3 * i + 2, 'left')}
                           className="p-1.5 rounded-lg text-gray-400 hover:text-[#0FD452] hover:bg-[#0FD452]/5 transition-colors"
-                          title="Edit branch"
+                          title={t('authPages.registerOwner.editBranch')}
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
@@ -1409,7 +1412,7 @@ export default function RegisterOwnerPage() {
                             type="button"
                             onClick={() => removePharmacy(i)}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                            title="Remove branch"
+                            title={t('authPages.registerOwner.removeBranch')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1419,25 +1422,25 @@ export default function RegisterOwnerPage() {
                   ))}
                 </div>
                 <div className="mt-3 space-y-1 text-sm text-gray-500">
-                  <p><span className="font-medium text-gray-600">Owner:</span> {form.name || '—'}</p>
+                  <p><span className="font-medium text-gray-600">{t('authPages.registerOwner.ownerLabel')}</span> {form.name || '—'}</p>
                   {form.subscription_plan_id && (
-                    <p><span className="font-medium text-gray-600">Plan:</span> {plans.find(p => p.id === form.subscription_plan_id)?.name} — {planPrice(plans.find(p => p.id === form.subscription_plan_id))}</p>
+                    <p><span className="font-medium text-gray-600">{t('authPages.registerOwner.planLabel')}</span> {plans.find(p => p.id === form.subscription_plan_id)?.name} — {planPrice(plans.find(p => p.id === form.subscription_plan_id))}</p>
                   )}
                 </div>
               </div>
 
               <div className="flex gap-3">
                 <button type="button" onClick={handleBack} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
-                  <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> Back</span>
+                  <span className="flex items-center justify-center gap-2"><ArrowLeft className="w-4 h-4" /> {t('common.back')}</span>
                 </button>
                 <button type="submit" disabled={loading} className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg">
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Submitting...
+                      {t('authPages.registerOwner.submitting')}
                     </span>
                   ) : (
-                    'Submit Application'
+                    t('authPages.registerOwner.submitApplication')
                   )}
                 </button>
               </div>
@@ -1447,8 +1450,8 @@ export default function RegisterOwnerPage() {
 
         <div className="mt-10 text-center">
           <p className="text-gray-500 text-sm">
-            Already have an account?{' '}
-            <Link to="/login" className="text-[#0FD452] font-semibold hover:text-[#0cb843] transition-colors">Sign In</Link>
+            {t('auth.haveAccount')}{' '}
+            <Link to="/login" className="text-[#0FD452] font-semibold hover:text-[#0cb843] transition-colors">{t('auth.signIn')}</Link>
           </p>
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import Modal from '../../components/Modal'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const STATUS_STYLES = {
   open: 'badge badge-blue',
@@ -22,23 +23,32 @@ const STATUS_STYLES = {
   closed: 'badge badge-gray',
 }
 
-const STATUS_LABELS = {
-  open: 'Open',
-  in_progress: 'In Progress',
-  resolved: 'Resolved',
-  closed: 'Closed',
+const STATUS_LABEL_KEYS = {
+  open: 'reports.support.status.open',
+  in_progress: 'reports.support.status.in_progress',
+  resolved: 'reports.support.status.resolved',
+  closed: 'reports.support.status.closed',
 }
 
-const PRIORITY_LABELS = {
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-  urgent: 'Urgent',
+const PRIORITY_LABEL_KEYS = {
+  low: 'reports.support.priority.low',
+  medium: 'reports.support.priority.medium',
+  high: 'reports.support.priority.high',
+  urgent: 'reports.support.priority.urgent',
 }
 
 const CATEGORIES = ['Account Access', 'Billing & Subscription', 'Orders & Delivery', 'Technical Issue', 'Other']
 
+const CATEGORY_LABEL_KEYS = {
+  'Account Access': 'reports.support.categories.account_access',
+  'Billing & Subscription': 'reports.support.categories.billing_subscription',
+  'Orders & Delivery': 'reports.support.categories.orders_delivery',
+  'Technical Issue': 'reports.support.categories.technical_issue',
+  'Other': 'reports.support.categories.other',
+}
+
 export default function OwnerSupportPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
@@ -95,8 +105,8 @@ export default function OwnerSupportPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = {}
-    if (!form.subject.trim()) errs.subject = 'Subject is required'
-    if (!form.description.trim()) errs.description = 'Describe the issue'
+    if (!form.subject.trim()) errs.subject = t('reports.support.errSubject')
+    if (!form.description.trim()) errs.description = t('reports.support.errDescription')
     setFormErrors(errs)
     if (Object.keys(errs).length) return
 
@@ -105,12 +115,12 @@ export default function OwnerSupportPage() {
       await api.post('/support/tickets', { ...form, pharmacy_id: pharmacyId })
       setShowCreate(false)
       setForm({ subject: '', category: 'Technical Issue', priority: 'medium', description: '' })
-      setToast('Ticket submitted — the admin team will respond shortly.')
+      setToast(t('reports.support.submittedToast'))
       setTimeout(() => setToast(null), 3500)
       fetchTickets()
     } catch (err) {
       if (err.response?.data?.errors) setFormErrors(err.response.data.errors)
-      else setFormErrors({ form: err.response?.data?.message || 'Failed to submit ticket.' })
+      else setFormErrors({ form: err.response?.data?.message || t('reports.support.submitFailed') })
     } finally {
       setSubmitting(false)
     }
@@ -130,13 +140,13 @@ export default function OwnerSupportPage() {
     }
   }
 
-  const filtered = tickets.filter((t) => {
+  const filtered = tickets.filter((ticket) => {
     if (!search) return true
     const q = search.toLowerCase()
     return (
-      (t.subject || '').toLowerCase().includes(q) ||
-      (t.description || '').toLowerCase().includes(q) ||
-      String(t.id).includes(q)
+      (ticket.subject || '').toLowerCase().includes(q) ||
+      (ticket.description || '').toLowerCase().includes(q) ||
+      String(ticket.id).includes(q)
     )
   })
 
@@ -160,16 +170,16 @@ export default function OwnerSupportPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <LifeBuoy className="w-6 h-6 text-[#0FD452]" />
-            Support
+            {t('reports.support.title')}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Reach the Helix admin team for help with your pharmacy account.</p>
+          <p className="text-sm text-gray-500 mt-1">{t('reports.support.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
           className="btn-primary"
         >
           <Plus className="w-4 h-4" />
-          New Ticket
+          {t('reports.support.newTicket')}
         </button>
       </div>
 
@@ -188,7 +198,7 @@ export default function OwnerSupportPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search tickets..."
+                placeholder={t('reports.support.searchPlaceholder')}
                 className="pl-10 w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
               />
             </div>
@@ -197,15 +207,15 @@ export default function OwnerSupportPage() {
           {filtered.length === 0 ? (
             <div className="p-10 text-center text-gray-500">
               <MessageSquare className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-              <p className="font-medium">No support tickets yet.</p>
-              <p className="text-sm">Create a ticket and the admin team will assist you.</p>
+              <p className="font-medium">{t('reports.support.emptyTitle')}</p>
+              <p className="text-sm">{t('reports.support.emptySubtitle')}</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {filtered.map((t) => (
+              {filtered.map((ticket) => (
                 <button
-                  key={t.id}
-                  onClick={() => openTicket(t.id)}
+                  key={ticket.id}
+                  onClick={() => openTicket(ticket.id)}
                   className="w-full flex items-start gap-4 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center shrink-0">
@@ -213,24 +223,24 @@ export default function OwnerSupportPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="font-semibold text-gray-900 truncate">#{t.id} {t.subject}</p>
-                      <span className={`${STATUS_STYLES[t.status] || 'badge badge-gray'} shrink-0`}>
-                        {STATUS_LABELS[t.status] || t.status}
+                      <p className="font-semibold text-gray-900 truncate">#{ticket.id} {ticket.subject}</p>
+                      <span className={`${STATUS_STYLES[ticket.status] || 'badge badge-gray'} shrink-0`}>
+                        {STATUS_LABEL_KEYS[ticket.status] ? t(STATUS_LABEL_KEYS[ticket.status]) : ticket.status}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500 line-clamp-2 mt-1">{t.description}</p>
+                    <p className="text-sm text-gray-500 line-clamp-2 mt-1">{ticket.description}</p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
                       <span className="flex items-center gap-1">
                         <Building2 className="w-3.5 h-3.5" />
-                        {t.pharmacy?.pharmacy_name || 'Platform'}
+                        {ticket.pharmacy?.pharmacy_name || t('reports.support.platform')}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
-                        {PRIORITY_LABELS[t.priority] || t.priority}
+                        {PRIORITY_LABEL_KEYS[ticket.priority] ? t(PRIORITY_LABEL_KEYS[ticket.priority]) : ticket.priority}
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
-                        {new Date(t.created_at).toLocaleDateString()}
+                        {new Date(ticket.created_at).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -249,23 +259,23 @@ export default function OwnerSupportPage() {
               <div>
                 <h2 className="font-bold text-gray-900">#{selected.id} {selected.subject}</h2>
                 <p className="text-xs text-gray-500">
-                  {PRIORITY_LABELS[selected.priority]} priority · {STATUS_LABELS[selected.status] || selected.status}
+                  {PRIORITY_LABEL_KEYS[selected.priority] ? t(PRIORITY_LABEL_KEYS[selected.priority]) : selected.priority} {t('reports.support.priorityWord')} · {STATUS_LABEL_KEYS[selected.status] ? t(STATUS_LABEL_KEYS[selected.status]) : selected.status}
                 </p>
               </div>
             </div>
             <span className={`${STATUS_STYLES[selected.status] || 'badge badge-gray'}`}>
-              {STATUS_LABELS[selected.status] || selected.status}
+              {STATUS_LABEL_KEYS[selected.status] ? t(STATUS_LABEL_KEYS[selected.status]) : selected.status}
             </span>
           </div>
 
           <div className="px-5 py-4 border-b border-gray-200">
             <p className="text-sm text-gray-700 leading-relaxed">{selected.description}</p>
-            <p className="text-xs text-gray-400 mt-2">Opened {new Date(selected.created_at).toLocaleString()}</p>
+            <p className="text-xs text-gray-400 mt-2">{t('reports.support.opened')} {new Date(selected.created_at).toLocaleString()}</p>
           </div>
 
           <div className="px-5 py-4 space-y-3 max-h-[40vh] overflow-y-auto">
             {(selected.replies || []).length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-4">No replies yet.</p>
+              <p className="text-sm text-gray-400 text-center py-4">{t('reports.support.noReplies')}</p>
             )}
             {(selected.replies || []).map((r) => (
               <div
@@ -277,7 +287,7 @@ export default function OwnerSupportPage() {
                 }`}
               >
                 <p className="font-semibold text-xs mb-1">
-                  {r.user?.role === 'admin' ? 'Helix Admin' : r.user?.name || 'You'}
+                  {r.user?.role === 'admin' ? t('reports.support.helixAdmin') : r.user?.name || t('reports.support.you')}
                   <span className="font-normal text-gray-400 ml-2">{new Date(r.created_at).toLocaleString()}</span>
                 </p>
                 <p>{r.message}</p>
@@ -292,7 +302,7 @@ export default function OwnerSupportPage() {
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') sendReply() }}
-                placeholder="Type your reply..."
+                placeholder={t('reports.support.replyPlaceholder')}
                 className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
               />
               <button onClick={sendReply} disabled={sending || !replyText.trim()} className="btn-primary">
@@ -303,61 +313,61 @@ export default function OwnerSupportPage() {
         </div>
       )}
 
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="New Support Ticket" maxWidth="max-w-lg">
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title={t('reports.support.modalTitle')} maxWidth="max-w-lg">
         <form onSubmit={handleSubmit} className="space-y-4">
           {formErrors.form && <p className="text-xs text-red-500">{formErrors.form}</p>}
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Subject <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('reports.support.subject')} <span className="text-red-500">*</span></label>
             <input
               type="text"
               value={form.subject}
               onChange={(e) => setForm({ ...form, subject: e.target.value })}
               className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] ${formErrors.subject ? '!border-red-400' : 'border-gray-300'}`}
-              placeholder="What do you need help with?"
+              placeholder={t('reports.support.subjectPlaceholder')}
             />
             {formErrors.subject && <p className="text-xs text-red-500 mt-1">{formErrors.subject}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1.5">Category</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('reports.support.category')}</label>
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
               >
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABEL_KEYS[c] ? t(CATEGORY_LABEL_KEYS[c]) : c}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1.5">Priority</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('reports.support.priorityLabel')}</label>
               <select
                 value={form.priority}
                 onChange={(e) => setForm({ ...form, priority: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
+                <option value="low">{t('reports.support.priority.low')}</option>
+                <option value="medium">{t('reports.support.priority.medium')}</option>
+                <option value="high">{t('reports.support.priority.high')}</option>
+                <option value="urgent">{t('reports.support.priority.urgent')}</option>
               </select>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Description <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">{t('reports.support.description')} <span className="text-red-500">*</span></label>
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={4}
               className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] ${formErrors.description ? '!border-red-400' : 'border-gray-300'}`}
-              placeholder="Describe the issue in detail..."
+              placeholder={t('reports.support.descriptionPlaceholder')}
             />
             {formErrors.description && <p className="text-xs text-red-500 mt-1">{formErrors.description}</p>}
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={() => setShowCreate(false)} className="btn-secondary">Cancel</button>
+            <button type="button" onClick={() => setShowCreate(false)} className="btn-secondary">{t('common.cancel')}</button>
             <button type="submit" disabled={submitting} className="btn-primary">
               {submitting ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Submit Ticket
+              {t('reports.support.submitTicket')}
             </button>
           </div>
         </form>

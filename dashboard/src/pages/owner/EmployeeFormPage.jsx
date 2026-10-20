@@ -1,22 +1,36 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { ArrowLeft, ArrowRight, Check, Loader2, Save, User, Briefcase, DollarSign, AlertCircle, Users, X, KeyRound, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { employees } from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
 
 const STEPS = [
-  { id: 1, label: 'Personal Info', icon: User },
-  { id: 2, label: 'Employment', icon: Briefcase },
-  { id: 3, label: 'Emergency Contact', icon: AlertCircle },
-  { id: 4, label: 'Login Account', icon: KeyRound },
+  { id: 1, icon: User },
+  { id: 2, icon: Briefcase },
+  { id: 3, icon: AlertCircle },
+  { id: 4, icon: KeyRound },
 ]
 
 export default function EmployeeFormPage() {
+  const { t } = useLanguage()
   const { id } = useParams()
   const navigate = useNavigate()
   const { user: authUser, pharmacyId } = useAuth()
   const isEdit = Boolean(id)
+
+  const STEP_LABELS = {
+    1: t('people.employeeForm.personalInfo'),
+    2: t('people.employeeForm.employment'),
+    3: t('people.employeeDetail.emergencyContact'),
+    4: t('people.employeeForm.loginAccount'),
+  }
+
+  const DEPT_LABELS = { pharmacy: t('people.departments.pharmacy'), management: t('people.departments.management'), finance: t('people.departments.finance'), operations: t('people.departments.operations'), hr: t('people.departments.hr') }
+  const TYPE_LABELS = { full_time: t('people.employmentTypes.full_time'), part_time: t('people.employmentTypes.part_time'), contract: t('people.employmentTypes.contract'), intern: t('people.employmentTypes.intern') }
+  const GENDER_LABELS = { male: t('people.genders.male'), female: t('people.genders.female'), other: t('people.genders.other') }
+  const ROLE_LABELS = { pharmacist: t('common.rolePharmacist'), cashier: t('common.roleCashier'), delivery: t('common.roleDelivery') }
 
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -64,7 +78,7 @@ export default function EmployeeFormPage() {
         password: '', password_confirmation: '',
       })
     } catch {
-      toast.error('Failed to load employee data')
+      toast.error(t('people.employeeForm.loadFailed'))
     } finally { setFetching(false) }
   }
 
@@ -76,27 +90,27 @@ export default function EmployeeFormPage() {
   const validateStep = (s) => {
     const errs = {}
     if (s === 1) {
-      if (!form.first_name.trim()) errs.first_name = 'Required'
-      if (!form.last_name.trim()) errs.last_name = 'Required'
-      if (!form.email.trim()) errs.email = 'Required'
-      else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Invalid email'
-      if (!form.phone.trim()) errs.phone = 'Required'
+      if (!form.first_name.trim()) errs.first_name = t('common.required')
+      if (!form.last_name.trim()) errs.last_name = t('common.required')
+      if (!form.email.trim()) errs.email = t('common.required')
+      else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = t('people.employeeForm.invalidEmail')
+      if (!form.phone.trim()) errs.phone = t('common.required')
     }
     if (s === 2) {
-      if (!form.position.trim()) errs.position = 'Required'
-      if (!form.department) errs.department = 'Required'
-      if (!form.employment_type) errs.employment_type = 'Required'
-      if (!form.hire_date) errs.hire_date = 'Required'
+      if (!form.position.trim()) errs.position = t('common.required')
+      if (!form.department) errs.department = t('common.required')
+      if (!form.employment_type) errs.employment_type = t('common.required')
+      if (!form.hire_date) errs.hire_date = t('common.required')
     }
     if (s === 3) {
-      if (!form.basic_salary || Number(form.basic_salary) <= 0) errs.basic_salary = 'Required'
+      if (!form.basic_salary || Number(form.basic_salary) <= 0) errs.basic_salary = t('common.required')
     }
     if (s === 4 && form.create_account) {
-      if (!form.account_role) errs.account_role = 'Required'
-      if (!form.email.trim()) errs.email = 'Required'
-      else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Invalid email'
-      if (form.password && form.password.length < 8) errs.password = 'At least 8 characters'
-      if (form.password && form.password !== form.password_confirmation) errs.password_confirmation = 'Passwords do not match'
+      if (!form.account_role) errs.account_role = t('common.required')
+      if (!form.email.trim()) errs.email = t('common.required')
+      else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = t('people.employeeForm.invalidEmail')
+      if (form.password && form.password.length < 8) errs.password = t('people.employeeForm.minLength')
+      if (form.password && form.password !== form.password_confirmation) errs.password_confirmation = t('people.employeeForm.passwordsNoMatch')
     }
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -122,18 +136,18 @@ export default function EmployeeFormPage() {
 
       if (isEdit) {
         await employees.update(id, data)
-        toast.success('Employee updated')
+        toast.success(t('people.employeeForm.updated'))
       } else {
         await employees.create(data)
-        toast.success(data.create_account ? 'Employee created with login access' : 'Employee created')
+        toast.success(data.create_account ? t('people.employeeForm.createdWithLogin') : t('people.employeeForm.created'))
       }
       navigate('/dashboard/employees')
     } catch (err) {
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors)
-        toast.error('Validation failed')
+        toast.error(t('people.employeeForm.validationFailed'))
       } else {
-        toast.error(err.response?.data?.message || 'Failed to save employee')
+        toast.error(err.response?.data?.message || t('people.employeeForm.saveFailed'))
       }
     } finally { setLoading(false) }
   }
@@ -155,9 +169,9 @@ export default function EmployeeFormPage() {
             <Link to="/dashboard/employees" className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Employee' : 'Create New Employee'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? t('employees.editEmployee') : t('employees.addEmployee')}</h1>
           </div>
-          <p className="text-gray-600">{isEdit ? 'Update existing employee details' : 'Register a new team member'}</p>
+          <p className="text-gray-600">{isEdit ? t('people.employeeForm.editSubtitle') : t('people.employeeForm.createSubtitle')}</p>
         </div>
       </div>
 
@@ -169,7 +183,7 @@ export default function EmployeeFormPage() {
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${step === s.id ? 'bg-[#0FD452] text-white' : step > s.id ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-400'}`}>
                 {step > s.id ? <Check className="w-3.5 h-3.5" /> : s.id}
               </div>
-              <span className="text-sm font-medium hidden md:inline">{s.label}</span>
+              <span className="text-sm font-medium hidden md:inline">{STEP_LABELS[s.id]}</span>
             </button>
             {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 mx-2 rounded ${step > s.id ? 'bg-green-600' : 'bg-gray-200'}`} />}
           </div>
@@ -186,13 +200,13 @@ export default function EmployeeFormPage() {
                   <User className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Personal Information</h3>
-                  <p className="text-sm text-gray-600">Name, email and contact details</p>
+                  <h3 className="text-lg font-bold text-gray-900">{t('profile.personalInfo')}</h3>
+                  <p className="text-sm text-gray-600">{t('people.employeeForm.personalInfoSubtitle')}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">First Name *</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('employees.firstName')} *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="w-4 h-4 text-gray-400" />
@@ -201,14 +215,14 @@ export default function EmployeeFormPage() {
                       type="text"
                       value={form.first_name}
                       onChange={(e) => handleChange('first_name', e.target.value)}
-                      placeholder="Enter first name"
+                      placeholder={t('people.employeeForm.enterFirstName')}
                       className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     />
                   </div>
                   {errors.first_name && <p className="text-xs text-red-500 mt-1">{errors.first_name}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Last Name *</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('employees.lastName')} *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="w-4 h-4 text-gray-400" />
@@ -217,14 +231,14 @@ export default function EmployeeFormPage() {
                       type="text"
                       value={form.last_name}
                       onChange={(e) => handleChange('last_name', e.target.value)}
-                      placeholder="Enter last name"
+                      placeholder={t('people.employeeForm.enterLastName')}
                       className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     />
                   </div>
                   {errors.last_name && <p className="text-xs text-red-500 mt-1">{errors.last_name}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Email *</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('common.email')} *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="w-4 h-4 text-gray-400" />
@@ -240,7 +254,7 @@ export default function EmployeeFormPage() {
                   {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Phone *</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('common.phone')} *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="w-4 h-4 text-gray-400" />
@@ -256,7 +270,7 @@ export default function EmployeeFormPage() {
                   {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Date of Birth</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('people.employeeForm.dob')}</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="w-4 h-4 text-gray-400" />
@@ -270,7 +284,7 @@ export default function EmployeeFormPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Gender</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('people.employeeForm.gender')}</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="w-4 h-4 text-gray-400" />
@@ -280,14 +294,14 @@ export default function EmployeeFormPage() {
                       onChange={(e) => handleChange('gender', e.target.value)}
                       className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     >
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
+                      <option value="male">{GENDER_LABELS.male}</option>
+                      <option value="female">{GENDER_LABELS.female}</option>
+                      <option value="other">{GENDER_LABELS.other}</option>
                     </select>
                   </div>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">National ID (NIDA)</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('people.employeeForm.nationalId')}</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="w-4 h-4 text-gray-400" />
@@ -296,7 +310,7 @@ export default function EmployeeFormPage() {
                       type="text"
                       value={form.national_id}
                       onChange={(e) => handleChange('national_id', e.target.value)}
-                      placeholder="Tanzania NIDA number"
+                      placeholder={t('people.employeeForm.nidaPlaceholder')}
                       className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     />
                   </div>
@@ -313,13 +327,13 @@ export default function EmployeeFormPage() {
                   <Briefcase className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Employment</h3>
-                  <p className="text-sm text-gray-600">Role, department and salary</p>
+                  <h3 className="text-lg font-bold text-gray-900">{t('people.employeeForm.employment')}</h3>
+                  <p className="text-sm text-gray-600">{t('people.employeeForm.employmentSubtitle')}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Position *</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('employees.position')} *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Briefcase className="w-4 h-4 text-gray-400" />
@@ -328,14 +342,14 @@ export default function EmployeeFormPage() {
                       type="text"
                       value={form.position}
                       onChange={(e) => handleChange('position', e.target.value)}
-                      placeholder="e.g. Pharmacist"
+                      placeholder={t('people.employeeForm.positionPlaceholder')}
                       className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     />
                   </div>
                   {errors.position && <p className="text-xs text-red-500 mt-1">{errors.position}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Department *</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('employees.department')} *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Briefcase className="w-4 h-4 text-gray-400" />
@@ -345,17 +359,17 @@ export default function EmployeeFormPage() {
                       onChange={(e) => handleChange('department', e.target.value)}
                       className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     >
-                      <option value="pharmacy">Pharmacy</option>
-                      <option value="management">Management</option>
-                      <option value="finance">Finance</option>
-                      <option value="operations">Operations</option>
-                      <option value="hr">HR</option>
+                      <option value="pharmacy">{DEPT_LABELS.pharmacy}</option>
+                      <option value="management">{DEPT_LABELS.management}</option>
+                      <option value="finance">{DEPT_LABELS.finance}</option>
+                      <option value="operations">{DEPT_LABELS.operations}</option>
+                      <option value="hr">{DEPT_LABELS.hr}</option>
                     </select>
                   </div>
                   {errors.department && <p className="text-xs text-red-500 mt-1">{errors.department}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Employment Type *</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('employees.employmentType')} *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Briefcase className="w-4 h-4 text-gray-400" />
@@ -365,16 +379,16 @@ export default function EmployeeFormPage() {
                       onChange={(e) => handleChange('employment_type', e.target.value)}
                       className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     >
-                      <option value="full_time">Full Time</option>
-                      <option value="part_time">Part Time</option>
-                      <option value="contract">Contract</option>
-                      <option value="intern">Intern</option>
+                      <option value="full_time">{TYPE_LABELS.full_time}</option>
+                      <option value="part_time">{TYPE_LABELS.part_time}</option>
+                      <option value="contract">{TYPE_LABELS.contract}</option>
+                      <option value="intern">{TYPE_LABELS.intern}</option>
                     </select>
                   </div>
                   {errors.employment_type && <p className="text-xs text-red-500 mt-1">{errors.employment_type}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Hire Date *</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('people.employeeForm.hireDate')} *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Briefcase className="w-4 h-4 text-gray-400" />

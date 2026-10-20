@@ -6,13 +6,18 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { leaves, employees } from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const TYPE_LABELS = { annual: 'Annual Leave', sick: 'Sick Leave', maternity: 'Maternity', paternity: 'Paternity', bereavement: 'Bereavement', unpaid: 'Unpaid Leave', study: 'Study Leave' }
+const TYPE_KEYS = { annual: 'people.leaveTypes.annual', sick: 'people.leaveTypes.sick', maternity: 'people.leaveTypes.maternity', paternity: 'people.leaveTypes.paternity', bereavement: 'people.leaveTypes.bereavement', unpaid: 'people.leaveTypes.unpaid', study: 'people.leaveTypes.study' }
+const FILTER_KEYS = { all: 'common.all', pending: 'common.pending', approved: 'common.approved', rejected: 'common.rejected' }
+const STATUS_KEYS = { pending: 'common.pending', approved: 'common.approved', rejected: 'common.rejected', cancelled: 'people.statuses.cancelled' }
 const STATUS_COLORS = { pending: 'bg-yellow-100 text-yellow-700 border-yellow-200', approved: 'bg-green-100 text-green-700 border-green-200', rejected: 'bg-red-100 text-red-700 border-red-200', cancelled: 'bg-gray-100 text-gray-500 border-gray-200' }
 const STATUS_ICONS = { pending: Clock, approved: CheckCircle, rejected: XCircle, cancelled: Ban }
 const TYPE_BADGE_COLORS = { annual: 'bg-blue-100 text-blue-700', sick: 'bg-red-100 text-red-700', maternity: 'bg-pink-100 text-pink-700', paternity: 'bg-purple-100 text-purple-700', bereavement: 'bg-gray-100 text-gray-600', unpaid: 'bg-orange-100 text-orange-700', study: 'bg-cyan-100 text-cyan-700' }
 
 export default function LeavePage() {
+  const { t } = useLanguage()
   const [leaveList, setLeaveList] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -63,28 +68,28 @@ export default function LeavePage() {
   const handleApprove = async (id) => {
     try {
       await leaves.approve(id, { approved_by: 1 })
-      toast.success('Leave approved')
+      toast.success(t('people.leave.approved'))
       fetchLeaves()
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') }
+    } catch (err) { toast.error(err.response?.data?.message || t('people.leave.failed')) }
   }
 
   const handleReject = async (id) => {
-    const reason = prompt('Rejection reason (optional):')
+    const reason = prompt(t('people.leave.rejectPrompt'))
     if (reason === null) return
     try {
       await leaves.reject(id, { approved_by: 1, rejection_reason: reason })
-      toast.success('Leave rejected')
+      toast.success(t('people.leave.rejected'))
       fetchLeaves()
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') }
+    } catch (err) { toast.error(err.response?.data?.message || t('people.leave.failed')) }
   }
 
   const handleCancel = async (id) => {
-    if (!window.confirm('Cancel this leave request?')) return
+    if (!window.confirm(t('people.leave.cancelConfirm'))) return
     try {
       await leaves.cancel(id)
-      toast.success('Leave cancelled')
+      toast.success(t('people.leave.cancelled'))
       fetchLeaves()
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') }
+    } catch (err) { toast.error(err.response?.data?.message || t('people.leave.failed')) }
   }
 
   const filtered = leaveList.filter(l => {
@@ -104,8 +109,8 @@ export default function LeavePage() {
               <FileText className="w-5 h-5 text-[#0FD452]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Leave Management</h1>
-              <p className="text-sm text-gray-500">Manage employee leave requests.</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('leaves.title')}</h1>
+              <p className="text-sm text-gray-500">{t('leaves.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -113,7 +118,7 @@ export default function LeavePage() {
         {pendingCount > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-            <p className="text-sm text-yellow-800"><span className="font-semibold">{pendingCount} pending leave request{pendingCount > 1 ? 's' : ''} require{pendingCount === 1 ? 's' : ''} your attention</span></p>
+            <p className="text-sm text-yellow-800"><span className="font-semibold">{pendingCount} {pendingCount > 1 ? t('leaves.pendingRequests') : t('people.leave.pendingOne')}</span></p>
           </div>
         )}
 
@@ -123,16 +128,16 @@ export default function LeavePage() {
               <div className="flex flex-col md:flex-row gap-3">
                 <form onSubmit={(e) => { e.preventDefault(); fetchLeaves() }} className="flex-1 flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
                   <Search className="w-4 h-4 text-gray-400" />
-                  <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by employee name..." className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
+                  <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('leaves.searchEmployee')} className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
                 </form>
                 <div className="flex gap-2 flex-wrap">
                   {['all', 'pending', 'approved', 'rejected'].map(f => (
-                    <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${filter === f ? 'bg-[#0FD452] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>{f}</button>
+                    <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${filter === f ? 'bg-[#0FD452] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>{t(FILTER_KEYS[f], f)}</button>
                   ))}
                 </div>
                 <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
-                  <option value="">All Types</option>
-                  {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  <option value="">{t('leaves.allTypes')}</option>
+                  {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{t(TYPE_KEYS[k], v)}</option>)}
                 </select>
               </div>
             </div>
@@ -145,7 +150,7 @@ export default function LeavePage() {
               ) : filtered.length === 0 ? (
                 <div className="bg-white border border-gray-200 rounded-xl p-16 text-center text-gray-500">
                   <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-sm">No leave requests found</p>
+                  <p className="text-sm">{t('leaves.noLeaveRequests')}</p>
                 </div>
               ) : (
                 filtered.map(leave => {
@@ -161,31 +166,31 @@ export default function LeavePage() {
                             <div className="flex items-center gap-2 mb-1">
                               <p className="text-sm font-medium text-gray-900">{leave.employee?.first_name} {leave.employee?.last_name}</p>
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${TYPE_BADGE_COLORS[leave.leave_type] || 'bg-gray-100 text-gray-600'}`}>
-                                {TYPE_LABELS[leave.leave_type] || leave.leave_type}
+                                {t(TYPE_KEYS[leave.leave_type], TYPE_LABELS[leave.leave_type] || leave.leave_type)}
                               </span>
                               
                             </div>
-                            <p className="text-xs text-gray-500 mb-1">{leave.start_date} to {leave.end_date} &middot; {leave.days_count} day{leave.days_count > 1 ? 's' : ''}</p>
+                            <p className="text-xs text-gray-500 mb-1">{leave.start_date} {t('people.shared.to')} {leave.end_date} &middot; {leave.days_count} {leave.days_count > 1 ? t('people.shared.days') : t('people.shared.day')}</p>
                             <p className="text-sm text-gray-600">{leave.reason}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border uppercase tracking-wide ${STATUS_COLORS[leave.status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                            <StatusIcon className="w-3 h-3" /> {leave.status}
+                            <StatusIcon className="w-3 h-3" /> {t(STATUS_KEYS[leave.status], leave.status)}
                           </span>
                           
                           {leave.status === 'pending' && (
                             <div className="flex items-center gap-1">
-                              <button onClick={() => handleApprove(leave.id)} className="p-1.5 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Approve">
+                              <button onClick={() => handleApprove(leave.id)} className="p-1.5 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title={t('leaves.approve')}>
                                 <Check className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleReject(leave.id)} className="p-1.5 rounded-lg bg-red-100 text-red-500 hover:bg-red-200 transition-colors" title="Reject">
+                              <button onClick={() => handleReject(leave.id)} className="p-1.5 rounded-lg bg-red-100 text-red-500 hover:bg-red-200 transition-colors" title={t('leaves.reject')}>
                                 <X className="w-4 h-4" />
                               </button>
                             </div>
                           )}
                           {leave.status === 'pending' && (
-                            <button onClick={() => handleCancel(leave.id)} className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors" title="Cancel">
+                            <button onClick={() => handleCancel(leave.id)} className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors" title={t('leaves.cancel')}>
                               <Ban className="w-4 h-4" />
                             </button>
                           )}
@@ -200,27 +205,27 @@ export default function LeavePage() {
 
           <div className="w-full lg:w-80 space-y-6">
             <div className="bg-white border border-gray-200 rounded-xl p-5">
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Leave Balance</h3>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">{t('leaves.leaveBalance')}</h3>
               <select value={selectedEmployee} onChange={(e) => setSelectedEmployee(e.target.value)} className="w-full bg-white border border-gray-300 text-gray-700 text-sm rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-1 focus:ring-primary">
-                <option value="">Select employee</option>
+                <option value="">{t('leaves.selectEmployee')}</option>
                 {employeeList.map(e => <option key={e.id} value={e.id}>{e.first_name} {e.last_name}</option>)}
               </select>
               {selectedEmployee && (
                 <div className="space-y-3">
                   {Object.entries(leaveBalances).map(([type, days]) => (
                     <div key={type} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 capitalize">{type}</span>
-                      <span className="text-sm font-medium text-gray-900">{days} days</span>
+                      <span className="text-sm text-gray-600 capitalize">{t(TYPE_KEYS[type], type)}</span>
+                      <span className="text-sm font-medium text-gray-900">{days} {t('people.shared.days')}</span>
                     </div>
                   ))}
                 </div>
               )}
-              {!selectedEmployee && <p className="text-sm text-gray-500 text-center py-4">Select an employee to view balance</p>}
+              {!selectedEmployee && <p className="text-sm text-gray-500 text-center py-4">{t('people.leave.selectToView')}</p>}
             </div>
 
             {upcomingLeaves.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Upcoming Leaves</h3>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">{t('leaves.upcomingLeaves')}</h3>
                 <div className="space-y-3">
                   {upcomingLeaves.map(l => (
                     <div key={l.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">

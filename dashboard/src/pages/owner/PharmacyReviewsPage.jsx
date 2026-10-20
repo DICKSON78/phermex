@@ -13,6 +13,7 @@ import {
   User,
 } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 function Stars({ rating }) {
   const value = Math.max(0, Math.min(5, Number(rating) || 0))
@@ -42,6 +43,7 @@ function formatDate(dateStr) {
 const PAGE_SIZE = 10
 
 export default function PharmacyReviewsPage() {
+  const { t } = useLanguage()
   const { pharmacyId } = useAuth()
   const [pharmacy, setPharmacy] = useState(null)
   const [reviews, setReviews] = useState([])
@@ -136,9 +138,9 @@ export default function PharmacyReviewsPage() {
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Store size={24} className="text-gray-300" />
           </div>
-          <p className="text-base font-bold text-gray-900 mb-1">No pharmacy found</p>
+          <p className="text-base font-bold text-gray-900 mb-1">{t('people.reviews.noPharmacy')}</p>
           <p className="text-sm text-gray-400">
-            Set up your pharmacy to start receiving customer reviews.
+            {t('people.reviews.setupPrompt')}
           </p>
         </div>
       </div>
@@ -149,13 +151,13 @@ export default function PharmacyReviewsPage() {
     <div className="p-6 space-y-6">
       <PageHeader
         icon={MessageSquareQuote}
-        title="Customer Reviews"
-        subtitle={`${pharmacy.pharmacy_name || 'Your pharmacy'} — see what customers are saying.`}
+        title={t('people.reviews.title')}
+        subtitle={`${pharmacy.pharmacy_name || t('people.reviews.yourPharmacy')} ${t('people.reviews.subtitleSuffix')}`}
         className="mb-0"
         actions={
           <button onClick={refresh} className="btn-ghost" disabled={loading}>
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('common.refresh')}
           </button>
         }
       />
@@ -169,13 +171,13 @@ export default function PharmacyReviewsPage() {
           <div>
             <Stars rating={rating} />
             <p className="text-sm text-gray-500 mt-1">
-              {rating ? `${rating.toFixed(1)} out of 5` : 'No ratings yet'}
+              {rating ? `${rating.toFixed(1)} ${t('people.reviews.outOf')}` : t('people.reviews.noRatings')}
             </p>
           </div>
         </div>
         <div className="sm:ml-auto flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50">
           <MessageSquareQuote className="w-4 h-4 text-gray-400" />
-          <span className="text-sm font-semibold text-gray-700">{totalReviews} total reviews</span>
+          <span className="text-sm font-semibold text-gray-700">{totalReviews} {t('people.reviews.totalReviewsSuffix')}</span>
         </div>
       </div>
 
@@ -185,8 +187,8 @@ export default function PharmacyReviewsPage() {
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Star size={24} className="text-gray-300" />
           </div>
-          <p className="text-base font-bold text-gray-900 mb-1">No reviews yet</p>
-          <p className="text-sm text-gray-400">Customer reviews will appear here.</p>
+          <p className="text-base font-bold text-gray-900 mb-1">{t('people.reviews.noReviews')}</p>
+          <p className="text-sm text-gray-400">{t('people.reviews.reviewsAppearHere')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -199,7 +201,7 @@ export default function PharmacyReviewsPage() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
-                      {review.user?.name || 'Anonymous Customer'}
+                      {review.user?.name || t('people.reviews.anonymous')}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <Stars rating={review.rating} />
@@ -219,7 +221,7 @@ export default function PharmacyReviewsPage() {
       {hasMore && (
         <div className="text-center pt-2">
           <button onClick={loadMore} className="btn-secondary">
-            Load More
+            {t('people.reviews.loadMore')}
           </button>
         </div>
       )}

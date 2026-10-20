@@ -16,6 +16,7 @@ import {
   User,
   PackageOpen,
 } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
 
@@ -53,6 +54,7 @@ function getGreeting() {
 }
 
 export default function SellerDashboard() {
+  const { t } = useLanguage()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)

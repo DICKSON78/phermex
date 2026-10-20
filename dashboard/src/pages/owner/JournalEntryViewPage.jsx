@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { journal } from '../../services/api'
 import { formatMoney } from '../../utils/currency'
 import PageHeader from '../../components/PageHeader'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const STATUS_COLORS = {
   draft: 'bg-yellow-100 text-yellow-700',
@@ -22,6 +23,7 @@ function formatCurrency(amount) {
 export default function JournalEntryViewPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t } = useLanguage()
 
   const [entry, setEntry] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -38,7 +40,7 @@ export default function JournalEntryViewPage() {
       setEntry(res.data.entry)
     } catch (err) {
       if (err.response?.status === 404) setNotFound(true)
-      else toast.error('Failed to load entry')
+      else toast.error(t('accounting.journal.loadFailed'))
     } finally { setLoading(false) }
   }
 
@@ -46,36 +48,36 @@ export default function JournalEntryViewPage() {
     setProcessing(true)
     try {
       await journal.post(id)
-      toast.success('Entry posted')
+      toast.success(t('accounting.journal.posted'))
       fetchEntry()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to post')
+      toast.error(err.response?.data?.message || t('accounting.journal.postFailed'))
     } finally { setProcessing(false) }
   }
 
   const handleReverse = async () => {
-    if (!reason.trim()) { toast.error('Reason required'); return }
+    if (!reason.trim()) { toast.error(t('accounting.journal.reasonRequired')); return }
     setProcessing(true)
     try {
       await journal.reverse(id, { reason })
-      toast.success('Entry reversed')
+      toast.success(t('accounting.journal.reversed'))
       setShowReverse(false)
       setReason('')
       fetchEntry()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to reverse')
+      toast.error(err.response?.data?.message || t('accounting.journal.reverseFailed'))
     } finally { setProcessing(false) }
   }
 
   const handleDelete = async () => {
-    if (!window.confirm('Delete this draft entry? This cannot be undone.')) return
+    if (!window.confirm(t('accounting.journal.deleteConfirmUndo'))) return
     setProcessing(true)
     try {
       await journal.delete(id)
-      toast.success('Entry deleted')
+      toast.success(t('accounting.journal.entryDeleted'))
       navigate('/dashboard/journal-entries')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete')
+      toast.error(err.response?.data?.message || t('accounting.journal.deleteFailed'))
     } finally { setProcessing(false) }
   }
 
@@ -95,11 +97,11 @@ export default function JournalEntryViewPage() {
             <Link to="/dashboard/journal-entries" className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Journal Entry</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('accounting.journal.entryTitle')}</h1>
           </div>
-          <p className="text-gray-600">Entry not found.</p>
+          <p className="text-gray-600">{t('accounting.journal.notFound')}</p>
         </div>
-        <Link to="/dashboard/journal-entries" className="btn-secondary">Back to Journal Entries</Link>
+        <Link to="/dashboard/journal-entries" className="btn-secondary">{t('accounting.journal.backToList')}</Link>
       </div>
     )
   }
@@ -115,22 +117,22 @@ export default function JournalEntryViewPage() {
             {entry.status === 'draft' && (
               <>
                 <Link to={`/dashboard/journal-entries/${entry.id}/edit`} className="btn-secondary">
-                  <Pencil className="w-4 h-4" /> Edit
+                  <Pencil className="w-4 h-4" /> {t('common.edit')}
                 </Link>
                 <button onClick={handleDelete} disabled={processing} className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-4 py-2 rounded-xl transition-colors text-sm disabled:opacity-50">
-                  <Trash2 className="w-4 h-4" /> Delete
+                  <Trash2 className="w-4 h-4" /> {t('common.delete')}
                 </button>
                 <button onClick={handlePost} disabled={processing} className="btn-primary">
-                  {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Post Entry
+                  {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} {t('accounting.journal.postEntry')}
                 </button>
               </>
             )}
             {entry.status === 'posted' && (
               <button onClick={() => setShowReverse(true)} className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-4 py-2 rounded-xl transition-colors text-sm">
-                <RotateCcw className="w-4 h-4" /> Reverse
+                <RotateCcw className="w-4 h-4" /> {t('accounting.journal.reverse')}
               </button>
             )}
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${STATUS_COLORS[entry.status]}`}>{entry.status}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${STATUS_COLORS[entry.status]}`}>{t(`accounting.journal.status.${entry.status}`, entry.status)}</span>
           </div>
         }
       />
@@ -138,17 +140,17 @@ export default function JournalEntryViewPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"><DollarSign className="w-4 h-4 text-red-600" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Total Debit</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.totalDebit')}</p>
           <p className="text-xl font-bold text-gray-900 tabular-nums">{formatCurrency(entry.total_debit)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"><DollarSign className="w-4 h-4 text-green-600" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Total Credit</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.totalCredit')}</p>
           <p className="text-xl font-bold text-gray-900 tabular-nums">{formatCurrency(entry.total_credit)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"><Hash className="w-4 h-4 text-blue-600" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Entry Number</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.journal.entryNumber')}</p>
           <p className="text-xl font-bold text-gray-900">{entry.entry_number}</p>
         </div>
       </div>

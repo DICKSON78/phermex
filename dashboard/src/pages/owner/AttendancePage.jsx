@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { toArray } from '../../utils/safeData';
 import {
   Clock, Calendar, Search, ChevronLeft, ChevronRight, Loader2, Users,
@@ -28,6 +29,7 @@ const STATUS_COLORS = {
 }
 
 export default function AttendancePage() {
+  const { t, lang } = useLanguage()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [report, setReport] = useState({})
@@ -80,20 +82,20 @@ export default function AttendancePage() {
   const handleClockIn = async (empId) => {
     try {
       await attendance.clockIn({ employee_id: empId })
-      toast.success('Clocked in')
+      toast.success(t('people.attendance.clockedIn'))
       fetchRecords()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to clock in')
+      toast.error(err.response?.data?.message || t('people.attendance.clockInFailed'))
     }
   }
 
   const handleClockOut = async (empId) => {
     try {
       await attendance.clockOut({ employee_id: empId })
-      toast.success('Clocked out')
+      toast.success(t('people.attendance.clockedOut'))
       fetchRecords()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to clock out')
+      toast.error(err.response?.data?.message || t('people.attendance.clockOutFailed'))
     }
   }
 
@@ -119,11 +121,20 @@ export default function AttendancePage() {
   }
 
   const statCards = [
-    { label: 'Attendance Rate', value: `${report.attendance_rate || 0}%`, color: 'text-[#0FD452]' },
-    { label: 'Avg Hours/Day', value: `${report.avg_hours_per_day || 0}h`, color: 'text-blue-600' },
-    { label: 'Total Overtime', value: `${report.total_overtime || 0}h`, color: 'text-yellow-600' },
-    { label: 'Present', value: report.present || 0, color: 'text-green-600' },
+    { label: t('people.attendance.attendanceRate'), value: `${report.attendance_rate || 0}%`, color: 'text-[#0FD452]' },
+    { label: t('people.attendance.avgHours'), value: `${report.avg_hours_per_day || 0}h`, color: 'text-blue-600' },
+    { label: t('people.attendance.totalOvertime'), value: `${report.total_overtime || 0}h`, color: 'text-yellow-600' },
+    { label: t('people.attendance.present'), value: report.present || 0, color: 'text-green-600' },
   ]
+
+  const STATUS_LABELS = {
+    present: t('people.statuses.present'),
+    absent: t('people.statuses.absent'),
+    late: t('people.statuses.late'),
+    half_day: t('people.statuses.half_day'),
+    leave: t('people.statuses.leave'),
+    holiday: t('people.statuses.holiday'),
+  }
 
   const calendarDays = viewMode === 'calendar' ? getCalendarDays() : []
 
@@ -136,16 +147,16 @@ export default function AttendancePage() {
               <Clock className="w-5 h-5 text-[#0FD452]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Attendance</h1>
-              <p className="text-sm text-gray-500">Track employee attendance and working hours.</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('people.attendance.title')}</h1>
+              <p className="text-sm text-gray-500">{t('people.attendance.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Tabs
               className="mb-0"
               tabs={[
-                { id: 'table', label: 'Table', icon: Rows3 },
-                { id: 'calendar', label: 'Calendar', icon: Calendar },
+                { id: 'table', label: t('people.attendance.table'), icon: Rows3 },
+                { id: 'calendar', label: t('people.attendance.calendar'), icon: Calendar },
               ]}
               active={viewMode}
               onChange={setViewMode}
@@ -165,25 +176,25 @@ export default function AttendancePage() {
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 mb-6">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500">From</label>
+              <label className="text-sm text-gray-500">{t('people.attendance.from')}</label>
               <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="bg-gray-100 border border-gray-200 text-gray-900 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0FD452]" />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500">To</label>
+              <label className="text-sm text-gray-500">{t('people.attendance.to')}</label>
               <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="bg-gray-100 border border-gray-200 text-gray-900 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0FD452]" />
             </div>
             <select value={employeeFilter} onChange={(e) => setEmployeeFilter(e.target.value)} className="bg-gray-100 border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0FD452]">
-              <option value="">All Employees</option>
+              <option value="">{t('people.attendance.allEmployees')}</option>
               {employeeList.map(e => <option key={e.id} value={e.id}>{e.first_name} {e.last_name}</option>)}
             </select>
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-gray-100 border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0FD452]">
-              <option value="">All Status</option>
-              <option value="present">Present</option>
-              <option value="absent">Absent</option>
-              <option value="late">Late</option>
-              <option value="half_day">Half Day</option>
-              <option value="leave">Leave</option>
-              <option value="holiday">Holiday</option>
+              <option value="">{t('people.attendance.allStatus')}</option>
+              <option value="present">{t('people.statuses.present')}</option>
+              <option value="absent">{t('people.statuses.absent')}</option>
+              <option value="late">{t('people.statuses.late')}</option>
+              <option value="half_day">{t('people.statuses.half_day')}</option>
+              <option value="leave">{t('people.statuses.leave')}</option>
+              <option value="holiday">{t('people.statuses.holiday')}</option>
             </select>
           </div>
         </div>
@@ -197,43 +208,43 @@ export default function AttendancePage() {
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Users className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Employee</span>
+                        <span>{t('people.attendance.employee')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Date</span>
+                        <span>{t('common.date')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Clock In</span>
+                        <span>{t('people.attendance.clockIn')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Clock Out</span>
+                        <span>{t('people.attendance.clockOut')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Timer className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Hours</span>
+                        <span>{t('people.attendance.hours')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <TrendingUp className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Overtime</span>
+                        <span>{t('people.attendance.overtime')}</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <Activity className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Status</span>
+                        <span>{t('common.status')}</span>
                       </div>
                     </th>
                   </tr>
@@ -242,7 +253,7 @@ export default function AttendancePage() {
                   {loading ? (
                     <tr><td colSpan={7} className="px-6 py-16 text-center"><Loader2 className="w-8 h-8 text-[#0FD452] animate-spin mx-auto" /></td></tr>
                   ) : records.length === 0 ? (
-                    <tr><td colSpan={7} className="px-6 py-16 text-center text-gray-500 text-sm">No records found</td></tr>
+                    <tr><td colSpan={7} className="px-6 py-16 text-center text-gray-500 text-sm">{t('people.attendance.noRecords')}</td></tr>
                   ) : (
                     records.map(rec => (
                       <tr key={rec.id} className="transition-colors hover:bg-[#0FD452]/5">
@@ -263,7 +274,7 @@ export default function AttendancePage() {
                         <td className="px-6 py-4 text-sm text-gray-900 font-medium">{rec.hours_worked}h</td>
                         <td className="px-6 py-4 text-sm text-yellow-600">{rec.overtime_hours}h</td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium capitalize border ${STATUS_COLORS[rec.status] || ''}`}>{rec.status?.replace('_', ' ')}</span>
+                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium capitalize border ${STATUS_COLORS[rec.status] || ''}`}>{STATUS_LABELS[rec.status] || rec.status?.replace('_', ' ')}</span>
                         </td>
                       </tr>
                     ))
@@ -276,14 +287,14 @@ export default function AttendancePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {calendarDays.map(day => (
               <div key={day.dateStr} className={`bg-white shadow-sm border rounded-xl p-4 ${day.absent > 0 ? 'border-red-200' : day.late > 0 ? 'border-yellow-200' : 'border-gray-200'}`}>
-                <p className="text-sm font-medium text-gray-900 mb-2">{day.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+                <p className="text-sm font-medium text-gray-900 mb-2">{day.date.toLocaleDateString(lang === 'sw' ? 'sw-TZ' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-green-600">Present</span>
+                    <span className="text-green-600">{t('people.attendance.present')}</span>
                     <span className="text-gray-900">{day.present}</span>
                   </div>
-                  {day.late > 0 && <div className="flex items-center justify-between text-xs"><span className="text-yellow-600">Late<span className="text-gray-900">{day.late}</span></span></div>}
-                  {day.absent > 0 && <div className="flex items-center justify-between text-xs"><span className="text-red-600">Absent<span className="text-gray-900">{day.absent}</span></span></div>}
+                  {day.late > 0 && <div className="flex items-center justify-between text-xs"><span className="text-yellow-600">{t('people.statuses.late')}<span className="text-gray-900">{day.late}</span></span></div>}
+                  {day.absent > 0 && <div className="flex items-center justify-between text-xs"><span className="text-red-600">{t('people.statuses.absent')}<span className="text-gray-900">{day.absent}</span></span></div>}
                 </div>
               </div>
             ))}

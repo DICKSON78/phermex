@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Save, X, Loader2, Receipt, Calendar, Hash, DollarSign, Percent } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { taxes } from '../../services/api'
-import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { formatMoney } from '../../utils/currency'
 
 const TAX_TYPES = [
@@ -19,6 +19,7 @@ function formatCurrency(amount) {
 }
 
 export default function TaxRecordFormPage() {
+  const { t } = useLanguage()
   const { id } = useParams()
   const navigate = useNavigate()
   const { pharmacyId } = useAuth()

@@ -9,6 +9,7 @@ import {
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { formatMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const TYPE_STYLES = {
   Email: 'badge badge-blue',
@@ -45,6 +46,7 @@ function daysRemaining(endDate) {
 export default function AdminMarketingShowPage() {
   const navigate = useNavigate()
   const { id } = useParams()
+  const { t } = useLanguage()
   const [campaign, setCampaign] = useState(null)
   const [loading, setLoading] = useState(true)
   const [deleteDialog, setDeleteDialog] = useState(false)
@@ -117,7 +119,7 @@ export default function AdminMarketingShowPage() {
 
   if (!campaign) {
     return (
-      <div className="p-6 text-center text-gray-500">Campaign not found</div>
+      <div className="p-6 text-center text-gray-500">{t('adminOps.marketing.notFound')}</div>
     )
   }
 
@@ -148,15 +150,15 @@ export default function AdminMarketingShowPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{campaign.name}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-2">{campaign.type} — {campaign.audience} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>{campaign.status}</span></p>
+            <p className="text-sm text-gray-500 flex items-center gap-2">{t('adminOps.labels.' + campaign.type, campaign.type)} — {campaign.audience} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>{t('adminOps.labels.' + campaign.status, campaign.status)}</span></p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Link to={`/dashboard/marketing/${id}/edit`} className="btn-secondary">
-            <Edit className="w-4 h-4" /> Edit
+            <Edit className="w-4 h-4" /> {t('common.edit')}
           </Link>
           <button onClick={() => setDeleteDialog(true)} className="btn-danger-outline">
-            <Trash2 className="w-4 h-4" /> Delete
+            <Trash2 className="w-4 h-4" /> {t('common.delete')}
           </button>
         </div>
       </div>
@@ -169,8 +171,8 @@ export default function AdminMarketingShowPage() {
               <Layers className="w-5 h-5 text-[#0FD452]" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</p>
-              <p className="text-sm font-bold text-gray-900">{campaign.type}</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('adminOps.fields.type')}</p>
+              <p className="text-sm font-bold text-gray-900">{t('adminOps.labels.' + campaign.type, campaign.type)}</p>
             </div>
           </div>
         </div>
@@ -180,7 +182,7 @@ export default function AdminMarketingShowPage() {
               <Users className="w-5 h-5 text-blue-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Audience</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('adminOps.marketing.audience')}</p>
               <p className="text-sm font-bold text-gray-900">{campaign.audience}</p>
             </div>
           </div>
@@ -191,8 +193,8 @@ export default function AdminMarketingShowPage() {
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</p>
-              <span className={STATUS_STYLES[campaign.status] || 'badge badge-gray'}>{campaign.status}</span>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('common.status')}</p>
+              <span className={STATUS_STYLES[campaign.status] || 'badge badge-gray'}>{t('adminOps.labels.' + campaign.status, campaign.status)}</span>
             </div>
           </div>
         </div>
@@ -202,7 +204,7 @@ export default function AdminMarketingShowPage() {
               <TrendingUp className="w-5 h-5 text-purple-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Conversions</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('adminOps.marketing.conversions')}</p>
               <p className="text-sm font-bold text-gray-900">{(campaign.conversions || 0).toLocaleString()}</p>
             </div>
           </div>
@@ -213,7 +215,7 @@ export default function AdminMarketingShowPage() {
               <DollarSign className="w-5 h-5 text-amber-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Budget</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('adminOps.marketing.budget')}</p>
               <p className="text-sm font-bold text-gray-900">{formatCurrency(campaign.budget)}</p>
             </div>
           </div>
@@ -231,64 +233,64 @@ export default function AdminMarketingShowPage() {
                 <Megaphone className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Campaign Information</h3>
-                <p className="text-xs text-gray-500">Core details and configuration</p>
+                <h3 className="text-base font-semibold text-gray-900">{t('adminOps.marketing.campaignInfo')}</h3>
+                <p className="text-xs text-gray-500">{t('adminOps.marketing.coreDetails')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Megaphone className="w-3.5 h-3.5" />
-                  Campaign Name
+                  {t('adminOps.marketing.campaignName')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{campaign.name}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Layers className="w-3.5 h-3.5" />
-                  Type
+                  {t('adminOps.fields.type')}
                 </div>
-                <span className={TYPE_STYLES[campaign.type] || 'badge badge-gray'}>{campaign.type}</span>
+                <span className={TYPE_STYLES[campaign.type] || 'badge badge-gray'}>{t('adminOps.labels.' + campaign.type, campaign.type)}</span>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Users className="w-3.5 h-3.5" />
-                  Audience
+                  {t('adminOps.marketing.audience')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{campaign.audience}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  Status
+                  {t('common.status')}
                 </div>
-                <span className={STATUS_STYLES[campaign.status] || 'badge badge-gray'}>{campaign.status}</span>
+                <span className={STATUS_STYLES[campaign.status] || 'badge badge-gray'}>{t('adminOps.labels.' + campaign.status, campaign.status)}</span>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Calendar className="w-3.5 h-3.5" />
-                  Start Date
+                  {t('adminOps.fields.startDate')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{formatDate(campaign.startDate)}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Calendar className="w-3.5 h-3.5" />
-                  End Date
+                  {t('adminOps.fields.endDate')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{formatDate(campaign.endDate)}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <DollarSign className="w-3.5 h-3.5" />
-                  Budget
+                  {t('adminOps.marketing.budget')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{formatCurrency(campaign.budget)}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <DollarSign className="w-3.5 h-3.5" />
-                  Spend
+                  {t('adminOps.marketing.spend')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{formatCurrency(campaign.spend || 0)}</p>
               </div>
@@ -302,29 +304,29 @@ export default function AdminMarketingShowPage() {
                 <BarChart3 className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Performance Metrics</h3>
-                <p className="text-xs text-gray-500">Campaign performance and analytics</p>
+                <h3 className="text-base font-semibold text-gray-900">{t('adminOps.marketing.performanceMetrics')}</h3>
+                <p className="text-xs text-gray-500">{t('adminOps.marketing.performanceDesc')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Eye className="w-3.5 h-3.5" />
-                  Impressions
+                  {t('adminOps.marketing.impressions')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{(campaign.impressions || 0).toLocaleString()}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <MousePointerClick className="w-3.5 h-3.5" />
-                  Clicks
+                  {t('adminOps.marketing.clicks')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{(campaign.clicks || 0).toLocaleString()}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <TrendingUp className="w-3.5 h-3.5" />
-                  Conversions
+                  {t('adminOps.marketing.conversions')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{(campaign.conversions || 0).toLocaleString()}</p>
               </div>
@@ -356,13 +358,13 @@ export default function AdminMarketingShowPage() {
                 <MessageSquare className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Campaign Content</h3>
-                <p className="text-xs text-gray-500">Message and creative content</p>
+                <h3 className="text-base font-semibold text-gray-900">{t('adminOps.marketing.campaignContent')}</h3>
+                <p className="text-xs text-gray-500">{t('adminOps.marketing.contentSubDesc')}</p>
               </div>
             </div>
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
               <p className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
-                {campaign.description || 'No description available.'}
+                {campaign.description || t('adminOps.marketing.noDescription')}
               </p>
             </div>
           </div>
@@ -377,20 +379,20 @@ export default function AdminMarketingShowPage() {
                 <BarChart3 className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Quick Stats</h3>
-                <p className="text-xs text-gray-500">Campaign insights</p>
+                <h3 className="text-base font-semibold text-gray-900">{t('adminOps.labels.Quick Stats')}</h3>
+                <p className="text-xs text-gray-500">{t('adminOps.marketing.campaignInsights')}</p>
               </div>
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Days Remaining</span>
+                <span className="text-sm text-gray-500">{t('adminOps.marketing.daysRemaining')}</span>
                 <span className="text-sm font-semibold text-gray-900">
-                  {days != null ? `${days} days` : '\u2014'}
+                  {days != null ? `${days} ${t('adminOps.units.days')}` : '\u2014'}
                 </span>
                 
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Daily Avg Conversions</span>
+                <span className="text-sm text-gray-500">{t('adminOps.marketing.dailyAvgConversions')}</span>
                 <span className="text-sm font-semibold text-gray-900">
                   {campaign.startDate && campaign.conversions
                     ? (campaign.conversions / Math.max(1, Math.ceil((new Date() - new Date(campaign.startDate)) / 86400000))).toFixed(1)
@@ -399,11 +401,11 @@ export default function AdminMarketingShowPage() {
                 
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Cost per Conversion</span>
+                <span className="text-sm text-gray-500">{t('adminOps.marketing.costPerConversion')}</span>
                 <span className="text-sm font-semibold text-gray-900">{costPerConversion}</span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-gray-500">Engagement Rate</span>
+                <span className="text-sm text-gray-500">{t('adminOps.marketing.engagementRate')}</span>
                 <span className="text-sm font-semibold text-gray-900">{engagementRate}%</span>
               </div>
             </div>
@@ -416,8 +418,8 @@ export default function AdminMarketingShowPage() {
                 <Zap className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Actions</h3>
-                <p className="text-xs text-gray-500">Manage this campaign</p>
+                <h3 className="text-base font-semibold text-gray-900">{t('common.actions')}</h3>
+                <p className="text-xs text-gray-500">{t('adminOps.marketing.manageCampaign')}</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -426,7 +428,7 @@ export default function AdminMarketingShowPage() {
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
               >
                 <Edit className="w-4 h-4 text-[#0FD452]" />
-                Edit Campaign
+                {t('adminOps.marketing.editCampaign')}
               </button>
               <button
                 onClick={handleToggleStatus}
@@ -436,12 +438,12 @@ export default function AdminMarketingShowPage() {
                 {campaign.status === 'Active' ? (
                   <>
                     <Pause className="w-4 h-4 text-amber-500" />
-                    Pause Campaign
+                    {t('adminOps.marketing.pauseCampaign')}
                   </>
                 ) : (
                   <>
                     <Play className="w-4 h-4 text-[#0FD452]" />
-                    Resume Campaign
+                    {t('adminOps.marketing.resumeCampaign')}
                   </>
                 )}
               </button>
@@ -450,14 +452,14 @@ export default function AdminMarketingShowPage() {
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
               >
                 <Copy className="w-4 h-4 text-blue-500" />
-                Duplicate Campaign
+                {t('adminOps.marketing.duplicateCampaign')}
               </button>
               <button
                 onClick={() => setDeleteDialog(true)}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-red-50 hover:bg-red-100 rounded-lg text-sm font-medium text-red-600 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete Campaign
+                {t('adminOps.marketing.deleteCampaign')}
               </button>
             </div>
           </div>
@@ -468,9 +470,9 @@ export default function AdminMarketingShowPage() {
         isOpen={deleteDialog}
         onCancel={() => setDeleteDialog(false)}
         onConfirm={handleDelete}
-        title="Delete Campaign"
-        message={`Are you sure you want to delete "${campaign.name}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('adminOps.marketing.deleteCampaign')}
+        message={`${t('adminOps.shared.deleteConfirm')} "${campaign.name}"? ${t('common.cannotBeUndone')}`}
+        confirmText={t('common.delete')}
         variant="danger"
       />
     </div>

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const UNITS = ['Tablets', 'Capsules', 'Bottles', 'Tubes', 'Vials', 'Sachets', 'Syrup']
 
@@ -48,6 +49,7 @@ export default function DrugFormPage() {
   const navigate = useNavigate()
   const base = currentBase()
   const { id } = useParams()
+  const { t } = useLanguage()
   const isEdit = Boolean(id)
 
   const [form, setForm] = useState({ ...INITIAL_FORM, barcode: generateBarcode() })
@@ -116,7 +118,7 @@ export default function DrugFormPage() {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 2 * 1024 * 1024) {
-      setErrors(prev => ({ ...prev, image: 'Image must be under 2MB' }))
+      setErrors(prev => ({ ...prev, image: t('inventory.drugForm.imageTooBig') }))
       return
     }
     setImageFile(file)
@@ -131,11 +133,11 @@ export default function DrugFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.name.trim()) errs.name = 'Drug name is required'
-    if (!form.buying_price || Number(form.buying_price) <= 0) errs.buying_price = 'Valid buying price is required'
-    if (!form.selling_price || Number(form.selling_price) <= 0) errs.selling_price = 'Valid selling price is required'
-    if (!form.quantity || Number(form.quantity) < 0) errs.quantity = 'Valid quantity is required'
-    if (Number(form.selling_price) < Number(form.buying_price)) errs.selling_price = 'Selling price should be higher than buying price'
+    if (!form.name.trim()) errs.name = t('inventory.drugForm.errName')
+    if (!form.buying_price || Number(form.buying_price) <= 0) errs.buying_price = t('inventory.drugForm.errBuying')
+    if (!form.selling_price || Number(form.selling_price) <= 0) errs.selling_price = t('inventory.drugForm.errSelling')
+    if (!form.quantity || Number(form.quantity) < 0) errs.quantity = t('inventory.drugForm.errQuantity')
+    if (Number(form.selling_price) < Number(form.buying_price)) errs.selling_price = t('inventory.drugForm.errPriceCompare')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -197,9 +199,9 @@ export default function DrugFormPage() {
             <Link to={`${base}/drugs`} className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Drug' : 'Create New Drug'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? t('products.editDrug') : t('inventory.drugForm.createNew')}</h1>
           </div>
-          <p className="text-gray-600">{isEdit ? 'Update existing drug details' : 'Add a new drug to inventory'}</p>
+          <p className="text-gray-600">{isEdit ? t('inventory.drugForm.updateSubtitle') : t('inventory.drugForm.addSubtitle')}</p>
         </div>
       </div>
 
@@ -212,14 +214,14 @@ export default function DrugFormPage() {
                 <Pill className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Drug Information</h3>
-                <p className="text-sm text-gray-600">Basic details about the medication</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('inventory.drug.infoTitle')}</h3>
+                <p className="text-sm text-gray-600">{t('inventory.drugForm.infoSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Drug Name <span className="text-red-500">*</span>
+                  {t('products.drugName')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -229,14 +231,14 @@ export default function DrugFormPage() {
                     type="text"
                     value={form.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder="e.g. Amoxicillin 500mg"
+                    placeholder={t('inventory.drugForm.namePlaceholder')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Generic Name</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('products.genericName')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Pill className="w-4 h-4 text-gray-400" />
@@ -245,7 +247,7 @@ export default function DrugFormPage() {
                     type="text"
                     value={form.generic_name}
                     onChange={(e) => handleChange('generic_name', e.target.value)}
-                    placeholder="e.g. Amoxicillin"
+                    placeholder={t('inventory.drugForm.genericPlaceholder')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>

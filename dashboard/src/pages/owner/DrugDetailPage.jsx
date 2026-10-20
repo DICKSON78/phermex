@@ -22,6 +22,14 @@ import {
 import api from '../../services/api'
 import { toObject, toArray } from '../../utils/safeData'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
+
+const MV_KEYS = {
+  purchase: 'inventory.drugDetail.mvPurchase',
+  sale: 'inventory.drugDetail.mvSale',
+  adjustment: 'inventory.drugDetail.mvAdjustment',
+  expiry: 'inventory.drugDetail.mvExpiry',
+}
 
 function LoadingSkeleton() {
   return (
@@ -53,6 +61,7 @@ export default function DrugDetailPage() {
   const navigate = useNavigate()
   const base = currentBase()
   const { id } = useParams()
+  const { t } = useLanguage()
   const [drug, setDrug] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -74,7 +83,7 @@ export default function DrugDetailPage() {
   }, [fetchDrug])
 
   if (loading) return <LoadingSkeleton />
-  if (!drug) return <div className="text-center text-gray-500 py-20">Drug not found</div>
+  if (!drug) return <div className="text-center text-gray-500 py-20">{t('inventory.drugDetail.notFound')}</div>
 
   const movements = toArray(drug.movements)
   const profitMargin = Number(drug.selling_price) - Number(drug.buying_price)
@@ -89,7 +98,7 @@ export default function DrugDetailPage() {
     }
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[type] || 'bg-gray-100 text-gray-700'}`}>
-        {(type || 'Unknown').charAt(0).toUpperCase() + (type || 'Unknown').slice(1)}
+        {MV_KEYS[type] ? t(MV_KEYS[type]) : (type || 'Unknown').charAt(0).toUpperCase() + (type || 'Unknown').slice(1)}
       </span>
     )
   }
@@ -120,43 +129,43 @@ export default function DrugDetailPage() {
           <Pill className="w-5 h-5 text-[#0FD452]" />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900 truncate">{drug.name || 'Drug Details'}</h1>
-          <p className="text-sm text-gray-500">{categoryName || 'Uncategorized'} &middot; {drug.unit || 'Unit'}</p>
+          <h1 className="text-2xl font-bold text-gray-900 truncate">{drug.name || t('inventory.drugDetail.titleFallback')}</h1>
+          <p className="text-sm text-gray-500">{categoryName || t('inventory.drugDetail.uncategorized')} &middot; {drug.unit || t('inventory.drugDetail.unitFallback')}</p>
         </div>
         <button
           onClick={() => navigate(`${base}/drugs/${id}/edit`)}
           className="btn-primary shrink-0"
         >
           <Edit className="w-4 h-4" />
-          Edit
+          {t('common.edit')}
         </button>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Stock</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('products.stock')}</p>
           <p className={`text-2xl font-bold ${drug.quantity === 0 ? 'text-red-600' : drug.quantity <= drug.reorder_level ? 'text-yellow-600' : 'text-gray-900'}`}>
             {Number(drug.quantity) || 0}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">{drug.unit || 'units'}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{drug.unit || t('inventory.drugDetail.unitsFallback')}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Selling Price</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('inventory.drug.sellingPrice')}</p>
           <p className="text-2xl font-bold text-gray-900">TZS {Number(drug.selling_price || 0).toLocaleString()}</p>
-          <p className="text-xs text-gray-500 mt-0.5">per {drug.unit || 'unit'}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('inventory.drugDetail.per')} {drug.unit || t('inventory.drugDetail.perUnit')}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Buying Price</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('inventory.drug.buyingPrice')}</p>
           <p className="text-2xl font-bold text-gray-900">TZS {Number(drug.buying_price || 0).toLocaleString()}</p>
-          <p className="text-xs text-gray-500 mt-0.5">cost per unit</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('inventory.drugDetail.costPerUnit')}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Profit Margin</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('inventory.drug.profitMargin')}</p>
           <p className={`text-2xl font-bold ${profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {profitPercent}%
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">TZS {Number(profitMargin).toFixed(2)} / unit</p>
+          <p className="text-xs text-gray-500 mt-0.5">TZS {Number(profitMargin).toFixed(2)} / {t('inventory.drugDetail.perUnit')}</p>
         </div>
       </div>
 
@@ -166,7 +175,7 @@ export default function DrugDetailPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
             <Pill className="w-5 h-5 text-[#0FD452]" />
-            <h2 className="text-lg font-semibold text-gray-900">Drug Information</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('inventory.drug.infoTitle')}</h2>
           </div>
           {drug.image_url && (
             <div className="mb-4">
@@ -180,38 +189,38 @@ export default function DrugDetailPage() {
           {!drug.image_url && (
             <div className="mb-4 w-full h-48 rounded-xl bg-gray-50 border border-dashed border-gray-200 flex flex-col items-center justify-center">
               <Image className="w-10 h-10 text-gray-300 mb-2" />
-              <p className="text-xs text-gray-400">No image uploaded</p>
+              <p className="text-xs text-gray-400">{t('inventory.drugDetail.noImage')}</p>
             </div>
           )}
           <div className="space-y-1 divide-y divide-gray-50">
-            <InfoRow label="Drug Name" value={drug.name} icon={Pill} />
-            <InfoRow label="Generic Name" value={drug.generic_name} />
-            <InfoRow label="Manufacturer" value={drug.manufacturer} icon={Building2} />
-            <InfoRow label="Barcode" value={drug.barcode} icon={BarcodeIcon} />
-            <InfoRow label="NAFDAC Number" value={drug.nafdac_number} icon={Tag} />
-            <InfoRow label="Category" value={categoryName} icon={Tag} />
-            <InfoRow label="Batch Number" value={drug.batch_number} icon={Hash} />
+            <InfoRow label={t('products.drugName')} value={drug.name} icon={Pill} />
+            <InfoRow label={t('products.genericName')} value={drug.generic_name} />
+            <InfoRow label={t('inventory.drug.manufacturer')} value={drug.manufacturer} icon={Building2} />
+            <InfoRow label={t('nav.items.barcode')} value={drug.barcode} icon={BarcodeIcon} />
+            <InfoRow label={t('inventory.drugDetail.nafdacNumber')} value={drug.nafdac_number} icon={Tag} />
+            <InfoRow label={t('products.category')} value={categoryName} icon={Tag} />
+            <InfoRow label={t('products.batchNumber')} value={drug.batch_number} icon={Hash} />
             <InfoRow
-              label="Expiry Date"
+              label={t('products.expiryDate')}
               value={drug.expiry_date ? new Date(drug.expiry_date).toLocaleDateString() : null}
               icon={Calendar}
             />
           </div>
           {drug.description && (
             <div className="mt-4 pt-3 border-t border-gray-100">
-              <p className="text-sm text-gray-500 mb-1">Description</p>
+              <p className="text-sm text-gray-500 mb-1">{t('inventory.labels.description')}</p>
               <p className="text-sm text-gray-900">{drug.description}</p>
             </div>
           )}
           <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-gray-100">
             {drug.requires_prescription && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                Prescription Required
+                {t('inventory.drugDetail.prescriptionRequired')}
               </span>
             )}
             {drug.is_generic && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                Generic
+                {t('inventory.drugDetail.generic')}
               </span>
             )}
             {!drug.requires_prescription && !drug.is_generic && (
@@ -226,28 +235,28 @@ export default function DrugDetailPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
             <Package className="w-5 h-5 text-[#0FD452]" />
-            <h2 className="text-lg font-semibold text-gray-900">Stock & Pricing</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('inventory.drugDetail.stockPricing')}</h2>
           </div>
           <div className="space-y-1 divide-y divide-gray-50">
             <div className="flex items-center justify-between py-2.5">
               <span className="flex items-center gap-2 text-gray-500 text-sm">
                 <Package className="w-4 h-4" />
-                Current Stock
+                {t('inventory.drugDetail.currentStock')}
               </span>
               <span className={`text-sm font-semibold ${drug.quantity === 0 ? 'text-red-600' : drug.quantity <= drug.reorder_level ? 'text-yellow-600' : 'text-green-600'}`}>
                 {Number(drug.quantity) || 0} {drug.unit}
               </span>
             </div>
-            <InfoRow label="Reorder Level" value={drug.reorder_level} icon={AlertTriangle} />
+            <InfoRow label={t('products.reorderLevel')} value={drug.reorder_level} icon={AlertTriangle} />
             <div className="h-px bg-gray-100 my-2" />
-            <InfoRow label="Buying Price" value={`TZS ${Number(drug.buying_price || 0).toFixed(2)}`} icon={DollarSign} />
-            <InfoRow label="Selling Price" value={`TZS ${Number(drug.selling_price || 0).toFixed(2)}`} icon={DollarSign} />
-            <InfoRow label="Wholesale Price" value={drug.wholesale_price ? `TZS ${Number(drug.wholesale_price).toFixed(2)}` : null} icon={DollarSign} />
+            <InfoRow label={t('inventory.drug.buyingPrice')} value={`TZS ${Number(drug.buying_price || 0).toFixed(2)}`} icon={DollarSign} />
+            <InfoRow label={t('inventory.drug.sellingPrice')} value={`TZS ${Number(drug.selling_price || 0).toFixed(2)}`} icon={DollarSign} />
+            <InfoRow label={t('inventory.drug.wholesalePrice')} value={drug.wholesale_price ? `TZS ${Number(drug.wholesale_price).toFixed(2)}` : null} icon={DollarSign} />
             <div className="h-px bg-gray-100 my-2" />
             <div className="flex items-center justify-between py-2.5">
               <span className="flex items-center gap-2 text-gray-500 text-sm">
                 <DollarSign className="w-4 h-4" />
-                Profit Margin
+                {t('inventory.drug.profitMargin')}
               </span>
               <span className={`text-sm font-semibold ${profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 TZS {Number(profitMargin).toFixed(2)} ({profitPercent}%)
@@ -261,9 +270,9 @@ export default function DrugDetailPage() {
       <div className="overflow-hidden rounded-xl bg-white shadow-sm">
         <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100">
           <BarChart3 className="w-5 h-5 text-[#0FD452]" />
-          <h2 className="text-lg font-semibold text-gray-900">Stock Movement History</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('inventory.drugDetail.movementsTitle')}</h2>
           {movements.length > 0 && (
-            <span className="ml-auto text-xs text-gray-400">{movements.length} records</span>
+            <span className="ml-auto text-xs text-gray-400">{movements.length} {t('inventory.drugDetail.records')}</span>
           )}
         </div>
         <div className="overflow-x-auto">
@@ -272,8 +281,8 @@ export default function DrugDetailPage() {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <BarChart3 className="w-7 h-7 text-gray-300" />
               </div>
-              <p className="text-sm font-medium text-gray-900 mb-1">No stock movements</p>
-              <p className="text-xs text-gray-400">Stock changes will appear here once you start selling or restocking.</p>
+              <p className="text-sm font-medium text-gray-900 mb-1">{t('inventory.drugDetail.noMovements')}</p>
+              <p className="text-xs text-gray-400">{t('inventory.drugDetail.noMovementsHint')}</p>
             </div>
           ) : (
             <table className="w-full">
@@ -282,37 +291,37 @@ export default function DrugDetailPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Date</span>
+                      <span>{t('common.date')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Tag className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Type</span>
+                      <span>{t('inventory.drugDetail.type')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Quantity</span>
+                      <span>{t('pos.quantity')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Unit Cost</span>
+                      <span>{t('inventory.drug.unitCost')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Reference</span>
+                      <span>{t('inventory.drugDetail.reference')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Notes</span>
+                      <span>{t('inventory.labels.notes')}</span>
                     </div>
                   </th>
                 </tr>
@@ -352,7 +361,7 @@ export default function DrugDetailPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
             <BarcodeIcon className="w-5 h-5 text-[#0FD452]" />
-            <h2 className="text-lg font-semibold text-gray-900">Barcode</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('nav.items.barcode')}</h2>
           </div>
           <div className="flex flex-col items-center gap-4">
             <div id="barcode-printable">
@@ -376,7 +385,7 @@ export default function DrugDetailPage() {
               className="btn-secondary"
             >
               <Printer className="w-4 h-4" />
-              Print Barcode
+              {t('inventory.drugDetail.printBarcode')}
             </button>
           </div>
         </div>
@@ -386,23 +395,23 @@ export default function DrugDetailPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Settings className="w-5 h-5 text-[#0FD452]" />
-          <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.quickActions')}</h2>
         </div>
         <div className="flex flex-wrap gap-3">
           <button className="btn-primary">
             <Settings className="w-4 h-4" />
-            Adjust Stock
+            {t('inventory.drugDetail.adjustStock')}
           </button>
           <button className="btn-secondary">
             <BarcodeIcon className="w-4 h-4" />
-            Print Barcode
+            {t('inventory.drugDetail.printBarcode')}
           </button>
           <button
           onClick={() => navigate(`${base}/drugs/${id}/edit`)}
             className="btn-secondary"
           >
             <Edit className="w-4 h-4" />
-            Edit Drug
+            {t('products.editDrug')}
           </button>
         </div>
       </div>

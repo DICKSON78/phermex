@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { useCurrency, STORED_CURRENCY } from '../../utils/currency'
 import {
   Check,
@@ -25,9 +26,9 @@ const PLAN_META = [
 ]
 
 const COLUMNS = [
-  { key: 's', name: 'STARTER', price: '$150/year' },
-  { key: 'p', name: 'PROFESSIONAL', price: '$200/year' },
-  { key: 'e', name: 'ENTERPRISE', price: '$250/year' },
+  { key: 's', name: 'STARTER', price: '$150' },
+  { key: 'p', name: 'PROFESSIONAL', price: '$200' },
+  { key: 'e', name: 'ENTERPRISE', price: '$250' },
 ]
 
 const CHECK_COLOR = 'text-[#0FD452]'
@@ -59,7 +60,7 @@ function normalizePhone(phone) {
   return p
 }
 
-function buildBullets(plan, idx, features) {
+function buildBullets(plan, idx, features, t) {
   if (!features?.length) return []
   const key = PLAN_META[idx]?.key || 's'
   const lessKey = key === 'p' ? 's' : key === 'e' ? 'p' : null
@@ -75,7 +76,9 @@ function buildBullets(plan, idx, features) {
   })
 
   const picked = differs.slice(0, Math.min(4, MAX_BULLETS)).concat(common)
-  const chain = idx === 0 ? 'Everything you need to run a modern pharmacy:' : `Everything in ${plan.chainFrom || 'the previous plan'}, plus:`
+  const chain = idx === 0
+    ? t('authPages.plans.bulletsStarter')
+    : `${t('authPages.plans.bulletsChain')} ${plan.chainFrom || t('authPages.plans.bulletsPreviousPlan')}, ${t('authPages.plans.bulletsPlus')}`
   return { head: chain, items: picked.slice(0, MAX_BULLETS) }
 }
 
@@ -103,6 +106,14 @@ export default function SubscriptionPlansPage() {
   const navigate = useNavigate()
   const { setSubscription, setUser } = useAuth()
   const { rates, rateDate, refresh: refreshRates } = useCurrency()
+  const { t } = useLanguage()
+
+  // Known plan-cap strings come from the UI copy; anything else (feature
+  // matrix cell values) is left exactly as the API sent it.
+  const capText = (value) =>
+    value === 'Up to 3' ? t('authPages.plans.capUpTo3')
+      : value === 'Unlimited' ? t('authPages.plans.capUnlimited')
+        : value
 
   // Plans are priced in USD but paid in shillings, so show the customer the
   // real cost at the rate of the day instead of a fixed 2500.
@@ -124,11 +135,11 @@ export default function SubscriptionPlansPage() {
       const res = await api.get('/subscriptions/plans')
       setPlans(res.data.data || res.data || [])
     } catch {
-      setError('Failed to load plans.')
+      setError(t('authPages.plans.loadPlansFailed'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     fetchPlans()
@@ -148,13 +159,13 @@ export default function SubscriptionPlansPage() {
   const handlePay = async () => {
     if (!selectedPlan) return
     if (!phone || phone.replace(/\D/g, '').length < 9) {
-      setError('Please enter a valid phone number.')
+      setError(t('authPages.plans.phoneInvalid'))
       return
     }
     // Only Vodacom is turned away. Every other number goes through to the
     // gateway, which decides for itself whether it can charge it.
     if (isVodacom) {
-      setError('M-PESA payments are not available yet. Please pay with Tigo Pesa, Airtel Money or HaloPesa.')
+      setError(t('authPages.plans.mpesaUnavailableError'))
       return
     }
 
@@ -183,7 +194,7 @@ export default function SubscriptionPlansPage() {
         // The backend now says why the prompt never went out. Showing that
         // beats a screen telling the customer to pay a payment that was never
         // requested from their network.
-        setError(data.push_error || 'We could not send the payment prompt to that number.')
+        setError(data.push_error || t('authPages.plans.pushSendFailed'))
         if (Array.isArray(data.supported_channels) && data.supported_channels.length === 0) {
           // The gateway can charge nothing for this number or amount. Naming the
           // networks that do work turns a dead end into something the customer
@@ -195,7 +206,7 @@ export default function SubscriptionPlansPage() {
         setPaymentStep('manual')
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to start payment. Please try again.')
+      setError(err.response?.data?.message || t('authPages.plans.payStartFailed'))
       setPaymentStep(null)
     } finally {
       setPaying(false)
@@ -230,7 +241,7 @@ export default function SubscriptionPlansPage() {
     // happen, so after a while offer them the way out.
     timeoutRef.current = setTimeout(() => {
       clearInterval(pollRef.current)
-      setError('We have not received your payment yet. If you approved the request on your phone, it can take a few minutes. Otherwise check your mobile money balance and try again.')
+      setError(t('authPages.plans.payTimeout'))
       setPaymentStep('manual')
     }, 90000)
     pollRef.current = setInterval(async () => {
@@ -258,7 +269,7 @@ export default function SubscriptionPlansPage() {
           clearInterval(pollRef.current)
           clearTimeout(timeoutRef.current)
           setPaymentStep('manual')
-          setError('The payment was not completed. You can retry or contact support.')
+          setError(t('authPages.plans.payFailed'))
         }
       } catch (err) {
         // The gateway being out of allowance is not transient. Every further
@@ -267,7 +278,7 @@ export default function SubscriptionPlansPage() {
           clearInterval(pollRef.current)
           clearTimeout(timeoutRef.current)
           setPaymentStep('manual')
-          setError('Mobile money payments are temporarily unavailable and we cannot check your payment right now. If you approved the prompt, your money has not been taken. Please try again in a few minutes or contact support.')
+          setError(t('authPages.plans.rateLimited'))
           return
         }
         // keep polling; transient network errors are expected
@@ -284,7 +295,7 @@ export default function SubscriptionPlansPage() {
       setPaymentStep('success')
       setTimeout(refreshAndGoToDashboard, 1200)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to confirm payment.')
+      setError(err.response?.data?.message || t('authPages.plans.confirmFailed'))
     }
   }
 
@@ -309,34 +320,34 @@ export default function SubscriptionPlansPage() {
               <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-5">
                 <Smartphone className="w-8 h-8 text-emerald-500 animate-pulse" />
               </div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Check Your Phone</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-2">{t('authPages.plans.checkPhone')}</h3>
               <p className="text-gray-500 text-sm leading-relaxed mb-2">
-                We sent a payment request to <strong>{pushResult?.subscription?.phone || phone}</strong> for{' '}
+                {t('authPages.plans.sentRequestTo')} <strong>{pushResult?.subscription?.phone || phone}</strong> {t('authPages.plans.sentRequestFor')}{' '}
                 <strong className="text-gray-900">
                   TZS {Number(pushResult?.subscription?.amount_tzs || 0).toLocaleString()}
                 </strong>.
               </p>
               <p className="text-gray-500 text-sm leading-relaxed mb-5">
                 {channel === 'TIGO-PESA'
-                  ? 'Tigo Pesa sends the request as a menu prompt. Open your phone, accept the payment request when it appears, then enter your PIN to approve it.'
+                  ? t('authPages.plans.tigoInstr')
                   : channel === 'AIRTEL-MONEY'
-                    ? 'Airtel Money sends the request as a message approval. Confirm the payment on your phone, then enter your PIN.'
-                    : 'Your phone should ask you to approve the payment. Enter your mobile money PIN to complete it.'}
+                    ? t('authPages.plans.airtelInstr')
+                    : t('authPages.plans.defaultInstr')}
               </p>
               {channel && (
                 <p className="text-xs text-gray-400 mb-4">
-                  Paying with {channel.replace('-', ' ')} on {Number(pushResult?.subscription?.phone || 0)}
+                  {t('authPages.plans.payingWith')} {channel.replace('-', ' ')} {t('authPages.plans.payingOn')} {Number(pushResult?.subscription?.phone || 0)}
                 </p>
               )}
               <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mb-6">
                 <Loader2 className="w-4 h-4 animate-spin text-[#0FD452]" />
-                Waiting for payment confirmation…
+                {t('authPages.plans.waitingConfirm')}
               </div>
               <button
                 onClick={() => setPaymentStep('manual')}
                 className="text-xs font-bold text-gray-500 hover:text-gray-700 underline"
               >
-                Payment not received? I paid already
+                {t('authPages.plans.notReceivedLink')}
               </button>
             </div>
           ) : paymentStep === 'manual' ? (
@@ -344,14 +355,13 @@ export default function SubscriptionPlansPage() {
               <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-5">
                 <Clock className="w-8 h-8 text-amber-500" />
               </div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Complete Your Payment</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-2">{t('authPages.plans.completePayment')}</h3>
               <p className="text-gray-500 text-sm leading-relaxed mb-4">
-                Reference: <span className="font-mono text-gray-900 font-bold">{pushResult?.reference || '—'}</span>
+                {t('authPages.plans.referenceLabel')} <span className="font-mono text-gray-900 font-bold">{pushResult?.reference || '—'}</span>
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 text-left">
                 <p className="text-amber-800 text-xs leading-relaxed">
-                  If the push prompt didn't arrive, re-enter your number and pay again, or contact our support team.
-                  Once paid we will activate your subscription.
+                  {t('authPages.plans.pushMissing')}
                 </p>
               </div>
               <div className="flex flex-col gap-2">
@@ -360,13 +370,13 @@ export default function SubscriptionPlansPage() {
                   disabled={paying}
                   className="w-full py-3 bg-[#0FD452] text-[#000F14] rounded-xl font-bold text-sm hover:bg-[#0cb843] transition-all disabled:opacity-50"
                 >
-                  {paying ? 'Confirming…' : 'I Have Paid — Activate My Plan'}
+                  {paying ? t('authPages.plans.confirming') : t('authPages.plans.paidActivate')}
                 </button>
                 <button
                   onClick={() => setCartOpen(false)}
                   className="w-full py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all"
                 >
-                  Close
+                  {t('common.close')}
                 </button>
               </div>
             </div>
@@ -375,17 +385,17 @@ export default function SubscriptionPlansPage() {
               <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-5">
                 <CheckCircle2 className="w-9 h-9 text-emerald-500" />
               </div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Payment Successful!</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-2">{t('authPages.plans.paymentSuccess')}</h3>
               <p className="text-gray-500 text-sm mb-6">
-                Your <strong>{selectedPlan.name}</strong> subscription is now active.
-                Taking you to your dashboard…
+                {t('authPages.plans.successYour')} <strong>{selectedPlan.name}</strong> {t('authPages.plans.successActive')}
+                {t('authPages.plans.successRedirect')}
               </p>
             </div>
           ) : (
             <div className="p-6 sm:p-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-[#0FD452]" /> Checkout
+                  <ShoppingCart className="w-5 h-5 text-[#0FD452]" /> {t('authPages.plans.checkout')}
                 </h3>
                 <button
                   onClick={() => setCartOpen(false)}
@@ -400,7 +410,7 @@ export default function SubscriptionPlansPage() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-4xl font-black text-gray-900">${Number(selectedPlan.price).toLocaleString()}</p>
-                    <p className="text-xs text-gray-400 font-bold mt-0.5">/{selectedPlan.duration_months} month{selectedPlan.duration_months > 1 ? 's' : ''}</p>
+                    <p className="text-xs text-gray-400 font-bold mt-0.5">/{selectedPlan.duration_months} {selectedPlan.duration_months > 1 ? t('authPages.shared.months') : t('authPages.shared.month')}</p>
                     {hasRate && (
                       <p className="text-xs font-extrabold text-emerald-600 mt-1">
                         ≈ {formatTzs(selectedPlan.price)}
@@ -408,12 +418,12 @@ export default function SubscriptionPlansPage() {
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="font-extrabold text-gray-900 text-sm">{selectedPlan.name} Plan</p>
+                    <p className="font-extrabold text-gray-900 text-sm">{selectedPlan.name} {t('authPages.plans.planWord')}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{selectedPlan.description}</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 mt-4 pt-4">
-                  <span className="text-sm font-bold text-gray-600">Total Due</span>
+                  <span className="text-sm font-bold text-gray-600">{t('authPages.plans.totalDue')}</span>
                   <span className="text-right">
                     <span className="block text-lg font-black text-gray-900">${Number(selectedPlan.price).toLocaleString()}</span>
                     {hasRate && (
@@ -425,14 +435,14 @@ export default function SubscriptionPlansPage() {
                 </div>
                 {hasRate && (
                   <p className="text-[11px] text-gray-400 mt-2 text-right">
-                    Converted at 1 USD = {Math.round(tzsRate).toLocaleString()} TZS
-                    {rateDate ? ` (rate of ${rateDate})` : ''}. You are charged the shilling amount.
+                    {t('authPages.plans.convertedAt')} 1 USD = {Math.round(tzsRate).toLocaleString()} TZS
+                    {rateDate ? ` (${t('authPages.plans.rateOf')} ${rateDate})` : ''}. {t('authPages.plans.chargedNote')}
                   </p>
                 )}
               </div>
 
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1.5">
-                <Smartphone className="w-4 h-4 text-gray-400" /> Phone Number
+                <Smartphone className="w-4 h-4 text-gray-400" /> {t('customers.phoneNumber')}
               </label>
               <div className="relative mb-4">
                 <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -449,10 +459,9 @@ export default function SubscriptionPlansPage() {
 
               {isVodacom && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
-                  <p className="text-amber-800 text-xs font-semibold">M-PESA payments are not available yet</p>
+                  <p className="text-amber-800 text-xs font-semibold">{t('authPages.plans.mpesaTitle')}</p>
                   <p className="text-gray-600 text-xs mt-1">
-                    This looks like a Vodacom number. M-PESA is coming soon. You can pay today with
-                    Tigo Pesa, Airtel Money or HaloPesa.
+                    {t('authPages.plans.mpesaBody')}
                   </p>
                 </div>
               )}
@@ -462,9 +471,9 @@ export default function SubscriptionPlansPage() {
                   <p className="text-red-600 text-xs font-medium">{error}</p>
                   {supportedChannels?.length > 0 && (
                     <p className="text-gray-600 text-xs mt-2">
-                      You can pay with {supportedChannels.map((name) => name.replace('-', ' ')).join(', ')}.
+                      {t('authPages.plans.youCanPayWith')} {supportedChannels.map((name) => name.replace('-', ' ')).join(', ')}.
                       {channel && !supportedChannels.includes(channel)
-                        ? ' This number is not on one of those networks, so try another number.'
+                        ? ` ${t('authPages.plans.notOnNetwork')}`
                         : ''}
                     </p>
                   )}
@@ -473,7 +482,7 @@ export default function SubscriptionPlansPage() {
 
               <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
                 <Lock className="w-3.5 h-3.5" />
-                Secure mobile money payment
+                {t('authPages.plans.securePayment')}
               </div>
 
               <button
@@ -482,10 +491,10 @@ export default function SubscriptionPlansPage() {
                 className="w-full py-3.5 bg-[#0FD452] text-[#000F14] rounded-xl font-bold text-sm hover:bg-[#0cb843] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {paying ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Sending Payment Prompt…</>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> {t('authPages.plans.sendingPrompt')}</>
                 ) : (
                   <>
-                    Pay {formatTzs(selectedPlan.price) || `$${Number(selectedPlan.price).toLocaleString()}`}
+                    {t('authPages.plans.pay')} {formatTzs(selectedPlan.price) || `$${Number(selectedPlan.price).toLocaleString()}`}
                     <CreditCard className="w-4 h-4" />
                   </>
                 )}
@@ -504,10 +513,10 @@ export default function SubscriptionPlansPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-[#0FD452] rounded-2xl mb-4">
             <Pill className="w-9 h-9 text-[#000F14]" />
           </div>
-          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">Choose Your Plan</p>
-          <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Subscription Plans</h1>
+          <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">{t('authPages.shared.chooseYourPlan')}</p>
+          <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">{t('authPages.plans.title')}</h1>
           <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto">
-            Pick a plan, add it to your cart and pay securely. Your subscription activates instantly.
+            {t('authPages.plans.subtitle')}
           </p>
         </div>
 
@@ -517,7 +526,7 @@ export default function SubscriptionPlansPage() {
             const meta = PLAN_META[idx] || { key: 's', popular: false, capLabel: 'pharmacies', capValue: 'Unlimited' }
             const popular = meta.popular || plan.slug === 'professional'
             const chainPlan = plans[idx - 1]
-            const bullets = buildBullets({ chainFrom: chainPlan?.name }, idx, matrix)
+            const bullets = buildBullets({ chainFrom: chainPlan?.name }, idx, matrix, t)
             const capRow = matrix.flatMap((s) => s.rows).find((r) => r.name === 'Manage Multiple Pharmacies')
             const capValue = capRow ? capRow[meta.key] : meta.capValue
             return (
@@ -531,7 +540,7 @@ export default function SubscriptionPlansPage() {
               >
                 {popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0FD452] px-3 py-1 text-xs font-bold text-[#000F14]">
-                    Most Popular
+                    {t('authPages.plans.mostPopular')}
                   </span>
                 )}
                 <h3 className="text-xl font-extrabold tracking-tight">{plan.name}</h3>
@@ -548,7 +557,7 @@ export default function SubscriptionPlansPage() {
                   </span>
                 </div>
                 <p className={`mt-1 text-sm ${popular ? 'text-white/55' : 'text-gray-400'}`}>
-                  / {plan.duration_months} month{plan.duration_months > 1 ? 's' : ''}
+                  / {plan.duration_months} {plan.duration_months > 1 ? t('authPages.shared.months') : t('authPages.shared.month')}
                 </p>
                 {hasRate && (plan.currency || 'USD') === 'USD' && (
                   <p className={`mt-1 text-sm font-bold ${popular ? 'text-[#0FD452]' : 'text-emerald-600'}`}>
@@ -557,8 +566,8 @@ export default function SubscriptionPlansPage() {
                 )}
 
                 <div className={`mt-5 rounded-xl px-4 py-3 text-sm ${popular ? 'bg-white/10' : 'bg-gray-50 border border-gray-100'}`}>
-                  <span className={`font-bold tabular-nums ${popular ? 'text-[#0FD452]' : 'text-gray-900'}`}>{capValue}</span>
-                  <span className={popular ? 'text-white/55' : 'text-gray-500'}> {meta.capLabel}</span>
+                  <span className={`font-bold tabular-nums ${popular ? 'text-[#0FD452]' : 'text-gray-900'}`}>{capText(capValue)}</span>
+                  <span className={popular ? 'text-white/55' : 'text-gray-500'}> {t('authPages.plans.capLabel')}</span>
                 </div>
 
                 <ul className="mt-6 space-y-3 flex-1">
@@ -582,7 +591,7 @@ export default function SubscriptionPlansPage() {
                       : 'border border-[#0FD452]/60 text-[#0FD452] hover:bg-[#0FD452] hover:text-[#000F14]'
                   }`}
                 >
-                  Choose Plan <ShoppingCart className="w-4 h-4" />
+                  {t('authPages.plans.choosePlanBtn')} <ShoppingCart className="w-4 h-4" />
                 </button>
               </article>
             )
@@ -590,15 +599,14 @@ export default function SubscriptionPlansPage() {
         </div>
 
         <p className="mx-auto max-w-3xl text-center text-sm leading-7 text-gray-500">
-          All plans are billed yearly and activated instantly after payment. No hidden fees —
-          upgrade or renew anytime from your dashboard.
+          {t('authPages.plans.footerNote')}
         </p>
 
         {/* Feature comparison matrix */}
         {matrix.length > 0 && (
           <details className="group mt-8 rounded-2xl bg-white ring-1 ring-gray-200 overflow-hidden">
             <summary className="flex items-center justify-center gap-2 px-5 py-4 cursor-pointer font-extrabold text-sm text-gray-800 list-none hover:bg-gray-50">
-              Compare all features
+              {t('authPages.plans.compareFeatures')}
               <ChevronDown className="w-4 h-4 text-[#0FD452] transition-transform group-open:rotate-180" />
             </summary>
             <div className="p-6 sm:p-7 border-t border-gray-100">
@@ -606,11 +614,11 @@ export default function SubscriptionPlansPage() {
                 <table className="w-full min-w-[560px] text-sm">
                   <thead>
                     <tr className="bg-gray-50/80">
-                      <th className="text-left px-6 py-4 font-bold text-gray-800 text-xs uppercase tracking-wider w-1/2">Feature</th>
+                      <th className="text-left px-6 py-4 font-bold text-gray-800 text-xs uppercase tracking-wider w-1/2">{t('authPages.plans.featureTh')}</th>
                       {COLUMNS.map((col) => (
                         <th key={col.key} className="px-3 py-4 text-center">
                           <span className="text-xs font-black text-gray-900 block">{col.name}</span>
-                          <span className="text-xs text-[#0FD452] font-extrabold block mt-1">{col.price}</span>
+                          <span className="text-xs text-[#0FD452] font-extrabold block mt-1">{col.price}/{t('authPages.plans.priceUnit')}</span>
                         </th>
                       ))}
                     </tr>
@@ -632,7 +640,7 @@ export default function SubscriptionPlansPage() {
         )}
 
         {plans.length === 0 && !loading && (
-          <div className="text-center py-10 text-gray-500 text-sm">No plans available yet.</div>
+          <div className="text-center py-10 text-gray-500 text-sm">{t('authPages.plans.noPlans')}</div>
         )}
       </div>
 

@@ -2,7 +2,27 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import en from '../i18n/en'
 import sw from '../i18n/sw'
 
-const dictionaries = { en, sw }
+function deepMerge(base, extra) {
+  const out = { ...base }
+  for (const [key, value] of Object.entries(extra)) {
+    const current = out[key]
+    const isObject = value && typeof value === 'object' && !Array.isArray(value)
+    const baseIsObject = current && typeof current === 'object' && !Array.isArray(current)
+    out[key] = isObject && baseIsObject ? deepMerge(current, value) : value
+  }
+  return out
+}
+
+// Per-page groups live in their own files under i18n/extra/ so pages can be
+// translated independently without three edits to en.js/sw.js colliding.
+function collectExtra(files) {
+  return Object.values(files).map((mod) => mod.default ?? mod).filter(Boolean)
+}
+
+const dictionaries = {
+  en: collectExtra(import.meta.glob('../i18n/extra/*.en.js', { eager: true })).reduce(deepMerge, en),
+  sw: collectExtra(import.meta.glob('../i18n/extra/*.sw.js', { eager: true })).reduce(deepMerge, sw),
+}
 
 export const LANGUAGES = [
   { code: 'en', label: 'English', nativeLabel: 'English' },

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { employees } from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 function formatCurrency(amount) {
   return formatMoney(amount || 0, { decimals: 2 })
@@ -18,7 +19,12 @@ const STATUSES = { active: 'Active', inactive: 'Inactive', suspended: 'Suspended
 const STATUS_COLORS = { active: 'bg-green-100 text-green-700 border-green-200', inactive: 'bg-gray-100 text-gray-500 border-gray-200', suspended: 'bg-yellow-100 text-yellow-700 border-yellow-200', terminated: 'bg-red-100 text-red-700 border-red-200' }
 const DEPT_COLORS = { pharmacy: 'bg-[#0FD452]/10 text-[#0FD452]', management: 'bg-blue-100 text-blue-700', finance: 'bg-purple-100 text-purple-700', operations: 'bg-orange-100 text-orange-700', hr: 'bg-pink-100 text-pink-700' }
 
+const DEPT_KEYS = { pharmacy: 'people.departments.pharmacy', management: 'people.departments.management', finance: 'people.departments.finance', operations: 'people.departments.operations', hr: 'people.departments.hr' }
+const STATUS_KEYS = { active: 'common.active', inactive: 'common.inactive', suspended: 'people.statuses.suspended', terminated: 'people.statuses.terminated' }
+const EMPLOYMENT_TYPE_KEYS = { full_time: 'people.employmentTypes.full_time', part_time: 'people.employmentTypes.part_time', contract: 'people.employmentTypes.contract', intern: 'people.employmentTypes.intern' }
+
 export default function EmployeeListPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [employeeList, setEmployeeList] = useState([])
   const [loading, setLoading] = useState(true)
@@ -65,7 +71,7 @@ export default function EmployeeListPage() {
   }
 
   const exportCSV = () => {
-    const headers = ['Employee #', 'First Name', 'Last Name', 'Email', 'Department', 'Position', 'Type', 'Status', 'Salary']
+    const headers = [t('people.employeeList.employeeNo'), t('employees.firstName'), t('employees.lastName'), t('common.email'), t('employees.department'), t('employees.position'), t('people.employeeDetail.type'), t('common.status'), t('employees.salary')]
     const rows = employeeList.map(e => [
       e.employee_number, e.first_name, e.last_name, e.email,
       DEPARTMENTS[e.department] || e.department, e.position,
@@ -80,10 +86,10 @@ export default function EmployeeListPage() {
   }
 
   const statCards = [
-    { label: 'Total Employees', value: stats.total, icon: Users, color: 'text-[#0FD452]' },
-    { label: 'Active', value: stats.active, icon: UserCheck, color: 'text-green-600' },
-    { label: 'On Leave', value: stats.on_leave, icon: UserMinus, color: 'text-yellow-600' },
-    { label: 'New This Month', value: stats.new_this_month, icon: TrendingUp, color: 'text-blue-600' },
+    { label: t('people.employeeList.totalEmployees'), value: stats.total, icon: Users, color: 'text-[#0FD452]' },
+    { label: t('common.active'), value: stats.active, icon: UserCheck, color: 'text-green-600' },
+    { label: t('people.employeeList.onLeave'), value: stats.on_leave, icon: UserMinus, color: 'text-yellow-600' },
+    { label: t('people.employeeList.newThisMonth'), value: stats.new_this_month, icon: TrendingUp, color: 'text-blue-600' },
   ]
 
   return (
@@ -95,16 +101,16 @@ export default function EmployeeListPage() {
               <Users className="w-5 h-5 text-[#0FD452]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
-              <p className="text-sm text-gray-500">Manage employee records and information.</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('employees.title')}</h1>
+              <p className="text-sm text-gray-500">{t('people.employeeList.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={exportCSV} className="btn-secondary">
-              <Download className="w-4 h-4" /> Export
+              <Download className="w-4 h-4" /> {t('common.export')}
             </button>
             <button onClick={() => navigate('/dashboard/employees/new')} className="btn-primary">
-              <UserPlus className="w-4 h-4" /> Add Employee
+              <UserPlus className="w-4 h-4" /> {t('employees.addEmployee')}
             </button>
           </div>
         </div>
@@ -129,23 +135,23 @@ export default function EmployeeListPage() {
           <div className="p-4 flex flex-col md:flex-row gap-3">
             <form onSubmit={handleSearch} className="flex-1 flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
               <Search className="w-4 h-4 text-gray-400" />
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search employees..." className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
+              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('employees.searchEmployees')} className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
             </form>
             <div className="flex flex-wrap gap-2">
               <select value={department} onChange={(e) => { setDepartment(e.target.value); setPage(1) }} className="bg-gray-100 border border-gray-200 text-gray-600 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0FD452]">
-                <option value="">All Departments</option>
-                {Object.entries(DEPARTMENTS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                <option value="">{t('people.employeeList.allDepartments')}</option>
+                {Object.entries(DEPARTMENTS).map(([k, v]) => <option key={k} value={k}>{t(DEPT_KEYS[k], v)}</option>)}
               </select>
               <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }} className="bg-gray-100 border border-gray-200 text-gray-600 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0FD452]">
-                <option value="">All Status</option>
-                {Object.entries(STATUSES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                <option value="">{t('people.employeeList.allStatus')}</option>
+                {Object.entries(STATUSES).map(([k, v]) => <option key={k} value={k}>{t(STATUS_KEYS[k], v)}</option>)}
               </select>
               <select value={employmentType} onChange={(e) => { setEmploymentType(e.target.value); setPage(1) }} className="bg-gray-100 border border-gray-200 text-gray-600 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0FD452]">
-                <option value="">All Types</option>
-                <option value="full_time">Full Time</option>
-                <option value="part_time">Part Time</option>
-                <option value="contract">Contract</option>
-                <option value="intern">Intern</option>
+                <option value="">{t('people.employeeList.allTypes')}</option>
+                <option value="full_time">{t('people.employmentTypes.full_time')}</option>
+                <option value="part_time">{t('people.employmentTypes.part_time')}</option>
+                <option value="contract">{t('people.employmentTypes.contract')}</option>
+                <option value="intern">{t('people.employmentTypes.intern')}</option>
               </select>
             </div>
           </div>
@@ -156,14 +162,14 @@ export default function EmployeeListPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-[#0FD452]" /><span>Employee</span></div></th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5 text-[#0FD452]" /><span>Department</span></div></th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-[#0FD452]" /><span>Position</span></div></th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>Type</span></div></th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>Salary</span></div></th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-[#0FD452]" /><span>Status</span></div></th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><UserCheck className="w-3.5 h-3.5 text-[#0FD452]" /><span>Login Access</span></div></th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><Users className="w-3.5 h-3.5 text-[#0FD452]" /><span>Actions</span></div></th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('people.attendance.employee')}</span></div></th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('employees.department')}</span></div></th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('employees.position')}</span></div></th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('people.employeeDetail.type')}</span></div></th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('employees.salary')}</span></div></th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('common.status')}</span></div></th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><UserCheck className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('people.employeeDetail.loginAccess')}</span></div></th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><Users className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('common.actions')}</span></div></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -174,7 +180,7 @@ export default function EmployeeListPage() {
                 ) : employeeList.length === 0 ? (
                   <tr><td colSpan={8} className="px-6 py-16 text-center text-gray-400">
                     <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p className="text-sm">No employees found</p>
+                    <p className="text-sm">{t('employees.noEmployees')}</p>
                   </td></tr>
                 ) : (
                   employeeList.map(emp => (
@@ -192,32 +198,32 @@ export default function EmployeeListPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${DEPT_COLORS[emp.department] || 'bg-gray-100 text-gray-500'}`}>
-                          {DEPARTMENTS[emp.department] || emp.department}
+                          {t(DEPT_KEYS[emp.department], DEPARTMENTS[emp.department] || emp.department)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{emp.position}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500 capitalize hidden lg:table-cell">{emp.employment_type?.replace('_', ' ')}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500 capitalize hidden lg:table-cell">{emp.employment_type ? t(EMPLOYMENT_TYPE_KEYS[emp.employment_type], emp.employment_type.replace('_', ' ')) : ''}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatCurrency(emp.basic_salary)}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${STATUS_COLORS[emp.status] || ''}`}>
-                          {emp.status}
+                          {t(STATUS_KEYS[emp.status], emp.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         {emp.user ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0FD452]/10 text-[#0FD452] border border-[#0FD452]/20 capitalize">
                             <UserCheck className="w-3.5 h-3.5" />
-                            {emp.user.role}
+                            {t(`common.role${emp.user.role?.charAt(0).toUpperCase()}${emp.user.role?.slice(1)}`, emp.user.role)}
                           </span>
                         ) : (
                           <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-400 border border-gray-200">
-                            No account
+                            {t('people.employeeList.noAccount')}
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/employees/${emp.id}`) }} className="text-[#0FD452] hover:text-[#0DC048] text-sm font-medium">
-                          View
+                          {t('common.view')}
                         </button>
                       </td>
                     </tr>
@@ -229,7 +235,7 @@ export default function EmployeeListPage() {
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100">
-              <p className="text-sm text-gray-500">Page {page} of {totalPages}</p>
+              <p className="text-sm text-gray-500">{t('people.shared.page')} {page} {t('people.shared.of')} {totalPages}</p>
               <div className="flex items-center gap-2">
                 <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">
                   <ChevronLeft className="w-4 h-4" />

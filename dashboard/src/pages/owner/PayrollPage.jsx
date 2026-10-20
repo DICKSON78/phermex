@@ -11,6 +11,7 @@ import { payroll, employees } from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { formatMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 function formatCurrency(amount) {
   return formatMoney(amount || 0, { decimals: 2 })
@@ -20,8 +21,11 @@ const STATUS_COLORS = { draft: 'bg-gray-100 text-gray-600 border-gray-200', pend
 const PIE_COLORS = ['#0FD452', '#EF4444', '#3B82F6', '#F59E0B', '#8B5CF6']
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const MONTH_KEYS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+const STATUS_KEYS = { draft: 'people.statuses.draft', pending: 'common.pending', approved: 'common.approved', paid: 'people.statuses.paid', cancelled: 'people.statuses.cancelled' }
 
 export default function PayrollPage() {
+  const { t } = useLanguage()
   const { pharmacyId } = useAuth()
   const [payrollList, setPayrollList] = useState([])
   const [loading, setLoading] = useState(true)
@@ -66,32 +70,32 @@ export default function PayrollPage() {
       fetchPayroll()
       fetchSummary()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to generate payroll')
+      toast.error(err.response?.data?.message || t('people.payroll.generateFailed'))
     } finally { setGenerating(false) }
   }
 
   const handleApprove = async (id) => {
     try {
       await payroll.approve(id)
-      toast.success('Payroll approved')
+      toast.success(t('people.payroll.approved'))
       fetchPayroll()
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') }
+    } catch (err) { toast.error(err.response?.data?.message || t('people.leave.failed')) }
   }
 
   const handlePay = async (id) => {
     try {
       await payroll.pay(id, { payment_method: 'bank' })
-      toast.success('Marked as paid')
+      toast.success(t('people.payroll.markedPaid'))
       fetchPayroll()
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') }
+    } catch (err) { toast.error(err.response?.data?.message || t('people.leave.failed')) }
   }
 
   const handleCancel = async (id) => {
     try {
       await payroll.cancel(id)
-      toast.success('Payroll cancelled')
+      toast.success(t('people.payroll.cancelled'))
       fetchPayroll()
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') }
+    } catch (err) { toast.error(err.response?.data?.message || t('people.leave.failed')) }
   }
 
   const viewPayslip = async (id) => {
@@ -100,7 +104,7 @@ export default function PayrollPage() {
       setPayslipData(res.data)
       setShowPayslip(id)
     } catch {
-      toast.error('Failed to load payslip')
+      toast.error(t('people.payroll.payslipFailed'))
     }
   }
 
@@ -108,14 +112,14 @@ export default function PayrollPage() {
     { name: 'PAYE', value: summary.total_paye || 0 },
     { name: 'NSSF', value: summary.total_nssf || 0 },
     { name: 'NHIF', value: summary.total_nhif || 0 },
-    { name: 'Housing Levy', value: summary.total_housing_levy || 0 },
+    { name: t('people.payroll.housingLevy'), value: summary.total_housing_levy || 0 },
   ].filter(d => d.value > 0)
 
   const summaryCards = [
-    { label: 'Total Gross', value: formatCurrency(summary.total_gross), icon: TrendingUp, color: 'text-[#0FD452]' },
-    { label: 'Total Deductions', value: formatCurrency(summary.total_deductions), icon: TrendingDown, color: 'text-red-600' },
-    { label: 'Total Net', value: formatCurrency(summary.total_net), icon: DollarSign, color: 'text-blue-600' },
-    { label: 'Employees', value: summary.employee_count || 0, icon: FileText, color: 'text-purple-600' },
+    { label: t('people.payroll.totalGross'), value: formatCurrency(summary.total_gross), icon: TrendingUp, color: 'text-[#0FD452]' },
+    { label: t('people.payroll.totalDeductions'), value: formatCurrency(summary.total_deductions), icon: TrendingDown, color: 'text-red-600' },
+    { label: t('people.payroll.totalNet'), value: formatCurrency(summary.total_net), icon: DollarSign, color: 'text-blue-600' },
+    { label: t('people.attendance.employee'), value: summary.employee_count || 0, icon: FileText, color: 'text-purple-600' },
   ]
 
   return (
@@ -127,33 +131,33 @@ export default function PayrollPage() {
               <DollarSign className="w-5 h-5 text-[#0FD452]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Payroll</h1>
-              <p className="text-sm text-gray-500">Process and manage employee payroll.</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('nav.items.payroll')}</h1>
+              <p className="text-sm text-gray-500">{t('people.payroll.subtitle')}</p>
             </div>
           </div>
-          <button onClick={() => { setConfirmInfo({ title: 'Generate Payroll', message: `Generate payroll for ${MONTHS[periodMonth - 1]} ${periodYear}?` }); setConfirmAction(() => handleGenerate) }} disabled={generating} className="btn-primary">
+          <button onClick={() => { setConfirmInfo({ title: t('people.payroll.generatePayroll'), message: `${t('people.payroll.generateConfirm')} ${t(`people.payroll.months.${MONTH_KEYS[periodMonth - 1]}`)} ${periodYear}?` }); setConfirmAction(() => handleGenerate) }} disabled={generating} className="btn-primary">
             {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4" />}
-            Generate Payroll
+            {t('people.payroll.generatePayroll')}
           </button>
         </div>
 
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 mb-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500">Month</label>
+              <label className="text-sm text-gray-500">{t('people.payroll.month')}</label>
               <select value={periodMonth} onChange={(e) => setPeriodMonth(Number(e.target.value))} className="bg-gray-100 border border-gray-200 text-gray-900 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0FD452]">
-                {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                {MONTHS.map((m, i) => <option key={i} value={i + 1}>{t(`people.payroll.months.${MONTH_KEYS[i]}`, m)}</option>)}
               </select>
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500">Year</label>
+              <label className="text-sm text-gray-500">{t('people.payroll.year')}</label>
               <select value={periodYear} onChange={(e) => setPeriodYear(Number(e.target.value))} className="bg-gray-100 border border-gray-200 text-gray-900 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0FD452]">
                 {[2025, 2026, 2027, 2028].map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
             <div className="flex gap-2 ml-auto">
               {['', 'draft', 'approved', 'paid'].map(f => (
-                <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${statusFilter === f ? 'bg-[#0FD452]/10 text-[#0FD452]' : 'text-gray-500 hover:bg-gray-100'}`}>{f || 'All'}</button>
+                <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${statusFilter === f ? 'bg-[#0FD452]/10 text-[#0FD452]' : 'text-gray-500 hover:bg-gray-100'}`}>{f ? t(STATUS_KEYS[f], f) : t('common.all')}</button>
               ))}
             </div>
           </div>
@@ -177,7 +181,7 @@ export default function PayrollPage() {
 
         {deductionData.length > 0 && (
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Deduction Breakdown</h3>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{t('people.payroll.deductionBreakdown')}</h3>
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="w-48 h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -214,25 +218,25 @@ export default function PayrollPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Employee</span>
+                      <span>{t('people.attendance.employee')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center justify-end gap-1.5">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Basic</span>
+                      <span>{t('people.payroll.basic')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell">
                     <div className="flex items-center justify-end gap-1.5">
                       <Coins className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Allow.</span>
+                      <span>{t('people.payroll.allowances')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center justify-end gap-1.5">
                       <TrendingUp className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Gross</span>
+                      <span>{t('people.employeeDetail.gross')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell">
@@ -250,19 +254,19 @@ export default function PayrollPage() {
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center justify-end gap-1.5">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Net</span>
+                      <span>{t('people.employeeDetail.net')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Status</span>
+                      <span>{t('common.status')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center justify-end gap-1.5">
                       <Settings className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Actions</span>
+                      <span>{t('common.actions')}</span>
                     </div>
                   </th>
                 </tr>
@@ -273,8 +277,8 @@ export default function PayrollPage() {
                 ) : payrollList.length === 0 ? (
                   <tr><td colSpan={9} className="px-6 py-16 text-center text-gray-500 text-sm">
                     <DollarSign className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>No payroll records for this period</p>
-                    <button onClick={handleGenerate} className="mt-3 text-[#0FD452] hover:underline text-sm">Generate Payroll</button>
+                    <p>{t('people.payroll.noRecords')}</p>
+                    <button onClick={handleGenerate} className="mt-3 text-[#0FD452] hover:underline text-sm">{t('people.payroll.generatePayroll')}</button>
                   </td></tr>
                 ) : (
                   payrollList.map(p => (
@@ -297,25 +301,25 @@ export default function PayrollPage() {
                       <td className="px-6 py-4 text-sm text-right text-yellow-600 hidden md:table-cell">{formatCurrency(p.nssf_employee)}</td>
                       <td className="px-6 py-4 text-sm text-right text-[#0FD452] font-medium">{formatCurrency(p.net_salary)}</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${STATUS_COLORS[p.status] || ''}`}>{p.status}</span>
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${STATUS_COLORS[p.status] || ''}`}>{t(STATUS_KEYS[p.status], p.status)}</span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => viewPayslip(p.id)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors" title="View Payslip">
+                          <button onClick={() => viewPayslip(p.id)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors" title={t('people.payroll.viewPayslip')}>
                             <FileText className="w-4 h-4" />
                           </button>
                           {p.status === 'draft' && (
-                            <button onClick={() => handleApprove(p.id)} className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors" title="Approve">
+                            <button onClick={() => handleApprove(p.id)} className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors" title={t('leaves.approve')}>
                               <Check className="w-4 h-4" />
                             </button>
                           )}
                           {(p.status === 'draft' || p.status === 'approved') && (
-                            <button onClick={() => { setConfirmInfo({ title: 'Mark as Paid', message: 'Mark this payroll as paid?' }); setConfirmAction(() => () => handlePay(p.id)) }} className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors" title="Mark Paid">
+                            <button onClick={() => { setConfirmInfo({ title: t('people.payroll.markPaidTitle'), message: t('people.payroll.markPaidMessage') }); setConfirmAction(() => () => handlePay(p.id)) }} className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors" title={t('people.payroll.markPaid')}>
                               <CreditCard className="w-4 h-4" />
                             </button>
                           )}
                           {p.status !== 'paid' && p.status !== 'cancelled' && (
-                            <button onClick={() => { setConfirmInfo({ title: 'Cancel Payroll', message: 'Cancel this payroll record?' }); setConfirmAction(() => () => handleCancel(p.id)) }} className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors" title="Cancel">
+                            <button onClick={() => { setConfirmInfo({ title: t('people.payroll.cancelPayroll'), message: t('people.payroll.cancelPayrollMessage') }); setConfirmAction(() => () => handleCancel(p.id)) }} className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors" title={t('leaves.cancel')}>
                               <X className="w-4 h-4" />
                             </button>
                           )}
@@ -334,7 +338,7 @@ export default function PayrollPage() {
             <div className="bg-white border border-gray-200 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-900">Payslip</h2>
+                  <h2 className="text-xl font-bold text-gray-900">{t('people.payroll.payslip')}</h2>
                   <button onClick={() => { setShowPayslip(null); setPayslipData(null) }} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-900">
                     <X className="w-5 h-5" />
                   </button>
@@ -343,11 +347,11 @@ export default function PayrollPage() {
               <div className="p-6 space-y-4">
                 <div className="text-center mb-4">
                   <p className="text-lg font-semibold text-[#0FD452]">{payslipData.payroll?.employee?.first_name} {payslipData.payroll?.employee?.last_name}</p>
-                  <p className="text-sm text-gray-500">Period: {payslipData.payroll?.period_month}/{payslipData.payroll?.period_year}</p>
+                  <p className="text-sm text-gray-500">{t('people.payroll.periodLabel')} {payslipData.payroll?.period_month}/{payslipData.payroll?.period_year}</p>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2">Earnings</h4>
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('people.payroll.earnings')}</h4>
                   <div className="space-y-2">
                     {Object.entries(payslipData.breakdown?.earnings || {}).map(([key, val]) => (
                       <div key={key} className="flex justify-between text-sm">
@@ -356,14 +360,14 @@ export default function PayrollPage() {
                       </div>
                     ))}
                     <div className="flex justify-between text-sm font-semibold pt-2 border-t border-gray-200">
-                      <span className="text-gray-700">Gross Salary</span>
+                      <span className="text-gray-700">{t('people.payroll.grossSalary')}</span>
                       <span className="text-[#0FD452]">{formatCurrency(payslipData.payroll?.gross_salary)}</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2">Deductions</h4>
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('people.employeeDetail.deductions')}</h4>
                   <div className="space-y-2">
                     {Object.entries(payslipData.breakdown?.deductions || {}).filter(([, val]) => val > 0).map(([key, val]) => (
                       <div key={key} className="flex justify-between text-sm">
@@ -376,14 +380,14 @@ export default function PayrollPage() {
 
                 <div className="pt-4 border-t border-gray-200">
                   <div className="flex justify-between text-lg font-bold">
-                    <span className="text-gray-900">Net Salary</span>
+                    <span className="text-gray-900">{t('people.payroll.netSalary')}</span>
                     <span className="text-[#0FD452]">{formatCurrency(payslipData.payroll?.net_salary)}</span>
                   </div>
                 </div>
 
                 {payslipData.breakdown?.employer_costs && Object.values(payslipData.breakdown.employer_costs).some(v => v > 0) && (
                   <div className="pt-4 border-t border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2">Employer Costs</h4>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('people.payroll.employerCosts')}</h4>
                     {Object.entries(payslipData.breakdown.employer_costs).filter(([, val]) => val > 0).map(([key, val]) => (
                       <div key={key} className="flex justify-between text-sm">
                         <span className="text-gray-700">{key}</span>
@@ -402,8 +406,8 @@ export default function PayrollPage() {
         isOpen={!!confirmAction}
         title={confirmInfo.title}
         message={confirmInfo.message}
-        confirmText="Confirm"
-        cancelText="Cancel"
+        confirmText={t('common.confirm')}
+        cancelText={t('common.cancel')}
         variant="warning"
         onConfirm={() => { confirmAction?.(); setConfirmAction(null); setConfirmInfo({ title: '', message: '' }) }}
         onCancel={() => { setConfirmAction(null); setConfirmInfo({ title: '', message: '' }) }}

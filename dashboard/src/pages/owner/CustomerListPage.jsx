@@ -10,6 +10,7 @@ import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { formatMoney as sharedMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 function normalizeCustomer(c) {
   return {
@@ -22,6 +23,7 @@ function normalizeCustomer(c) {
 
 export default function CustomerListPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const base = currentBase()
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -79,10 +81,10 @@ export default function CustomerListPage() {
   }
 
   const statCards = [
-    { label: 'Total Customers', value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
-    { label: 'New This Month', value: stats.newThisMonth, icon: UserPlus, color: 'bg-blue-500/10 text-blue-500' },
-    { label: 'Active Customers', value: stats.active, icon: UserCheck, color: 'bg-purple-500/10 text-purple-500' },
-    { label: 'Total Revenue', value: formatMoney(stats.totalRevenue), icon: DollarSign, color: 'bg-orange-500/10 text-orange-500' },
+    { label: t('dashboard.totalCustomers'), value: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
+    { label: t('sales.customers.newThisMonth'), value: stats.newThisMonth, icon: UserPlus, color: 'bg-blue-500/10 text-blue-500' },
+    { label: t('sales.customers.activeCustomers'), value: stats.active, icon: UserCheck, color: 'bg-purple-500/10 text-purple-500' },
+    { label: t('dashboard.totalRevenue'), value: formatMoney(stats.totalRevenue), icon: DollarSign, color: 'bg-orange-500/10 text-orange-500' },
   ]
 
   return (
@@ -94,8 +96,8 @@ export default function CustomerListPage() {
             <Users className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-            <p className="text-sm text-gray-500">Manage your customer database.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('customers.title')}</h1>
+            <p className="text-sm text-gray-500">{t('sales.customers.manageSubtitle')}</p>
           </div>
         </div>
         <button
@@ -103,7 +105,7 @@ export default function CustomerListPage() {
           className="btn-primary"
         >
           <UserPlus className="w-5 h-5" />
-          Add Customer
+          {t('customers.addCustomer')}
         </button>
       </div>
 
@@ -133,7 +135,7 @@ export default function CustomerListPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, phone, email, or code..."
+              placeholder={t('sales.customers.searchPlaceholder')}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0FD452]/20 focus:border-[#0FD452] transition-all"
             />
           </div>
@@ -144,23 +146,23 @@ export default function CustomerListPage() {
             }`}
           >
             <Filter className="w-4 h-4" />
-            Filters
+            {t('sales.shared.filters')}
           </button>
         </div>
 
         {showFilters && (
           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
             <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-gray-500">Gender</label>
+              <label className="text-xs font-medium text-gray-500">{t('sales.customers.gender')}</label>
               <select
                 value={genderFilter}
                 onChange={(e) => setGenderFilter(e.target.value)}
                 className="bg-gray-50 text-sm text-gray-900 rounded-lg px-3 py-1.5 border border-gray-200 outline-none"
               >
-                <option value="">All</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value="">{t('common.all')}</option>
+                <option value="male">{t('sales.customers.male')}</option>
+                <option value="female">{t('sales.customers.female')}</option>
+                <option value="other">{t('sales.customers.other')}</option>
               </select>
             </div>
             {genderFilter && (
@@ -169,7 +171,7 @@ export default function CustomerListPage() {
                 className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
               >
                 <X className="w-3 h-3" />
-                Clear
+                {t('common.clear')}
               </button>
             )}
           </div>
@@ -185,36 +187,36 @@ export default function CustomerListPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Code</span>
+                    <span>{t('sales.customers.code')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Name</span>
+                    <span>{t('common.name')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Phone</span>
+                    <span>{t('common.phone')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Mail className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Email</span>
+                    <span>{t('common.email')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Gender</span>
+                    <span>{t('sales.customers.gender')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
-                    <span>Actions</span>
+                    <span>{t('common.actions')}</span>
                   </div>
                 </th>
               </tr>
@@ -232,8 +234,8 @@ export default function CustomerListPage() {
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Users className="w-7 h-7 text-gray-300" />
                     </div>
-                    <p className="text-sm font-semibold text-gray-900 mb-1">No customers found</p>
-                    <p className="text-xs text-gray-400">{search ? 'Try a different search term' : 'Add your first customer to get started'}</p>
+                    <p className="text-sm font-semibold text-gray-900 mb-1">{t('customers.noCustomers')}</p>
+                    <p className="text-xs text-gray-400">{search ? t('sales.customers.tryDifferentSearch') : t('sales.customers.addFirst')}</p>
                   </td>
                 </tr>
               ) : (
@@ -275,21 +277,21 @@ export default function CustomerListPage() {
                               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                             >
                               <Eye className="w-4 h-4" />
-                              View Profile
+                              {t('sales.customers.viewProfile')}
                             </button>
                             <button
                               onClick={() => { navigate(`${base}/customers/${customer.id}/edit`); setActiveMenu(null) }}
                               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                             >
                               <Edit className="w-4 h-4" />
-                              Edit
+                              {t('common.edit')}
                             </button>
                             <button
                               onClick={() => { setConfirmAction(() => () => { handleDelete(customer); setActiveMenu(null) }); setActiveMenu(null) }}
                               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                             >
                               <Trash2 className="w-4 h-4" />
-                              Delete
+                              {t('common.delete')}
                             </button>
                           </div>
                         </>
@@ -305,10 +307,10 @@ export default function CustomerListPage() {
 
       <ConfirmDialog
         isOpen={!!confirmAction}
-        title="Delete Customer"
-        message="Are you sure you want to delete this customer? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('sales.customers.deleteTitle')}
+        message={t('sales.customers.deleteMessage')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         variant="danger"
         onConfirm={() => { confirmAction?.(); setConfirmAction(null) }}
         onCancel={() => setConfirmAction(null)}

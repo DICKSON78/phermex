@@ -593,12 +593,12 @@ export default function DashboardLayout({ role }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-green-200/70 font-semibold">{t('common.currentPharmacy')}</p>
-              <p className="text-sm font-semibold text-white truncate">{currentPharmacy?.pharmacy_name || 'Select Pharmacy'}</p>
+              <p className="text-sm font-semibold text-white truncate">{currentPharmacy?.pharmacy_name || t('common.selectPharmacy')}</p>
             </div>
             <span
               className="w-2 h-2 rounded-full shrink-0"
               style={{ background: currentPharmacyIsActive ? '#0FD452' : '#F87171' }}
-              title={currentPharmacyIsActive ? 'Paid' : 'Not paid'}
+              title={currentPharmacyIsActive ? t('common.paid') : t('common.notPaid')}
             />
             <ChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-200 ${pharmacyDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -631,7 +631,7 @@ export default function DashboardLayout({ role }) {
                           background: isPaid ? '#0FD452' : '#F87171',
                           boxShadow: isCurrent && isPaid ? '0 0 0 2px rgba(15,212,82,0.4)' : 'none',
                         }}
-                        title={isPaid ? 'Paid' : 'Not paid'} />
+                        title={isPaid ? t('common.paid') : t('common.notPaid')} />
                   <span className="truncate">{p.pharmacy_name}</span>
                   <span
                     className={`ml-auto shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded ${

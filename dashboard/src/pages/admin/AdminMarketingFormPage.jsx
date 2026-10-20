@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Save, Megaphone, Loader2, Users, Calendar, FileText } from 'lucide-react'
 import api from '../../services/api'
 import Modal from '../../components/Modal'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const TYPES = ['Email', 'SMS', 'Push', 'In-App']
 const STATUSES = ['Draft', 'Active', 'Paused', 'Completed']
@@ -12,6 +13,7 @@ const EMPTY_FORM = { name: '', type: 'Email', audience: 'All Owners', status: 'D
 export default function AdminMarketingFormPage() {
   const navigate = useNavigate()
   const { id } = useParams()
+  const { t } = useLanguage()
   const isEdit = Boolean(id)
 
   const [form, setForm] = useState(EMPTY_FORM)
@@ -53,10 +55,10 @@ export default function AdminMarketingFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.name.trim()) errs.name = 'Campaign name is required'
-    if (!form.startDate) errs.startDate = 'Start date is required'
-    if (!form.endDate) errs.endDate = 'End date is required'
-    if (form.startDate && form.endDate && form.startDate > form.endDate) errs.endDate = 'End date must be after start date'
+    if (!form.name.trim()) errs.name = t('adminOps.marketing.errors.nameRequired')
+    if (!form.startDate) errs.startDate = t('adminOps.marketing.errors.startRequired')
+    if (!form.endDate) errs.endDate = t('adminOps.marketing.errors.endRequired')
+    if (form.startDate && form.endDate && form.startDate > form.endDate) errs.endDate = t('adminOps.marketing.errors.endBeforeStart')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -97,11 +99,11 @@ export default function AdminMarketingFormPage() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">
-              {isEdit ? 'Edit Campaign' : 'Create New Campaign'}
+              {isEdit ? t('adminOps.marketing.editCampaign') : t('adminOps.marketing.createCampaign')}
             </h1>
           </div>
           <p className="text-gray-600">
-            {isEdit ? 'Update existing campaign details' : 'Add a new campaign to the platform'}
+            {isEdit ? t('adminOps.marketing.updateCampaignDesc') : t('adminOps.marketing.addCampaignDesc')}
           </p>
         </div>
       </div>
@@ -115,14 +117,14 @@ export default function AdminMarketingFormPage() {
                 <Megaphone className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Campaign Information</h3>
-                <p className="text-sm text-gray-600">Campaign name, type, and target audience</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminOps.marketing.campaignInfo')}</h3>
+                <p className="text-sm text-gray-600">{t('adminOps.marketing.campaignInfoDesc')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Campaign Name <span className="text-red-500">*</span>
+                  {t('adminOps.marketing.campaignName')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -133,13 +135,13 @@ export default function AdminMarketingFormPage() {
                     value={form.name}
                     onChange={(e) => handleChange('name', e.target.value)}
                     className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.name ? '!border-red-400' : ''}`}
-                    placeholder="Enter campaign name"
+                    placeholder={t('adminOps.marketing.campaignNamePlaceholder')}
                   />
                 </div>
                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Type</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('adminOps.fields.type')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Megaphone className="w-4 h-4 text-gray-400" />
@@ -149,14 +151,14 @@ export default function AdminMarketingFormPage() {
                     onChange={(e) => handleChange('type', e.target.value)}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   >
-                    {TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
+                    {TYPES.map((ty) => (
+                      <option key={ty} value={ty}>{t('adminOps.labels.' + ty, ty)}</option>
                     ))}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Audience</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('adminOps.marketing.audience')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Users className="w-4 h-4 text-gray-400" />
@@ -166,12 +168,12 @@ export default function AdminMarketingFormPage() {
                     value={form.audience}
                     onChange={(e) => handleChange('audience', e.target.value)}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
-                    placeholder="e.g. All Owners"
+                    placeholder={t('adminOps.marketing.audiencePlaceholder')}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Status</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('common.status')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Megaphone className="w-4 h-4 text-gray-400" />
@@ -182,7 +184,7 @@ export default function AdminMarketingFormPage() {
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   >
                     {STATUSES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
+                      <option key={s} value={s}>{t('adminOps.labels.' + s, s)}</option>
                     ))}
                   </select>
                 </div>
@@ -197,14 +199,14 @@ export default function AdminMarketingFormPage() {
                 <Calendar className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Budget & Dates</h3>
-                <p className="text-sm text-gray-600">Campaign duration and scheduling</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminOps.marketing.budgetDates')}</h3>
+                <p className="text-sm text-gray-600">{t('adminOps.marketing.budgetDatesDesc')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Start Date <span className="text-red-500">*</span>
+                  {t('adminOps.fields.startDate')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -221,7 +223,7 @@ export default function AdminMarketingFormPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  End Date <span className="text-red-500">*</span>
+                  {t('adminOps.fields.endDate')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -246,13 +248,13 @@ export default function AdminMarketingFormPage() {
                 <FileText className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Content</h3>
-                <p className="text-sm text-gray-600">Campaign description and messaging</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminOps.marketing.content')}</h3>
+                <p className="text-sm text-gray-600">{t('adminOps.marketing.contentDesc')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Description</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.description')}</label>
                 <div className="relative">
                   <div className="absolute top-3 left-3">
                     <FileText className="w-4 h-4 text-gray-400" />
@@ -262,7 +264,7 @@ export default function AdminMarketingFormPage() {
                     onChange={(e) => handleChange('description', e.target.value)}
                     rows={4}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm resize-none"
-                    placeholder="Describe the campaign..."
+                    placeholder={t('adminOps.marketing.descriptionPlaceholder')}
                   />
                 </div>
               </div>
@@ -272,11 +274,11 @@ export default function AdminMarketingFormPage() {
           {/* Sticky bottom bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
             <Link to="/dashboard/marketing" className="btn-secondary">
-              <span>Cancel</span>
+              <span>{t('common.cancel')}</span>
             </Link>
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isEdit ? 'Update Campaign' : 'Create Campaign'}</span>
+              <span>{isEdit ? t('adminOps.marketing.updateCampaign') : t('adminOps.marketing.createCampaignAction')}</span>
             </button>
           </div>
         </form>
@@ -288,8 +290,8 @@ export default function AdminMarketingFormPage() {
           setShowSuccess(false)
           navigate('/dashboard/marketing')
         }}
-        title={isEdit ? 'Campaign Updated' : 'Campaign Created'}
-        subtitle={isEdit ? 'The campaign has been updated successfully.' : 'The campaign has been created successfully.'}
+        title={isEdit ? t('adminOps.marketing.campaignUpdated') : t('adminOps.marketing.campaignCreated')}
+        subtitle={isEdit ? t('adminOps.marketing.campaignUpdatedMsg') : t('adminOps.marketing.campaignCreatedMsg')}
       >
         <div className="flex justify-end pt-2">
           <button
@@ -299,7 +301,7 @@ export default function AdminMarketingFormPage() {
             }}
             className="btn-primary"
           >
-            Back to Marketing
+            {t('adminOps.marketing.backToMarketing')}
           </button>
         </div>
       </Modal>

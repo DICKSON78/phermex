@@ -7,6 +7,7 @@ import {
   Search, Filter, Calendar, ShieldCheck, Hash, ChevronDown,
   ChevronLeft, ChevronRight, Zap, FileText, ExternalLink, X,
 } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
@@ -40,6 +41,7 @@ function InfoItem({ icon: Icon, label, value }) {
 
 export default function AdminPendingApprovalsPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [pharmacies, setPharmacies] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
@@ -108,7 +110,7 @@ export default function AdminPendingApprovalsPage() {
       if (selectedPharmacy) setSelectedPharmacy((s) => s ? { ...s, application_status: 'approved' } : null)
       setShowApproveModal(false)
       setApproveComment('')
-      showToast('Pharmacy approved')
+      showToast(t('adminOps.approvals.pharmacyApproved'))
     } catch (err) { console.error(err) } finally { setActionLoading(null) }
   }
 
@@ -121,7 +123,7 @@ export default function AdminPendingApprovalsPage() {
       if (selectedPharmacy) setSelectedPharmacy((s) => s ? { ...s, application_status: 'rejected', rejection_reason: rejectReason } : null)
       setShowRejectModal(false)
       setRejectReason('')
-      showToast('Pharmacy rejected')
+      showToast(t('adminOps.approvals.pharmacyRejected'))
     } catch (err) { console.error(err) } finally { setActionLoading(null) }
   }
 
@@ -134,7 +136,7 @@ export default function AdminPendingApprovalsPage() {
       if (paymentPharmacy) setPaymentPharmacy((s) => s ? { ...s, payment_status: 'confirmed' } : null)
       setShowPaymentModal(false)
       setPaymentNote('')
-      showToast('Payment confirmed. Subscription activated!')
+      showToast(t('adminOps.approvals.paymentConfirmed'))
     } catch (err) { console.error(err) } finally { setActionLoading(null) }
   }
 
@@ -157,8 +159,8 @@ export default function AdminPendingApprovalsPage() {
             <ShieldCheck className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Pharmacy Approvals</h1>
-            <p className="text-sm text-gray-500">Review and manage pharmacy applications</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('adminOps.approvals.title')}</h1>
+            <p className="text-sm text-gray-500">{t('adminOps.approvals.subtitle')}</p>
           </div>
         </div>
         <button onClick={() => fetchPharmacies(currentPage)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
@@ -169,10 +171,10 @@ export default function AdminPendingApprovalsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { icon: Building2, label: 'Total', value: stats.total, color: 'text-[#000F14]', bg: 'bg-gray-100' },
-          { icon: Clock, label: 'Pending', value: stats.pending, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { icon: CheckCircle2, label: 'Approved', value: stats.approved, color: 'text-green-600', bg: 'bg-green-50' },
-          { icon: XCircle, label: 'Rejected', value: stats.rejected, color: 'text-red-600', bg: 'bg-red-50' },
+          { icon: Building2, label: t('common.total'), value: stats.total, color: 'text-[#000F14]', bg: 'bg-gray-100' },
+          { icon: Clock, label: t('common.pending'), value: stats.pending, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { icon: CheckCircle2, label: t('common.approved'), value: stats.approved, color: 'text-green-600', bg: 'bg-green-50' },
+          { icon: XCircle, label: t('common.rejected'), value: stats.rejected, color: 'text-red-600', bg: 'bg-red-50' },
         ].map((s, i) => (
           <div key={i} className="rounded-xl bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
@@ -205,9 +207,9 @@ export default function AdminPendingApprovalsPage() {
                     <span className="text-xs text-white/70 font-mono">{selectedPharmacy.pharmacy_code}</span>
                     <span className={`inline-flex items-center gap-1 rounded-full text-[10px] font-semibold px-2 py-0.5 ${appCfg.color}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${appCfg.dot}`} />
-                      {appCfg.label}
+                      {t('adminOps.labels.' + appCfg.label, appCfg.label)}
                     </span>
-                    <span className={`inline-flex rounded-full text-[10px] font-semibold px-2 py-0.5 ${payCfg.color}`}>{payCfg.label}</span>
+                    <span className={`inline-flex rounded-full text-[10px] font-semibold px-2 py-0.5 ${payCfg.color}`}>{t('adminOps.labels.' + payCfg.label, payCfg.label)}</span>
                   </div>
                 </div>
               </div>
@@ -223,13 +225,13 @@ export default function AdminPendingApprovalsPage() {
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
                     <User className="w-4 h-4 text-blue-600" />
-                    <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Owner Information</h4>
+                    <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">{t('adminOps.approvals.ownerInfo')}</h4>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <InfoItem icon={User} label="Name" value={selectedPharmacy.owner?.name} />
-                    <InfoItem icon={Phone} label="Phone" value={selectedPharmacy.owner?.phone} />
-                    <InfoItem icon={Mail} label="Email" value={selectedPharmacy.owner?.email} />
-                    <InfoItem icon={Hash} label="Code" value={selectedPharmacy.pharmacy_code} />
+                    <InfoItem icon={User} label={t('common.name')} value={selectedPharmacy.owner?.name} />
+                    <InfoItem icon={Phone} label={t('common.phone')} value={selectedPharmacy.owner?.phone} />
+                    <InfoItem icon={Mail} label={t('common.email')} value={selectedPharmacy.owner?.email} />
+                    <InfoItem icon={Hash} label={t('adminOps.fields.code')} value={selectedPharmacy.pharmacy_code} />
                   </div>
                 </div>
 
@@ -237,15 +239,15 @@ export default function AdminPendingApprovalsPage() {
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
                     <Building2 className="w-4 h-4 text-purple-600" />
-                    <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Pharmacy Details</h4>
+                    <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">{t('adminOps.approvals.pharmacyDetails')}</h4>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <InfoItem icon={Building2} label="Type" value={selectedPharmacy.pharmacy_type} />
-                    <InfoItem icon={FileText} label="License No." value={selectedPharmacy.license_number} />
-                    <InfoItem icon={MapPin} label="District" value={selectedPharmacy.district} />
-                    <InfoItem icon={MapPin} label="Region" value={selectedPharmacy.region} />
-                    <InfoItem icon={MapPin} label="Ward" value={selectedPharmacy.ward} />
-                    <InfoItem icon={MapPin} label="Street" value={selectedPharmacy.street} />
+                    <InfoItem icon={Building2} label={t('adminOps.fields.type')} value={selectedPharmacy.pharmacy_type ? t('adminOps.labels.' + selectedPharmacy.pharmacy_type, selectedPharmacy.pharmacy_type) : ''} />
+                    <InfoItem icon={FileText} label={t('adminOps.fields.licenseNo')} value={selectedPharmacy.license_number} />
+                    <InfoItem icon={MapPin} label={t('adminOps.fields.district')} value={selectedPharmacy.district} />
+                    <InfoItem icon={MapPin} label={t('adminOps.fields.region')} value={selectedPharmacy.region} />
+                    <InfoItem icon={MapPin} label={t('adminOps.fields.ward')} value={selectedPharmacy.ward} />
+                    <InfoItem icon={MapPin} label={t('adminOps.fields.street')} value={selectedPharmacy.street} />
                   </div>
                 </div>
               </div>
@@ -254,20 +256,20 @@ export default function AdminPendingApprovalsPage() {
               <div className="mt-4 bg-gray-50 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
                   <CreditCard className="w-4 h-4 text-amber-600" />
-                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Subscription & Payment</h4>
+                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">{t('adminOps.approvals.subscriptionPayment')}</h4>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <InfoItem icon={CreditCard} label="Plan" value={selectedPharmacy.subscription_plan?.name || '—'} />
-                  <InfoItem icon={CreditCard} label="Amount" value={selectedPharmacy.subscription_plan ? `TZS ${Number(selectedPharmacy.subscription_plan.price).toLocaleString()}` : '—'} />
-                  <InfoItem icon={Calendar} label="Trial Ends" value={formatDate(selectedPharmacy.trial_ends_at)} />
-                  <InfoItem icon={Calendar} label="Created" value={formatDate(selectedPharmacy.created_at)} />
+                  <InfoItem icon={CreditCard} label={t('adminOps.fields.plan')} value={selectedPharmacy.subscription_plan?.name || '—'} />
+                  <InfoItem icon={CreditCard} label={t('adminOps.fields.amount')} value={selectedPharmacy.subscription_plan ? `TZS ${Number(selectedPharmacy.subscription_plan.price).toLocaleString()}` : '—'} />
+                  <InfoItem icon={Calendar} label={t('adminOps.fields.trialEnds')} value={formatDate(selectedPharmacy.trial_ends_at)} />
+                  <InfoItem icon={Calendar} label={t('adminOps.fields.created')} value={formatDate(selectedPharmacy.created_at)} />
                 </div>
               </div>
 
               {/* Action buttons */}
               <div className="mt-4 flex items-center gap-3 flex-wrap">
                 <Link to={`/dashboard/pharmacies/${selectedPharmacy.id}`} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
-                  <Eye className="w-4 h-4" /> View Full Profile
+                  <Eye className="w-4 h-4" /> {t('adminOps.approvals.viewFullProfile')}
                 </Link>
                 {selectedPharmacy.latitude && selectedPharmacy.longitude && (
                   <a href={`https://www.google.com/maps?q=${selectedPharmacy.latitude},${selectedPharmacy.longitude}`} target="_blank" rel="noopener noreferrer"
@@ -279,16 +281,16 @@ export default function AdminPendingApprovalsPage() {
                 {selectedPharmacy.application_status === 'pending' && (
                   <>
                     <button onClick={() => setShowApproveModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl text-sm font-bold transition-all">
-                      <CheckCircle2 className="w-4 h-4" /> Approve
+                      <CheckCircle2 className="w-4 h-4" /> {t('leaves.approve')}
                     </button>
                     <button onClick={() => setShowRejectModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-red-300 text-red-600 rounded-xl text-sm font-bold hover:bg-red-50 transition-all">
-                      <XCircle className="w-4 h-4" /> Reject
+                      <XCircle className="w-4 h-4" /> {t('leaves.reject')}
                     </button>
                   </>
                 )}
                 {selectedPharmacy.application_status === 'approved' && selectedPharmacy.payment_status !== 'confirmed' && selectedPharmacy.payment_status !== 'paid' && (
                   <button onClick={() => { setPaymentPharmacy(selectedPharmacy); setShowPaymentModal(true) }} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl text-sm font-bold transition-all">
-                    <CreditCard className="w-4 h-4" /> Confirm Payment
+                    <CreditCard className="w-4 h-4" /> {t('adminOps.approvals.confirmPayment')}
                   </button>
                 )}
               </div>
@@ -303,17 +305,17 @@ export default function AdminPendingApprovalsPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, owner, code, email, phone..."
+              placeholder={t('adminOps.approvals.searchPlaceholder')}
               className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-[#000F14] placeholder-gray-400 outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20" />
           </div>
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-8 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 appearance-none cursor-pointer">
-              <option value="all">All Applications</option>
-              <option value="pending">Pending Review</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
+              <option value="all">{t('adminOps.approvals.allApplications')}</option>
+              <option value="pending">{t('adminOps.labels.Pending Review')}</option>
+              <option value="approved">{t('adminOps.labels.Approved')}</option>
+              <option value="rejected">{t('adminOps.labels.Rejected')}</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
@@ -324,13 +326,13 @@ export default function AdminPendingApprovalsPage() {
       {loading ? (
         <div className="rounded-xl bg-white py-16 shadow-sm flex flex-col items-center justify-center">
           <Loader2 className="w-8 h-8 text-[#0FD452] animate-spin" />
-          <p className="text-sm text-gray-500 mt-2">Loading...</p>
+          <p className="text-sm text-gray-500 mt-2">{t('common.loading')}</p>
         </div>
       ) : filteredPharmacies.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl bg-white py-16 shadow-sm">
           <CheckCircle2 className="mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-semibold text-[#000F14]">No applications found</h3>
-          <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+          <h3 className="text-lg font-semibold text-[#000F14]">{t('adminOps.approvals.noApplications')}</h3>
+          <p className="text-sm text-gray-500">{t('adminOps.approvals.adjustSearchFilters')}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -339,12 +341,12 @@ export default function AdminPendingApprovalsPage() {
               <thead>
                 <tr className="bg-gray-50">
                   {[
-                    { icon: Building2, label: 'Pharmacy' },
-                    { icon: User, label: 'Owner', hide: 'md' },
-                    { icon: MapPin, label: 'Location', hide: 'lg' },
-                    { icon: ShieldCheck, label: 'Status' },
-                    { icon: CreditCard, label: 'Payment', hide: 'sm' },
-                    { icon: Calendar, label: 'Date', hide: 'lg' },
+                    { icon: Building2, label: t('adminOps.fields.pharmacy') },
+                    { icon: User, label: t('adminOps.fields.owner'), hide: 'md' },
+                    { icon: MapPin, label: t('adminOps.fields.location'), hide: 'lg' },
+                    { icon: ShieldCheck, label: t('common.status') },
+                    { icon: CreditCard, label: t('adminOps.fields.payment'), hide: 'sm' },
+                    { icon: Calendar, label: t('common.date'), hide: 'lg' },
                   ].map((col) => (
                     <th key={col.label} className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 ${col.hide ? `hidden ${col.hide}:table-cell` : ''}`}>
                       <div className="flex items-center gap-1.5">
@@ -356,7 +358,7 @@ export default function AdminPendingApprovalsPage() {
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <Zap className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Actions</span>
+                      <span>{t('common.actions')}</span>
                     </div>
                   </th>
                 </tr>
@@ -390,12 +392,12 @@ export default function AdminPendingApprovalsPage() {
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${(STATUS_CONFIG[p.application_status] || STATUS_CONFIG.pending).color}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${(STATUS_CONFIG[p.application_status] || STATUS_CONFIG.pending).dot}`} />
-                          {(STATUS_CONFIG[p.application_status] || STATUS_CONFIG.pending).label}
+                          {t('adminOps.labels.' + (STATUS_CONFIG[p.application_status] || STATUS_CONFIG.pending).label, (STATUS_CONFIG[p.application_status] || STATUS_CONFIG.pending).label)}
                         </span>
                       </td>
                       <td className="px-6 py-4 hidden sm:table-cell">
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${(PAY_STATUS[p.payment_status] || PAY_STATUS.unpaid).color}`}>
-                          {(PAY_STATUS[p.payment_status] || PAY_STATUS.unpaid).label}
+                          {t('adminOps.labels.' + (PAY_STATUS[p.payment_status] || PAY_STATUS.unpaid).label, (PAY_STATUS[p.payment_status] || PAY_STATUS.unpaid).label)}
                         </span>
                       </td>
                       <td className="px-6 py-4 hidden lg:table-cell">
@@ -404,24 +406,24 @@ export default function AdminPendingApprovalsPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button onClick={(e) => { e.stopPropagation(); selectRow(p) }}
-                            className="btn-icon-primary" title="View details">
+                            className="btn-icon-primary" title={t('adminOps.approvals.viewDetails')}>
                             <Eye className="h-4 w-4" />
                           </button>
                           {p.application_status === 'pending' && (
                             <>
                               <button onClick={(e) => { e.stopPropagation(); setSelectedPharmacy(p); setShowApproveModal(true) }}
-                                className="btn-icon-primary" title="Approve">
+                                className="btn-icon-primary" title={t('leaves.approve')}>
                                 <CheckCircle2 className="h-4 w-4" />
                               </button>
                               <button onClick={(e) => { e.stopPropagation(); setSelectedPharmacy(p); setShowRejectModal(true) }}
-                                className="btn-icon-red" title="Reject">
+                                className="btn-icon-red" title={t('leaves.reject')}>
                                 <XCircle className="h-4 w-4" />
                               </button>
                             </>
                           )}
                           {p.application_status === 'approved' && p.payment_status !== 'confirmed' && p.payment_status !== 'paid' && (
                             <button onClick={(e) => { e.stopPropagation(); setPaymentPharmacy(p); setShowPaymentModal(true) }}
-                              className="btn-icon-green" title="Confirm payment">
+                              className="btn-icon-green" title={t('adminOps.approvals.confirmPayment')}>
                               <CreditCard className="h-4 w-4" />
                             </button>
                           )}
@@ -438,7 +440,7 @@ export default function AdminPendingApprovalsPage() {
           {filteredPharmacies.length > pageSize && (
             <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
               <p className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredPharmacies.length)} of {filteredPharmacies.length} entries
+                {t('adminOps.pagination.showing')} {(currentPage - 1) * pageSize + 1} {t('adminOps.pagination.to')} {Math.min(currentPage * pageSize, filteredPharmacies.length)} {t('adminOps.pagination.of')} {filteredPharmacies.length} {t('adminOps.pagination.entries')}
               </p>
               <div className="flex items-center gap-1">
                 <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="btn-ghost">
@@ -476,23 +478,23 @@ export default function AdminPendingApprovalsPage() {
                 <CheckCircle2 className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Approve Application</h3>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminOps.approvals.approveApplication')}</h3>
                 <p className="text-xs text-gray-500">{selectedPharmacy?.pharmacy_name}</p>
               </div>
             </div>
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-              <p className="text-sm text-green-800">This will approve the pharmacy application and start their 7-day free trial. The owner will be notified.</p>
+              <p className="text-sm text-green-800">{t('adminOps.approvals.approveInfo')}</p>
             </div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Comment (optional)</label>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t('adminOps.approvals.commentOptional')}</label>
             <textarea value={approveComment} onChange={(e) => setApproveComment(e.target.value)} rows={3}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0FD452]/30 resize-none"
-              placeholder="Any notes for this approval..." />
+              placeholder={t('adminOps.approvals.commentPlaceholder')} />
             <div className="flex gap-3 mt-4">
               <button onClick={() => { setShowApproveModal(false); setApproveComment('') }}
-                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">Cancel</button>
+                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">{t('common.cancel')}</button>
               <button onClick={handleApprove} disabled={actionLoading}
                 className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Approve
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} {t('leaves.approve')}
               </button>
             </div>
           </div>
@@ -509,23 +511,23 @@ export default function AdminPendingApprovalsPage() {
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Reject Application</h3>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminOps.approvals.rejectApplication')}</h3>
                 <p className="text-xs text-gray-500">{selectedPharmacy?.pharmacy_name}</p>
               </div>
             </div>
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-              <p className="text-sm text-red-800">This will reject the pharmacy application. The owner will be notified with the reason below.</p>
+              <p className="text-sm text-red-800">{t('adminOps.approvals.rejectInfo')}</p>
             </div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Reason for rejection *</label>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t('adminOps.approvals.rejectionReason')} *</label>
             <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={4}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-red-400 resize-none"
-              placeholder="e.g. Invalid license number, missing documents..." />
+              placeholder={t('adminOps.approvals.rejectPlaceholder')} />
             <div className="flex gap-3 mt-4">
               <button onClick={() => { setShowRejectModal(false); setRejectReason('') }}
-                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">Cancel</button>
+                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">{t('common.cancel')}</button>
               <button onClick={handleReject} disabled={!rejectReason.trim() || actionLoading}
                 className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />} Reject
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />} {t('leaves.reject')}
               </button>
             </div>
           </div>
@@ -542,37 +544,37 @@ export default function AdminPendingApprovalsPage() {
                 <CreditCard className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Confirm Payment</h3>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminOps.approvals.confirmPayment')}</h3>
                 <p className="text-xs text-gray-500">{paymentPharmacy.pharmacy_name}</p>
               </div>
             </div>
             <div className="bg-[#0FD452]/5 border border-[#0FD452]/20 rounded-xl p-4 mb-4">
-              <p className="text-sm text-[#000F14]">Verify the payment has been received before confirming. This will activate the pharmacy's subscription immediately.</p>
+              <p className="text-sm text-[#000F14]">{t('adminOps.approvals.paymentInfo')}</p>
             </div>
             {paymentPharmacy.subscription_plan && (
               <div className="bg-gray-50 rounded-xl p-4 mb-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider">Plan</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider">{t('adminOps.fields.plan')}</p>
                     <p className="text-sm font-bold text-gray-900">{paymentPharmacy.subscription_plan.name}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider">Amount</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider">{t('adminOps.fields.amount')}</p>
                     <p className="text-sm font-bold text-[#0FD452]">TZS {Number(paymentPharmacy.subscription_plan.price).toLocaleString()}</p>
                   </div>
                 </div>
               </div>
             )}
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Note (optional)</label>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t('adminOps.approvals.noteOptional')}</label>
             <textarea value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} rows={3}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0FD452]/30 resize-none"
-              placeholder="e.g. Payment received via bank transfer, reference #12345..." />
+              placeholder={t('adminOps.approvals.paymentNotePlaceholder')} />
             <div className="flex gap-3 mt-4">
               <button onClick={() => { setShowPaymentModal(false); setPaymentPharmacy(null); setPaymentNote('') }}
-                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">Cancel</button>
+                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">{t('common.cancel')}</button>
               <button onClick={handleConfirmPayment} disabled={actionLoading}
                 className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Confirm Payment
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} {t('adminOps.approvals.confirmPayment')}
               </button>
             </div>
           </div>

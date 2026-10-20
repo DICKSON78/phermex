@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { toArray } from '../../utils/safeData';
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import api from '../../services/api'
 import QRCode from 'qrcode'
 import { jsPDF } from 'jspdf'
@@ -29,12 +30,29 @@ import { formatMoney } from '../../utils/currency'
 
 const CATEGORIES = ['All', 'Tablets', 'Capsules', 'Bottles', 'Inhalers', 'Creams', 'Packets']
 
+const CATEGORY_KEY = {
+  All: 'common.all',
+  Tablets: 'sales.pos.categories.tablets',
+  Capsules: 'sales.pos.categories.capsules',
+  Bottles: 'sales.pos.categories.bottles',
+  Inhalers: 'sales.pos.categories.inhalers',
+  Creams: 'sales.pos.categories.creams',
+  Packets: 'sales.pos.categories.packets',
+}
+
 const PAYMENT_METHODS = [
-  { key: 'cash', label: 'Cash', icon: Banknote },
-  { key: 'card', label: 'Card', icon: CreditCard },
-  { key: 'mobile_money', label: 'Mobile Money', icon: Smartphone },
-  { key: 'bank_transfer', label: 'Bank Transfer', icon: Landmark },
+  { key: 'cash', label: 'Cash', labelKey: 'sales.orders.methods.cash', icon: Banknote },
+  { key: 'card', label: 'Card', labelKey: 'sales.orders.methods.card', icon: CreditCard },
+  { key: 'mobile_money', label: 'Mobile Money', labelKey: 'sales.orders.methods.mobile_money', icon: Smartphone },
+  { key: 'bank_transfer', label: 'Bank Transfer', labelKey: 'sales.orders.methods.bank_transfer', icon: Landmark },
 ]
+
+const PAYMENT_KEY = {
+  cash: 'sales.orders.methods.cash',
+  card: 'sales.orders.methods.card',
+  mobile_money: 'sales.orders.methods.mobile_money',
+  bank_transfer: 'sales.orders.methods.bank_transfer',
+}
 
 const TAX_RATE = 0.18
 
@@ -48,6 +66,7 @@ function fmt(amount) {
 
 export default function POSPage() {
   const { user } = useAuth()
+  const { t } = useLanguage()
 
   const [drugs, setDrugs] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -57,7 +76,7 @@ export default function POSPage() {
   const [tax, setTax] = useState(TAX_RATE * 100)
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [amountTendered, setAmountTendered] = useState('')
-  const [customer, setCustomer] = useState({ name: 'Walk-in Customer', id: null })
+  const [customer, setCustomer] = useState({ name: t('pos.walkIn'), id: null })
   const [showCustomerInput, setShowCustomerInput] = useState(false)
   const [customerSearch, setCustomerSearch] = useState('')
   const [loading, setLoading] = useState(true)
@@ -204,11 +223,12 @@ export default function POSPage() {
         line: item.price * item.quantity,
       })),
       payment: paymentLabel,
+      paymentKey: paymentMethod,
       tendered: paymentMethod === 'cash' ? tenderedAmount : grandTotal,
       change: paymentMethod === 'cash' ? changeDue : 0,
-      customer: customer?.name || 'Walk-in Customer',
+      customer: customer?.name || t('pos.walkIn'),
       pharmacy: user?.current_pharmacy?.pharmacy_name || user?.currentPharmacy?.pharmacy_name || 'Helix Pharmacy',
-      cashier: user?.name || 'Cashier',
+      cashier: user?.name || t('pos.cashier'),
       date: new Date().toLocaleString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
     }
     try {
@@ -242,7 +262,7 @@ export default function POSPage() {
     if (!el) return
     const win = window.open('', '_blank', 'width=420,height=640')
     if (!win) return
-    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${saleComplete?.code || ''}</title>
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${t('sales.pos.receiptTitle')} ${saleComplete?.code || ''}</title>
 <style>
   @media print { @page { size: 80mm auto; margin: 4mm; } }
   html, body { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', monospace; }
@@ -285,15 +305,15 @@ export default function POSPage() {
     doc.text(receipt.date || '', CX, y, { align: 'center' })
     y += 3.5
     doc.setFont(font, 'bold')
-    doc.text('SALE RECEIPT', CX, y, { align: 'center' })
+    doc.text(t('pos.saleReceipt'), CX, y, { align: 'center' })
     y += 2.5
     dashedLine()
     doc.setFont(font, 'normal')
-    doc.text(`Receipt No: ${receipt.code}`, L, y)
+    doc.text(`${t('pos.receiptNo')}: ${receipt.code}`, L, y)
     y += 4
-    doc.text(`Cashier: ${receipt.cashier || '-'}`, L, y)
+    doc.text(`${t('pos.cashier')}: ${receipt.cashier || '-'}`, L, y)
     y += 4
-    doc.text(`Customer: ${receipt.customer || 'Walk-in'}`, L, y)
+    doc.text(`${t('pos.customer')}: ${receipt.customer || t('pos.walkIn')}`, L, y)
     y += 3
     dashedLine()
 
@@ -314,13 +334,13 @@ export default function POSPage() {
     doc.setFontSize(9)
 
     doc.setFont(font, 'normal')
-    doc.text('Subtotal', L, y)
+    doc.text(t('pos.subtotal'), L, y)
     doc.text(fmt(receipt.subtotal), R, y, { align: 'right' })
     y += 5
-    doc.text('Discount', L, y)
+    doc.text(t('sales.pos.discountShort'), L, y)
     doc.text(`-${fmt(receipt.discount)}`, R, y, { align: 'right' })
     y += 5
-    doc.text('VAT (18%)', L, y)
+    doc.text(t('pos.vat'), L, y)
     doc.text(fmt(receipt.tax), R, y, { align: 'right' })
     y += 5
     doc.setFont(font, 'bold')
@@ -328,7 +348,7 @@ export default function POSPage() {
     doc.setLineWidth(0.4)
     doc.line(L, y, R, y)
     doc.setFontSize(11)
-    doc.text('TOTAL', L, y + 4)
+    doc.text(t('pos.total'), L, y + 4)
     doc.text(fmt(receipt.total), R, y + 4, { align: 'right' })
     doc.setFontSize(9)
     doc.setFont(font, 'normal')
@@ -336,13 +356,13 @@ export default function POSPage() {
     doc.line(L, y, R, y)
     doc.setLineWidth(0.3)
     y += 5
-    doc.text(`Payment: ${receipt.payment || 'Cash'}`, L, y)
+    doc.text(`${t('sales.orders.payment')}: ${t(PAYMENT_KEY[receipt.paymentKey], receipt.payment || 'Cash')}`, L, y)
     if ((receipt.payment || '') === 'Cash') {
       y += 5
-      doc.text('Tendered', L, y)
+      doc.text(t('sales.pos.tendered'), L, y)
       doc.text(fmt(receipt.tendered), R, y, { align: 'right' })
       y += 5
-      doc.text('Change', L, y)
+      doc.text(t('pos.change'), L, y)
       doc.text(fmt(receipt.change), R, y, { align: 'right' })
       y += 3
     }
@@ -357,10 +377,10 @@ export default function POSPage() {
     dashedLine()
     doc.setFont(font, 'bold')
     doc.setFontSize(8)
-    doc.text('Thank you for your patronage!', CX, y, { align: 'center' })
+    doc.text(t('pos.thankYou'), CX, y, { align: 'center' })
     y += 3.5
     doc.setFont(font, 'normal')
-    doc.text('Powered by Helix Pharmacy Systems', CX, y, { align: 'center' })
+    doc.text(t('pos.poweredBy'), CX, y, { align: 'center' })
 
     doc.save(`${receipt.code || 'receipt'}.pdf`)
   }
@@ -370,7 +390,7 @@ export default function POSPage() {
     setDiscount(0)
     setPaymentMethod('cash')
     setAmountTendered('')
-    setCustomer({ name: 'Walk-in Customer', id: null })
+    setCustomer({ name: t('pos.walkIn'), id: null })
     setMobileCartOpen(false)
   }
 
@@ -409,7 +429,7 @@ export default function POSPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
-                  placeholder="Scan barcode or search drug name..."
+                  placeholder={t('sales.pos.searchPlaceholder')}
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-100 rounded-lg text-sm text-dark placeholder-gray-400 outline-none focus:ring-2 focus:ring-primary/30 transition"
                 />
               </div>
@@ -429,7 +449,7 @@ export default function POSPage() {
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}
                 >
-                  {cat}
+                  {t(CATEGORY_KEY[cat], cat)}
                 </button>
               ))}
             </div>
@@ -450,7 +470,7 @@ export default function POSPage() {
             ) : filteredDrugs.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-400">
                 <Search className="w-12 h-12 mb-3 opacity-30" />
-                <p className="text-sm">No drugs found</p>
+                <p className="text-sm">{t('products.noDrugs')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
@@ -474,7 +494,7 @@ export default function POSPage() {
                           drug.stock <= 0 ? 'text-red-500' : drug.stock < 10 ? 'text-yellow-600' : 'text-gray-400'
                         }`}
                       >
-                        {drug.stock <= 0 ? 'Out of stock' : `${drug.stock} in stock`}
+                        {drug.stock <= 0 ? t('dashboard.outOfStock') : `${drug.stock} ${t('sales.pos.inStock')}`}
                       </span>
                     </div>
                   </button>
@@ -522,7 +542,7 @@ export default function POSPage() {
       {/* Held Sales Bar */}
       {heldSales.length > 0 && (
         <div className="flex-shrink-0 bg-yellow-50 border-t border-yellow-200 px-4 py-2 flex items-center gap-3 overflow-x-auto hide-scrollbar">
-          <span className="text-xs font-medium text-yellow-700 whitespace-nowrap">Held:</span>
+          <span className="text-xs font-medium text-yellow-700 whitespace-nowrap">{t('sales.pos.held')}</span>
           {heldSales.map((sale, idx) => (
             <button
               key={idx}
@@ -530,7 +550,7 @@ export default function POSPage() {
               className="flex items-center gap-2 bg-white border border-yellow-300 rounded-lg px-3 py-1.5 text-xs font-medium text-dark hover:bg-yellow-100 transition whitespace-nowrap"
             >
               <Pause className="w-3 h-3 text-yellow-600" />
-              {sale.cart.length} items &middot; {sale.timestamp}
+              {sale.cart.length} {t('pos.items')} &middot; {sale.timestamp}
             </button>
           ))}
         </div>
@@ -558,7 +578,7 @@ export default function POSPage() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileCartOpen(false)} />
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] flex flex-col animate-slideUp">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-              <h3 className="font-semibold text-dark">Current Sale</h3>
+              <h3 className="font-semibold text-dark">{t('sales.pos.currentSale')}</h3>
               <button onClick={() => setMobileCartOpen(false)} className="text-gray-400 hover:text-dark">
                 <X className="w-5 h-5" />
               </button>
@@ -613,8 +633,8 @@ export default function POSPage() {
                   <CheckCircle className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-dark leading-tight">Sale Complete</h2>
-                  <p className="text-[11px] text-gray-400">Transaction processed successfully</p>
+                  <h2 className="text-sm font-bold text-dark leading-tight">{t('pos.saleComplete')}</h2>
+                  <p className="text-[11px] text-gray-400">{t('pos.transactionSuccess')}</p>
                 </div>
               </div>
               <button
@@ -637,9 +657,9 @@ export default function POSPage() {
                 <p style={{ fontSize: 11, color: '#555', margin: '2px 0 0' }}>{saleComplete.date || ''}</p>
               </div>
               <div style={{ borderTop: '1px dashed #999', borderBottom: '1px dashed #999', padding: '6px 0', marginBottom: 8, fontSize: 11, color: '#444' }}>
-                <p style={{ margin: 0 }}>Receipt No: <strong>{saleComplete.code}</strong></p>
-                <p style={{ margin: '2px 0 0' }}>Cashier: {saleComplete.cashier || '—'}</p>
-                <p style={{ margin: '2px 0 0' }}>Customer: {saleComplete.customer || 'Walk-in'}</p>
+                <p style={{ margin: 0 }}>{t('pos.receiptNo')}: <strong>{saleComplete.code}</strong></p>
+                <p style={{ margin: '2px 0 0' }}>{t('pos.cashier')}: {saleComplete.cashier || '—'}</p>
+                <p style={{ margin: '2px 0 0' }}>{t('pos.customer')}: {saleComplete.customer || t('pos.walkIn')}</p>
               </div>
 
               {/* Items */}
@@ -656,33 +676,33 @@ export default function POSPage() {
                 </div>
               ))}
               {(saleComplete.items || []).length === 0 && (
-                <p style={{ fontSize: 11, color: '#888', margin: '4px 0' }}>No items</p>
+                <p style={{ fontSize: 11, color: '#888', margin: '4px 0' }}>{t('sales.pos.noItems')}</p>
               )}
 
               {/* Totals */}
               <div style={{ borderTop: '1px dashed #999', paddingTop: 8, fontSize: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                  <span>Subtotal</span><span>{fmt(saleComplete.subtotal)}</span>
+                  <span>{t('pos.subtotal')}</span><span>{fmt(saleComplete.subtotal)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                  <span>Discount</span><span>-{fmt(saleComplete.discount)}</span>
+                  <span>{t('sales.pos.discountShort')}</span><span>-{fmt(saleComplete.discount)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                  <span>VAT (18%)</span><span>{fmt(saleComplete.tax)}</span>
+                  <span>{t('pos.vat')}</span><span>{fmt(saleComplete.tax)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 700, color: '#000', padding: '6px 0', borderTop: '1px solid #999', borderBottom: '1px solid #999', marginTop: 4 }}>
-                  <span>TOTAL</span><span>{fmt(saleComplete.total)}</span>
+                  <span>{t('pos.total')}</span><span>{fmt(saleComplete.total)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555', marginTop: 6 }}>
-                  <span>Payment: {saleComplete.payment || 'Cash'}</span>
+                  <span>{t('sales.orders.payment')}: {t(PAYMENT_KEY[saleComplete.paymentKey], saleComplete.payment || 'Cash')}</span>
                 </div>
                 {saleComplete.payment === 'Cash' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                      <span>Tendered</span><span>{fmt(saleComplete.tendered)}</span>
+                      <span>{t('sales.pos.tendered')}</span><span>{fmt(saleComplete.tendered)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                      <span>Change</span><span>{fmt(saleComplete.change)}</span>
+                      <span>{t('pos.change')}</span><span>{fmt(saleComplete.change)}</span>
                     </div>
                   </>
                 )}
@@ -692,14 +712,14 @@ export default function POSPage() {
               {receiptQr && (
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
                   <img src={receiptQr} alt="QR Code" style={{ width: 94, height: 94, display: 'block' }} />
-                  <p style={{ margin: '2px 0 0', fontSize: 9, color: '#888' }}>Scan to verify</p>
+                  <p style={{ margin: '2px 0 0', fontSize: 9, color: '#888' }}>{t('pos.scanToVerify')}</p>
                 </div>
               )}
 
               {/* Footer */}
               <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: '#444' }}>
-                <p style={{ margin: 0, fontWeight: 700 }}>Thank you for your patronage!</p>
-                <p style={{ margin: '2px 0 0' }}>Powered by Helix Pharmacy Systems</p>
+                <p style={{ margin: 0, fontWeight: 700 }}>{t('pos.thankYou')}</p>
+                <p style={{ margin: '2px 0 0' }}>{t('pos.poweredBy')}</p>
               </div>
             </div>
 
@@ -710,21 +730,21 @@ export default function POSPage() {
                 className="py-2.5 border border-gray-200 text-gray-600 rounded-lg text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1.5"
               >
                 <Download className="w-4 h-4" />
-                Download PDF
+                {t('sales.pos.downloadPdf')}
               </button>
               <button
                 onClick={() => { printReceipt(); setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
                 className="py-2.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-[#0bc246] transition flex items-center justify-center gap-1.5"
               >
                 <Printer className="w-4 h-4" />
-                Print Receipt
+                {t('pos.printReceipt')}
               </button>
             </div>
             <button
               onClick={() => { setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
               className="w-full mt-2 py-2.5 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-50 transition"
             >
-              New Sale
+              {t('pos.newSale')}
             </button>
           </div>
         </div>
@@ -765,13 +785,14 @@ function CartPanel({
   isMobile,
   onClose,
 }) {
+  const { t } = useLanguage()
   return (
     <div className={`flex flex-col h-full ${isMobile ? '' : ''}`}>
       {/* Cart Header */}
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
           <ShoppingCart className="w-4 h-4 text-primary" />
-          <h3 className="font-semibold text-dark text-sm">Current Sale</h3>
+          <h3 className="font-semibold text-dark text-sm">{t('sales.pos.currentSale')}</h3>
           <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
             {cart.reduce((s, i) => s + i.quantity, 0)}
           </span>
@@ -779,7 +800,7 @@ function CartPanel({
         </div>
         {!isMobile && (
           <button onClick={resetCart} className="text-xs text-gray-400 hover:text-red-500 transition">
-            Clear all
+            {t('sales.pos.clearAll')}
           </button>
         )}
       </div>
@@ -789,7 +810,7 @@ function CartPanel({
         {cart.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-300">
             <ShoppingCart className="w-10 h-10 mb-2" />
-            <p className="text-sm">Cart is empty</p>
+            <p className="text-sm">{t('pos.emptyCart')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -797,7 +818,7 @@ function CartPanel({
               <div key={item.id} className="bg-gray-50 rounded-lg p-2.5 flex items-start gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-dark truncate">{item.name}</p>
-                  <p className="text-xs text-gray-400">{formatCurrency(item.price)} each</p>
+                  <p className="text-xs text-gray-400">{formatCurrency(item.price)} {t('sales.shared.each')}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <button
@@ -835,7 +856,7 @@ function CartPanel({
           {/* Discount & Tax */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] text-gray-400 uppercase tracking-wide">Discount (TZS)</label>
+              <label className="text-[10px] text-gray-400 uppercase tracking-wide">{t('sales.pos.discountTzs')}</label>
               <input
                 type="number"
                 min="0"
@@ -845,7 +866,7 @@ function CartPanel({
               />
             </div>
             <div>
-              <label className="text-[10px] text-gray-400 uppercase tracking-wide">Tax (%)</label>
+              <label className="text-[10px] text-gray-400 uppercase tracking-wide">{t('sales.pos.taxPercent')}</label>
               <input
                 type="number"
                 min="0"
@@ -859,21 +880,21 @@ function CartPanel({
           {/* Totals */}
           <div className="space-y-1 text-sm">
             <div className="flex justify-between text-gray-500">
-              <span>Subtotal</span>
+              <span>{t('pos.subtotal')}</span>
               <span>{formatCurrency(cartSubtotal)}</span>
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between text-red-500">
-                <span>Discount</span>
+                <span>{t('sales.pos.discountShort')}</span>
                 <span>-{formatCurrency(discountAmount)}</span>
               </div>
             )}
             <div className="flex justify-between text-gray-500">
-              <span>Tax ({tax}%)</span>
+              <span>{t('sales.pos.tax')} ({tax}%)</span>
               <span>{formatCurrency(taxAmount)}</span>
             </div>
             <div className="flex justify-between text-base font-bold text-dark pt-1 border-t border-gray-100">
-              <span>Total</span>
+              <span>{t('common.total')}</span>
               <span className="text-primary text-lg">{formatCurrency(grandTotal)}</span>
             </div>
           </div>
@@ -886,18 +907,18 @@ function CartPanel({
                   type="text"
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
-                  placeholder="Search customer..."
+                  placeholder={t('sales.pos.customerSearch')}
                   className="flex-1 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm outline-none focus:border-primary transition"
                 />
                 <button
                   onClick={() => {
-                    setCustomer({ name: customerSearch || 'Walk-in Customer', id: null })
+                    setCustomer({ name: customerSearch || t('pos.walkIn'), id: null })
                     setShowCustomerInput(false)
                     setCustomerSearch('')
                   }}
                   className="text-xs text-primary font-medium"
                 >
-                  Set
+                  {t('sales.pos.set')}
                 </button>
               </div>
             ) : (
@@ -927,7 +948,7 @@ function CartPanel({
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  {pm.label}
+                  {t(pm.labelKey)}
                 </button>
               )
             })}
@@ -936,7 +957,7 @@ function CartPanel({
           {/* Amount Tendered (Cash only) */}
           {paymentMethod === 'cash' && (
             <div>
-              <label className="text-[10px] text-gray-400 uppercase tracking-wide">Amount Tendered</label>
+              <label className="text-[10px] text-gray-400 uppercase tracking-wide">{t('pos.amountTendered')}</label>
               <input
                 type="number"
                 min="0"
@@ -949,8 +970,8 @@ function CartPanel({
               {tenderedAmount > 0 && (
                 <p className={`text-xs mt-1 font-medium ${tenderedAmount >= grandTotal ? 'text-primary' : 'text-red-500'}`}>
                   {tenderedAmount >= grandTotal
-                    ? `Change: ${formatCurrency(changeDue)}`
-                    : `Insufficient: ${formatCurrency(grandTotal - tenderedAmount)} more needed`}
+                    ? `${t('pos.change')}: ${formatCurrency(changeDue)}`
+                    : `${t('sales.pos.insufficient')}: ${formatCurrency(grandTotal - tenderedAmount)} ${t('sales.pos.moreNeeded')}`}
                 </p>
               )}
             </div>
@@ -963,13 +984,13 @@ function CartPanel({
               className="py-2.5 bg-gray-100 text-gray-500 rounded-lg text-xs font-medium hover:bg-gray-200 transition flex items-center justify-center gap-1.5"
             >
               <Pause className="w-3.5 h-3.5" />
-              Hold
+              {t('sales.pos.hold')}
             </button>
             <button
               onClick={resetCart}
               className="py-2.5 border border-red-200 text-red-500 rounded-lg text-xs font-medium hover:bg-red-50 transition"
             >
-              Clear
+              {t('common.clear')}
             </button>
           </div>
           <button
@@ -982,7 +1003,7 @@ function CartPanel({
             ) : (
               <>
                 <CheckCircle className="w-4 h-4" />
-                Complete Sale &mdash; {formatCurrency(grandTotal)}
+                {t('pos.completeSale')} &mdash; {formatCurrency(grandTotal)}
               </>
             )}
           </button>

@@ -9,6 +9,7 @@ import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
 import PageHeader from '../../components/PageHeader'
 import Tabs from '../../components/Tabs'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const ACCOUNT_TYPES = [
   { id: 'asset', label: 'Assets', color: 'blue' },
@@ -17,6 +18,14 @@ const ACCOUNT_TYPES = [
   { id: 'revenue', label: 'Revenue', color: 'green' },
   { id: 'expense', label: 'Expenses', color: 'orange' },
 ]
+
+const TYPE_KEYS = {
+  asset: 'accounting.assets',
+  liability: 'accounting.liabilities',
+  equity: 'accounting.equity',
+  revenue: 'accounting.revenue',
+  expense: 'accounting.expenses',
+}
 
 const TYPE_COLORS = {
   asset: { bg: 'bg-blue-50', text: 'text-blue-600', badge: 'bg-blue-100 text-blue-700', border: 'border-blue-200' },
@@ -41,6 +50,7 @@ const TYPE_ICONS = {
 
 function AccountTreeItem({ account, depth = 0, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(depth < 1)
+  const { t } = useLanguage()
   const hasChildren = account.children && account.children.length > 0
   const colors = TYPE_COLORS[account.account_type] || TYPE_COLORS.asset
   const balance = Math.abs(account.balance || 0)
@@ -62,7 +72,7 @@ function AccountTreeItem({ account, depth = 0, onEdit, onDelete }) {
         <span className=" text-xs text-gray-400 w-16">{account.account_code}</span>
         <span className="flex-1 text-sm text-gray-900 font-medium">{account.account_name}</span>
         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${colors.badge}`}>
-          {account.account_type}
+          {TYPE_KEYS[account.account_type] ? t(TYPE_KEYS[account.account_type], account.account_type) : account.account_type}
         </span>
         
         <span className={`text-sm  tabular-nums w-32 text-right ${isDebitNormal ? 'text-gray-900' : 'text-green-600'}`}>
@@ -87,6 +97,7 @@ function AccountTreeItem({ account, depth = 0, onEdit, onDelete }) {
 
 export default function ChartOfAccountsPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [tree, setTree] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeType, setActiveType] = useState('all')
@@ -154,26 +165,29 @@ export default function ChartOfAccountsPage() {
   }
 
   const handleDelete = async (account) => {
-    if (!window.confirm(`Delete account "${account.account_name}"?`)) return
+    if (!window.confirm(`${t('accounting.coa.deleteConfirm')} "${account.account_name}"?`)) return
     try {
       await api.delete(`/accounts/${account.id}`)
-      toast.success('Account deleted')
+      toast.success(t('accounting.coa.deleted'))
       fetchData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete account')
+      toast.error(err.response?.data?.message || t('accounting.coa.deleteFailed'))
     }
   }
+
+  const typeLabels = {}
+  ACCOUNT_TYPES.forEach((at) => { typeLabels[at.id] = t(TYPE_KEYS[at.id], at.label) })
 
   return (
     <div className="p-6 space-y-6">
       <PageHeader
         icon={BookOpen}
-        title="Chart of Accounts"
-        subtitle="Manage the accounting ledger structure."
+        title={t('accounting.chartOfAccounts')}
+        subtitle={t('accounting.coa.subtitle')}
         actions={
           <button onClick={() => navigate('/dashboard/chart-of-accounts/new')} className="btn-primary">
             <Plus className="w-4 h-4" />
-            Add Account
+            {t('accounting.addAccount')}
           </button>
         }
       />
@@ -182,12 +196,12 @@ export default function ChartOfAccountsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           <div className={`bg-white border border-gray-200 rounded-xl p-4 ${!balances.is_balanced ? 'border-red-300' : ''}`}>
             <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"><ArrowDownRight className="w-4 h-4 text-red-600" /></div></div>
-            <p className="text-xs text-gray-500 mb-1">Total Debit</p>
+            <p className="text-xs text-gray-500 mb-1">{t('accounting.totalDebit')}</p>
             <p className="text-lg font-bold text-gray-900 tabular-nums">{formatCurrency(balances.total_debit)}</p>
           </div>
           <div className={`bg-white border border-gray-200 rounded-xl p-4 ${!balances.is_balanced ? 'border-red-300' : ''}`}>
             <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"><ArrowUpRight className="w-4 h-4 text-blue-600" /></div></div>
-            <p className="text-xs text-gray-500 mb-1">Total Credit</p>
+            <p className="text-xs text-gray-500 mb-1">{t('accounting.totalCredit')}</p>
             <p className="text-lg font-bold text-gray-900 tabular-nums">{formatCurrency(balances.total_credit)}</p>
           </div>
           {ACCOUNT_TYPES.map((t) => {
@@ -200,7 +214,7 @@ export default function ChartOfAccountsPage() {
                     <Icon className={`w-4 h-4 ${typeIcon.text}`} />
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mb-1">{t.label}</p>
+                <p className="text-xs text-gray-500 mb-1">{typeLabels[t.id]}</p>
                 <p className={`text-lg font-bold tabular-nums ${TYPE_COLORS[t.id].text}`}>{formatCurrency(totalByType[t.id])}</p>
               </div>
             )
@@ -210,8 +224,8 @@ export default function ChartOfAccountsPage() {
 
       <Tabs
         tabs={[
-          { id: 'all', label: 'All' },
-          ...ACCOUNT_TYPES.map((t) => ({ id: t.id, label: t.label })),
+          { id: 'all', label: t('common.all') },
+          ...ACCOUNT_TYPES.map((t) => ({ id: t.id, label: typeLabels[t.id] })),
         ]}
         active={activeType}
         onChange={setActiveType}
@@ -221,7 +235,7 @@ export default function ChartOfAccountsPage() {
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
           <div className="flex-1 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
             <Search className="w-4 h-4 text-gray-400" />
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search accounts..." className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('accounting.searchAccounts')} className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
           </div>
           {search && (
             <button onClick={() => setSearch('')} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
@@ -232,11 +246,11 @@ export default function ChartOfAccountsPage() {
 
         <div className="px-4 py-2 bg-gray-50 flex items-center text-xs text-gray-500 font-medium border-b border-gray-100">
           <div className="w-4 mx-2" />
-          <div className="w-16">Code</div>
-          <div className="flex-1">Account Name</div>
-          <div className="w-20">Type</div>
-          <div className="w-32 text-right">Balance</div>
-          <div className="w-16 text-right">Actions</div>
+          <div className="w-16">{t('accounting.coa.colCode')}</div>
+          <div className="flex-1">{t('accounting.accountName')}</div>
+          <div className="w-20">{t('accounting.ui.type')}</div>
+          <div className="w-32 text-right">{t('accounting.ui.balance')}</div>
+          <div className="w-16 text-right">{t('common.actions')}</div>
         </div>
 
         {loading ? (
@@ -246,7 +260,7 @@ export default function ChartOfAccountsPage() {
         ) : filteredTree.length === 0 ? (
           <div className="text-center py-16 text-gray-500">
             <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p>No accounts found</p>
+            <p>{t('accounting.noAccounts')}</p>
           </div>
         ) : (
           filteredTree.map((account) => (

@@ -4,6 +4,7 @@ import { toArray } from '../../utils/safeData';
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
 import {
   ArrowLeft,
   Plus,
@@ -24,6 +25,17 @@ import { formatMoney } from '../../utils/currency'
 
 const FREQUENCIES = ['1x daily', '2x daily', '3x daily', '4x daily', 'Once', 'As needed', 'Every 8 hours', 'Every 12 hours']
 
+const FREQUENCY_KEY = {
+  '1x daily': 'sales.prescriptions.frequencies.daily1',
+  '2x daily': 'sales.prescriptions.frequencies.daily2',
+  '3x daily': 'sales.prescriptions.frequencies.daily3',
+  '4x daily': 'sales.prescriptions.frequencies.daily4',
+  Once: 'sales.prescriptions.frequencies.once',
+  'As needed': 'sales.prescriptions.frequencies.asNeeded',
+  'Every 8 hours': 'sales.prescriptions.frequencies.every8',
+  'Every 12 hours': 'sales.prescriptions.frequencies.every12',
+}
+
 function formatCurrency(amount) {
   return formatMoney(amount, { decimals: 2 })
 }
@@ -42,6 +54,7 @@ function createEmptyItem() {
 }
 
 export default function PrescriptionFormPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const base = currentBase()
   const [drugs, setDrugs] = useState([])
@@ -141,7 +154,7 @@ export default function PrescriptionFormPage() {
       await api.post('/prescriptions', payload)
       navigate(`${base}/prescriptions`)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save prescription')
+      toast.error(err.response?.data?.message || t('sales.prescriptions.saveError'))
     } finally {
       setSubmitting(false)
     }
@@ -156,9 +169,9 @@ export default function PrescriptionFormPage() {
             <Link to={`${base}/prescriptions`} className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Create New Prescription</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('sales.prescriptions.createNew')}</h1>
           </div>
-          <p className="text-gray-600">Create a new prescription for a patient</p>
+          <p className="text-gray-600">{t('sales.prescriptions.createSubtitle')}</p>
         </div>
       </div>
 
@@ -170,14 +183,14 @@ export default function PrescriptionFormPage() {
               <User className="w-5 h-5 text-[#0FD452]" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Patient & Doctor Information</h3>
-              <p className="text-sm text-gray-600">Patient details and prescriber info</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('sales.prescriptions.patientDoctorInfo')}</h3>
+              <p className="text-sm text-gray-600">{t('sales.prescriptions.patientDoctorSubtitle')}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Patient Name *</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.prescriptions.patientName')} *</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="w-4 h-4 text-gray-400" />
@@ -186,13 +199,13 @@ export default function PrescriptionFormPage() {
                   type="text"
                   value={form.patientName}
                   onChange={(e) => updateForm('patientName', e.target.value)}
-                  placeholder="e.g. Alice Mwamba"
+                  placeholder={t('sales.prescriptions.patientNamePlaceholder')}
                   className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Phone Number</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">{t('customers.phoneNumber')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="w-4 h-4 text-gray-400" />
@@ -201,13 +214,13 @@ export default function PrescriptionFormPage() {
                   type="text"
                   value={form.patientPhone}
                   onChange={(e) => updateForm('patientPhone', e.target.value)}
-                  placeholder="e.g. +260 97 123 4567"
+                  placeholder={t('sales.prescriptions.patientPhonePlaceholder')}
                   className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Doctor Name *</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.prescriptions.doctorName')} *</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Stethoscope className="w-4 h-4 text-gray-400" />
@@ -216,13 +229,13 @@ export default function PrescriptionFormPage() {
                   type="text"
                   value={form.doctorName}
                   onChange={(e) => updateForm('doctorName', e.target.value)}
-                  placeholder="e.g. Dr. Mwamba"
+                  placeholder={t('sales.prescriptions.doctorNamePlaceholder')}
                   className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Hospital / Clinic</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.prescriptions.hospitalClinic')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Building2 className="w-4 h-4 text-gray-400" />
@@ -231,7 +244,7 @@ export default function PrescriptionFormPage() {
                   type="text"
                   value={form.hospital}
                   onChange={(e) => updateForm('hospital', e.target.value)}
-                  placeholder="e.g. Central Hospital"
+                  placeholder={t('sales.prescriptions.hospitalPlaceholder')}
                   className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                 />
               </div>
@@ -240,7 +253,7 @@ export default function PrescriptionFormPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Diagnosis</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.prescriptions.diagnosis')}</label>
               <div className="relative">
                 <div className="absolute top-3 left-3">
                   <FileText className="w-4 h-4 text-gray-400" />
@@ -249,7 +262,7 @@ export default function PrescriptionFormPage() {
                   rows={3}
                   value={form.diagnosis}
                   onChange={(e) => updateForm('diagnosis', e.target.value)}
-                  placeholder="Enter diagnosis..."
+                  placeholder={t('sales.prescriptions.diagnosisPlaceholder')}
                   className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm resize-none"
                 />
               </div>
@@ -265,8 +278,8 @@ export default function PrescriptionFormPage() {
                 <Pill className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Medications</h3>
-                <p className="text-sm text-gray-600">Add prescribed medications</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('sales.prescriptions.medications')}</h3>
+                <p className="text-sm text-gray-600">{t('sales.prescriptions.medicationsSubtitle')}</p>
               </div>
             </div>
             <button
@@ -274,7 +287,7 @@ export default function PrescriptionFormPage() {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#0FD452] hover:bg-[#0FD452]/10 rounded-lg transition"
             >
               <Plus className="w-4 h-4" />
-              Add Item
+              {t('sales.prescriptions.addItem')}
             </button>
           </div>
 
@@ -296,7 +309,7 @@ export default function PrescriptionFormPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                   {/* Drug Search */}
                   <div className="md:col-span-2 relative">
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Drug *</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.shared.drug')} *</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search className="w-4 h-4 text-gray-400" />
@@ -306,7 +319,7 @@ export default function PrescriptionFormPage() {
                         value={drugSearchIndex === index ? drugSearchQuery : item.drugName}
                         onFocus={() => { setDrugSearchIndex(index); setDrugSearchQuery(item.drugName || '') }}
                         onChange={(e) => { setDrugSearchIndex(index); setDrugSearchQuery(e.target.value); if (item.drugId) updateItem(index, 'drugId', null) }}
-                        placeholder="Search drug..."
+                        placeholder={t('sales.prescriptions.searchDrug')}
                         className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                       />
                     </div>
@@ -331,7 +344,7 @@ export default function PrescriptionFormPage() {
 
                   {/* Quantity */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Qty</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.shared.qty')}</label>
                     <input
                       type="number"
                       min="1"
@@ -345,39 +358,39 @@ export default function PrescriptionFormPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {/* Dosage */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Dosage</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.prescriptions.dosage')}</label>
                     <input
                       type="text"
                       value={item.dosage}
                       onChange={(e) => updateItem(index, 'dosage', e.target.value)}
-                      placeholder="e.g. 500mg"
+                      placeholder={t('sales.prescriptions.dosagePlaceholder')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     />
                   </div>
 
                   {/* Frequency */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Frequency</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.prescriptions.frequency')}</label>
                     <select
                       value={item.frequency}
                       onChange={(e) => updateItem(index, 'frequency', e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     >
-                      <option value="">Select...</option>
+                      <option value="">{t('sales.prescriptions.selectOption')}</option>
                       {FREQUENCIES.map((f) => (
-                        <option key={f} value={f}>{f}</option>
+                        <option key={f} value={f}>{t(FREQUENCY_KEY[f], f)}</option>
                       ))}
                     </select>
                   </div>
 
                   {/* Duration */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Duration</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.prescriptions.duration')}</label>
                     <input
                       type="text"
                       value={item.duration}
                       onChange={(e) => updateItem(index, 'duration', e.target.value)}
-                      placeholder="e.g. 7 days"
+                      placeholder={t('sales.prescriptions.durationPlaceholder')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     />
                   </div>
@@ -389,7 +402,7 @@ export default function PrescriptionFormPage() {
                     type="text"
                     value={item.notes}
                     onChange={(e) => updateItem(index, 'notes', e.target.value)}
-                    placeholder="Item notes (optional)"
+                    placeholder={t('sales.prescriptions.itemNotesPlaceholder')}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-xs placeholder-gray-400"
                   />
                 </div>
@@ -399,7 +412,7 @@ export default function PrescriptionFormPage() {
 
           {/* Total */}
           <div className="mt-4 flex items-center justify-end border-t border-gray-200 pt-3">
-            <span className="text-sm text-gray-500 mr-3">Estimated Total:</span>
+            <span className="text-sm text-gray-500 mr-3">{t('sales.prescriptions.estimatedTotal')}</span>
             <span className="text-lg font-bold text-[#0FD452]">{formatCurrency(totalEstimate)}</span>
           </div>
         </div>
@@ -411,13 +424,13 @@ export default function PrescriptionFormPage() {
               <FileText className="w-5 h-5 text-[#0FD452]" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Additional Notes</h3>
-              <p className="text-sm text-gray-600">Any extra notes for the prescription</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('sales.prescriptions.additionalNotes')}</h3>
+              <p className="text-sm text-gray-600">{t('sales.prescriptions.additionalNotesSubtitle')}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.shared.notes')}</label>
               <div className="relative">
                 <div className="absolute top-3 left-3">
                   <FileText className="w-4 h-4 text-gray-400" />
@@ -426,7 +439,7 @@ export default function PrescriptionFormPage() {
                   rows={3}
                   value={form.notes}
                   onChange={(e) => updateForm('notes', e.target.value)}
-                  placeholder="Additional notes..."
+                  placeholder={t('sales.prescriptions.additionalNotesPlaceholder')}
                   className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm resize-none"
                 />
               </div>
@@ -438,7 +451,7 @@ export default function PrescriptionFormPage() {
         <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
           <Link to={`${base}/prescriptions`} className="btn-secondary">
             <X className="w-4 h-4" />
-            <span>Cancel</span>
+            <span>{t('common.cancel')}</span>
           </Link>
           <button
             onClick={() => submit(false)}
@@ -446,7 +459,7 @@ export default function PrescriptionFormPage() {
             className="btn-secondary"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>Save Prescription</span>
+            <span>{t('sales.prescriptions.savePrescription')}</span>
           </button>
           <button
             onClick={() => submit(true)}
@@ -454,7 +467,7 @@ export default function PrescriptionFormPage() {
             className="btn-primary"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-            <span>Save & Dispense</span>
+            <span>{t('sales.prescriptions.saveAndDispense')}</span>
           </button>
         </div>
       </div>

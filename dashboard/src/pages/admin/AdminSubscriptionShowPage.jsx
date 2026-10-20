@@ -26,6 +26,7 @@ import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const PLAN_STYLES = {
   Trial: 'badge badge-gray',
@@ -60,6 +61,7 @@ function formatDate(dateStr) {
 }
 
 export default function AdminSubscriptionShowPage() {
+  const { t } = useLanguage()
   const { id } = useParams()
   const navigate = useNavigate()
   const [subscription, setSubscription] = useState(null)
@@ -76,7 +78,7 @@ export default function AdminSubscriptionShowPage() {
       const res = await api.get(`/admin/subscriptions/${id}`)
       setSubscription(res.data.data || res.data)
     } catch {
-      toast.error('Failed to load subscription')
+      toast.error(t('adminUsers.subscriptions.loadFailed', 'Failed to load subscription'))
       navigate('/dashboard/subscriptions')
     } finally {
       setLoading(false)
@@ -87,10 +89,10 @@ export default function AdminSubscriptionShowPage() {
     setDeleting(true)
     try {
       await api.delete(`/admin/subscriptions/${id}`)
-      toast.success('Subscription deleted')
+      toast.success(t('adminUsers.subscriptions.deleted', 'Subscription deleted'))
       navigate('/dashboard/subscriptions')
     } catch {
-      toast.error('Failed to delete subscription')
+      toast.error(t('adminUsers.subscriptions.deleteFailed', 'Failed to delete subscription'))
     } finally {
       setDeleting(false)
       setShowDelete(false)
@@ -124,12 +126,12 @@ export default function AdminSubscriptionShowPage() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Subscription not found</p>
+          <p className="text-gray-500">{t('adminUsers.subscriptions.notFound', 'Subscription not found')}</p>
           <button
             onClick={() => navigate('/dashboard/subscriptions')}
             className="text-[#0FD452] mt-2 text-sm font-medium hover:underline"
           >
-            Go back
+            {t('common.back', 'Back')}
           </button>
         </div>
       </div>
@@ -159,15 +161,15 @@ export default function AdminSubscriptionShowPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{subscription.pharmacy}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-2">{subscription.plan} plan — {subscription.pharmacy} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[subscription.status] || 'bg-gray-100 text-gray-600'}`}>{subscription.status?.charAt(0).toUpperCase() + subscription.status?.slice(1)}</span></p>
+            <p className="text-sm text-gray-500 flex items-center gap-2">{t('adminUsers.shared.plans.' + subscription.plan, subscription.plan)} {t('adminUsers.subscriptions.planWord', 'plan')} — {subscription.pharmacy} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[subscription.status] || 'bg-gray-100 text-gray-600'}`}>{t('adminUsers.subscriptions.statuses.' + subscription.status, subscription.status?.charAt(0).toUpperCase() + subscription.status?.slice(1))}</span></p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Link to={`/dashboard/subscriptions/${id}/edit`} className="btn-secondary">
-            <Edit className="w-4 h-4" /> Edit
+            <Edit className="w-4 h-4" /> {t('common.edit', 'Edit')}
           </Link>
           <button onClick={() => setShowDelete(true)} className="btn-danger-outline">
-            <Trash2 className="w-4 h-4" /> Delete
+            <Trash2 className="w-4 h-4" /> {t('common.delete', 'Delete')}
           </button>
         </div>
       </div>
@@ -182,8 +184,8 @@ export default function AdminSubscriptionShowPage() {
                 <CreditCard className="w-5 h-5 text-blue-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Plan</p>
-                <p className="text-sm font-bold text-[#000F14]">{subscription.plan}</p>
+                <p className="text-xs text-gray-500 truncate">{t('adminUsers.shared.plan', 'Plan')}</p>
+                <p className="text-sm font-bold text-[#000F14]">{t('adminUsers.shared.plans.' + subscription.plan, subscription.plan)}</p>
               </div>
             </div>
           </div>
@@ -193,9 +195,9 @@ export default function AdminSubscriptionShowPage() {
                 <DollarSign className="w-5 h-5 text-green-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Amount/Month</p>
+                <p className="text-xs text-gray-500 truncate">{t('adminUsers.subscriptions.amountPerMonth', 'Amount / Month')}</p>
                 <p className="text-lg font-bold text-[#000F14]">
-                  {subscription.amount === 0 ? 'Free' : formatCurrency(subscription.amount)}
+                  {subscription.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(subscription.amount)}
                 </p>
               </div>
             </div>
@@ -206,8 +208,8 @@ export default function AdminSubscriptionShowPage() {
                 <span className={`w-3 h-3 rounded-full ${subscription.status === 'active' ? 'bg-green-500' : 'bg-red-500'}`} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Status</p>
-                <p className="text-sm font-bold text-[#000F14] capitalize">{subscription.status}</p>
+                <p className="text-xs text-gray-500 truncate">{t('common.status', 'Status')}</p>
+                <p className="text-sm font-bold text-[#000F14] capitalize">{t('adminUsers.subscriptions.statuses.' + subscription.status, subscription.status)}</p>
               </div>
             </div>
           </div>
@@ -217,7 +219,7 @@ export default function AdminSubscriptionShowPage() {
                 <Clock className="w-5 h-5 text-orange-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Days Remaining</p>
+                <p className="text-xs text-gray-500 truncate">{t('adminUsers.subscriptions.daysRemainingLabel', 'Days Remaining')}</p>
                 <p className="text-xl font-bold text-[#000F14]">{daysRemaining}</p>
               </div>
             </div>
@@ -228,8 +230,8 @@ export default function AdminSubscriptionShowPage() {
                 <ShieldCheck className="w-5 h-5 text-purple-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 truncate">Payment Method</p>
-                <p className="text-sm font-bold text-[#000F14]">{subscription.payment_method || 'Card'}</p>
+                <p className="text-xs text-gray-500 truncate">{t('pos.paymentMethod', 'Payment Method')}</p>
+                <p className="text-sm font-bold text-[#000F14]">{subscription.payment_method || t('pos.card', 'Card')}</p>
               </div>
             </div>
           </div>
@@ -246,82 +248,82 @@ export default function AdminSubscriptionShowPage() {
                   <CreditCard className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#000F14]">Subscription Information</h3>
-                  <p className="text-xs text-gray-500">Plan and billing details</p>
+                  <h3 className="text-sm font-semibold text-[#000F14]">{t('adminUsers.subscriptions.info', 'Subscription Information')}</h3>
+                  <p className="text-xs text-gray-500">{t('adminUsers.subscriptions.infoSub', 'Plan and billing details')}</p>
                 </div>
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <CreditCard className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Pharmacy</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.shared.pharmacy', 'Pharmacy')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{subscription.pharmacy}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <TrendingUp className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Plan</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.shared.plan', 'Plan')}</span>
                   </div>
-                  <span className={PLAN_STYLES[subscription.plan]}>{subscription.plan}</span>
+                  <span className={PLAN_STYLES[subscription.plan]}>{t('adminUsers.shared.plans.' + subscription.plan, subscription.plan)}</span>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <CheckCircle className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Status</span>
+                    <span className="text-xs text-gray-500">{t('common.status', 'Status')}</span>
                   </div>
                   <span className={STATUS_STYLES[subscription.status]}>
-                    {subscription.status?.charAt(0).toUpperCase() + subscription.status?.slice(1)}
+                    {t('adminUsers.subscriptions.statuses.' + subscription.status, subscription.status?.charAt(0).toUpperCase() + subscription.status?.slice(1))}
                   </span>
                   
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <DollarSign className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Amount</span>
+                    <span className="text-xs text-gray-500">{t('orders.amount', 'Amount')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">
-                    {subscription.amount === 0 ? 'Free' : formatCurrency(subscription.amount)}
+                    {subscription.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(subscription.amount)}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <RefreshCw className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Billing Cycle</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.subscriptions.billingCycle', 'Billing Cycle')}</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14]">{subscription.billing_cycle || 'Monthly'}</p>
+                  <p className="text-sm font-medium text-[#000F14]">{subscription.billing_cycle || t('adminUsers.subscriptions.monthly', 'Monthly')}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Payment Method</span>
+                    <span className="text-xs text-gray-500">{t('pos.paymentMethod', 'Payment Method')}</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14]">{subscription.payment_method || 'Card'}</p>
+                  <p className="text-sm font-medium text-[#000F14]">{subscription.payment_method || t('pos.card', 'Card')}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Start Date</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.subscriptions.startDate', 'Start Date')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{formatDate(subscription.startDate)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Expiry Date</span>
+                    <span className="text-xs text-gray-500">{t('products.expiryDate', 'Expiry Date')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{formatDate(subscription.expiryDate)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
                   <div className="flex items-center gap-2 mb-1">
                     <RefreshCw className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Auto-Renew</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.subscriptions.autoRenew', 'Auto-Renew')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">
                     {subscription.auto_renew !== false ? (
-                      <span className="text-green-600">Enabled</span>
+                      <span className="text-green-600">{t('adminUsers.subscriptions.enabled', 'Enabled')}</span>
                     ) : (
-                      <span className="text-gray-500">Disabled</span>
+                      <span className="text-gray-500">{t('adminUsers.subscriptions.disabled', 'Disabled')}</span>
                     )}
                   </p>
                 </div>
@@ -335,45 +337,45 @@ export default function AdminSubscriptionShowPage() {
                   <Activity className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#000F14]">Usage Information</h3>
-                  <p className="text-xs text-gray-500">Resource consumption and limits</p>
+                  <h3 className="text-sm font-semibold text-[#000F14]">{t('adminUsers.subscriptions.usageInfo', 'Usage Information')}</h3>
+                  <p className="text-xs text-gray-500">{t('adminUsers.subscriptions.usageInfoSub', 'Resource consumption and limits')}</p>
                 </div>
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Activity className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">API Calls Used</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.subscriptions.apiCallsUsed', 'API Calls Used')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{subscription.api_calls_used || '0 / 10,000'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <HardDrive className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Storage Used</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.subscriptions.storageUsed', 'Storage Used')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{subscription.storage_used || '0 / 5 GB'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Users className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Users Limit</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.subscriptions.usersLimit', 'Users Limit')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{subscription.users_limit || '—'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Users className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Users Active</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.subscriptions.usersActive', 'Users Active')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">{subscription.users_active || '—'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
                   <div className="flex items-center gap-2 mb-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Feature Access</span>
+                    <span className="text-xs text-gray-500">{t('adminUsers.subscriptions.featureAccess', 'Feature Access')}</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14]">{subscription.feature_access || subscription.plan + ' Features'}</p>
+                  <p className="text-sm font-medium text-[#000F14]">{subscription.feature_access || t('adminUsers.shared.plans.' + subscription.plan, subscription.plan) + ' ' + t('adminUsers.subscriptions.featuresWord', 'Features')}</p>
                 </div>
               </div>
             </div>
@@ -388,15 +390,15 @@ export default function AdminSubscriptionShowPage() {
                   <BarChart3 className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#000F14]">Quick Stats</h3>
-                  <p className="text-xs text-gray-500">Financial overview</p>
+                  <h3 className="text-sm font-semibold text-[#000F14]">{t('adminUsers.shared.quickStats', 'Quick Stats')}</h3>
+                  <p className="text-xs text-gray-500">{t('adminUsers.subscriptions.financialOverview', 'Financial overview')}</p>
                 </div>
               </div>
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Total Paid</span>
+                    <span className="text-sm text-gray-500">{t('adminUsers.subscriptions.totalPaid', 'Total Paid')}</span>
                   </div>
                   <span className="text-sm font-medium text-[#000F14]">{formatCurrency(totalPaid)}</span>
                 </div>
@@ -404,15 +406,15 @@ export default function AdminSubscriptionShowPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Months Active</span>
+                    <span className="text-sm text-gray-500">{t('adminUsers.subscriptions.monthsActive', 'Months Active')}</span>
                   </div>
-                  <span className="text-sm font-medium text-[#000F14]">{monthsActive} months</span>
+                  <span className="text-sm font-medium text-[#000F14]">{monthsActive} {t('adminUsers.subscriptions.monthsWord', 'months')}</span>
                 </div>
                 <div className="border-t border-gray-100" />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Next Billing</span>
+                    <span className="text-sm text-gray-500">{t('adminUsers.subscriptions.nextBilling', 'Next Billing')}</span>
                   </div>
                   <span className="text-sm font-medium text-[#000F14]">{formatDate(subscription.expiryDate)}</span>
                 </div>
@@ -420,10 +422,10 @@ export default function AdminSubscriptionShowPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Plan Value</span>
+                    <span className="text-sm text-gray-500">{t('adminUsers.subscriptions.planValue', 'Plan Value')}</span>
                   </div>
                   <span className="text-sm font-medium text-[#000F14]">
-                    {subscription.amount === 0 ? 'Free' : formatCurrency(subscription.amount) + '/mo'}
+                    {subscription.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(subscription.amount) + t('adminUsers.subscriptions.perMo', '/mo')}
                   </span>
                   
                 </div>

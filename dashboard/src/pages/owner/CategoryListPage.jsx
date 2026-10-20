@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const CATEGORY_COLORS = [
   { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200' },
@@ -18,6 +19,7 @@ const CATEGORY_COLORS = [
 ]
 
 export default function CategoryListPage() {
+  const { t } = useLanguage()
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -111,8 +113,8 @@ export default function CategoryListPage() {
             <Tags className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-            <p className="text-sm text-gray-500">Organize drugs into categories.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('nav.items.categories')}</h1>
+            <p className="text-sm text-gray-500">{t('inventory.categories.subtitle')}</p>
           </div>
         </div>
         <button
@@ -120,26 +122,26 @@ export default function CategoryListPage() {
           className="btn-primary"
         >
           <Plus className="w-5 h-5" />
-          Add Category
+          {t('inventory.categories.addCategory')}
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Categories</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('nav.items.categories')}</p>
           <p className="text-2xl font-bold text-gray-900">{categories.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Total Drugs</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('inventory.categories.totalDrugs')}</p>
           <p className="text-2xl font-bold text-gray-900">{totalDrugs}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Avg per Category</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('inventory.categories.avgPerCategory')}</p>
           <p className="text-2xl font-bold text-gray-900">{categories.length > 0 ? (totalDrugs / categories.length).toFixed(1) : '0'}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Empty Categories</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('inventory.categories.emptyCategories')}</p>
           <p className="text-2xl font-bold text-gray-900">{categories.filter(c => (c.drug_count || 0) === 0).length}</p>
         </div>
       </div>
@@ -153,7 +155,7 @@ export default function CategoryListPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search categories..."
+              placeholder={t('inventory.categories.searchCategories')}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0FD452]/20 focus:border-[#0FD452] transition-all"
             />
           </div>
@@ -165,7 +167,7 @@ export default function CategoryListPage() {
         <div className="bg-white rounded-xl border border-gray-100 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-bold text-gray-900">
-              {editingCategory ? 'Edit Category' : 'New Category'}
+              {editingCategory ? t('inventory.categories.editCategory') : t('inventory.categories.newCategory')}
             </h3>
             <button onClick={resetForm} className="text-gray-400 hover:text-gray-600 transition-colors">
               <X className="w-5 h-5" />
@@ -173,31 +175,31 @@ export default function CategoryListPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Name</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{t('common.name')}</label>
               <input
                 type="text"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="e.g. Antibiotics"
+                placeholder={t('inventory.categories.namePlaceholder')}
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Description</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{t('common.description')}</label>
               <input
                 type="text"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Brief description"
+                placeholder={t('inventory.categories.descriptionPlaceholder')}
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452]/30"
               />
             </div>
           </div>
           <div className="flex items-center gap-3 mt-4 justify-end">
-            <button onClick={resetForm} className="btn-secondary">Cancel</button>
+            <button onClick={resetForm} className="btn-secondary">{t('common.cancel')}</button>
             <button onClick={handleSave} disabled={!formName.trim()} className="btn-primary">
               <Save className="w-4 h-4" />
-              {editingCategory ? 'Update' : 'Save'}
+              {editingCategory ? t('common.update') : t('common.save')}
             </button>
           </div>
         </div>
@@ -219,8 +221,8 @@ export default function CategoryListPage() {
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
             <Tags className="w-7 h-7 text-gray-300" />
           </div>
-          <p className="text-sm font-semibold text-gray-900 mb-1">No categories found</p>
-          <p className="text-xs text-gray-400">{search ? 'Try a different search term' : 'Add your first category to get started'}</p>
+          <p className="text-sm font-semibold text-gray-900 mb-1">{t('inventory.categories.noCategories')}</p>
+          <p className="text-xs text-gray-400">{search ? t('inventory.categories.tryDifferentSearch') : t('inventory.categories.addFirst')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -239,14 +241,14 @@ export default function CategoryListPage() {
                     <button
                       onClick={(e) => { e.stopPropagation(); openEdit(cat) }}
                       className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
-                      title="Edit"
+                      title={t('common.edit')}
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget(cat) }}
                       className="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors"
-                      title="Delete"
+                      title={t('common.delete')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -262,7 +264,7 @@ export default function CategoryListPage() {
                   <div className="flex items-center gap-1.5">
                     <Package className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-xs font-medium text-gray-500">
-                      {cat.drug_count || 0} drug{(cat.drug_count || 0) !== 1 ? 's' : ''}
+                      {cat.drug_count || 0} {t('inventory.categories.drugsCount')}
                     </span>
                   </div>
                   <div className={`w-2 h-2 rounded-full ${(cat.drug_count || 0) > 0 ? 'bg-[#0FD452]' : 'bg-gray-200'}`} />
@@ -275,10 +277,10 @@ export default function CategoryListPage() {
 
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Category"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('inventory.categories.deleteCategory')}
+        message={`${t('inventory.categories.deleteConfirmPrefix')} "${deleteTarget?.name}"? ${t('inventory.categories.deleteConfirmSuffix')}`}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
         variant="danger"

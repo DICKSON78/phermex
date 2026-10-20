@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const PLAN_COLORS = {
   Trial: 'border-gray-200 bg-gray-50',
@@ -27,6 +28,7 @@ const PLAN_COLORS = {
 }
 
 export default function AdminSettingsPage() {
+  const { t } = useLanguage()
   const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(null)
@@ -47,7 +49,7 @@ export default function AdminSettingsPage() {
         data_retention: remote.retention || remote.data_retention || { audit_log_retention_days: 365, order_history_retention_days: 730, notification_retention_days: 90 },
       })
     } catch {
-      toast.error('Failed to load settings')
+      toast.error(t('adminUsers.settings.loadFailed', 'Failed to load settings'))
       setSettings({
         platform: { name: 'Helix', tagline: 'Pharmacy Management Platform', support_email: 'support@pharmexdawa.online', support_phone: '+255 625 460 081' },
         plans: [],
@@ -64,7 +66,7 @@ export default function AdminSettingsPage() {
     try {
       await api.put('/admin/settings/platform', settings.platform || {})
     } catch {
-      toast.error('Failed to save platform settings')
+      toast.error(t('adminUsers.settings.savePlatformFailed', 'Failed to save platform settings'))
     }
     setTimeout(() => {
       setSaving(null)
@@ -78,7 +80,7 @@ export default function AdminSettingsPage() {
     try {
       await api.put('/admin/settings/notifications', settings.notifications || {})
     } catch {
-      toast.error('Failed to save notification settings')
+      toast.error(t('adminUsers.settings.saveNotificationsFailed', 'Failed to save notification settings'))
     }
     setTimeout(() => {
       setSaving(null)
@@ -92,7 +94,7 @@ export default function AdminSettingsPage() {
     try {
       await api.put('/admin/settings/retention', settings.data_retention || {})
     } catch {
-      toast.error('Failed to save retention settings')
+      toast.error(t('adminUsers.settings.saveRetentionFailed', 'Failed to save retention settings'))
     }
     setTimeout(() => {
       setSaving(null)
@@ -130,8 +132,8 @@ export default function AdminSettingsPage() {
             <Settings className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
-            <p className="text-sm text-gray-500">Configure platform settings and subscription plans.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('adminUsers.settings.title', 'System Settings')}</h1>
+            <p className="text-sm text-gray-500">{t('adminUsers.settings.subtitle', 'Configure platform settings and subscription plans.')}</p>
           </div>
         </div>
       </div>
@@ -144,14 +146,14 @@ export default function AdminSettingsPage() {
               <Building2 className="h-5 w-5 text-[#0FD452]" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#000F14]">Platform Information</h2>
-              <p className="text-sm text-gray-500">Basic platform branding and contact details</p>
+              <h2 className="text-lg font-bold text-[#000F14]">{t('adminUsers.settings.platformInfo', 'Platform Information')}</h2>
+              <p className="text-sm text-gray-500">{t('adminUsers.settings.platformInfoSub', 'Basic platform branding and contact details')}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-[#000F14]">Platform Name</label>
+              <label className="mb-1.5 block text-sm font-medium text-[#000F14]">{t('adminUsers.settings.platformName', 'Platform Name')}</label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
@@ -169,7 +171,7 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-[#000F14]">Tagline</label>
+              <label className="mb-1.5 block text-sm font-medium text-[#000F14]">{t('adminUsers.settings.tagline', 'Tagline')}</label>
               <div className="relative">
                 <FileText className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
@@ -187,7 +189,7 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-[#000F14]">Support Email</label>
+              <label className="mb-1.5 block text-sm font-medium text-[#000F14]">{t('adminUsers.settings.supportEmail', 'Support Email')}</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
@@ -205,7 +207,7 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-[#000F14]">Support Phone</label>
+              <label className="mb-1.5 block text-sm font-medium text-[#000F14]">{t('adminUsers.settings.supportPhone', 'Support Phone')}</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
@@ -236,7 +238,7 @@ export default function AdminSettingsPage() {
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              {saved === 'platform' ? 'Saved!' : saving === 'platform' ? 'Saving...' : 'Save Changes'}
+              {saved === 'platform' ? t('adminUsers.settings.saved', 'Saved!') : saving === 'platform' ? t('common.saving', 'Saving...') : t('adminUsers.settings.saveChanges', 'Save Changes')}
             </button>
           </div>
         </div>
@@ -248,8 +250,8 @@ export default function AdminSettingsPage() {
               <CreditCard className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#000F14]">Subscription Plans</h2>
-              <p className="text-sm text-gray-500">Configure available subscription tiers</p>
+              <h2 className="text-lg font-bold text-[#000F14]">{t('adminUsers.settings.subscriptionPlans', 'Subscription Plans')}</h2>
+              <p className="text-sm text-gray-500">{t('adminUsers.settings.plansSub', 'Configure available subscription tiers')}</p>
             </div>
           </div>
 
@@ -260,25 +262,25 @@ export default function AdminSettingsPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Plan</span>
+                      <span>{t('adminUsers.shared.plan', 'Plan')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Price (TZS)</span>
+                      <span>{t('adminUsers.settings.priceTzs', 'Price (TZS)')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Duration</span>
+                      <span>{t('adminUsers.settings.duration', 'Duration')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Tag className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Features</span>
+                      <span>{t('adminUsers.settings.features', 'Features')}</span>
                     </div>
                   </th>
                 </tr>
@@ -292,12 +294,12 @@ export default function AdminSettingsPage() {
                           <CreditCard className="h-4 w-4 text-[#0FD452]" />
                         </div>
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${PLAN_COLORS[plan.name] || 'bg-gray-100 text-gray-600'}`}>
-                          {plan.name}
+                          {t('adminUsers.shared.plans.' + plan.name, plan.name)}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-[#000F14]">
-                      {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                      {plan.price === 0 ? t('adminUsers.shared.free', 'Free') : `$${plan.price}`}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">{plan.duration}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">
@@ -309,7 +311,7 @@ export default function AdminSettingsPage() {
                   <tr>
                     <td colSpan={4} className="px-6 py-10 text-center text-gray-400">
                       <CreditCard className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                      <p className="text-sm font-medium">No subscription plans</p>
+                      <p className="text-sm font-medium">{t('adminUsers.settings.noPlans', 'No subscription plans')}</p>
                     </td>
                   </tr>
                 )}
@@ -325,8 +327,8 @@ export default function AdminSettingsPage() {
               <Bell className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#000F14]">Notification Settings</h2>
-              <p className="text-sm text-gray-500">Control how the platform sends notifications</p>
+              <h2 className="text-lg font-bold text-[#000F14]">{t('adminUsers.settings.notificationSettings', 'Notification Settings')}</h2>
+              <p className="text-sm text-gray-500">{t('adminUsers.settings.notificationsSub', 'Control how the platform sends notifications')}</p>
             </div>
           </div>
 
@@ -335,8 +337,8 @@ export default function AdminSettingsPage() {
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm font-medium text-[#000F14]">Email Notifications</p>
-                  <p className="text-xs text-gray-500">Send platform alerts and reports via email</p>
+                  <p className="text-sm font-medium text-[#000F14]">{t('adminUsers.settings.emailNotifications', 'Email Notifications')}</p>
+                  <p className="text-xs text-gray-500">{t('adminUsers.settings.emailNotificationsSub', 'Send platform alerts and reports via email')}</p>
                 </div>
               </div>
               <button
@@ -365,8 +367,8 @@ export default function AdminSettingsPage() {
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm font-medium text-[#000F14]">SMS Notifications</p>
-                  <p className="text-xs text-gray-500">Send alerts and reminders via SMS</p>
+                  <p className="text-sm font-medium text-[#000F14]">{t('adminUsers.settings.smsNotifications', 'SMS Notifications')}</p>
+                  <p className="text-xs text-gray-500">{t('adminUsers.settings.smsNotificationsSub', 'Send alerts and reminders via SMS')}</p>
                 </div>
               </div>
               <button
@@ -405,7 +407,7 @@ export default function AdminSettingsPage() {
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              {saved === 'notifications' ? 'Saved!' : saving === 'notifications' ? 'Saving...' : 'Save Changes'}
+              {saved === 'notifications' ? t('adminUsers.settings.saved', 'Saved!') : saving === 'notifications' ? t('common.saving', 'Saving...') : t('adminUsers.settings.saveChanges', 'Save Changes')}
             </button>
           </div>
         </div>
@@ -417,14 +419,14 @@ export default function AdminSettingsPage() {
               <Database className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#000F14]">Data Retention</h2>
-              <p className="text-sm text-gray-500">How long to keep platform data</p>
+              <h2 className="text-lg font-bold text-[#000F14]">{t('adminUsers.settings.dataRetention', 'Data Retention')}</h2>
+              <p className="text-sm text-gray-500">{t('adminUsers.settings.dataRetentionSub', 'How long to keep platform data')}</p>
             </div>
           </div>
 
           <div className="max-w-sm">
             <label className="mb-1.5 block text-sm font-medium text-[#000F14]">
-              Audit Log Retention (days)
+              {t('adminUsers.settings.auditRetention', 'Audit Log Retention (days)')}
             </label>
             <input
               type="number"
@@ -443,7 +445,7 @@ export default function AdminSettingsPage() {
 
           <div className="max-w-sm mt-4">
             <label className="mb-1.5 block text-sm font-medium text-[#000F14]">
-              Order History Retention (days)
+              {t('adminUsers.settings.orderRetention', 'Order History Retention (days)')}
             </label>
             <input
               type="number"
@@ -462,7 +464,7 @@ export default function AdminSettingsPage() {
 
           <div className="max-w-sm mt-4">
             <label className="mb-1.5 block text-sm font-medium text-[#000F14]">
-              Notification Retention (days)
+              {t('adminUsers.settings.notificationRetention', 'Notification Retention (days)')}
             </label>
             <input
               type="number"
@@ -480,7 +482,7 @@ export default function AdminSettingsPage() {
           </div>
 
           <p className="mt-2 text-xs text-gray-500">
-            Transaction records, audit logs, and analytics data will be purged after these periods.
+            {t('adminUsers.settings.retentionHelper', 'Transaction records, audit logs, and analytics data will be purged after these periods.')}
           </p>
 
           <div className="mt-6 flex justify-end">
@@ -496,7 +498,7 @@ export default function AdminSettingsPage() {
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              {saved === 'retention' ? 'Saved!' : saving === 'retention' ? 'Saving...' : 'Save Changes'}
+              {saved === 'retention' ? t('adminUsers.settings.saved', 'Saved!') : saving === 'retention' ? t('common.saving', 'Saving...') : t('adminUsers.settings.saveChanges', 'Save Changes')}
             </button>
           </div>
         </div>

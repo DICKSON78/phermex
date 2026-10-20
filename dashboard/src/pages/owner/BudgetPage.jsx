@@ -9,10 +9,13 @@ import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
 import PageHeader from '../../components/PageHeader'
 import Tabs from '../../components/Tabs'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+const MONTHS_SW = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ago', 'Sep', 'Okt', 'Nov', 'Des']
 
 
 function formatCurrency(amount) {
@@ -20,6 +23,7 @@ function formatCurrency(amount) {
 }
 
 export default function BudgetPage() {
+  const { t, lang } = useLanguage()
   const [budgets, setBudgets] = useState([])
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -29,6 +33,8 @@ export default function BudgetPage() {
   const [varianceData, setVarianceData] = useState(null)
   const [formData, setFormData] = useState({ account_id: '', budgeted_amount: '', notes: '' })
   const [processing, setProcessing] = useState(false)
+
+  const monthLabels = lang === 'sw' ? MONTHS_SW : MONTHS
 
   useEffect(() => { fetchData() }, [selectedYear, selectedMonth])
 
@@ -56,7 +62,7 @@ export default function BudgetPage() {
   const variancePct = totalBudgeted > 0 ? ((totalVariance / totalBudgeted) * 100).toFixed(1) : 0
 
   const pieData = budgets.map((b) => ({
-    name: b.account?.account_name || 'Unknown',
+    name: b.account?.account_name || t('dashboard.unknown'),
     value: b.budgeted_amount || 0,
   }))
 
@@ -71,11 +77,11 @@ export default function BudgetPage() {
         budgeted_amount: parseFloat(formData.budgeted_amount),
         notes: formData.notes || null,
       })
-      toast.success('Budget entry created')
+      toast.success(t('accounting.budget.entryCreated'))
       setShowForm(false)
       setFormData({ account_id: '', budgeted_amount: '', notes: '' })
       fetchData()
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') }
+    } catch (err) { toast.error(err.response?.data?.message || t('accounting.ui.failed')) }
     finally { setProcessing(false) }
   }
 
@@ -83,11 +89,11 @@ export default function BudgetPage() {
     <div className="p-6 space-y-6">
       <PageHeader
         icon={BarChart3}
-        title="Budgets"
-        subtitle="Plan and track financial budgets."
+        title={t('nav.items.budgets')}
+        subtitle={t('accounting.budget.subtitle')}
         actions={
           <button onClick={() => setShowForm(true)} className="btn-primary">
-            <Plus className="w-4 h-4" /> Add Budget
+            <Plus className="w-4 h-4" /> {t('accounting.budget.addBtn')}
           </button>
         }
       />
@@ -97,7 +103,7 @@ export default function BudgetPage() {
           {[2024, 2025, 2026, 2027].map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
         <Tabs
-          tabs={MONTHS.map((m, i) => ({ id: String(i + 1), label: m }))}
+          tabs={monthLabels.map((m, i) => ({ id: String(i + 1), label: m }))}
           active={String(selectedMonth)}
           onChange={(v) => setSelectedMonth(parseInt(v))}
           className="mb-0"
@@ -107,36 +113,36 @@ export default function BudgetPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-[#0FD452]/10 rounded-lg flex items-center justify-center"><Target className="w-4 h-4 text-[#0FD452]" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Budgeted</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.budget.budgeted')}</p>
           <p className="text-xl font-bold text-gray-900  tabular-nums">{formatCurrency(totalBudgeted)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"><DollarSign className="w-4 h-4 text-blue-600" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Actual</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.budget.actual')}</p>
           <p className="text-xl font-bold text-gray-900  tabular-nums">{formatCurrency(totalActual)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className={`w-8 h-8 rounded-lg flex items-center justify-center ${totalVariance <= 0 ? 'bg-green-100' : 'bg-red-100'}`}>{totalVariance <= 0 ? <TrendingDown className="w-4 h-4 text-green-600" /> : <TrendingUp className="w-4 h-4 text-red-600" />}</div></div>
-          <p className="text-xs text-gray-500 mb-1">Variance</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.budget.variance')}</p>
           <p className={`text-xl font-bold  tabular-nums ${totalVariance <= 0 ? 'text-green-600' : 'text-red-600'}`}>{totalVariance >= 0 ? '+' : ''}{formatCurrency(totalVariance)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center"><BarChart3 className="w-4 h-4 text-purple-600" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Variance %</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.budget.variancePct')}</p>
           <p className={`text-xl font-bold  tabular-nums ${parseFloat(variancePct) <= 0 ? 'text-green-600' : 'text-red-600'}`}>{variancePct}%</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Budget Allocation</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{t('accounting.budget.allocationTitle')}</h3>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} innerRadius={50} paddingAngle={3}>
                   {pieData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
                 </Pie>
-                <Tooltip contentStyle={{ borderRadius: '12px', background: '#fff', border: '1px solid #e5e7eb', color: '#111827' }} formatter={(v) => [formatCurrency(v), 'Budgeted']} />
+                <Tooltip contentStyle={{ borderRadius: '12px', background: '#fff', border: '1px solid #e5e7eb', color: '#111827' }} formatter={(v) => [formatCurrency(v), t('accounting.budget.budgeted')]} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -154,7 +160,7 @@ export default function BudgetPage() {
         </div>
 
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Variance Trend ({selectedYear})</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{t('accounting.budget.varianceTrend')} ({selectedYear})</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={varianceData?.monthly_data || []}>
@@ -163,8 +169,8 @@ export default function BudgetPage() {
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} tickFormatter={(v) => `TZS ${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={{ borderRadius: '12px', background: '#fff', border: '1px solid #e5e7eb', color: '#111827' }} formatter={(v) => [formatCurrency(v)]} />
                 <Legend />
-                <Bar dataKey="budgeted" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Budget" />
-                <Bar dataKey="actual" fill="#0FD452" radius={[4, 4, 0, 0]} name="Actual" />
+                <Bar dataKey="budgeted" fill="#3b82f6" radius={[4, 4, 0, 0]} name={t('accounting.budget.budgetBar')} />
+                <Bar dataKey="actual" fill="#0FD452" radius={[4, 4, 0, 0]} name={t('accounting.budget.actual')} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -173,7 +179,7 @@ export default function BudgetPage() {
 
       <div className="overflow-hidden rounded-xl bg-white shadow-sm">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900">Budget vs Actual - {MONTHS[selectedMonth - 1]} {selectedYear}</h3>
+          <h3 className="text-lg font-bold text-gray-900">{t('accounting.budget.vsActual')} - {monthLabels[selectedMonth - 1]} {selectedYear}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -182,37 +188,37 @@ export default function BudgetPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Building className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Account</span>
+                    <span>{t('accounting.ui.account')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
                     <Target className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Budgeted</span>
+                    <span>{t('accounting.budget.budgeted')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Actual</span>
+                    <span>{t('accounting.budget.actual')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Variance</span>
+                    <span>{t('accounting.budget.variance')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-center gap-1.5">
                     <BarChart3 className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Progress</span>
+                    <span>{t('accounting.budget.progress')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Notes</span>
+                    <span>{t('accounting.budget.notes')}</span>
                   </div>
                 </th>
               </tr>
@@ -221,7 +227,7 @@ export default function BudgetPage() {
               {loading ? (
                 <tr><td colSpan={6} className="px-6 py-12 text-center"><Loader2 className="w-8 h-8 text-[#0FD452] animate-spin mx-auto" /></td></tr>
               ) : budgets.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500">No budgets for this period</td></tr>
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500">{t('accounting.budget.empty')}</td></tr>
               ) : budgets.map((budget) => {
                 const variance = (budget.actual_amount || 0) - (budget.budgeted_amount || 0)
                 const pct = budget.budgeted_amount > 0 ? ((budget.actual_amount / budget.budgeted_amount) * 100) : 0
@@ -248,7 +254,7 @@ export default function BudgetPage() {
                       <div className="w-full max-w-[120px] mx-auto">
                         <div className="flex items-center justify-between text-[10px] mb-0.5">
                           <span className="text-gray-500">{pct.toFixed(0)}%</span>
-                          <span className={isOver ? 'text-red-600' : 'text-[#0FD452]'}>{isOver ? 'Over' : 'Under'}</span>
+                          <span className={isOver ? 'text-red-600' : 'text-[#0FD452]'}>{isOver ? t('accounting.budget.over') : t('accounting.budget.under')}</span>
                         </div>
                         <div className="h-2 w-full rounded-full bg-gray-200">
                           <div className={`h-2 rounded-full transition-all ${isOver ? 'bg-red-400' : 'bg-[#0FD452]'}`} style={{ width: `${Math.min(pct, 100)}%` }} />
@@ -268,35 +274,35 @@ export default function BudgetPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">Add Budget Entry</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('accounting.budget.addEntryTitle')}</h2>
               <button onClick={() => setShowForm(false)} className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Period</label>
-                  <p className="text-sm text-gray-900 bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5">{MONTHS[selectedMonth - 1]} {selectedYear}</p>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('accounting.ui.period')}</label>
+                  <p className="text-sm text-gray-900 bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5">{monthLabels[selectedMonth - 1]} {selectedYear}</p>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Account</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('accounting.ui.account')}</label>
                   <select value={formData.account_id} onChange={(e) => setFormData({ ...formData, account_id: e.target.value })} className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#0FD452]" required>
-                    <option value="">Select account</option>
+                    <option value="">{t('accounting.ui.selectAccount')}</option>
                     {accounts.map((a) => <option key={a.id} value={a.id}>{a.account_code} - {a.account_name}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">Budgeted Amount</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('accounting.budget.budgetedAmount')}</label>
                 <input type="number" step="0.01" min="0" value={formData.budgeted_amount} onChange={(e) => setFormData({ ...formData, budgeted_amount: e.target.value })} className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0FD452]" placeholder="0.00" required />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">Notes</label>
-                <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0FD452] resize-none" rows={2} placeholder="Optional notes" />
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('accounting.budget.notes')}</label>
+                <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0FD452] resize-none" rows={2} placeholder={t('accounting.budget.notesPlaceholder')} />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
+                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">{t('common.cancel')}</button>
                 <button type="submit" disabled={processing} className="btn-primary">
-                  {processing && <Loader2 className="w-4 h-4 animate-spin" />} Create
+                  {processing && <Loader2 className="w-4 h-4 animate-spin" />} {t('accounting.ui.create')}
                 </button>
               </div>
             </form>

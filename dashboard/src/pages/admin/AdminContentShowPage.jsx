@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const TYPE_STYLES = {
   banner: 'badge badge-blue',
@@ -43,11 +44,11 @@ function wordCount(text) {
 
 function readTime(text) {
   const words = wordCount(text)
-  const minutes = Math.ceil(words / 200)
-  return `${minutes} min read`
+  return Math.ceil(words / 200)
 }
 
 export default function AdminContentShowPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const { id } = useParams()
   const [post, setPost] = useState(null)
@@ -56,12 +57,30 @@ export default function AdminContentShowPage() {
   const [toggling, setToggling] = useState(false)
   const [error, setError] = useState(null)
 
+  const statusLabels = {
+    draft: t('adminContent.content.statusLabels.draft'),
+    active: t('adminContent.content.statusLabels.active'),
+    archived: t('adminContent.content.statusLabels.archived'),
+  }
+  const typeLabels = {
+    banner: t('adminContent.content.typeLabels.banner'),
+    announcement: t('adminContent.content.typeLabels.announcement'),
+    promotion: t('adminContent.content.typeLabels.promotion'),
+    blog: t('adminContent.content.typeLabels.blog'),
+  }
+  const targetLabels = {
+    All: t('adminContent.content.targetLabels.All'),
+    Pharmacists: t('adminContent.content.targetLabels.Pharmacists'),
+    Owners: t('adminContent.content.targetLabels.Owners'),
+    Admins: t('adminContent.content.targetLabels.Admins'),
+  }
+
   const fetchPost = useCallback(async () => {
     try {
       const response = await api.get(`/admin/content/${id}`)
       setPost(response.data.data || response.data)
     } catch {
-      setError('Failed to load content details')
+      setError('load-failed')
     } finally {
       setLoading(false)
     }
@@ -111,15 +130,15 @@ export default function AdminContentShowPage() {
     return (
       <div className="p-6 flex flex-col items-center justify-center min-h-[400px]">
         <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-        <p className="text-gray-600 text-sm">{error}</p>
-        <button onClick={() => navigate('/dashboard/content')} className="text-[#0FD452] mt-2 text-sm font-medium hover:underline">Go back</button>
+        <p className="text-gray-600 text-sm">{t('adminContent.content.detailsLoadFailed')}</p>
+        <button onClick={() => navigate('/dashboard/content')} className="text-[#0FD452] mt-2 text-sm font-medium hover:underline">{t('adminContent.content.goBack')}</button>
       </div>
     )
   }
 
   if (!post) {
     return (
-      <div className="p-6 text-center text-gray-500">Post not found</div>
+      <div className="p-6 text-center text-gray-500">{t('adminContent.content.postNotFound')}</div>
     )
   }
 
@@ -139,15 +158,15 @@ export default function AdminContentShowPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{post.title}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-2">{post.type} — {post.target} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[post.status] || 'bg-gray-100 text-gray-600'}`}>{post.status}</span></p>
+            <p className="text-sm text-gray-500 flex items-center gap-2">{typeLabels[post.type] || post.type} — {targetLabels[post.target] || post.target} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[post.status] || 'bg-gray-100 text-gray-600'}`}>{statusLabels[post.status] || post.status}</span></p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Link to={`/dashboard/content/${id}/edit`} className="btn-secondary">
-            <Edit className="w-4 h-4" /> Edit
+            <Edit className="w-4 h-4" /> {t('common.edit')}
           </Link>
           <button onClick={() => setDeleteDialog(true)} className="btn-danger-outline">
-            <Trash2 className="w-4 h-4" /> Delete
+            <Trash2 className="w-4 h-4" /> {t('common.delete')}
           </button>
         </div>
       </div>
@@ -160,8 +179,8 @@ export default function AdminContentShowPage() {
               <Layers className="w-5 h-5 text-[#0FD452]" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</p>
-              <p className="text-sm font-bold text-gray-900">{post.type}</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('adminContent.content.type')}</p>
+              <p className="text-sm font-bold text-gray-900">{typeLabels[post.type] || post.type}</p>
             </div>
           </div>
         </div>
@@ -171,8 +190,8 @@ export default function AdminContentShowPage() {
               <Target className="w-5 h-5 text-blue-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Target</p>
-              <p className="text-sm font-bold text-gray-900">{post.target}</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('adminContent.content.target')}</p>
+              <p className="text-sm font-bold text-gray-900">{targetLabels[post.target] || post.target}</p>
             </div>
           </div>
         </div>
@@ -182,8 +201,8 @@ export default function AdminContentShowPage() {
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</p>
-              <span className={STATUS_STYLES[post.status] || 'badge badge-gray'}>{post.status}</span>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('common.status')}</p>
+              <span className={STATUS_STYLES[post.status] || 'badge badge-gray'}>{statusLabels[post.status] || post.status}</span>
             </div>
           </div>
         </div>
@@ -193,7 +212,7 @@ export default function AdminContentShowPage() {
               <Eye className="w-5 h-5 text-purple-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Views</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('adminContent.content.views')}</p>
               <p className="text-sm font-bold text-gray-900">{(post.views || 0).toLocaleString()}</p>
             </div>
           </div>
@@ -204,7 +223,7 @@ export default function AdminContentShowPage() {
               <BarChart3 className="w-5 h-5 text-amber-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Engagement</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('adminContent.content.engagement')}</p>
               <p className="text-sm font-bold text-gray-900">{post.engagement || 0}%</p>
             </div>
           </div>
@@ -222,70 +241,70 @@ export default function AdminContentShowPage() {
                 <FileText className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Content Information</h3>
-                <p className="text-xs text-gray-500">Details and metadata for this content</p>
+                <h3 className="text-base font-semibold text-gray-900">{t('adminContent.content.infoTitle')}</h3>
+                <p className="text-xs text-gray-500">{t('adminContent.content.detailsMeta')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <FileText className="w-3.5 h-3.5" />
-                  Title
+                  {t('adminContent.content.title')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{post.title}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Layers className="w-3.5 h-3.5" />
-                  Type
+                  {t('adminContent.content.type')}
                 </div>
-                <span className={TYPE_STYLES[post.type] || 'badge badge-gray'}>{post.type}</span>
+                <span className={TYPE_STYLES[post.type] || 'badge badge-gray'}>{typeLabels[post.type] || post.type}</span>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Target className="w-3.5 h-3.5" />
-                  Target Audience
+                  {t('adminContent.content.targetAudience')}
                 </div>
-                <p className="text-sm font-semibold text-gray-900">{post.target}</p>
+                <p className="text-sm font-semibold text-gray-900">{targetLabels[post.target] || post.target}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  Status
+                  {t('common.status')}
                 </div>
-                <span className={STATUS_STYLES[post.status] || 'badge badge-gray'}>{post.status}</span>
+                <span className={STATUS_STYLES[post.status] || 'badge badge-gray'}>{statusLabels[post.status] || post.status}</span>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <PenTool className="w-3.5 h-3.5" />
-                  Author
+                  {t('adminContent.content.author')}
                 </div>
-                <p className="text-sm font-semibold text-gray-900">{post.author || 'Admin'}</p>
+                <p className="text-sm font-semibold text-gray-900">{post.author || t('adminContent.content.adminFallback')}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Calendar className="w-3.5 h-3.5" />
-                  Date Created
+                  {t('adminContent.content.dateCreated')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{formatDate(post.date || post.createdAt)}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Clock className="w-3.5 h-3.5" />
-                  Date Updated
+                  {t('adminContent.content.dateUpdated')}
                 </div>
                 <p className="text-sm font-semibold text-gray-900">{formatDateTime(post.updatedAt || post.date)}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                   <Tag className="w-3.5 h-3.5" />
-                  Tags
+                  {t('adminContent.content.tags')}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {(post.tags || []).length > 0 ? post.tags.map((t, i) => (
-                    <span key={i} className="badge badge-gray text-xs">{t}</span>
+                  {(post.tags || []).length > 0 ? post.tags.map((tag, i) => (
+                    <span key={i} className="badge badge-gray text-xs">{tag}</span>
                   )) : (
-                    <span className="text-sm text-gray-400">No tags</span>
+                    <span className="text-sm text-gray-400">{t('adminContent.content.noTags')}</span>
                   )}
                 </div>
               </div>
@@ -299,18 +318,18 @@ export default function AdminContentShowPage() {
                 <BookOpen className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Content Body</h3>
-                <p className="text-xs text-gray-500">Full content text and body</p>
+                <h3 className="text-base font-semibold text-gray-900">{t('adminContent.content.contentBody')}</h3>
+                <p className="text-xs text-gray-500">{t('adminContent.content.contentBodyDesc')}</p>
               </div>
             </div>
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
               <p className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
-                {post.content || 'No content available.'}
+                {post.content || t('adminContent.content.noContentAvailable')}
               </p>
             </div>
             <div className="flex items-center gap-4 mt-4 text-xs text-gray-400">
-              <span className="flex items-center gap-1"><Hash className="w-3.5 h-3.5" /> {wc} words</span>
-              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {rt}</span>
+              <span className="flex items-center gap-1"><Hash className="w-3.5 h-3.5" /> {wc} {t('adminContent.content.words')}</span>
+              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {rt} {t('adminContent.content.minRead')}</span>
             </div>
           </div>
         </div>
@@ -324,26 +343,26 @@ export default function AdminContentShowPage() {
                 <BarChart3 className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Quick Stats</h3>
-                <p className="text-xs text-gray-500">Performance overview</p>
+                <h3 className="text-base font-semibold text-gray-900">{t('adminContent.shared.quickStats')}</h3>
+                <p className="text-xs text-gray-500">{t('adminContent.content.performanceOverview')}</p>
               </div>
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Word Count</span>
+                <span className="text-sm text-gray-500">{t('adminContent.content.wordCount')}</span>
                 <span className="text-sm font-semibold text-gray-900">{wc.toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Read Time</span>
-                <span className="text-sm font-semibold text-gray-900">{rt}</span>
+                <span className="text-sm text-gray-500">{t('adminContent.content.readTime')}</span>
+                <span className="text-sm font-semibold text-gray-900">{rt} {t('adminContent.content.minRead')}</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Last Edited</span>
+                <span className="text-sm text-gray-500">{t('adminContent.content.lastEdited')}</span>
                 <span className="text-sm font-semibold text-gray-900">{formatDate(post.updatedAt || post.date)}</span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-gray-500">Published Status</span>
-                <span className={STATUS_STYLES[post.status] || 'badge badge-gray'}>{post.status}</span>
+                <span className="text-sm text-gray-500">{t('adminContent.content.publishedStatus')}</span>
+                <span className={STATUS_STYLES[post.status] || 'badge badge-gray'}>{statusLabels[post.status] || post.status}</span>
               </div>
             </div>
           </div>
@@ -355,8 +374,8 @@ export default function AdminContentShowPage() {
                 <Send className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Actions</h3>
-                <p className="text-xs text-gray-500">Manage this content</p>
+                <h3 className="text-base font-semibold text-gray-900">{t('common.actions')}</h3>
+                <p className="text-xs text-gray-500">{t('adminContent.content.manageContent')}</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -365,7 +384,7 @@ export default function AdminContentShowPage() {
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
               >
                 <Edit className="w-4 h-4 text-[#0FD452]" />
-                Edit Content
+                {t('adminContent.content.editContent')}
               </button>
               <button
                 onClick={handleTogglePublish}
@@ -375,12 +394,12 @@ export default function AdminContentShowPage() {
                 {post.status === 'active' ? (
                   <>
                     <Archive className="w-4 h-4 text-amber-500" />
-                    Unpublish
+                    {t('adminContent.content.unpublish')}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4 text-[#0FD452]" />
-                    Publish
+                    {t('adminContent.content.publish')}
                   </>
                 )}
               </button>
@@ -389,14 +408,14 @@ export default function AdminContentShowPage() {
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
               >
                 <Copy className="w-4 h-4 text-blue-500" />
-                Duplicate
+                {t('adminContent.content.duplicate')}
               </button>
               <button
                 onClick={() => setDeleteDialog(true)}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-red-50 hover:bg-red-100 rounded-lg text-sm font-medium text-red-600 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete Content
+                {t('adminContent.content.deleteContent')}
               </button>
             </div>
           </div>
@@ -407,9 +426,9 @@ export default function AdminContentShowPage() {
         isOpen={deleteDialog}
         onCancel={() => setDeleteDialog(false)}
         onConfirm={handleDelete}
-        title="Delete Post"
-        message={`Are you sure you want to delete "${post.title}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('adminContent.content.deletePost')}
+        message={`${t('adminContent.content.deleteMessage1')} "${post.title}"? ${t('common.cannotBeUndone')}`}
+        confirmText={t('common.delete')}
         variant="danger"
       />
     </div>

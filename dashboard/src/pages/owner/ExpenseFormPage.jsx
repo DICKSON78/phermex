@@ -4,11 +4,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Save, X, Plus, Loader2, DollarSign, FileText, CreditCard, StickyNote } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const defaultCategories = ['Rent', 'Utilities', 'Supplies', 'Salaries', 'Transport', 'Other']
 
 
 export default function ExpenseFormPage() {
+  const { t } = useLanguage()
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = Boolean(id)
@@ -60,10 +62,10 @@ export default function ExpenseFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.category && !customCategory.trim()) errs.category = 'Category is required'
-    if (!form.description.trim()) errs.description = 'Description is required'
-    if (!form.amount || Number(form.amount) <= 0) errs.amount = 'Valid amount is required'
-    if (!form.date) errs.date = 'Date is required'
+    if (!form.category && !customCategory.trim()) errs.category = t('reports.expenseForm.errCategory')
+    if (!form.description.trim()) errs.description = t('reports.expenseForm.errDescription')
+    if (!form.amount || Number(form.amount) <= 0) errs.amount = t('reports.expenseForm.errAmount')
+    if (!form.date) errs.date = t('reports.expenseForm.errDate')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -86,7 +88,7 @@ export default function ExpenseFormPage() {
       }
       navigate('/dashboard/expenses')
     } catch {
-      toast.error('Failed to save expense')
+      toast.error(t('reports.expenseForm.saveError'))
       navigate('/dashboard/expenses')
     } finally {
       setLoading(false)
@@ -110,9 +112,9 @@ export default function ExpenseFormPage() {
             <Link to="/dashboard/expenses" className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Expense' : 'Create New Expense'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? t('reports.expenseForm.editTitle') : t('reports.expenseForm.createTitle')}</h1>
           </div>
-          <p className="text-gray-600">{isEdit ? 'Update existing expense details' : 'Record a new expense'}</p>
+          <p className="text-gray-600">{isEdit ? t('reports.expenseForm.editSubtitle') : t('reports.expenseForm.createSubtitle')}</p>
         </div>
       </div>
 
@@ -125,13 +127,13 @@ export default function ExpenseFormPage() {
                 <DollarSign className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Expense Information</h3>
-                <p className="text-sm text-gray-600">What was the expense for</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('reports.expenseForm.infoTitle')}</h3>
+                <p className="text-sm text-gray-600">{t('reports.expenseForm.infoSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Description <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('reports.expenseForm.description')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute top-3 left-3">
                     <FileText className="w-4 h-4 text-gray-400" />
@@ -139,7 +141,7 @@ export default function ExpenseFormPage() {
                   <textarea
                     value={form.description}
                     onChange={(e) => handleChange('description', e.target.value)}
-                    placeholder="What was this expense for?"
+                    placeholder={t('reports.expenseForm.descriptionPlaceholder')}
                     rows={3}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm resize-none"
                   />
@@ -147,7 +149,7 @@ export default function ExpenseFormPage() {
                 {errors.description && <p className="text-xs text-red-500 mt-1">{errors.description}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Category <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('reports.expenseForm.category')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <DollarSign className="w-4 h-4 text-gray-400" />
@@ -167,11 +169,11 @@ export default function ExpenseFormPage() {
                     }}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   >
-                    <option value="">Select category</option>
+                    <option value="">{t('reports.expenseForm.selectCategory')}</option>
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
-                    <option value="__new__">+ New category...</option>
+                    <option value="__new__">{t('reports.expenseForm.newCategory')}</option>
                   </select>
                 </div>
                 {showCustom && (
@@ -183,7 +185,7 @@ export default function ExpenseFormPage() {
                       type="text"
                       value={customCategory}
                       onChange={(e) => setCustomCategory(e.target.value)}
-                      placeholder="Enter new category name"
+                      placeholder={t('reports.expenseForm.newCategoryPlaceholder')}
                       className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                     />
                   </div>
@@ -191,7 +193,7 @@ export default function ExpenseFormPage() {
                 {!showCustom && errors.category && <p className="text-xs text-red-500 mt-1">{errors.category}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Amount (TZS) <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('reports.expenseForm.amount')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <DollarSign className="w-4 h-4 text-gray-400" />
@@ -217,13 +219,13 @@ export default function ExpenseFormPage() {
                 <CreditCard className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Payment Details</h3>
-                <p className="text-sm text-gray-600">Date and receipt information</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('reports.expenseForm.paymentTitle')}</h3>
+                <p className="text-sm text-gray-600">{t('reports.expenseForm.paymentSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Date <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('common.date')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <CreditCard className="w-4 h-4 text-gray-400" />
@@ -238,7 +240,7 @@ export default function ExpenseFormPage() {
                 {errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Receipt Number</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('reports.expenseForm.receiptNumber')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <CreditCard className="w-4 h-4 text-gray-400" />
@@ -262,13 +264,13 @@ export default function ExpenseFormPage() {
                 <StickyNote className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Notes</h3>
-                <p className="text-sm text-gray-600">Any additional notes about this expense</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('reports.expenseForm.notesTitle')}</h3>
+                <p className="text-sm text-gray-600">{t('reports.expenseForm.notesSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Notes</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('reports.expenseForm.notes')}</label>
                 <div className="relative">
                   <div className="absolute top-3 left-3">
                     <StickyNote className="w-4 h-4 text-gray-400" />
@@ -276,7 +278,7 @@ export default function ExpenseFormPage() {
                   <textarea
                     value={form.notes || ''}
                     onChange={(e) => handleChange('notes', e.target.value)}
-                    placeholder="Additional notes about this expense..."
+                    placeholder={t('reports.expenseForm.notesPlaceholder')}
                     rows={3}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm resize-none"
                   />
@@ -289,11 +291,11 @@ export default function ExpenseFormPage() {
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
             <Link to="/dashboard/expenses" className="btn-secondary">
               <X className="w-4 h-4" />
-              <span>Cancel</span>
+              <span>{t('common.cancel')}</span>
             </Link>
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isEdit ? 'Update Expense' : 'Create Expense'}</span>
+              <span>{isEdit ? t('reports.expenseForm.updateButton') : t('reports.expenseForm.createButton')}</span>
             </button>
           </div>
         </div>

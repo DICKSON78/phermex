@@ -7,21 +7,23 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import { formatMoney as sharedMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 
 const statusConfig = {
-  pending: { color: 'bg-yellow-100 text-yellow-700', icon: Clock, label: 'Pending' },
-  assigned: { color: 'bg-blue-100 text-blue-700', icon: UserPlus, label: 'Assigned' },
-  picked_up: { color: 'bg-indigo-100 text-indigo-700', icon: Package, label: 'Picked Up' },
-  in_transit: { color: 'bg-purple-100 text-purple-700', icon: Truck, label: 'In Transit' },
-  out_for_delivery: { color: 'bg-orange-100 text-orange-700', icon: Navigation, label: 'Out for Delivery' },
-  delivered: { color: 'bg-green-100 text-green-700', icon: CheckCircle, label: 'Delivered' },
-  failed: { color: 'bg-red-100 text-red-600', icon: XCircle, label: 'Failed' },
+  pending: { color: 'bg-yellow-100 text-yellow-700', icon: Clock, labelKey: 'sales.deliveries.status.pending' },
+  assigned: { color: 'bg-blue-100 text-blue-700', icon: UserPlus, labelKey: 'sales.deliveries.status.assigned' },
+  picked_up: { color: 'bg-indigo-100 text-indigo-700', icon: Package, labelKey: 'sales.deliveries.status.pickedUp' },
+  in_transit: { color: 'bg-purple-100 text-purple-700', icon: Truck, labelKey: 'sales.deliveries.status.inTransit' },
+  out_for_delivery: { color: 'bg-orange-100 text-orange-700', icon: Navigation, labelKey: 'sales.deliveries.status.outForDelivery' },
+  delivered: { color: 'bg-green-100 text-green-700', icon: CheckCircle, labelKey: 'sales.deliveries.status.delivered' },
+  failed: { color: 'bg-red-100 text-red-600', icon: XCircle, labelKey: 'sales.deliveries.status.failed' },
 }
 
 const STATUS_ORDER = ['pending', 'assigned', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered']
 
 export default function DeliveryListPage() {
+  const { t } = useLanguage()
   const [deliveries, setDeliveries] = useState([])
   const [drivers, setDrivers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -98,10 +100,10 @@ export default function DeliveryListPage() {
   }
 
   const statCards = [
-    { label: 'Pending', value: stats.pending, icon: Clock, color: 'bg-yellow-100 text-yellow-600' },
-    { label: 'In Transit', value: stats.in_transit, icon: Truck, color: 'bg-purple-100 text-purple-600' },
-    { label: 'Delivered', value: stats.delivered_today, icon: CheckCircle, color: 'bg-green-100 text-green-600' },
-    { label: 'Failed', value: stats.failed, icon: XCircle, color: 'bg-red-100 text-red-600' },
+    { label: t('sales.deliveries.status.pending'), value: stats.pending, icon: Clock, color: 'bg-yellow-100 text-yellow-600' },
+    { label: t('sales.deliveries.status.inTransit'), value: stats.in_transit, icon: Truck, color: 'bg-purple-100 text-purple-600' },
+    { label: t('sales.deliveries.status.delivered'), value: stats.delivered_today, icon: CheckCircle, color: 'bg-green-100 text-green-600' },
+    { label: t('sales.deliveries.status.failed'), value: stats.failed, icon: XCircle, color: 'bg-red-100 text-red-600' },
   ]
 
   return (
@@ -113,8 +115,8 @@ export default function DeliveryListPage() {
             <Truck className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Deliveries</h1>
-            <p className="text-sm text-gray-500">Manage pharmacy delivery orders.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('sales.deliveries.title')}</h1>
+            <p className="text-sm text-gray-500">{t('sales.deliveries.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -138,8 +140,8 @@ export default function DeliveryListPage() {
       <div className="bg-white rounded-xl border border-gray-200 mb-6 overflow-hidden">
         <div className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center text-gray-400 border-b border-gray-100">
           <MapPin className="w-10 h-10 mb-2 opacity-40" />
-          <p className="text-sm font-medium">Map integration coming soon</p>
-          <p className="text-xs text-gray-400 mt-1">Google Maps will display delivery routes here</p>
+          <p className="text-sm font-medium">{t('sales.deliveries.mapSoon')}</p>
+          <p className="text-xs text-gray-400 mt-1">{t('sales.deliveries.mapHint')}</p>
         </div>
       </div>
 
@@ -152,54 +154,54 @@ export default function DeliveryListPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Delivery Code</span>
+                    <span>{t('sales.deliveries.deliveryCode')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <ShoppingCart className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Order Code</span>
+                    <span>{t('dashboard.orderCode')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Customer</span>
+                    <span>{t('orders.customer')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Address</span>
+                    <span>{t('common.address')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Fee</span>
+                    <span>{t('sales.deliveries.fee')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Activity className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Status</span>
+                    <span>{t('common.status')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <UserCheck className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Assigned To</span>
+                    <span>{t('sales.deliveries.assignedTo')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>ETA</span>
+                    <span>{t('sales.deliveries.eta')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
-                    <span>Actions</span>
+                    <span>{t('common.actions')}</span>
                   </div>
                 </th>
               </tr>
@@ -213,7 +215,7 @@ export default function DeliveryListPage() {
                 </tr>
               ) : deliveries.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-gray-400">No deliveries found</td>
+                  <td colSpan={9} className="px-6 py-12 text-center text-gray-400">{t('sales.deliveries.noneFound')}</td>
                 </tr>
               ) : (
                 deliveries.map((delivery, index) => {
@@ -236,7 +238,7 @@ export default function DeliveryListPage() {
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${st.color}`}>
                           <StatusIcon className="w-3 h-3" />
-                          {st.label}
+                          {t(st.labelKey)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{delivery.driver?.name || '—'}</td>
@@ -258,7 +260,7 @@ export default function DeliveryListPage() {
                                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                 >
                                   <UserPlus className="w-4 h-4" />
-                                  Assign Driver
+                                  {t('sales.deliveries.assignDriver')}
                                 </button>
                               )}
                               {delivery.status === 'assigned' && (
@@ -267,7 +269,7 @@ export default function DeliveryListPage() {
                                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                 >
                                   <Package className="w-4 h-4" />
-                                  Mark Picked Up
+                                  {t('sales.deliveries.markPickedUp')}
                                 </button>
                               )}
                               {delivery.status === 'picked_up' && (
@@ -276,7 +278,7 @@ export default function DeliveryListPage() {
                                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                 >
                                   <Truck className="w-4 h-4" />
-                                  Start Transit
+                                  {t('sales.deliveries.startTransit')}
                                 </button>
                               )}
                               {delivery.status === 'in_transit' && (
@@ -285,7 +287,7 @@ export default function DeliveryListPage() {
                                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-orange-600 hover:bg-orange-50"
                                 >
                                   <Navigation className="w-4 h-4" />
-                                  Out for Delivery
+                                  {t('sales.deliveries.status.outForDelivery')}
                                 </button>
                               )}
                               {delivery.status === 'out_for_delivery' && (
@@ -294,7 +296,7 @@ export default function DeliveryListPage() {
                                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-green-600 hover:bg-green-50"
                                 >
                                   <CheckCircle className="w-4 h-4" />
-                                  Mark Delivered
+                                  {t('sales.deliveries.markDelivered')}
                                 </button>
                               )}
                               {delivery.status !== 'delivered' && delivery.status !== 'failed' && (
@@ -303,7 +305,7 @@ export default function DeliveryListPage() {
                                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                                 >
                                   <XCircle className="w-4 h-4" />
-                                  Mark Failed
+                                  {t('sales.deliveries.markFailed')}
                                 </button>
                               )}
                               <button
@@ -311,7 +313,7 @@ export default function DeliveryListPage() {
                                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                               >
                                 <Eye className="w-4 h-4" />
-                                View Details
+                                {t('sales.deliveries.viewDetails')}
                               </button>
                             </div>
                           </>
@@ -332,12 +334,12 @@ export default function DeliveryListPage() {
           <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowAssignModal(null)} />
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Assign Driver</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('sales.deliveries.assignDriver')}</h3>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Driver</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('sales.deliveries.driver')}</label>
                 {drivers.length === 0 ? (
                   <p className="text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-                    No active delivery drivers available. Add a user with the &quot;delivery&quot; role first.
+                    {t('sales.deliveries.noDrivers')}
                   </p>
                 ) : (
                   <select
@@ -345,7 +347,7 @@ export default function DeliveryListPage() {
                     onChange={(e) => setDriverId(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
                   >
-                    <option value="">Select a driver</option>
+                    <option value="">{t('sales.deliveries.selectDriver')}</option>
                     {drivers.map((d) => (
                       <option key={d.id} value={d.id}>
                         {d.name}{d.phone ? ` — ${d.phone}` : ''}
@@ -359,14 +361,14 @@ export default function DeliveryListPage() {
                   onClick={() => { setShowAssignModal(null); setDriverId('') }}
                   className="btn-secondary"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleAssignDriver}
                   disabled={!driverId}
                   className="px-4 py-2 text-sm font-semibold bg-primary hover:bg-primary-600 disabled:bg-primary/50 text-gray-900 rounded-xl transition-colors"
                 >
-                  Assign
+                  {t('sales.deliveries.assign')}
                 </button>
               </div>
             </div>

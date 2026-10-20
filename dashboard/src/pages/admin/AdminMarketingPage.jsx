@@ -27,6 +27,7 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const TYPE_STYLES = {
   Email: 'badge badge-blue',
@@ -79,6 +80,7 @@ function StatCard({ label, value, icon, iconColor, bg, suffix }) {
 
 export default function AdminMarketingPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -167,7 +169,7 @@ export default function AdminMarketingPage() {
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Failed to load marketing data. Please try again.
+          {t('adminOps.marketing.loadError')}
         </div>
       )}
 
@@ -177,8 +179,8 @@ export default function AdminMarketingPage() {
             <FileText className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Marketing</h1>
-            <p className="text-sm text-gray-500">Manage marketing campaigns and promotions.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('nav.items.marketing')}</h1>
+            <p className="text-sm text-gray-500">{t('adminOps.marketing.subtitle')}</p>
           </div>
         </div>
         <button
@@ -186,15 +188,15 @@ export default function AdminMarketingPage() {
           className="btn-primary"
         >
           <Plus className="h-4 w-4" />
-          New Campaign
+          {t('adminOps.marketing.newCampaign')}
         </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <StatCard label="Active Campaigns" value={stats.activeCampaigns} icon={<Megaphone className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix="Currently running" />
-        <StatCard label="Total Sent" value={formatNumber(stats.totalSent)} icon={<Send className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix="Messages delivered" />
-        <StatCard label="Open Rate" value={`${stats.openRate}%`} icon={<Eye className="w-5 h-5" />} iconColor="text-purple-600" bg="bg-purple-100" suffix="Average across campaigns" />
-        <StatCard label="Click Rate" value={`${stats.clickRate}%`} icon={<MousePointerClick className="w-5 h-5" />} iconColor="text-amber-600" bg="bg-amber-100" suffix="Average CTR" />
+        <StatCard label={t('adminOps.marketing.activeCampaigns')} value={stats.activeCampaigns} icon={<Megaphone className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix={t('adminOps.marketing.currentlyRunning')} />
+        <StatCard label={t('adminOps.marketing.totalSent')} value={formatNumber(stats.totalSent)} icon={<Send className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix={t('adminOps.marketing.messagesDelivered')} />
+        <StatCard label={t('adminOps.marketing.openRate')} value={`${stats.openRate}%`} icon={<Eye className="w-5 h-5" />} iconColor="text-purple-600" bg="bg-purple-100" suffix={t('adminOps.marketing.avgAcrossCampaigns')} />
+        <StatCard label={t('adminOps.marketing.clickRate')} value={`${stats.clickRate}%`} icon={<MousePointerClick className="w-5 h-5" />} iconColor="text-amber-600" bg="bg-amber-100" suffix={t('adminOps.marketing.avgCtr')} />
       </div>
 
       <div className="card">
@@ -206,7 +208,7 @@ export default function AdminMarketingPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name or audience..."
+                placeholder={t('adminOps.marketing.searchPlaceholder')}
                 className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-[#000F14] placeholder-gray-400 outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
               />
             </div>
@@ -215,9 +217,9 @@ export default function AdminMarketingPage() {
               onChange={(e) => setTypeFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
             >
-              <option value="">All Types</option>
-              {TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
+              <option value="">{t('adminOps.marketing.allTypes')}</option>
+              {TYPES.map((ty) => (
+                <option key={ty} value={ty}>{t('adminOps.labels.' + ty, ty)}</option>
               ))}
             </select>
             <select
@@ -225,9 +227,9 @@ export default function AdminMarketingPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
             >
-              <option value="">All Statuses</option>
+              <option value="">{t('adminOps.shared.allStatuses')}</option>
               {STATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>{t('adminOps.labels.' + s, s)}</option>
               ))}
             </select>
           </div>
@@ -237,8 +239,8 @@ export default function AdminMarketingPage() {
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl bg-white py-16 shadow-sm">
           <Megaphone className="mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-semibold text-gray-900">No campaigns found</h3>
-          <p className="text-sm text-gray-500">Try adjusting your filters</p>
+          <h3 className="text-lg font-semibold text-gray-900">{t('adminOps.marketing.noCampaigns')}</h3>
+          <p className="text-sm text-gray-500">{t('adminOps.shared.adjustFilters')}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -249,49 +251,49 @@ export default function AdminMarketingPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Campaign</span>
+                      <span>{t('adminOps.marketing.campaign')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Tag className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Type</span>
+                      <span>{t('adminOps.fields.type')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Audience</span>
+                      <span>{t('adminOps.marketing.audience')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Status</span>
+                      <span>{t('common.status')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Start</span>
+                      <span>{t('adminOps.marketing.start')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>End</span>
+                      <span>{t('adminOps.marketing.end')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <TrendingUp className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Conversions</span>
+                      <span>{t('adminOps.marketing.conversions')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <Zap className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Actions</span>
+                      <span>{t('common.actions')}</span>
                     </div>
                   </th>
                 </tr>
@@ -310,11 +312,11 @@ export default function AdminMarketingPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={TYPE_STYLES[campaign.type] || 'badge badge-gray'}>{campaign.type}</span>
+                        <span className={TYPE_STYLES[campaign.type] || 'badge badge-gray'}>{t('adminOps.labels.' + campaign.type, campaign.type)}</span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{campaign.audience}</td>
                       <td className="px-6 py-4">
-                        <span className={STATUS_STYLES[campaign.status] || 'badge badge-gray'}>{campaign.status}</span>
+                        <span className={STATUS_STYLES[campaign.status] || 'badge badge-gray'}>{t('adminOps.labels.' + campaign.status, campaign.status)}</span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{campaign.startDate}</td>
                       <td className="px-6 py-4 text-sm text-gray-500">{campaign.endDate}</td>
@@ -324,14 +326,14 @@ export default function AdminMarketingPage() {
                           <button
                             onClick={() => navigate('/dashboard/marketing/' + campaign.id)}
                             className="btn-icon-primary"
-                            title="View"
+                            title={t('common.view')}
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => navigate('/dashboard/marketing/' + campaign.id + '/edit')}
                             className="btn-icon-blue"
-                            title="Edit"
+                            title={t('common.edit')}
                           >
                             <Edit className="h-4 w-4" />
                           </button>
@@ -339,7 +341,7 @@ export default function AdminMarketingPage() {
                               <button
                                 onClick={() => handlePauseResume(campaign)}
                                 className="btn-ghost"
-                                title={campaign.status === 'Active' ? 'Pause' : 'Resume'}
+                                title={campaign.status === 'Active' ? t('adminOps.marketing.pause') : t('adminOps.marketing.resume')}
                             >
                               {campaign.status === 'Active' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                             </button>
@@ -347,14 +349,14 @@ export default function AdminMarketingPage() {
                           <button
                             onClick={() => navigate('/dashboard/marketing/' + campaign.id)}
                             className="btn-icon-blue"
-                            title="View Results"
+                            title={t('adminOps.marketing.viewResults')}
                           >
                             <BarChart3 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(campaign)}
                             className="btn-icon-red"
-                            title="Delete"
+                            title={t('common.delete')}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -369,8 +371,9 @@ export default function AdminMarketingPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
               <p className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} entries
+                {t('adminOps.pagination.showing')} {(currentPage - 1) * pageSize + 1}{' '}
+                {t('adminOps.pagination.to')}{' '}
+                {Math.min(currentPage * pageSize, filtered.length)} {t('adminOps.pagination.of')} {filtered.length} {t('adminOps.pagination.entries')}
               </p>
               <div className="flex items-center gap-1">
                 <button

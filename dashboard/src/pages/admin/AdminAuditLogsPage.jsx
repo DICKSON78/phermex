@@ -18,6 +18,7 @@ import {
   Hash,
 } from 'lucide-react'
 import api from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const MODEL_TYPES = ['User', 'Pharmacy', 'Drug', 'Order', 'Prescription', 'Customer']
 
@@ -39,12 +40,13 @@ const ROLE_STYLES = {
 }
 
 function DiffView({ oldValues, newValues }) {
+  const { t } = useLanguage()
   const allKeys = [
     ...new Set([...Object.keys(oldValues || {}), ...Object.keys(newValues || {})]),
   ]
 
   if (allKeys.length === 0) {
-    return <p className="text-xs text-gray-400 italic">No changes recorded</p>
+    return <p className="text-xs text-gray-400 italic">{t('adminContent.audit.noChanges')}</p>
   }
 
   return (
@@ -119,6 +121,7 @@ function exportAuditToCSV(logs) {
 }
 
 export default function AdminAuditLogsPage() {
+  const { t } = useLanguage()
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -218,8 +221,8 @@ export default function AdminAuditLogsPage() {
             <FileText className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
-            <p className="text-sm text-gray-500">Track all system activities and user actions.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('nav.items.auditLogs')}</h1>
+            <p className="text-sm text-gray-500">{t('adminContent.audit.subtitle')}</p>
           </div>
         </div>
         <button
@@ -227,7 +230,7 @@ export default function AdminAuditLogsPage() {
           className="btn-secondary"
         >
           <Download className="w-4 h-4" />
-          Export CSV
+          {t('common.export')} CSV
         </button>
       </div>
 
@@ -240,7 +243,7 @@ export default function AdminAuditLogsPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by action..."
+              placeholder={t('adminContent.audit.searchAction')}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-dark placeholder-gray-400 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
@@ -250,7 +253,7 @@ export default function AdminAuditLogsPage() {
             onChange={(e) => setUserFilter(e.target.value)}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-dark outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           >
-            <option value="">All Users</option>
+            <option value="">{t('adminContent.audit.allUsers')}</option>
             {uniqueUsers.map((name) => (
               <option key={name} value={name}>
                 {name}
@@ -263,7 +266,7 @@ export default function AdminAuditLogsPage() {
             onChange={(e) => setModelFilter(e.target.value)}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-dark outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           >
-            <option value="">All Model Types</option>
+            <option value="">{t('adminContent.audit.allModelTypes')}</option>
             {MODEL_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type}
@@ -277,14 +280,14 @@ export default function AdminAuditLogsPage() {
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
               className="flex-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-dark outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="From"
+              placeholder={t('adminContent.audit.from')}
             />
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
               className="flex-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-dark outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="To"
+              placeholder={t('adminContent.audit.to')}
             />
           </div>
         </div>
@@ -299,43 +302,43 @@ export default function AdminAuditLogsPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Timestamp</span>
+                    <span>{t('adminContent.audit.timestamp')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>User</span>
+                    <span>{t('adminContent.audit.user')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Action</span>
+                    <span>{t('adminContent.audit.action')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Model Type</span>
+                    <span>{t('adminContent.audit.modelType')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Model ID</span>
+                    <span>{t('adminContent.audit.modelId')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Changes</span>
+                    <span>{t('adminContent.audit.changes')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Globe className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>IP Address</span>
+                    <span>{t('adminContent.audit.ipAddress')}</span>
                   </div>
                 </th>
               </tr>
@@ -359,9 +362,9 @@ export default function AdminAuditLogsPage() {
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <Shield className="w-10 h-10 text-gray-300" />
             </div>
-            <h3 className="text-lg font-semibold text-dark mb-2">No audit logs found</h3>
+            <h3 className="text-lg font-semibold text-dark mb-2">{t('adminContent.audit.noLogs')}</h3>
             <p className="text-gray-500 text-center max-w-sm">
-              No logs match your current filters. Try adjusting your search criteria.
+              {t('adminContent.audit.noLogsHint')}
             </p>
           </div>
         )}
@@ -370,8 +373,8 @@ export default function AdminAuditLogsPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
             <p className="text-sm text-gray-500">
-              Showing {(currentPage - 1) * pageSize + 1} to{' '}
-              {Math.min(currentPage * pageSize, filteredLogs.length)} of {filteredLogs.length} entries
+              {t('adminContent.pagination.showing')} {(currentPage - 1) * pageSize + 1} {t('adminContent.pagination.to')}{' '}
+              {Math.min(currentPage * pageSize, filteredLogs.length)} {t('adminContent.pagination.of')} {filteredLogs.length} {t('adminContent.pagination.entries')}
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -417,7 +420,32 @@ export default function AdminAuditLogsPage() {
 }
 
 function LogRow({ log, isExpanded, onToggle, formatTimestamp }) {
+  const { t } = useLanguage()
   const hasChanges = log.old_values || log.new_values
+
+  const roleLabels = {
+    admin: t('common.roleAdmin'),
+    owner: t('common.roleOwner'),
+    pharmacist: t('common.rolePharmacist'),
+    cashier: t('common.roleCashier'),
+    delivery: t('common.roleDelivery'),
+    customer: t('common.roleCustomer'),
+  }
+  const actionLabels = {
+    create: t('adminContent.audit.actionLabels.create'),
+    update: t('adminContent.audit.actionLabels.update'),
+    delete: t('adminContent.audit.actionLabels.delete'),
+    login: t('adminContent.audit.actionLabels.login'),
+    logout: t('adminContent.audit.actionLabels.logout'),
+  }
+  const modelLabels = {
+    User: t('adminContent.audit.modelLabels.User'),
+    Pharmacy: t('adminContent.audit.modelLabels.Pharmacy'),
+    Drug: t('adminContent.audit.modelLabels.Drug'),
+    Order: t('adminContent.audit.modelLabels.Order'),
+    Prescription: t('adminContent.audit.modelLabels.Prescription'),
+    Customer: t('adminContent.audit.modelLabels.Customer'),
+  }
 
   return (
     <>
@@ -440,7 +468,7 @@ function LogRow({ log, isExpanded, onToggle, formatTimestamp }) {
                   ROLE_STYLES[log.user?.role] || 'bg-gray-100 text-gray-600'
                 }`}
               >
-                {log.user?.role}
+                {roleLabels[log.user?.role] || log.user?.role}
               </span>
             </div>
           </div>
@@ -451,16 +479,16 @@ function LogRow({ log, isExpanded, onToggle, formatTimestamp }) {
               ACTION_STYLES[log.action] || 'bg-gray-100 text-gray-600'
             }`}
           >
-            {log.action}
+            {actionLabels[log.action] || log.action}
           </span>
         </td>
-        <td className="px-6 py-4 text-sm text-dark font-medium">{log.model_type}</td>
+        <td className="px-6 py-4 text-sm text-dark font-medium">{modelLabels[log.model_type] || log.model_type}</td>
         <td className="px-6 py-4 text-sm text-gray-600 font-mono">#{log.model_id}</td>
         <td className="px-6 py-4">
           {hasChanges ? (
             <button className="text-xs text-primary hover:text-primary-600 font-medium flex items-center gap-1">
               {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-              View changes
+              {t('adminContent.audit.viewChanges')}
             </button>
           ) : (
             <span className="text-xs text-gray-400">--</span>
@@ -474,7 +502,7 @@ function LogRow({ log, isExpanded, onToggle, formatTimestamp }) {
             <div className="ml-4 p-4 bg-white rounded-xl border border-gray-200">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="w-4 h-4 text-gray-400" />
-                <span className="text-xs font-semibold text-gray-500 uppercase">Change Details</span>
+                <span className="text-xs font-semibold text-gray-500 uppercase">{t('adminContent.audit.changeDetails')}</span>
               </div>
               <DiffView oldValues={log.old_values} newValues={log.new_values} />
             </div>

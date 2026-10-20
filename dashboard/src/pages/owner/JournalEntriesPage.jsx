@@ -10,6 +10,7 @@ import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
 import PageHeader from '../../components/PageHeader'
 import Tabs from '../../components/Tabs'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const STATUS_COLORS = {
   draft: 'bg-yellow-100 text-yellow-700',
@@ -24,6 +25,7 @@ function formatCurrency(amount) {
 
 export default function JournalEntriesPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [entries, setEntries] = useState([])
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -86,7 +88,7 @@ export default function JournalEntriesPage() {
 
   const handleCreate = async (e) => {
     e.preventDefault()
-    if (!isBalanced) { toast.error('Debits must equal credits'); return }
+    if (!isBalanced) { toast.error(t('accounting.journal.debitsEqual')); return }
     try {
       await api.post('/journal', {
         entry_date: formData.entry_date,
@@ -98,24 +100,24 @@ export default function JournalEntriesPage() {
           description: l.description || null,
         })),
       })
-      toast.success('Journal entry created')
+      toast.success(t('accounting.journal.created'))
       setShowForm(false)
       setFormData({ entry_date: new Date().toISOString().split('T')[0], description: '', lines: [{ account_id: '', debit: '', credit: '', description: '' }, { account_id: '', debit: '', credit: '', description: '' }] })
       fetchData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create entry')
+      toast.error(err.response?.data?.message || t('accounting.journal.createFailed'))
     }
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this draft journal entry?')) return
+    if (!window.confirm(t('accounting.journal.deleteConfirm'))) return
     setProcessing(id)
     try {
       await api.delete(`/journal/${id}`)
-      toast.success('Journal entry deleted')
+      toast.success(t('accounting.journal.deleted'))
       fetchData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete')
+      toast.error(err.response?.data?.message || t('accounting.journal.deleteFailed'))
     } finally { setProcessing(null) }
   }
 
@@ -123,24 +125,24 @@ export default function JournalEntriesPage() {
     setProcessing(id)
     try {
       await api.post(`/journal/${id}/post`)
-      toast.success('Entry posted')
+      toast.success(t('accounting.journal.posted'))
       fetchData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to post')
+      toast.error(err.response?.data?.message || t('accounting.journal.postFailed'))
     } finally { setProcessing(null) }
   }
 
   const handleReverse = async () => {
-    if (!reverseReason.trim()) { toast.error('Reason required'); return }
+    if (!reverseReason.trim()) { toast.error(t('accounting.journal.reasonRequired')); return }
     setProcessing(showReverseModal)
     try {
       await api.post(`/journal/${showReverseModal}/reverse`, { reason: reverseReason })
-      toast.success('Entry reversed')
+      toast.success(t('accounting.journal.reversed'))
       setShowReverseModal(null)
       setReverseReason('')
       fetchData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to reverse')
+      toast.error(err.response?.data?.message || t('accounting.journal.reverseFailed'))
     } finally { setProcessing(null) }
   }
 
@@ -148,11 +150,11 @@ export default function JournalEntriesPage() {
     <div className="p-6 space-y-6">
       <PageHeader
         icon={BookOpen}
-        title="Journal Entries"
-        subtitle="Record and manage accounting journal entries."
+        title={t('nav.items.journalEntries')}
+        subtitle={t('accounting.journal.subtitle')}
         actions={
           <button onClick={() => navigate('/dashboard/journal-entries/new')} className="btn-primary">
-            <Plus className="w-4 h-4" /> New Entry
+            <Plus className="w-4 h-4" /> {t('accounting.journal.newEntry')}
           </button>
         }
       />
@@ -160,22 +162,22 @@ export default function JournalEntriesPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-[#0FD452]/10 rounded-lg flex items-center justify-center"><BookOpen className="w-4 h-4 text-[#0FD452]" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Total Entries</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.journal.totalEntries')}</p>
           <p className="text-xl font-bold text-gray-900">{filtered.length}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"><ArrowDownRight className="w-4 h-4 text-red-600" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Total Debit</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.totalDebit')}</p>
           <p className="text-xl font-bold text-gray-900 tabular-nums">{formatCurrency(totalDebit)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"><ArrowUpRight className="w-4 h-4 text-green-600" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Total Credit</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.totalCredit')}</p>
           <p className="text-xl font-bold text-gray-900 tabular-nums">{formatCurrency(totalCredit)}</p>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"><Clock className="w-4 h-4 text-yellow-600" /></div></div>
-          <p className="text-xs text-gray-500 mb-1">Draft Entries</p>
+          <p className="text-xs text-gray-500 mb-1">{t('accounting.journal.draftEntries')}</p>
           <p className="text-xl font-bold text-yellow-600">{entries.filter((e) => e.status === 'draft').length}</p>
         </div>
       </div>
@@ -183,10 +185,10 @@ export default function JournalEntriesPage() {
       <div className="flex flex-wrap items-end gap-3">
         <Tabs
           tabs={[
-            { id: 'all', label: 'All', count: entries.length },
-            { id: 'draft', label: 'Draft', count: entries.filter((e) => e.status === 'draft').length },
-            { id: 'posted', label: 'Posted', count: entries.filter((e) => e.status === 'posted').length },
-            { id: 'reversed', label: 'Reversed', count: entries.filter((e) => e.status === 'reversed').length },
+            { id: 'all', label: t('common.all'), count: entries.length },
+            { id: 'draft', label: t('accounting.journal.status.draft'), count: entries.filter((e) => e.status === 'draft').length },
+            { id: 'posted', label: t('accounting.journal.status.posted'), count: entries.filter((e) => e.status === 'posted').length },
+            { id: 'reversed', label: t('accounting.journal.status.reversed'), count: entries.filter((e) => e.status === 'reversed').length },
           ]}
           active={activeStatus}
           onChange={setActiveStatus}
@@ -194,7 +196,7 @@ export default function JournalEntriesPage() {
         />
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 flex-1 max-w-sm">
           <Search className="w-4 h-4 text-gray-400" />
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search entries..." className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('accounting.journal.searchPlaceholder')} className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full" />
         </div>
         <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0FD452]" />
         <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0FD452]" />
@@ -208,43 +210,43 @@ export default function JournalEntriesPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Entry #</span>
+                    <span>{t('accounting.journal.entryCol')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Date</span>
+                    <span>{t('common.date')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Description</span>
+                    <span>{t('accounting.description')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Debit</span>
+                    <span>{t('accounting.journal.debit')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Credit</span>
+                    <span>{t('accounting.journal.credit')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Status</span>
+                    <span>{t('common.status')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
                     <Settings className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Actions</span>
+                    <span>{t('common.actions')}</span>
                   </div>
                 </th>
               </tr>
@@ -253,7 +255,7 @@ export default function JournalEntriesPage() {
               {loading ? (
                 <tr><td colSpan={7} className="px-6 py-16 text-center"><Loader2 className="w-8 h-8 text-[#0FD452] animate-spin mx-auto" /></td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-16 text-center text-gray-500">No entries found</td></tr>
+                <tr><td colSpan={7} className="px-6 py-16 text-center text-gray-500">{t('accounting.journal.empty')}</td></tr>
               ) : filtered.map((entry) => (
                 <tr key={entry.id} className="transition-colors hover:bg-[#0FD452]/5">
                   <td className="px-6 py-4">
@@ -270,31 +272,31 @@ export default function JournalEntriesPage() {
                   <td className="px-6 py-4 text-sm  tabular-nums text-right text-green-600">{formatCurrency(entry.total_credit)}</td>
                   <td className="px-6 py-4 text-center">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${STATUS_COLORS[entry.status]}`}>
-                      {entry.status}
+                      {t(`accounting.journal.status.${entry.status}`, entry.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => navigate(`/dashboard/journal-entries/${entry.id}`)} className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="View">
+                      <button onClick={() => navigate(`/dashboard/journal-entries/${entry.id}`)} className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title={t('common.view')}>
                         <Eye className="w-3.5 h-3.5" />
                       </button>
                       {entry.status === 'draft' && (
-                        <button onClick={() => navigate(`/dashboard/journal-entries/${entry.id}/edit`)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors" title="Edit">
+                        <button onClick={() => navigate(`/dashboard/journal-entries/${entry.id}/edit`)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors" title={t('common.edit')}>
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                       )}
                       {entry.status === 'draft' && (
-                        <button onClick={() => handleDelete(entry.id)} disabled={processing === entry.id} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-lg transition-colors" title="Delete">
+                        <button onClick={() => handleDelete(entry.id)} disabled={processing === entry.id} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-lg transition-colors" title={t('common.delete')}>
                           {processing === entry.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                         </button>
                       )}
                       {entry.status === 'draft' && (
-                        <button onClick={() => handlePost(entry.id)} disabled={processing === entry.id} className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-gray-100 rounded-lg transition-colors" title="Post">
+                        <button onClick={() => handlePost(entry.id)} disabled={processing === entry.id} className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-gray-100 rounded-lg transition-colors" title={t('accounting.journal.post')}>
                           {processing === entry.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                         </button>
                       )}
                       {entry.status === 'posted' && (
-                        <button onClick={() => setShowReverseModal(entry.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-lg transition-colors" title="Reverse">
+                        <button onClick={() => setShowReverseModal(entry.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-lg transition-colors" title={t('accounting.journal.reverse')}>
                           <RotateCcw className="w-3.5 h-3.5" />
                         </button>
                       )}
@@ -312,18 +314,18 @@ export default function JournalEntriesPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">Reverse Journal Entry</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('accounting.journal.reverseTitle')}</h2>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">Reason for Reversal</label>
-                <textarea value={reverseReason} onChange={(e) => setReverseReason(e.target.value)} className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0FD452] resize-none" rows={3} placeholder="Enter reason..." required />
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('accounting.journal.reasonLabel')}</label>
+                <textarea value={reverseReason} onChange={(e) => setReverseReason(e.target.value)} className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0FD452] resize-none" rows={3} placeholder={t('accounting.journal.reasonPlaceholder')} required />
               </div>
               <div className="flex gap-3">
-                <button onClick={() => { setShowReverseModal(null); setReverseReason('') }} className="btn-secondary">Cancel</button>
+                <button onClick={() => { setShowReverseModal(null); setReverseReason('') }} className="btn-secondary">{t('common.cancel')}</button>
                 <button onClick={handleReverse} disabled={processing} className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm disabled:opacity-50">
                   {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-                  Reverse
+                  {t('accounting.journal.reverse')}
                 </button>
               </div>
             </div>

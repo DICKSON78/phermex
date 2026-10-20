@@ -4,6 +4,7 @@ import { ArrowLeft, Save, X, Loader2, BookOpen, Hash, Layers, FileText } from 'l
 import toast from 'react-hot-toast'
 import { accounts } from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const ACCOUNT_TYPES = [
   { id: 'asset', label: 'Assets' },
@@ -13,10 +14,19 @@ const ACCOUNT_TYPES = [
   { id: 'expense', label: 'Expenses' },
 ]
 
+const TYPE_KEYS = {
+  asset: 'accounting.assets',
+  liability: 'accounting.liabilities',
+  equity: 'accounting.equity',
+  revenue: 'accounting.revenue',
+  expense: 'accounting.expenses',
+}
+
 export default function ChartOfAccountsFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { pharmacyId } = useAuth()
+  const { t } = useLanguage()
   const isEdit = Boolean(id)
 
   const [form, setForm] = useState({ account_code: '', account_name: '', account_type: 'asset', parent_id: '', description: '', currency: 'TZS' })
@@ -50,7 +60,7 @@ export default function ChartOfAccountsFormPage() {
         currency: a.currency || 'TZS',
       })
     } catch {
-      toast.error('Failed to load account')
+      toast.error(t('accounting.coa.loadFailed'))
     } finally { setFetching(false) }
   }
 
@@ -61,8 +71,8 @@ export default function ChartOfAccountsFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!isEdit && !form.account_code.trim()) errs.account_code = 'Account code is required'
-    if (!form.account_name.trim()) errs.account_name = 'Account name is required'
+    if (!isEdit && !form.account_code.trim()) errs.account_code = t('accounting.coa.codeRequired')
+    if (!form.account_name.trim()) errs.account_name = t('accounting.coa.nameRequired')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -86,12 +96,15 @@ export default function ChartOfAccountsFormPage() {
         if (!payload.parent_id) delete payload.parent_id
         await accounts.create(payload)
       }
-      toast.success(isEdit ? 'Account updated' : 'Account created')
+      toast.success(isEdit ? t('accounting.coa.updated') : t('accounting.coa.created'))
       navigate('/dashboard/chart-of-accounts')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save account')
+      toast.error(err.response?.data?.message || t('accounting.coa.saveFailed'))
     } finally { setLoading(false) }
   }
+
+  const typeLabels = {}
+  ACCOUNT_TYPES.forEach((at) => { typeLabels[at.id] = t(TYPE_KEYS[at.id], at.label) })
 
   if (fetching) {
     return (
@@ -109,9 +122,9 @@ export default function ChartOfAccountsFormPage() {
             <Link to="/dashboard/chart-of-accounts" className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Account' : 'New Account'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? t('accounting.editAccount') : t('accounting.newAccount')}</h1>
           </div>
-          <p className="text-gray-600">{isEdit ? 'Update this account' : 'Add a new account to the chart'}</p>
+          <p className="text-gray-600">{isEdit ? t('accounting.coa.editSubtitle') : t('accounting.coa.newSubtitle')}</p>
         </div>
       </div>
 
@@ -123,13 +136,13 @@ export default function ChartOfAccountsFormPage() {
                 <BookOpen className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Account Information</h3>
-                <p className="text-sm text-gray-600">Code, name and type</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('accounting.coa.infoTitle')}</h3>
+                <p className="text-sm text-gray-600">{t('accounting.coa.infoSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Account Code {!isEdit && <span className="text-red-500">*</span>}</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.accountCode')} {!isEdit && <span className="text-red-500">*</span>}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Hash className="w-4 h-4 text-gray-400" />
@@ -146,7 +159,7 @@ export default function ChartOfAccountsFormPage() {
                 {errors.account_code && <p className="text-xs text-red-500 mt-1">{errors.account_code}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Account Type <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.accountType')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Layers className="w-4 h-4 text-gray-400" />
@@ -156,12 +169,12 @@ export default function ChartOfAccountsFormPage() {
                     onChange={(e) => handleChange('account_type', e.target.value)}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   >
-                    {ACCOUNT_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+                    {ACCOUNT_TYPES.map((t) => <option key={t.id} value={t.id}>{typeLabels[t.id]}</option>)}
                   </select>
                 </div>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Account Name <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.accountName')} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <BookOpen className="w-4 h-4 text-gray-400" />
@@ -170,27 +183,27 @@ export default function ChartOfAccountsFormPage() {
                     type="text"
                     value={form.account_name}
                     onChange={(e) => handleChange('account_name', e.target.value)}
-                    placeholder="e.g. Cash in Hand"
+                    placeholder={t('accounting.coa.namePlaceholder')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
                 {errors.account_name && <p className="text-xs text-red-500 mt-1">{errors.account_name}</p>}
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Parent Account</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.parentAccount')}</label>
                 <select
                   value={form.parent_id}
                   onChange={(e) => handleChange('parent_id', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                 >
-                  <option value="">None (Top Level)</option>
+                  <option value="">{t('accounting.topLevel')}</option>
                   {parentAccounts.filter((a) => a.id !== Number(id)).map((a) => (
                     <option key={a.id} value={a.id}>{a.account_code} - {a.account_name}</option>
                   ))}
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Description</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('accounting.description')}</label>
                 <div className="relative">
                   <div className="absolute top-3 left-3">
                     <FileText className="w-4 h-4 text-gray-400" />
@@ -198,7 +211,7 @@ export default function ChartOfAccountsFormPage() {
                   <textarea
                     value={form.description}
                     onChange={(e) => handleChange('description', e.target.value)}
-                    placeholder="Optional description"
+                    placeholder={t('accounting.coa.descPlaceholder')}
                     rows={3}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm resize-none"
                   />
@@ -210,11 +223,11 @@ export default function ChartOfAccountsFormPage() {
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
             <Link to="/dashboard/chart-of-accounts" className="btn-secondary">
               <X className="w-4 h-4" />
-              <span>Cancel</span>
+              <span>{t('common.cancel')}</span>
             </Link>
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isEdit ? 'Update Account' : 'Create Account'}</span>
+              <span>{isEdit ? t('accounting.ui.updateAccount') : t('accounting.ui.createAccount')}</span>
             </button>
           </div>
         </div>

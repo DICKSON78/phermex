@@ -3,6 +3,7 @@ import { Plus, BadgeCheck, Clock, AlertTriangle, XCircle, Calendar, Upload, File
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 
 const TYPE_LABELS = { pharmacy_license: 'Pharmacy License', drug_dealer_license: 'Drug Dealer License', tmda_registration: 'TMDA Registration', business_license: 'Business License', fire_safety: 'Fire Safety Certificate', health_certificate: 'Health Certificate' }
@@ -11,6 +12,7 @@ const STATUS_ICONS = { active: BadgeCheck, expiring: Clock, expired: XCircle, su
 
 export default function LicenseManagementPage() {
   const { pharmacyId } = useAuth()
+  const { t } = useLanguage()
   const [licenses, setLicenses] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -31,16 +33,16 @@ export default function LicenseManagementPage() {
     setSaving(true)
     try {
       await api.post('/licenses', { ...form, pharmacy_id: pharmacyId })
-      toast.success('License added'); setShowForm(false); fetchLicenses()
-    } catch { toast.error('Failed to save'); setShowForm(false) } finally { setSaving(false) }
+      toast.success(t('supply.licenses.added')); setShowForm(false); fetchLicenses()
+    } catch { toast.error(t('supply.licenses.saveFailed')); setShowForm(false) } finally { setSaving(false) }
   }
 
   const handleRenew = async () => {
     setSaving(true)
     try {
       await api.post(`/licenses/${showRenew.id}/renew`, renewForm)
-      toast.success('License renewed'); setShowRenew(null); fetchLicenses()
-    } catch { toast.error('Failed to save'); setShowRenew(null) } finally { setSaving(false) }
+      toast.success(t('supply.licenses.renewed')); setShowRenew(null); fetchLicenses()
+    } catch { toast.error(t('supply.licenses.saveFailed')); setShowRenew(null) } finally { setSaving(false) }
   }
 
   const getDaysUntilExpiry = (date) => {
@@ -63,11 +65,11 @@ export default function LicenseManagementPage() {
             <FileText className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">License Management</h1>
-            <p className="text-sm text-gray-500">Manage pharmacy licenses and permits.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('supply.licenses.title')}</h1>
+            <p className="text-sm text-gray-500">{t('supply.licenses.subtitle')}</p>
           </div>
         </div>
-        <button onClick={() => setShowForm(true)} className="btn-primary"><Plus className="w-5 h-5" /> Add License</button>
+        <button onClick={() => setShowForm(true)} className="btn-primary"><Plus className="w-5 h-5" /> {t('supply.licenses.addLicense')}</button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -78,7 +80,7 @@ export default function LicenseManagementPage() {
             <div key={status} className="bg-white rounded-xl p-5 border border-gray-200">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${STATUS_STYLES[status]}`}><Icon className="w-5 h-5" /></div>
-                <div><p className="text-xs text-gray-500 capitalize">{status}</p><p className="text-xl font-bold text-dark">{count}</p></div>
+                <div><p className="text-xs text-gray-500 capitalize">{t(`supply.licenses.statuses.${status}`, status)}</p><p className="text-xl font-bold text-dark">{count}</p></div>
               </div>
             </div>
           )
@@ -97,23 +99,23 @@ export default function LicenseManagementPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${STATUS_STYLES[status]}`}><Icon className="w-5 h-5" /></div>
-                    <div><h3 className="font-semibold text-dark">{TYPE_LABELS[license.license_type] || license.license_type}</h3><p className="text-xs text-gray-500">{license.license_number}</p></div>
+                    <div><h3 className="font-semibold text-dark">{t(`supply.licenses.types.${license.license_type}`, license.license_type)}</h3><p className="text-xs text-gray-500">{license.license_number}</p></div>
                   </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[status]}`}>{status}</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[status]}`}>{t(`supply.licenses.statuses.${status}`, status)}</span>
                 </div>
 
                 <div className="space-y-3 mb-4">
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Issuing Authority<span className="font-medium text-dark">{license.issuing_authority}</span></span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Issue Date<span className="text-dark">{new Date(license.issue_date).toLocaleDateString()}</span></span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Expiry Date<span className={`font-medium ${days < 0 ? 'text-red-600' : days <= 30 ? 'text-yellow-600' : 'text-dark'}`}>{new Date(license.expiry_date).toLocaleDateString()}</span></span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">{t('supply.licenses.issuingAuthority')}<span className="font-medium text-dark">{license.issuing_authority}</span></span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">{t('supply.licenses.issueDate')}<span className="text-dark">{new Date(license.issue_date).toLocaleDateString()}</span></span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">{t('supply.licenses.expiryDate')}<span className={`font-medium ${days < 0 ? 'text-red-600' : days <= 30 ? 'text-yellow-600' : 'text-dark'}`}>{new Date(license.expiry_date).toLocaleDateString()}</span></span></div>
                 </div>
 
                 <div className="mb-4">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1"><span>Validity Period<span>{days < 0 ? `Expired ${Math.abs(days)} days ago` : `${days} days remaining`}</span></span></div>
+                  <div className="flex justify-between text-xs text-gray-500 mb-1"><span>{t('supply.licenses.validityPeriod')}<span>{days < 0 ? `${t('supply.licenses.expiredAgo')} ${Math.abs(days)} ${t('supply.licenses.daysAgo')}` : `${days} ${t('supply.licenses.daysRemaining')}`}</span></span></div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${days < 0 ? 'bg-red-500' : days <= 30 ? 'bg-yellow-500' : 'bg-primary'}`} style={{ width: `${progressWidth}%` }} /></div>
                 </div>
 
-                <button onClick={() => { setShowRenew(license); setRenewForm({ issue_date: '', expiry_date: '', license_number: license.license_number, issuing_authority: license.issuing_authority }) }} className="w-full py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Renew License</button>
+                <button onClick={() => { setShowRenew(license); setRenewForm({ issue_date: '', expiry_date: '', license_number: license.license_number, issuing_authority: license.issuing_authority }) }} className="w-full py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">{t('supply.licenses.renewLicense')}</button>
               </div>
             )
           })}
@@ -121,7 +123,7 @@ export default function LicenseManagementPage() {
       ) : (
         <div className="text-center py-12 text-gray-400">
           <Shield className="w-12 h-12 mx-auto mb-3 opacity-40" />
-          <p className="text-sm font-medium">No licenses recorded</p>
+          <p className="text-sm font-medium">{t('supply.licenses.noLicenses')}</p>
         </div>
       )}
 
@@ -129,18 +131,18 @@ export default function LicenseManagementPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowForm(false)} />
           <div className="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl z-10">
-            <h3 className="text-lg font-semibold text-dark mb-4">Add License</h3>
+            <h3 className="text-lg font-semibold text-dark mb-4">{t('supply.licenses.addLicense')}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">License Type *</label><select value={form.license_type} onChange={(e) => setForm({...form, license_type: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none">
-                {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.licenses.licenseType')} *</label><select value={form.license_type} onChange={(e) => setForm({...form, license_type: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none">
+                {Object.keys(TYPE_LABELS).map((k) => <option key={k} value={k}>{t(`supply.licenses.types.${k}`)}</option>)}
               </select></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">License Number *</label><input type="text" required value={form.license_number} onChange={(e) => setForm({...form, license_number: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.licenses.licenseNumber')} *</label><input type="text" required value={form.license_number} onChange={(e) => setForm({...form, license_number: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Issue Date *</label><input type="date" required value={form.issue_date} onChange={(e) => setForm({...form, issue_date: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date *</label><input type="date" required value={form.expiry_date} onChange={(e) => setForm({...form, expiry_date: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.licenses.issueDate')} *</label><input type="date" required value={form.issue_date} onChange={(e) => setForm({...form, issue_date: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.licenses.expiryDate')} *</label><input type="date" required value={form.expiry_date} onChange={(e) => setForm({...form, expiry_date: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
               </div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Issuing Authority *</label><input type="text" required value={form.issuing_authority} onChange={(e) => setForm({...form, issuing_authority: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" placeholder="e.g. TMDA, TFDA" /></div>
-              <div className="flex gap-3 justify-end"><button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button><button type="submit" disabled={saving} className="px-4 py-2.5 bg-primary text-dark rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">{saving ? 'Adding...' : 'Add License'}</button></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.licenses.issuingAuthority')} *</label><input type="text" required value={form.issuing_authority} onChange={(e) => setForm({...form, issuing_authority: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" placeholder="e.g. TMDA, TFDA" /></div>
+              <div className="flex gap-3 justify-end"><button type="button" onClick={() => setShowForm(false)} className="btn-secondary">{t('common.cancel')}</button><button type="submit" disabled={saving} className="px-4 py-2.5 bg-primary text-dark rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">{saving ? t('supply.licenses.adding') : t('supply.licenses.addLicense')}</button></div>
             </form>
           </div>
         </div>
@@ -150,13 +152,13 @@ export default function LicenseManagementPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowRenew(null)} />
           <div className="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl z-10">
-            <h3 className="text-lg font-semibold text-dark mb-4">Renew {TYPE_LABELS[showRenew.license_type]}</h3>
+            <h3 className="text-lg font-semibold text-dark mb-4">{t('supply.licenses.renew')} {t(`supply.licenses.types.${showRenew.license_type}`, showRenew.license_type)}</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">New Issue Date *</label><input type="date" required value={renewForm.issue_date} onChange={(e) => setRenewForm({...renewForm, issue_date: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">New Expiry Date *</label><input type="date" required value={renewForm.expiry_date} onChange={(e) => setRenewForm({...renewForm, expiry_date: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.licenses.newIssueDate')} *</label><input type="date" required value={renewForm.issue_date} onChange={(e) => setRenewForm({...renewForm, issue_date: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.licenses.newExpiryDate')} *</label><input type="date" required value={renewForm.expiry_date} onChange={(e) => setRenewForm({...renewForm, expiry_date: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" /></div>
               </div>
-              <div className="flex gap-3 justify-end"><button onClick={() => setShowRenew(null)} className="btn-secondary">Cancel</button><button onClick={handleRenew} disabled={saving} className="px-4 py-2.5 bg-primary text-dark rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">{saving ? 'Renewing...' : 'Renew'}</button></div>
+              <div className="flex gap-3 justify-end"><button onClick={() => setShowRenew(null)} className="btn-secondary">{t('common.cancel')}</button><button onClick={handleRenew} disabled={saving} className="px-4 py-2.5 bg-primary text-dark rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">{saving ? t('supply.licenses.renewing') : t('supply.licenses.renew')}</button></div>
             </div>
           </div>
         </div>

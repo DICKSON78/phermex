@@ -3,6 +3,7 @@ import { toArray } from '../../utils/safeData';
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { currentBase } from '../../utils/roles'
 import {
   ArrowLeft,
@@ -30,9 +31,9 @@ import {
 
 
 const STATUS_CONFIG = {
-  pending: { label: 'Pending', style: 'bg-yellow-100 text-yellow-800', icon: Clock },
-  dispensed: { label: 'Dispensed', style: 'bg-green-100 text-green-800', icon: CheckCircle },
-  cancelled: { label: 'Cancelled', style: 'bg-red-100 text-red-800', icon: XCircle },
+  pending: { labelKey: 'orders.pending', style: 'bg-yellow-100 text-yellow-800', icon: Clock },
+  dispensed: { labelKey: 'orders.dispensed', style: 'bg-green-100 text-green-800', icon: CheckCircle },
+  cancelled: { labelKey: 'orders.cancelled', style: 'bg-red-100 text-red-800', icon: XCircle },
 }
 
 function normalizeItems(items) {
@@ -73,6 +74,7 @@ function normalizeRx(raw) {
 }
 
 export default function PrescriptionDetailPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const base = currentBase()
   const { id } = useParams()
@@ -119,9 +121,9 @@ export default function PrescriptionDetailPage() {
     setDispensing(true)
     try {
       await api.post(`/prescriptions/${id}/dispense`)
-      showToast('Prescription dispensed successfully')
+      showToast(t('sales.prescriptions.dispensedToast'))
     } catch (e) {
-      showToast(e.response?.data?.message || 'Failed to dispense', 'error')
+      showToast(e.response?.data?.message || t('sales.prescriptions.dispenseError'), 'error')
     }
     setRx((prev) => ({ ...prev, status: 'dispensed', items: (prev.items || []).map((i) => ({ ...i, dispensed: true })) }))
     setDispensing(false)
@@ -131,9 +133,9 @@ export default function PrescriptionDetailPage() {
   const handleCancel = async () => {
     try {
       await api.post(`/prescriptions/${id}/cancel`)
-      showToast('Prescription cancelled')
+      showToast(t('sales.prescriptions.cancelledToast'))
     } catch (e) {
-      showToast(e.response?.data?.message || 'Failed to cancel', 'error')
+      showToast(e.response?.data?.message || t('sales.prescriptions.cancelError'), 'error')
     }
     setRx((prev) => ({ ...prev, status: 'cancelled' }))
   }
@@ -166,7 +168,7 @@ export default function PrescriptionDetailPage() {
 
   const addDrug = (drug) => {
     if (selectedDrugs.some((s) => s.drug_id === drug.id)) {
-      showToast('Drug already added', 'error')
+      showToast(t('sales.prescriptions.drugAlreadyAdded'), 'error')
       return
     }
     setSelectedDrugs((prev) => [...prev, { drug_id: drug.id, name: drug.name, price: Number(drug.selling_price) || 0, quantity: 1, drug }])
@@ -185,7 +187,7 @@ export default function PrescriptionDetailPage() {
 
   const handleProcess = async () => {
     if (selectedDrugs.length === 0) {
-      showToast('Add at least one drug', 'error')
+      showToast(t('sales.prescriptions.addOneDrug'), 'error')
       return
     }
     setProcessing(true)
@@ -195,11 +197,11 @@ export default function PrescriptionDetailPage() {
         total: processTotal,
       }
       const res = await api.post(`/prescriptions/${id}/process`, payload)
-      showToast(res.data?.message || 'Prescription processed successfully')
+      showToast(res.data?.message || t('sales.prescriptions.processedToast'))
       setShowProcessModal(false)
       await fetchPrescription()
     } catch (e) {
-      showToast(e.response?.data?.message || 'Failed to process prescription', 'error')
+      showToast(e.response?.data?.message || t('sales.prescriptions.processError'), 'error')
     } finally {
       setProcessing(false)
     }
@@ -218,9 +220,9 @@ export default function PrescriptionDetailPage() {
       <div className="p-4 md:p-6 lg:p-8 flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Prescription not found</p>
+          <p className="text-gray-500">{t('sales.prescriptions.notFound')}</p>
           <button onClick={() => navigate(`${base}/prescriptions`)} className="text-[#0FD452] mt-2 text-sm font-medium hover:underline">
-            Go back
+            {t('sales.shared.goBack')}
           </button>
         </div>
       </div>
@@ -249,11 +251,11 @@ export default function PrescriptionDetailPage() {
               <h1 className="text-2xl font-bold text-gray-900">{rx.code}</h1>
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.style}`}>
                 <StatusIcon className="w-3.5 h-3.5" />
-                {statusInfo.label}
+                {t(statusInfo.labelKey)}
               </span>
             </div>
             <p className="text-sm text-gray-500 mt-0.5">
-              {isPhotoPrescription ? 'Customer-uploaded prescription — process to dispense.' : 'View prescription and dispensing history.'}
+              {isPhotoPrescription ? t('sales.prescriptions.photoSubtitle') : t('sales.prescriptions.viewSubtitle')}
             </p>
           </div>
         </div>
@@ -267,7 +269,7 @@ export default function PrescriptionDetailPage() {
                   className="btn-primary"
                 >
                   <Pill className="w-4 h-4" />
-                  Process &amp; Dispense
+                  {t('sales.prescriptions.processAndDispense')}
                 </button>
               ) : (
                 <button
@@ -275,7 +277,7 @@ export default function PrescriptionDetailPage() {
                   className="btn-primary"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  Dispense
+                  {t('sales.prescriptions.dispense')}
                 </button>
               )}
             </>
@@ -285,7 +287,7 @@ export default function PrescriptionDetailPage() {
             className="btn-secondary"
           >
             <Printer className="w-4 h-4" />
-            Print
+            {t('common.print')}
           </button>
           {rx.status === 'pending' && (
             <button
@@ -293,7 +295,7 @@ export default function PrescriptionDetailPage() {
               className="btn-danger-outline"
             >
               <XCircle className="w-4 h-4" />
-              Cancel
+              {t('common.cancel')}
             </button>
           )}
         </div>
@@ -307,7 +309,7 @@ export default function PrescriptionDetailPage() {
               <Stethoscope className="w-4.5 h-4.5 text-blue-500" />
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Doctor</p>
+              <p className="text-xs text-gray-400 mb-0.5">{t('sales.prescriptions.doctor')}</p>
               <p className="text-sm font-medium text-dark">{rx.doctor}</p>
             </div>
           </div>
@@ -316,7 +318,7 @@ export default function PrescriptionDetailPage() {
               <Building2 className="w-4.5 h-4.5 text-purple-500" />
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Hospital / Clinic</p>
+              <p className="text-xs text-gray-400 mb-0.5">{t('sales.prescriptions.hospitalClinic')}</p>
               <p className="text-sm font-medium text-dark">{rx.hospital || 'N/A'}</p>
             </div>
           </div>
@@ -325,7 +327,7 @@ export default function PrescriptionDetailPage() {
               <User className="w-4.5 h-4.5 text-green-500" />
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Patient</p>
+              <p className="text-xs text-gray-400 mb-0.5">{t('sales.prescriptions.patient')}</p>
               <p className="text-sm font-medium text-dark">{rx.patient}</p>
               {rx.patientPhone && (
                 <p className="text-xs text-gray-400 flex items-center gap-1">
@@ -339,14 +341,14 @@ export default function PrescriptionDetailPage() {
               <FileText className="w-4.5 h-4.5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Diagnosis</p>
+              <p className="text-xs text-gray-400 mb-0.5">{t('sales.prescriptions.diagnosis')}</p>
               <p className="text-sm font-medium text-dark">{rx.diagnosis || 'N/A'}</p>
             </div>
           </div>
         </div>
         {rx.notes && (
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-400 mb-1">Notes</p>
+            <p className="text-xs text-gray-400 mb-1">{t('sales.shared.notes')}</p>
             <p className="text-sm text-dark">{rx.notes}</p>
           </div>
         )}
@@ -358,13 +360,13 @@ export default function PrescriptionDetailPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2 mb-4">
               <ImageIcon className="w-4 h-4 text-[#0FD452]" />
-              Prescription Photo
+              {t('sales.prescriptions.photoTitle')}
             </h2>
             <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center" style={{ minHeight: '260px' }}>
               {rx.photo ? (
                 <img src={rx.photo} alt="Prescription" className="max-h-[420px] w-full object-contain" />
               ) : (
-                <span className="text-sm text-gray-400">No photo available</span>
+                <span className="text-sm text-gray-400">{t('sales.prescriptions.noPhoto')}</span>
               )}
             </div>
           </div>
@@ -372,7 +374,7 @@ export default function PrescriptionDetailPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2 mb-4">
                 <User className="w-4 h-4 text-[#0FD452]" />
-                Customer Information
+                {t('sales.prescriptions.customerInfo')}
               </h2>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -380,7 +382,7 @@ export default function PrescriptionDetailPage() {
                     <User className="w-4 h-4 text-[#0FD452]" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Name</p>
+                    <p className="text-xs text-gray-400">{t('common.name')}</p>
                     <p className="text-sm font-medium text-dark">{rx.patient}</p>
                   </div>
                 </div>
@@ -389,7 +391,7 @@ export default function PrescriptionDetailPage() {
                     <Phone className="w-4 h-4 text-blue-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Phone</p>
+                    <p className="text-xs text-gray-400">{t('common.phone')}</p>
                     <p className="text-sm font-medium text-dark">{rx.patientPhone || '—'}</p>
                   </div>
                 </div>
@@ -398,12 +400,10 @@ export default function PrescriptionDetailPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2 mb-3">
                 <Package className="w-4 h-4 text-[#0FD452]" />
-                No Items Yet
+                {t('sales.prescriptions.noItemsYet')}
               </h2>
               <p className="text-sm text-gray-500">
-                This prescription was uploaded by the customer as a photo. Use the
-                <strong> Process &amp; Dispense</strong> button to select the drugs and quantities
-                required, then submit to create the order.
+                {t('sales.prescriptions.photoHelp')}
               </p>
             </div>
           </div>
@@ -416,7 +416,7 @@ export default function PrescriptionDetailPage() {
           <div className="px-5 py-3 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
               <Pill className="w-4 h-4" />
-              Prescription Items
+              {t('sales.prescriptions.itemsTitle')}
             </h2>
           </div>
           <div className="overflow-x-auto">
@@ -426,37 +426,37 @@ export default function PrescriptionDetailPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Pill className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Drug</span>
+                      <span>{t('sales.shared.drug')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Qty</span>
+                      <span>{t('sales.shared.qty')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell">
                     <div className="flex items-center gap-1.5">
                       <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Dosage</span>
+                      <span>{t('sales.prescriptions.dosage')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell">
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Frequency</span>
+                      <span>{t('sales.prescriptions.frequency')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Duration</span>
+                      <span>{t('sales.prescriptions.duration')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Status</span>
+                      <span>{t('common.status')}</span>
                     </div>
                   </th>
                 </tr>
@@ -483,17 +483,17 @@ export default function PrescriptionDetailPage() {
                       {item.dispensed ? (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
                           <CheckCircle className="w-3.5 h-3.5" />
-                          Dispensed
+                          {t('orders.dispensed')}
                         </span>
                       ) : rx.status === 'cancelled' ? (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-red-500">
                           <XCircle className="w-3.5 h-3.5" />
-                          Cancelled
+                          {t('orders.cancelled')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-yellow-600">
                           <Clock className="w-3.5 h-3.5" />
-                          Pending
+                          {t('orders.pending')}
                         </span>
                       )}
                     </td>
@@ -513,19 +513,19 @@ export default function PrescriptionDetailPage() {
             <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-8 h-8 text-yellow-600" />
             </div>
-            <h2 className="text-lg font-bold text-dark mb-1">Dispense Prescription?</h2>
+            <h2 className="text-lg font-bold text-dark mb-1">{t('sales.prescriptions.confirmDispenseTitle')}</h2>
             <p className="text-sm text-gray-400 mb-1">
-              This will mark all items as dispensed and create an order.
+              {t('sales.prescriptions.confirmDispenseNote')}
             </p>
             <p className="text-xs text-gray-400 mb-5">
-              {rx.items.length} item(s) &mdash; {rx.code}
+              {rx.items.length} {t('sales.shared.itemsLower')} &mdash; {rx.code}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDispenseModal(false)}
                 className="btn-secondary"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleDispense}
@@ -537,7 +537,7 @@ export default function PrescriptionDetailPage() {
                 ) : (
                   <>
                     <CheckCircle className="w-4 h-4" />
-                    Confirm Dispense
+                    {t('sales.prescriptions.confirmDispense')}
                   </>
                 )}
               </button>
@@ -556,8 +556,8 @@ export default function PrescriptionDetailPage() {
                 <Pill className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Process &amp; Dispense</h2>
-                <p className="text-xs text-gray-500">Select drugs and quantities to dispense for {rx.code}</p>
+                <h2 className="text-lg font-bold text-gray-900">{t('sales.prescriptions.processAndDispense')}</h2>
+                <p className="text-xs text-gray-500">{t('sales.prescriptions.selectDrugsFor')} {rx.code}</p>
               </div>
             </div>
 
@@ -569,21 +569,21 @@ export default function PrescriptionDetailPage() {
                   type="text"
                   value={drugSearch}
                   onChange={(e) => setDrugSearch(e.target.value)}
-                  placeholder="Search drugs by name..."
+                  placeholder={t('sales.prescriptions.searchDrugsPlaceholder')}
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-[#000F14] placeholder-gray-400 outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
                 />
               </div>
 
               {/* Available drugs */}
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Available Drugs</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{t('sales.prescriptions.availableDrugs')}</p>
                 {drugsLoading ? (
                   <div className="flex items-center justify-center py-6 text-sm text-gray-400">
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading drugs...
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" /> {t('sales.prescriptions.loadingDrugs')}
                   </div>
                 ) : filteredDrugs.length === 0 ? (
                   <div className="text-center py-6 text-sm text-gray-400">
-                    {allDrugs.length === 0 ? 'No drugs found for this pharmacy.' : 'No drugs match your search.'}
+                    {allDrugs.length === 0 ? t('sales.prescriptions.noDrugsForPharmacy') : t('sales.prescriptions.noDrugsMatch')}
                   </div>
                 ) : (
                   <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-100">
@@ -600,7 +600,7 @@ export default function PrescriptionDetailPage() {
                         >
                           <div>
                             <p className="text-sm font-medium text-gray-900">{d.name}</p>
-                            <p className="text-xs text-gray-400">Stock: {d.quantity || 0}</p>
+                            <p className="text-xs text-gray-400">{t('products.stock')}: {d.quantity || 0}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-semibold text-[#0FD452]">
@@ -617,10 +617,10 @@ export default function PrescriptionDetailPage() {
 
               {/* Selected items */}
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Selected Items</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{t('sales.prescriptions.selectedItems')}</p>
                 {selectedDrugs.length === 0 ? (
                   <div className="text-center py-6 text-sm text-gray-400 bg-gray-50 rounded-xl">
-                    No drugs selected yet.
+                    {t('sales.prescriptions.noneSelected')}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -628,10 +628,10 @@ export default function PrescriptionDetailPage() {
                       <div key={s.drug_id} className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-2.5">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">{s.name}</p>
-                          <p className="text-xs text-gray-400">{Number(s.price).toLocaleString()} each</p>
+                          <p className="text-xs text-gray-400">{Number(s.price).toLocaleString()} {t('sales.shared.each')}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500">Qty</span>
+                          <span className="text-xs text-gray-500">{t('sales.shared.qty')}</span>
                           <input
                             type="number"
                             min="1"
@@ -645,7 +645,7 @@ export default function PrescriptionDetailPage() {
                           <button
                             onClick={() => removeDrug(s.drug_id)}
                             className="text-gray-400 hover:text-red-500 p-1"
-                            title="Remove"
+                            title={t('sales.shared.remove')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -660,7 +660,7 @@ export default function PrescriptionDetailPage() {
               <div className="flex items-center justify-between bg-[#0FD452]/5 border border-[#0FD452]/20 rounded-xl px-4 py-3">
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-[#0FD452]" />
-                  <span className="text-sm font-semibold text-gray-700">Total</span>
+                  <span className="text-sm font-semibold text-gray-700">{t('common.total')}</span>
                 </div>
                 <span className="text-xl font-bold text-gray-900">{processTotal.toLocaleString()}</span>
               </div>
@@ -671,7 +671,7 @@ export default function PrescriptionDetailPage() {
                 onClick={() => setShowProcessModal(false)}
                 className="btn-secondary"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleProcess}
@@ -683,7 +683,7 @@ export default function PrescriptionDetailPage() {
                 ) : (
                   <>
                     <CheckCircle className="w-4 h-4" />
-                    Process &amp; Dispense
+                    {t('sales.prescriptions.processAndDispense')}
                   </>
                 )}
               </button>

@@ -40,20 +40,21 @@ import toast from 'react-hot-toast'
 import Tabs from '../../components/Tabs'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const DATE_RANGES = [
-  { label: 'This Week', value: 'week' },
-  { label: 'This Month', value: 'month' },
-  { label: 'This Quarter', value: 'quarter' },
-  { label: 'This Year', value: 'year' },
-  { label: 'Custom', value: 'custom' },
+  { labelKey: 'reports.analytics.ranges.week', value: 'week' },
+  { labelKey: 'reports.analytics.ranges.month', value: 'month' },
+  { labelKey: 'reports.analytics.ranges.quarter', value: 'quarter' },
+  { labelKey: 'reports.analytics.ranges.year', value: 'year' },
+  { labelKey: 'reports.analytics.ranges.custom', value: 'custom' },
 ]
 
 const TABS = [
-  { id: 'sales', label: 'Sales', icon: ShoppingCart },
-  { id: 'inventory', label: 'Inventory', icon: Package },
-  { id: 'financial', label: 'Financial', icon: DollarSign },
-  { id: 'customers', label: 'Customers', icon: Users },
+  { id: 'sales', label: 'reports.analytics.tabs.sales', icon: ShoppingCart },
+  { id: 'inventory', label: 'reports.analytics.tabs.inventory', icon: Package },
+  { id: 'financial', label: 'reports.analytics.tabs.financial', icon: DollarSign },
+  { id: 'customers', label: 'reports.analytics.tabs.customers', icon: Users },
 ]
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
@@ -68,6 +69,7 @@ function SkeletonBlock({ className }) {
 }
 
 export default function ReportsPage() {
+  const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState('sales')
   const [dateRange, setDateRange] = useState('month')
   const [customDateFrom, setCustomDateFrom] = useState('')
@@ -78,23 +80,23 @@ export default function ReportsPage() {
   const handleExport = () => {
     if (!data) return
     const activeData = data[activeTab]
-    if (!activeData) { toast.error('No data to export'); return }
+    if (!activeData) { toast.error(t('reports.analytics.noDataExport')); return }
 
     let headers, rows
     if (activeTab === 'financial' && activeData.monthlyPL) {
-      headers = ['Month', 'Revenue', 'Expenses', 'Net Profit']
+      headers = [t('reports.analytics.month'), t('reports.analytics.revenueWord'), t('reports.financial.expenses'), t('reports.analytics.netProfit')]
       rows = activeData.monthlyPL.map(r => [r.month, r.revenue, r.expenses, r.profit])
     } else if (activeTab === 'sales' && activeData.revenueChart) {
-      headers = ['Date', 'Revenue']
+      headers = [t('common.date'), t('reports.analytics.revenueWord')]
       rows = activeData.revenueChart.map(r => [r.date, r.revenue])
     } else if (activeTab === 'inventory') {
-      headers = ['Item', 'Stock', 'Reorder Level', 'Status']
-      rows = activeData.lowStockItems.map(r => [r.name, r.currentStock, r.reorderLevel, r.currentStock === 0 ? 'Out of stock' : 'Low'])
+      headers = [t('nav.items.drugs'), t('products.stock'), t('products.reorderLevel'), t('common.status')]
+      rows = activeData.lowStockItems.map(r => [r.name, r.currentStock, r.reorderLevel, r.currentStock === 0 ? t('dashboard.outOfStock') : t('reports.analytics.low')])
     } else if (activeTab === 'customers' && activeData.topCustomers) {
-      headers = ['Customer', 'Orders', 'Total Spent']
+      headers = [t('reports.analytics.customer'), t('reports.analytics.ordersWord'), t('reports.analytics.totalSpent')]
       rows = activeData.topCustomers.map(r => [r.name, r.orders, r.totalSpent])
     } else {
-      toast.error('No tabular data to export'); return
+      toast.error(t('reports.analytics.noTabularExport')); return
     }
 
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
@@ -105,7 +107,7 @@ export default function ReportsPage() {
     a.download = `report-${activeTab}-${dateRange}.csv`
     a.click()
     URL.revokeObjectURL(url)
-    toast.success('Report exported')
+    toast.success(t('reports.analytics.exported'))
   }
 
   useEffect(() => {
@@ -174,14 +176,14 @@ export default function ReportsPage() {
             <BarChart3 className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-            <p className="text-sm text-gray-500">View sales reports and business analytics.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('reports.analytics.title')}</h1>
+            <p className="text-sm text-gray-500">{t('reports.analytics.subtitle')}</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
+      <Tabs tabs={TABS.map((tab) => ({ ...tab, label: t(tab.label) }))} active={activeTab} onChange={setActiveTab} />
 
       {/* Date Range + Export */}
       <div className="flex flex-wrap items-center gap-3">
@@ -197,7 +199,7 @@ export default function ReportsPage() {
                   : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
-              {range.label}
+              {t(range.labelKey)}
             </button>
           ))}
         </div>
@@ -222,7 +224,7 @@ export default function ReportsPage() {
         <div className="ml-auto">
           <button onClick={handleExport} className="btn-secondary">
             <Download className="w-4 h-4" />
-            Export
+            {t('common.export')}
           </button>
         </div>
       </div>
@@ -237,12 +239,13 @@ export default function ReportsPage() {
 }
 
 function SalesReport({ data }) {
-  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><BarChart3 className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No sales data available</p></div>
+  const { t } = useLanguage()
+  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><BarChart3 className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>{t('reports.analytics.salesEmpty')}</p></div>
   const stats = [
-    { label: 'Total Revenue', value: formatCurrency(data.totalRevenue), icon: DollarSign, color: 'bg-[#0FD452]/10 text-[#0FD452]', trend: data.revenueTrend },
-    { label: 'Total Orders', value: (data.totalOrders ?? 0).toLocaleString(), icon: ShoppingCart, color: 'bg-blue-500/10 text-blue-500', trend: 8.2 },
-    { label: 'Avg Order Value', value: formatCurrency(data.avgOrderValue), icon: TrendingUp, color: 'bg-purple-500/10 text-purple-500', trend: 3.1 },
-    { label: 'Items Sold', value: (data.itemsSold ?? 0).toLocaleString(), icon: Package, color: 'bg-orange-500/10 text-orange-500', trend: -1.2 },
+    { label: t('reports.analytics.totalRevenue'), value: formatCurrency(data.totalRevenue), icon: DollarSign, color: 'bg-[#0FD452]/10 text-[#0FD452]', trend: data.revenueTrend },
+    { label: t('reports.analytics.totalOrders'), value: (data.totalOrders ?? 0).toLocaleString(), icon: ShoppingCart, color: 'bg-blue-500/10 text-blue-500', trend: 8.2 },
+    { label: t('reports.analytics.avgOrderValue'), value: formatCurrency(data.avgOrderValue), icon: TrendingUp, color: 'bg-purple-500/10 text-purple-500', trend: 3.1 },
+    { label: t('reports.analytics.itemsSold'), value: (data.itemsSold ?? 0).toLocaleString(), icon: Package, color: 'bg-orange-500/10 text-orange-500', trend: -1.2 },
   ]
 
   return (
@@ -274,7 +277,7 @@ function SalesReport({ data }) {
 
       {/* Revenue Chart */}
       <div className="bg-white rounded-2xl p-6 border border-gray-200">
-        <h3 className="text-lg font-bold text-[#000F14] mb-4">Revenue Trend</h3>
+        <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.revenueTrend')}</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data.revenueChart ?? []}>
@@ -289,7 +292,7 @@ function SalesReport({ data }) {
               <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} tickFormatter={(v) => `TZS ${v}`} />
               <Tooltip
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                formatter={(value) => [formatCurrency(value), 'Revenue']}
+                formatter={(value) => [formatCurrency(value), t('reports.analytics.revenueWord')]}
               />
               <Area type="monotone" dataKey="revenue" stroke="#0FD452" strokeWidth={2.5} fill="url(#reportRevGrad)" />
             </AreaChart>
@@ -300,13 +303,13 @@ function SalesReport({ data }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Selling Drugs */}
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
-          <h3 className="text-lg font-bold text-[#000F14] mb-4">Top Selling Drugs</h3>
+          <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.topSelling')}</h3>
           <div className="space-y-4">
             {(data.topSellingDrugs ?? []).length > 0 ? (data.topSellingDrugs ?? []).map((drug, idx) => (
               <div key={idx}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-[#000F14]">{drug.name}</span>
-                  <span className="text-xs text-gray-400">{drug.quantitySold} sold</span>
+                  <span className="text-xs text-gray-400">{drug.quantitySold} {t('dashboard.sold')}</span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-gray-100">
                   <div
@@ -314,15 +317,15 @@ function SalesReport({ data }) {
                     style={{ width: `${(drug.quantitySold / ((data.topSellingDrugs ?? [])[0]?.quantitySold || 1)) * 100}%` }}
                   />
                 </div>
-                <p className="text-xs text-gray-400 mt-0.5">{formatCurrency(drug.revenue)} revenue</p>
+                <p className="text-xs text-gray-400 mt-0.5">{formatCurrency(drug.revenue)} {t('reports.analytics.revenueWord')}</p>
               </div>
-            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">{t('reports.analytics.noRecords')}</p>}
           </div>
         </div>
 
         {/* Payment Methods */}
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
-          <h3 className="text-lg font-bold text-[#000F14] mb-4">Sales by Payment Method</h3>
+          <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.paymentMethods')}</h3>
           <div className="space-y-3">
             {(data.paymentMethods ?? []).length > 0 ? (data.paymentMethods ?? []).map((pm, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
@@ -330,12 +333,12 @@ function SalesReport({ data }) {
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
                   <div>
                     <p className="text-sm font-medium text-[#000F14]">{pm.method}</p>
-                    <p className="text-xs text-gray-400">{pm.count} orders</p>
+                    <p className="text-xs text-gray-400">{pm.count} {t('reports.analytics.ordersWord')}</p>
                   </div>
                 </div>
                 <span className="text-sm font-semibold text-[#000F14]">{formatCurrency(pm.amount)}</span>
               </div>
-            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">{t('reports.analytics.noRecords')}</p>}
           </div>
         </div>
       </div>
@@ -344,12 +347,13 @@ function SalesReport({ data }) {
 }
 
 function InventoryReport({ data }) {
-  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><Package className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No inventory data available</p></div>
+  const { t } = useLanguage()
+  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><Package className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>{t('reports.analytics.inventoryEmpty')}</p></div>
   const stats = [
-    { label: 'Total Drugs', value: (data.totalDrugs ?? 0).toLocaleString(), icon: Package, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
-    { label: 'Stock Value', value: formatCurrency(data.totalStockValue), icon: DollarSign, color: 'bg-blue-500/10 text-blue-500' },
-    { label: 'Low Stock Items', value: (data.lowStockItems ?? []).length, icon: AlertTriangle, color: 'bg-red-500/10 text-red-500' },
-    { label: 'Expiring Soon', value: (data.expiringSoon ?? []).length, icon: Clock, color: 'bg-orange-500/10 text-orange-500' },
+    { label: t('reports.analytics.totalDrugs'), value: (data.totalDrugs ?? 0).toLocaleString(), icon: Package, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
+    { label: t('reports.analytics.stockValue'), value: formatCurrency(data.totalStockValue), icon: DollarSign, color: 'bg-blue-500/10 text-blue-500' },
+    { label: t('reports.analytics.lowStockItems'), value: (data.lowStockItems ?? []).length, icon: AlertTriangle, color: 'bg-red-500/10 text-red-500' },
+    { label: t('reports.analytics.expiringSoon'), value: (data.expiringSoon ?? []).length, icon: Clock, color: 'bg-orange-500/10 text-orange-500' },
   ]
 
   return (
@@ -370,7 +374,7 @@ function InventoryReport({ data }) {
 
       {/* Category Distribution Chart */}
       <div className="bg-white rounded-2xl p-6 border border-gray-200">
-        <h3 className="text-lg font-bold text-[#000F14] mb-4">Stock Distribution by Category</h3>
+        <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.stockDistribution')}</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data.categoryDistribution ?? []}>
@@ -389,52 +393,52 @@ function InventoryReport({ data }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Low Stock Items */}
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
-          <h3 className="text-lg font-bold text-[#000F14] mb-4">Low Stock Items</h3>
+          <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.lowStockItems')}</h3>
           <div className="space-y-3">
             {(data.lowStockItems ?? []).length > 0 ? (data.lowStockItems ?? []).map((item, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-red-50 rounded-xl">
                 <div>
                   <p className="text-sm font-medium text-[#000F14]">{item.name}</p>
-                  <p className="text-xs text-gray-400">Reorder level: {item.reorderLevel}</p>
+                  <p className="text-xs text-gray-400">{t('dashboard.reorderAt')}: {item.reorderLevel}</p>
                 </div>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   item.currentStock === 0 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                 }`}>
-                  {item.currentStock === 0 ? 'Out of stock' : `${item.currentStock} left`}
+                  {item.currentStock === 0 ? t('dashboard.outOfStock') : `${item.currentStock} ${t('dashboard.left')}`}
                 </span>
               </div>
-            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">{t('reports.analytics.noRecords')}</p>}
           </div>
         </div>
 
         {/* Expiring Soon */}
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
-          <h3 className="text-lg font-bold text-[#000F14] mb-4">Expiring Soon</h3>
+          <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.expiringSoon')}</h3>
           <div className="space-y-3">
             {(data.expiringSoon ?? []).length > 0 ? (data.expiringSoon ?? []).map((item, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-orange-50 rounded-xl">
                 <div>
                   <p className="text-sm font-medium text-[#000F14]">{item.name}</p>
-                  <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
+                  <p className="text-xs text-gray-400">{t('reports.analytics.quantity')}: {item.quantity}</p>
                 </div>
                 <span className="text-xs font-medium text-orange-600">
-                  Expires {new Date(item.expiryDate).toLocaleDateString()}
+                  {t('reports.analytics.expires')} {new Date(item.expiryDate).toLocaleDateString()}
                 </span>
               </div>
-            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">{t('reports.analytics.noRecords')}</p>}
           </div>
         </div>
       </div>
 
       {/* Stock Movement Summary */}
       <div className="bg-white rounded-2xl p-6 border border-gray-200">
-        <h3 className="text-lg font-bold text-[#000F14] mb-4">Stock Movement Summary</h3>
+        <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.stockMovementSummary')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Received', value: data.stockMovements?.received ?? 0, color: 'text-[#0FD452]' },
-            { label: 'Dispensed', value: data.stockMovements?.dispensed ?? 0, color: 'text-blue-500' },
-            { label: 'Returned', value: data.stockMovements?.returned ?? 0, color: 'text-orange-500' },
-            { label: 'Expired', value: data.stockMovements?.expired ?? 0, color: 'text-red-500' },
+            { label: t('reports.analytics.received'), value: data.stockMovements?.received ?? 0, color: 'text-[#0FD452]' },
+            { label: t('reports.analytics.dispensed'), value: data.stockMovements?.dispensed ?? 0, color: 'text-blue-500' },
+            { label: t('reports.analytics.returned'), value: data.stockMovements?.returned ?? 0, color: 'text-orange-500' },
+            { label: t('reports.analytics.expired'), value: data.stockMovements?.expired ?? 0, color: 'text-red-500' },
           ].map((item, idx) => (
             <div key={idx} className="text-center p-4 bg-gray-50 rounded-xl">
               <p className={`text-2xl font-bold ${item.color}`}>{item.value}</p>
@@ -448,16 +452,17 @@ function InventoryReport({ data }) {
 }
 
 function FinancialReport({ data }) {
-  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><DollarSign className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No financial data available</p></div>
+  const { t } = useLanguage()
+  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><DollarSign className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>{t('reports.analytics.financialEmpty')}</p></div>
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Revenue', value: formatCurrency(data.revenue), color: 'bg-[#0FD452]/10 text-[#0FD452]', icon: DollarSign },
-          { label: 'Total Expenses', value: formatCurrency(data.expenses), color: 'bg-red-500/10 text-red-500', icon: TrendingDown },
-          { label: 'Net Profit', value: formatCurrency(data.profit), color: 'bg-blue-500/10 text-blue-500', icon: TrendingUp },
-          { label: 'Profit Margin', value: `${data.profitMargin ?? 0}%`, color: 'bg-purple-500/10 text-purple-500', icon: BarChart3 },
+          { label: t('reports.analytics.totalRevenue'), value: formatCurrency(data.revenue), color: 'bg-[#0FD452]/10 text-[#0FD452]', icon: DollarSign },
+          { label: t('reports.financial.totalExpenses'), value: formatCurrency(data.expenses), color: 'bg-red-500/10 text-red-500', icon: TrendingDown },
+          { label: t('reports.analytics.netProfit'), value: formatCurrency(data.profit), color: 'bg-blue-500/10 text-blue-500', icon: TrendingUp },
+          { label: t('reports.analytics.profitMargin'), value: `${data.profitMargin ?? 0}%`, color: 'bg-purple-500/10 text-purple-500', icon: BarChart3 },
         ].map((stat, idx) => (
           <div key={idx} className="bg-white rounded-2xl p-5 border border-gray-200">
             <div className="flex items-center justify-between mb-3">
@@ -474,7 +479,7 @@ function FinancialReport({ data }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue vs Expenses */}
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
-          <h3 className="text-lg font-bold text-[#000F14] mb-4">Revenue vs Expenses</h3>
+          <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.revenueVsExpenses')}</h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.monthlyPL ?? []}>
@@ -486,8 +491,8 @@ function FinancialReport({ data }) {
                   formatter={(value) => [formatCurrency(value)]}
                 />
                 <Legend />
-                <Bar dataKey="revenue" fill="#0FD452" radius={[4, 4, 0, 0]} name="Revenue" />
-                <Bar dataKey="expenses" fill="#ef4444" radius={[4, 4, 0, 0]} name="Expenses" />
+                <Bar dataKey="revenue" fill="#0FD452" radius={[4, 4, 0, 0]} name={t('reports.analytics.revenueWord')} />
+                <Bar dataKey="expenses" fill="#ef4444" radius={[4, 4, 0, 0]} name={t('reports.financial.expenses')} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -495,7 +500,7 @@ function FinancialReport({ data }) {
 
         {/* Expense Breakdown Pie Chart */}
         <div className="bg-white rounded-2xl p-6 border border-gray-200">
-          <h3 className="text-lg font-bold text-[#000F14] mb-4">Expense Breakdown</h3>
+          <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.expenseBreakdown')}</h3>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -530,14 +535,14 @@ function FinancialReport({ data }) {
                 </div>
                 <span className="font-medium text-[#000F14]">{formatCurrency(exp.amount)}</span>
               </div>
-            )) : <p className="text-sm text-gray-400 py-4 text-center">No records</p>}
+            )) : <p className="text-sm text-gray-400 py-4 text-center">{t('reports.analytics.noRecords')}</p>}
           </div>
         </div>
       </div>
 
       {/* Monthly P&L Table */}
       <div className="bg-white rounded-2xl p-6 border border-gray-200">
-        <h3 className="text-lg font-bold text-[#000F14] mb-4">Monthly Profit & Loss Summary</h3>
+        <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.monthlyPL')}</h3>
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -546,31 +551,31 @@ function FinancialReport({ data }) {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Month</span>
+                      <span>{t('reports.analytics.month')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <TrendingUp className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Revenue</span>
+                      <span>{t('reports.analytics.revenueWord')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <TrendingDown className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Expenses</span>
+                      <span>{t('reports.financial.expenses')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Profit</span>
+                      <span>{t('reports.analytics.profit')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <Percent className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Margin</span>
+                      <span>{t('reports.analytics.margin')}</span>
                     </div>
                   </th>
                 </tr>
@@ -594,7 +599,7 @@ function FinancialReport({ data }) {
                       <td className="px-6 py-4 text-right text-sm text-gray-600">{margin}%</td>
                     </tr>
                   )
-                }) : <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400"><p className="text-sm font-medium">No records found</p></td></tr>}
+                }) : <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400"><p className="text-sm font-medium">{t('reports.analytics.noRecordsFound')}</p></td></tr>}
               </tbody>
             </table>
           </div>
@@ -605,12 +610,13 @@ function FinancialReport({ data }) {
 }
 
 function CustomersReport({ data }) {
-  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><Users className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No customer data available</p></div>
+  const { t } = useLanguage()
+  if (!data) return <div className="bg-white rounded-2xl p-12 text-center text-gray-400"><Users className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>{t('reports.analytics.customersEmpty')}</p></div>
   const stats = [
-    { label: 'Total Customers', value: (data.totalCustomers ?? 0).toLocaleString(), icon: Users, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
-    { label: 'New This Month', value: data.newCustomersThisMonth ?? 0, icon: TrendingUp, color: 'bg-blue-500/10 text-blue-500' },
-    { label: 'Retention Rate', value: `${data.retentionRate ?? 0}%`, icon: TrendingUp, color: 'bg-purple-500/10 text-purple-500' },
-    { label: 'Avg Orders/Customer', value: (data.avgOrdersPerCustomer ?? 0).toFixed(1), icon: ShoppingCart, color: 'bg-orange-500/10 text-orange-500' },
+    { label: t('reports.analytics.totalCustomers'), value: (data.totalCustomers ?? 0).toLocaleString(), icon: Users, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
+    { label: t('reports.analytics.newThisMonth'), value: data.newCustomersThisMonth ?? 0, icon: TrendingUp, color: 'bg-blue-500/10 text-blue-500' },
+    { label: t('reports.analytics.retentionRate'), value: `${data.retentionRate ?? 0}%`, icon: TrendingUp, color: 'bg-purple-500/10 text-purple-500' },
+    { label: t('reports.analytics.avgOrdersCustomer'), value: (data.avgOrdersPerCustomer ?? 0).toFixed(1), icon: ShoppingCart, color: 'bg-orange-500/10 text-orange-500' },
   ]
 
   return (
@@ -631,7 +637,7 @@ function CustomersReport({ data }) {
 
       {/* Top Customers */}
       <div className="bg-white rounded-2xl p-6 border border-gray-200">
-        <h3 className="text-lg font-bold text-[#000F14] mb-4">Top Customers by Spending</h3>
+        <h3 className="text-lg font-bold text-[#000F14] mb-4">{t('reports.analytics.topCustomers')}</h3>
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -646,25 +652,25 @@ function CustomersReport({ data }) {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Customer</span>
+                      <span>{t('reports.analytics.customer')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <ShoppingCart className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Orders</span>
+                      <span>{t('reports.analytics.ordersWord')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Total Spent</span>
+                      <span>{t('reports.analytics.totalSpent')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <TrendingUp className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Spending</span>
+                      <span>{t('reports.analytics.spending')}</span>
                     </div>
                   </th>
                 </tr>
@@ -696,7 +702,7 @@ function CustomersReport({ data }) {
                       </div>
                     </td>
                   </tr>
-                )) : <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400"><p className="text-sm font-medium">No records found</p></td></tr>}
+                )) : <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400"><p className="text-sm font-medium">{t('reports.analytics.noRecordsFound')}</p></td></tr>}
               </tbody>
             </table>
           </div>

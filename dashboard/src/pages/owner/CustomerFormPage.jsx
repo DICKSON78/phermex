@@ -4,8 +4,10 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Save, Loader2, Users, User, MapPin, HeartPulse, X } from 'lucide-react'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function CustomerFormPage() {
+  const { t } = useLanguage()
   const { id } = useParams()
   const navigate = useNavigate()
   const base = currentBase()
@@ -44,9 +46,9 @@ export default function CustomerFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.name.trim()) errs.name = 'Name is required'
-    if (!form.phone.trim()) errs.phone = 'Phone is required'
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email'
+    if (!form.name.trim()) errs.name = t('sales.customers.nameRequired')
+    if (!form.phone.trim()) errs.phone = t('sales.customers.phoneRequired')
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t('sales.customers.invalidEmail')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -91,9 +93,9 @@ export default function CustomerFormPage() {
             <Link to={`${base}/customers`} className="btn-ghost">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Customer' : 'Create New Customer'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{isEdit ? t('customers.editCustomer') : t('sales.customers.createNew')}</h1>
           </div>
-          <p className="text-gray-600">{isEdit ? 'Update existing customer details' : 'Add a new customer record'}</p>
+          <p className="text-gray-600">{isEdit ? t('sales.customers.updateSubtitle') : t('sales.customers.addSubtitle')}</p>
         </div>
       </div>
 
@@ -106,14 +108,14 @@ export default function CustomerFormPage() {
                 <User className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Personal Information</h3>
-                <p className="text-sm text-gray-600">Name, contact and personal details</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('profile.personalInfo')}</h3>
+                <p className="text-sm text-gray-600">{t('sales.customers.personalInfoSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Full Name <span className="text-red-500">*</span>
+                  {t('sales.customers.fullName')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -123,7 +125,7 @@ export default function CustomerFormPage() {
                     type="text"
                     value={form.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder="Enter full name"
+                    placeholder={t('sales.customers.fullNamePlaceholder')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
@@ -131,7 +133,7 @@ export default function CustomerFormPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Phone <span className="text-red-500">*</span>
+                  {t('common.phone')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -148,7 +150,7 @@ export default function CustomerFormPage() {
                 {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Email</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('common.email')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <User className="w-4 h-4 text-gray-400" />
@@ -164,7 +166,7 @@ export default function CustomerFormPage() {
                 {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Date of Birth</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.customers.dob')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <User className="w-4 h-4 text-gray-400" />
@@ -178,7 +180,7 @@ export default function CustomerFormPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Gender</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.customers.gender')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <User className="w-4 h-4 text-gray-400" />
@@ -188,10 +190,10 @@ export default function CustomerFormPage() {
                     onChange={(e) => handleChange('gender', e.target.value)}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   >
-                    <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option value="">{t('sales.customers.selectGender')}</option>
+                    <option value="Male">{t('sales.customers.male')}</option>
+                    <option value="Female">{t('sales.customers.female')}</option>
+                    <option value="Other">{t('sales.customers.other')}</option>
                   </select>
                 </div>
               </div>
@@ -205,13 +207,13 @@ export default function CustomerFormPage() {
                 <MapPin className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Address</h3>
-                <p className="text-sm text-gray-600">Location and address information</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('common.address')}</h3>
+                <p className="text-sm text-gray-600">{t('sales.customers.addressSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Location</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.customers.location')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <MapPin className="w-4 h-4 text-gray-400" />
@@ -220,13 +222,13 @@ export default function CustomerFormPage() {
                     type="text"
                     value={form.location}
                     onChange={(e) => handleChange('location', e.target.value)}
-                    placeholder="City / Area"
+                    placeholder={t('sales.customers.cityArea')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Street</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.customers.street')}</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <MapPin className="w-4 h-4 text-gray-400" />
@@ -235,7 +237,7 @@ export default function CustomerFormPage() {
                     type="text"
                     value={form.street}
                     onChange={(e) => handleChange('street', e.target.value)}
-                    placeholder="Street address"
+                    placeholder={t('sales.customers.streetPlaceholder')}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm"
                   />
                 </div>
@@ -250,13 +252,13 @@ export default function CustomerFormPage() {
                 <HeartPulse className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Medical Information</h3>
-                <p className="text-sm text-gray-600">Allergies and existing conditions</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('sales.customers.medicalInfo')}</h3>
+                <p className="text-sm text-gray-600">{t('sales.customers.medicalInfoSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Allergies</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.customers.allergies')}</label>
                 <div className="relative">
                   <div className="absolute top-3 left-3">
                     <HeartPulse className="w-4 h-4 text-gray-400" />
@@ -264,14 +266,14 @@ export default function CustomerFormPage() {
                   <textarea
                     value={form.allergies}
                     onChange={(e) => handleChange('allergies', e.target.value)}
-                    placeholder="List any known allergies..."
+                    placeholder={t('sales.customers.allergiesPlaceholder')}
                     rows={3}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm resize-none"
                   />
                 </div>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Medical Conditions</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('sales.customers.medicalConditions')}</label>
                 <div className="relative">
                   <div className="absolute top-3 left-3">
                     <HeartPulse className="w-4 h-4 text-gray-400" />
@@ -279,7 +281,7 @@ export default function CustomerFormPage() {
                   <textarea
                     value={form.medical_conditions}
                     onChange={(e) => handleChange('medical_conditions', e.target.value)}
-                    placeholder="List any medical conditions..."
+                    placeholder={t('sales.customers.conditionsPlaceholder')}
                     rows={3}
                     className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm resize-none"
                   />
@@ -292,11 +294,11 @@ export default function CustomerFormPage() {
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
             <Link to={`${base}/customers`} className="btn-secondary">
               <X className="w-4 h-4" />
-              <span>Cancel</span>
+              <span>{t('common.cancel')}</span>
             </Link>
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isEdit ? 'Update Customer' : 'Create Customer'}</span>
+              <span>{isEdit ? t('sales.customers.updateCustomer') : t('sales.customers.createCustomer')}</span>
             </button>
           </div>
         </div>

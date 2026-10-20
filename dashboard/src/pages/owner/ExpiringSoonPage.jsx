@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const TODAY = new Date()
 
@@ -17,16 +18,18 @@ function daysUntil(dateStr) {
   return diff
 }
 
-const FILTER_TABS = [
-  { key: '7', label: '7 Days' },
-  { key: '30', label: '30 Days' },
-  { key: '90', label: '90 Days' },
-  { key: 'expired', label: 'Already Expired' },
-]
+
 
 export default function ExpiringSoonPage() {
   const navigate = useNavigate()
   const base = currentBase()
+  const { t } = useLanguage()
+  const FILTER_TABS = [
+    { key: '7', label: t('inventory.expiring.days7') },
+    { key: '30', label: t('inventory.expiring.days30') },
+    { key: '90', label: t('inventory.expiring.days90') },
+    { key: 'expired', label: t('inventory.expiring.alreadyExpired') },
+  ]
   const [drugs, setDrugs] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterTab, setFilterTab] = useState('30')
@@ -76,10 +79,10 @@ export default function ExpiringSoonPage() {
     .reduce((sum, d) => sum + (d.quantity || 0) * (d.buying_price || 0), 0)
 
   const statCards = [
-    { label: 'Expiring 7 Days', value: expiring7, color: 'bg-red-100 text-red-600', iconColor: 'text-red-500' },
-    { label: 'Expiring 30 Days', value: expiring30, color: 'bg-yellow-100 text-yellow-600', iconColor: 'text-yellow-500' },
-    { label: 'Expiring 90 Days', value: expiring90, color: 'bg-orange-100 text-orange-600', iconColor: 'text-orange-500' },
-    { label: 'Total Value at Risk', value: `TZS ${totalValueAtRisk.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, color: 'bg-purple-100 text-purple-600', iconColor: 'text-purple-500' },
+    { label: t('inventory.expiring.expiring7'), value: expiring7, color: 'bg-red-100 text-red-600', iconColor: 'text-red-500' },
+    { label: t('inventory.expiring.expiring30'), value: expiring30, color: 'bg-yellow-100 text-yellow-600', iconColor: 'text-yellow-500' },
+    { label: t('inventory.expiring.expiring90'), value: expiring90, color: 'bg-orange-100 text-orange-600', iconColor: 'text-orange-500' },
+    { label: t('inventory.expiring.valueAtRisk'), value: `TZS ${totalValueAtRisk.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, color: 'bg-purple-100 text-purple-600', iconColor: 'text-purple-500' },
   ]
 
   const handleMarkExpired = (drug) => {
@@ -88,11 +91,11 @@ export default function ExpiringSoonPage() {
   }
 
   const getDaysBadge = (days) => {
-    if (days < 0) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Expired</span>
-    if (days <= 7) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{days}d</span>
-    if (days <= 30) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">{days}d</span>
-    if (days <= 90) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">{days}d</span>
-    return <span className="text-sm text-gray-600">{days}d</span>
+    if (days < 0) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{t('inventory.drugs.expired')}</span>
+    if (days <= 7) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{days}{t('inventory.expiring.daysSuffix')}</span>
+    if (days <= 30) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">{days}{t('inventory.expiring.daysSuffix')}</span>
+    if (days <= 90) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">{days}{t('inventory.expiring.daysSuffix')}</span>
+    return <span className="text-sm text-gray-600">{days}{t('inventory.expiring.daysSuffix')}</span>
   }
 
   return (
@@ -103,8 +106,8 @@ export default function ExpiringSoonPage() {
             <Clock className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Expiring Soon</h1>
-            <p className="text-sm text-gray-500">Drugs approaching expiration date.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('inventory.expiring.title')}</h1>
+            <p className="text-sm text-gray-500">{t('inventory.expiring.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -135,7 +138,7 @@ export default function ExpiringSoonPage() {
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-              placeholder="Search by drug name or category..."
+              placeholder={t('inventory.expiring.searchPlaceholder')}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-[#000F14] placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0FD452]/20 focus:border-[#0FD452] transition-all"
             />
           </div>
@@ -160,14 +163,14 @@ export default function ExpiringSoonPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>Drug Name</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell"><div className="flex items-center gap-1.5"><FolderOpen className="w-3.5 h-3.5 text-[#0FD452]" /><span>Category</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell"><div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-[#0FD452]" /><span>Batch</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>Stock</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#0FD452]" /><span>Expiry Date</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5 text-[#0FD452]" /><span>Days Left</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>Value</span></div></th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><Eye className="w-3.5 h-3.5 text-[#0FD452]" /><span>Actions</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('products.drugName')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell"><div className="flex items-center gap-1.5"><FolderOpen className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('products.category')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell"><div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.expiring.batch')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('products.stock')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('products.expiryDate')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.expiring.daysLeft')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.expiring.value')}</span></div></th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><Eye className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('common.actions')}</span></div></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -181,7 +184,7 @@ export default function ExpiringSoonPage() {
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                     <Clock className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                    <p>No expiring drugs in this range</p>
+                    <p>{t('inventory.expiring.noDrugsInRange')}</p>
                   </td>
                 </tr>
               ) : (
@@ -210,14 +213,14 @@ export default function ExpiringSoonPage() {
                           <button
                             onClick={() => setMarkExpiredModal(drug)}
                             className="btn-icon-red"
-                            title="Mark as Expired"
+                            title={t('inventory.expiring.markExpiredTitle')}
                           >
                             <AlertTriangle className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => navigate(`${base}/drugs/${drug.id}`)}
                             className="btn-icon-primary"
-                            title="View Drug"
+                            title={t('inventory.expiring.viewDrug')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -234,8 +237,8 @@ export default function ExpiringSoonPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
             <p className="text-sm text-gray-500">
-              Showing {(currentPage - 1) * pageSize + 1} to{' '}
-              {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length}
+              {t('inventory.pagination.showing')} {(currentPage - 1) * pageSize + 1} {t('inventory.pagination.to')}{' '}
+              {Math.min(currentPage * pageSize, filtered.length)} {t('inventory.pagination.of')} {filtered.length}
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -286,26 +289,26 @@ export default function ExpiringSoonPage() {
                 <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                   <AlertTriangle className="w-5 h-5 text-red-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-[#000F14]">Mark as Expired</h3>
+                <h3 className="text-lg font-semibold text-[#000F14]">{t('inventory.expiring.markExpiredTitle')}</h3>
               </div>
               <p className="text-sm text-gray-600 mb-4">
-                Are you sure you want to mark <strong>{markExpiredModal.name}</strong> (Batch: {markExpiredModal.batch_number}) as expired? This will adjust the stock quantity ({markExpiredModal.quantity} units).
+                {t('inventory.expiring.markPrefix')} <strong>{markExpiredModal.name}</strong> (Batch: {markExpiredModal.batch_number}) {t('inventory.expiring.markAsExpired')}? {t('inventory.expiring.markWillAdjust')} ({markExpiredModal.quantity} {t('inventory.expiring.units')}).
               </p>
               <div className="bg-red-50 rounded-xl p-3 text-sm text-red-700 mb-4">
-                Stock will be adjusted to 0 for this batch.
+                {t('inventory.expiring.stockAdjustedNote')}
               </div>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setMarkExpiredModal(null)}
                   className="btn-secondary"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={() => handleMarkExpired(markExpiredModal)}
                   className="btn-danger"
                 >
-                  Mark Expired
+                  {t('inventory.expiring.markExpiredButton')}
                 </button>
               </div>
             </div>

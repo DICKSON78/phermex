@@ -12,10 +12,12 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import api from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const CODE_LENGTH = 6
 
 export default function ForgotPasswordPage() {
+  const { t } = useLanguage()
   const [step, setStep] = useState(1)
   const [identifier, setIdentifier] = useState('')
   const [code, setCode] = useState(Array(CODE_LENGTH).fill(''))
@@ -41,13 +43,13 @@ export default function ForgotPasswordPage() {
 
     try {
       await api.post('/forgot-password', { identifier })
-      setSuccessMsg('Reset code sent! Check your email/phone')
+      setSuccessMsg(t('authPages.forgot.codeSent'))
       setTimeout(() => {
         setStep(2)
         setSuccessMsg('')
       }, 2000)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send reset code. Please try again.')
+      setError(err.response?.data?.message || t('authPages.forgot.sendFailed'))
     } finally {
       setLoading(false)
     }
@@ -87,11 +89,11 @@ export default function ForgotPasswordPage() {
     setError('')
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('authPages.validation.passwordsNoMatch'))
       return
     }
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError(t('authPages.validation.passwordMin6'))
       return
     }
 
@@ -105,7 +107,7 @@ export default function ForgotPasswordPage() {
       })
       setStep(3)
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid code or password. Please try again.')
+      setError(err.response?.data?.message || t('authPages.validation.invalidCodeOrPassword'))
     } finally {
       setLoading(false)
     }
@@ -128,10 +130,10 @@ export default function ForgotPasswordPage() {
         {step === 1 && (
           <>
             <div className="text-center mb-6">
-              <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">Password Recovery</p>
-              <h1 className="text-4xl font-black text-gray-600 mb-3">Forgot Password?</h1>
+              <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">{t('authPages.forgot.title')}</p>
+              <h1 className="text-4xl font-black text-gray-600 mb-3">{t('authPages.forgot.heading')}</h1>
               <p className="text-gray-500 text-lg">
-                Enter your email or phone number and we'll send you a reset code
+                {t('authPages.forgot.subtitle')}
               </p>
             </div>
 
@@ -149,7 +151,7 @@ export default function ForgotPasswordPage() {
 
             <form onSubmit={handleSendCode} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1.5">Email or Phone</label>
+                <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.forgot.emailOrPhone')}</label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -171,10 +173,10 @@ export default function ForgotPasswordPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Sending...
+                    {t('authPages.shared.sending')}
                   </>
                 ) : (
-                  'Send Reset Code'
+                  t('authPages.forgot.sendCode')
                 )}
               </button>
             </form>
@@ -182,7 +184,7 @@ export default function ForgotPasswordPage() {
             <p className="text-center mt-6">
               <Link to="/login" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#0FD452] font-medium transition-colors">
                 <ArrowLeft className="w-4 h-4" />
-                Back to Login
+                {t('authPages.forgot.backToLogin')}
               </Link>
             </p>
           </>
@@ -192,10 +194,10 @@ export default function ForgotPasswordPage() {
         {step === 2 && (
           <>
             <div className="text-center mb-6">
-              <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">Verification</p>
-              <h1 className="text-4xl font-black text-gray-600 mb-3">Enter Reset Code</h1>
+              <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-[3px] mb-3">{t('authPages.forgot.verification')}</p>
+              <h1 className="text-4xl font-black text-gray-600 mb-3">{t('authPages.forgot.enterResetCode')}</h1>
               <p className="text-gray-500 text-sm">
-                We sent a 6-digit code to <span className="text-gray-700 font-semibold">{identifier}</span>
+                {t('authPages.shared.sentCodeTo')} <span className="text-gray-700 font-semibold">{identifier}</span>
               </p>
             </div>
 
@@ -208,7 +210,7 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleResetPassword} className="space-y-5">
               {/* Code Input */}
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-3">Verification Code</label>
+                <label className="block text-sm font-semibold text-gray-600 mb-3">{t('authPages.shared.verificationCode')}</label>
                 <div className="flex gap-2 justify-center" onPaste={handleCodePaste}>
                   {code.map((digit, index) => (
                     <input
@@ -228,14 +230,14 @@ export default function ForgotPasswordPage() {
 
               {/* New Password */}
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1.5">New Password</label>
+                <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('profile.newPassword')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password"
+                    placeholder={t('authPages.forgot.newPH')}
                     required
                     className="w-full pl-11 pr-12 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
                   />
@@ -251,14 +253,14 @@ export default function ForgotPasswordPage() {
 
               {/* Confirm Password */}
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1.5">Confirm Password</label>
+                <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('auth.confirmPassword')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type={showNewPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password"
+                    placeholder={t('authPages.forgot.confirmPH')}
                     required
                     className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
                   />
@@ -273,10 +275,10 @@ export default function ForgotPasswordPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Resetting...
+                    {t('authPages.forgot.resetting')}
                   </>
                 ) : (
-                  'Reset Password'
+                  t('authPages.forgot.resetBtn')
                 )}
               </button>
             </form>
@@ -287,7 +289,7 @@ export default function ForgotPasswordPage() {
                 className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#0FD452] font-medium transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back
+                {t('common.back')}
               </button>
             </p>
           </>
@@ -302,9 +304,9 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
 
-            <h1 className="text-4xl font-black text-gray-600 mb-3">Password Reset!</h1>
+            <h1 className="text-4xl font-black text-gray-600 mb-3">{t('authPages.forgot.resetDone')}</h1>
             <p className="text-gray-500 text-lg mb-8">
-              You can now login with your new password
+              {t('authPages.forgot.resetDoneBody')}
             </p>
 
             <Link
@@ -312,7 +314,7 @@ export default function ForgotPasswordPage() {
               className="w-full inline-flex items-center justify-center gap-2 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] font-bold py-3 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <ShieldCheck className="w-5 h-5" />
-              Go to Login
+              {t('authPages.forgot.goToLogin')}
             </Link>
           </div>
         )}

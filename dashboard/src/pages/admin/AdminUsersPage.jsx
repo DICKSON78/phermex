@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const ROLE_STYLES = {
   admin: 'bg-red-100 text-red-700',
@@ -53,6 +54,7 @@ const ROLES = ['admin', 'owner', 'pharmacist', 'cashier', 'delivery', 'customer'
 
 export default function AdminUsersPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -162,8 +164,8 @@ export default function AdminUsersPage() {
             <Users className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-            <p className="text-sm text-gray-500">Manage all platform users, roles, and access permissions.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('nav.items.users')}</h1>
+            <p className="text-sm text-gray-500">{t('adminUsers.users.subtitle')}</p>
           </div>
         </div>
         <button
@@ -171,19 +173,19 @@ export default function AdminUsersPage() {
           className="btn-primary"
         >
           <Plus className="h-4 w-4" />
-          New User
+          {t('adminUsers.users.newUser')}
         </button>
       </div>
 
       {/* Stats */}
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
         <div className="rounded-xl bg-white p-5 shadow-sm">
-          <p className="text-sm text-gray-500">Total</p>
+          <p className="text-sm text-gray-500">{t('common.total')}</p>
           <p className="mt-1 text-2xl font-bold text-[#000F14]">{stats.total}</p>
         </div>
         {ROLES.map((role) => (
           <div key={role} className="rounded-xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500 capitalize">{role}</p>
+            <p className="text-sm text-gray-500 capitalize">{t('common.role' + role.charAt(0).toUpperCase() + role.slice(1), role)}</p>
             <p className={`mt-1 text-2xl font-bold capitalize ${ROLE_STYLES[role]?.split(' ')[1] || 'text-gray-600'}`}>
               {stats[role]}
             </p>
@@ -200,7 +202,7 @@ export default function AdminUsersPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, phone, or code..."
+              placeholder={t('adminUsers.users.searchPlaceholder')}
               className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-[#000F14] placeholder-gray-400 outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
             />
           </div>
@@ -209,9 +211,9 @@ export default function AdminUsersPage() {
             onChange={(e) => setRoleFilter(e.target.value)}
             className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
           >
-            <option value="">All Roles</option>
+            <option value="">{t('adminUsers.users.allRoles')}</option>
             {ROLES.map((r) => (
-              <option key={r} value={r} className="capitalize">{r}</option>
+              <option key={r} value={r} className="capitalize">{t('common.role' + r.charAt(0).toUpperCase() + r.slice(1), r)}</option>
             ))}
           </select>
         </div>
@@ -221,8 +223,8 @@ export default function AdminUsersPage() {
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl bg-white py-16 shadow-sm">
           <Users className="mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-semibold text-[#000F14]">No users found</h3>
-          <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+          <h3 className="text-lg font-semibold text-[#000F14]">{t('adminUsers.users.noUsers')}</h3>
+          <p className="text-sm text-gray-500">{t('adminUsers.users.tryAdjust')}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -233,55 +235,55 @@ export default function AdminUsersPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Name</span>
+                      <span>{t('common.name')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Mail className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Email</span>
+                      <span>{t('common.email')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Phone</span>
+                      <span>{t('common.phone')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Code</span>
+                      <span>{t('adminUsers.shared.code')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Shield className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Role</span>
+                      <span>{t('adminUsers.shared.role')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Building2 className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Pharmacy</span>
+                      <span>{t('adminUsers.shared.pharmacy')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Status</span>
+                      <span>{t('common.status')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Joined</span>
+                      <span>{t('adminUsers.users.joined')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <Zap className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Actions</span>
+                      <span>{t('common.actions')}</span>
                     </div>
                   </th>
                 </tr>
@@ -305,7 +307,7 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 font-mono text-sm text-gray-600">{user.user_code || user.code}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${ROLE_STYLES[user.role] || 'bg-gray-100 text-gray-600'}`}>
-                        {user.role}
+                        {user.role ? t('common.role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : user.role}
                       </span>
                       
                     </td>
@@ -314,7 +316,7 @@ export default function AdminUsersPage() {
                       <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
                         user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
                       }`}>
-                        {user.status}
+                        {t('common.' + user.status, user.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">{user.joined}</td>
@@ -323,14 +325,14 @@ export default function AdminUsersPage() {
                         <button
                           onClick={() => navigate('/dashboard/users/' + user.id)}
                           className="btn-icon-primary"
-                          title="View"
+                          title={t('common.view')}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => navigate('/dashboard/users/' + user.id + '/edit')}
                           className="btn-icon-blue"
-                          title="Edit"
+                          title={t('common.edit')}
                         >
                           <Edit className="h-4 w-4" />
                         </button>
@@ -354,21 +356,21 @@ export default function AdminUsersPage() {
                                   ) : (
                                     <ToggleRight className="h-4 w-4" />
                                   )}
-                                  {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                                  {user.status === 'active' ? t('adminUsers.users.deactivate') : t('adminUsers.users.activate')}
                                 </button>
                                 <button
                                   onClick={() => {
                                     setActiveMenu(null)
-                                    if (window.confirm('Are you sure you want to delete this user? This cannot be undone.')) {
+                                    if (window.confirm(t('adminUsers.users.deleteConfirm'))) {
                                       api.delete(`/admin/users/${user.id}`)
-                                        .then(() => { toast.success('User deleted'); fetchUsers() })
-                                        .catch(() => toast.error('Failed to delete user'))
+                                        .then(() => { toast.success(t('adminUsers.users.deleted')); fetchUsers() })
+                                        .catch(() => toast.error(t('adminUsers.users.deleteFailed')))
                                     }
                                   }}
                                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                                 >
                                   <Trash2 className="h-4 w-4" />
-                                  Delete User
+                                  {t('adminUsers.users.deleteUser')}
                                 </button>
                               </div>
                             </>
@@ -386,8 +388,8 @@ export default function AdminUsersPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
               <p className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} entries
+                {t('adminUsers.shared.showing')} {(currentPage - 1) * pageSize + 1} {t('adminUsers.shared.to')}{' '}
+                {Math.min(currentPage * pageSize, filtered.length)} {t('adminUsers.shared.of')} {filtered.length} {t('adminUsers.shared.entries')}
               </p>
               <div className="flex items-center gap-1">
                 <button

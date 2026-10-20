@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react'
 import { AlertTriangle, Info, X } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const VARIANT_STYLES = {
   danger: {
@@ -27,14 +28,19 @@ const VARIANT_STYLES = {
 
 export default function ConfirmDialog({
   isOpen,
-  title = 'Are you sure?',
-  message = 'This action cannot be undone.',
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  title,
+  message,
+  confirmText,
+  cancelText,
   onConfirm,
   onCancel,
   variant = 'danger',
 }) {
+  const { t } = useLanguage()
+  const resolvedTitle = title ?? t('common.areYouSure')
+  const resolvedMessage = message ?? t('common.cannotBeUndone')
+  const resolvedConfirm = confirmText ?? t('common.confirm')
+  const resolvedCancel = cancelText ?? t('common.cancel')
   const style = VARIANT_STYLES[variant] || VARIANT_STYLES.danger
   const { Icon: VIcon, iconBg, iconColor, confirmBg, title: titleColor } = style
 
@@ -74,8 +80,8 @@ export default function ConfirmDialog({
             <VIcon className={`w-6 h-6 ${iconColor}`} />
           </div>
           <div>
-            <h3 className={`text-lg font-bold ${titleColor}`}>{title}</h3>
-            <p className="text-sm text-gray-600 mt-1">{message}</p>
+            <h3 className={`text-lg font-bold ${titleColor}`}>{resolvedTitle}</h3>
+            <p className="text-sm text-gray-600 mt-1">{resolvedMessage}</p>
           </div>
         </div>
 
@@ -84,13 +90,13 @@ export default function ConfirmDialog({
             onClick={onCancel}
             className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            {cancelText}
+            {resolvedCancel}
           </button>
           <button
             onClick={onConfirm}
             className={`flex-1 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${confirmBg}`}
           >
-            {confirmText}
+            {resolvedConfirm}
           </button>
         </div>
       </div>

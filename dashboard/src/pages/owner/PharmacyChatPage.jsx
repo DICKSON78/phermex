@@ -5,15 +5,17 @@ import { ArrowLeft, Send, Phone, AlertTriangle, Pill, FileText } from 'lucide-re
 import { currentBase } from '../../utils/roles'
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const typeConfig = {
-  text: { label: 'Text', color: 'bg-gray-100 text-gray-600' },
-  emergency: { label: 'Emergency', color: 'bg-red-50 text-red-600' },
-  order_inquiry: { label: 'Order', color: 'bg-blue-50 text-blue-600' },
-  prescription_inquiry: { label: 'Rx', color: 'bg-purple-50 text-purple-600' },
+  text: { labelKey: 'people.chat.typeText', label: 'Text', color: 'bg-gray-100 text-gray-600' },
+  emergency: { labelKey: 'people.chat.typeEmergency', label: 'Emergency', color: 'bg-red-50 text-red-600' },
+  order_inquiry: { labelKey: 'people.chat.typeOrder', label: 'Order', color: 'bg-blue-50 text-blue-600' },
+  prescription_inquiry: { labelKey: null, label: 'Rx', color: 'bg-purple-50 text-purple-600' },
 };
 
 export default function PharmacyChatPage() {
+  const { t } = useLanguage();
   const { customerId } = useParams();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
@@ -33,7 +35,7 @@ export default function PharmacyChatPage() {
       const msgs = toArray(res.data);
       setMessages(msgs);
       if (msgs.length > 0 && !customer) {
-        setCustomer(msgs[0].sender_id == customerId ? msgs[0].sender : { name: 'Customer', phone: '' });
+        setCustomer(msgs[0].sender_id == customerId ? msgs[0].sender : { name: t('people.chat.customerFallback'), phone: '' });
       }
     }).catch(() => {});
   };
@@ -50,7 +52,7 @@ export default function PharmacyChatPage() {
       setMessages((prev) => [...prev, res.data.data]);
       setInput('');
     } catch (err) {
-      toast.error('Failed to send message');
+      toast.error(t('people.chat.sendFailed'));
     } finally {
       setSending(false);
     }
@@ -64,8 +66,8 @@ export default function PharmacyChatPage() {
           <ArrowLeft size={18} className="text-gray-700" />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="font-bold text-gray-900 text-sm truncate">{customer?.name || 'Customer'}</h1>
-          <p className="text-[10px] text-[#0FD452] font-medium">Online</p>
+          <h1 className="font-bold text-gray-900 text-sm truncate">{customer?.name || t('people.chat.customerFallback')}</h1>
+          <p className="text-[10px] text-[#0FD452] font-medium">{t('people.chat.online')}</p>
         </div>
         {customer?.phone && (
           <a href={`tel:${customer.phone}`} className="w-10 h-10 bg-green-50 rounded-2xl flex items-center justify-center active:scale-95 transition-transform">
@@ -81,8 +83,8 @@ export default function PharmacyChatPage() {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <Send size={24} className="text-gray-300" />
             </div>
-            <p className="text-sm font-medium text-gray-500">No messages yet</p>
-            <p className="text-xs text-gray-400 mt-1">Reply to start the conversation</p>
+            <p className="text-sm font-medium text-gray-500">{t('people.chatList.noMessages')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('people.chat.replyPrompt')}</p>
           </div>
         ) : (
           messages.map((msg) => {
@@ -93,7 +95,7 @@ export default function PharmacyChatPage() {
                 <div className="max-w-[80%]">
                   {!isMe && msg.message_type !== 'text' && (
                     <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full mb-1 inline-block ${typeInfo.color}`}>
-                      {typeInfo.label}
+                      {typeInfo.labelKey ? t(typeInfo.labelKey, typeInfo.label) : typeInfo.label}
                     </span>
                   )}
                   <div className={`rounded-2xl px-4 py-3 ${
@@ -124,7 +126,7 @@ export default function PharmacyChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="Type your reply..."
+              placeholder={t('people.chat.inputPlaceholder')}
               className="w-full bg-gray-50 border-0 rounded-2xl pl-4 pr-4 py-3 text-sm focus:ring-2 focus:ring-[#0FD452] outline-none"
             />
           </div>

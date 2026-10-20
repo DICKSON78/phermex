@@ -14,6 +14,7 @@ import {
   File,
 } from 'lucide-react'
 import api from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 
 function exportToCSV(data, filename) {
@@ -92,6 +93,7 @@ const EXPORT_OPTIONS = [
 ]
 
 export default function ExportPage() {
+  const { t } = useLanguage()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [dateFrom, setDateFrom] = useState('')
@@ -131,6 +133,7 @@ export default function ExportPage() {
 
   const handleExport = async (option) => {
     setExporting(option.id)
+    const optionTitle = t('reports.exportData.options.' + option.id + '.title', option.title)
     try {
       await new Promise((resolve) => setTimeout(resolve, 800))
 
@@ -151,10 +154,10 @@ export default function ExportPage() {
 
       exportToCSV(exportData, option.filename)
 
-      setToast({ type: 'success', message: `Export Complete! ${option.title} downloaded successfully.` })
+      setToast({ type: 'success', message: `${t('reports.exportData.completePrefix')} ${optionTitle} ${t('reports.exportData.completeSuffix')}` })
       setTimeout(() => setToast(null), 3000)
     } catch {
-      setToast({ type: 'error', message: 'Export failed. Please try again.' })
+      setToast({ type: 'error', message: t('reports.exportData.failed') })
       setTimeout(() => setToast(null), 3000)
     } finally {
       setExporting(null)
@@ -218,8 +221,8 @@ export default function ExportPage() {
             <Download className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Data Export</h1>
-            <p className="text-sm text-gray-500">Export reports and data in various formats.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('reports.exportData.title')}</h1>
+            <p className="text-sm text-gray-500">{t('reports.exportData.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -229,10 +232,10 @@ export default function ExportPage() {
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-600">Date Range:</span>
+            <span className="text-sm font-medium text-gray-600">{t('common.dateRange')}:</span>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500">From</label>
+            <label className="text-xs text-gray-500">{t('reports.exportData.from')}</label>
             <input
               type="date"
               value={dateFrom}
@@ -241,7 +244,7 @@ export default function ExportPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500">To</label>
+            <label className="text-xs text-gray-500">{t('reports.exportData.to')}</label>
             <input
               type="date"
               value={dateTo}
@@ -257,7 +260,7 @@ export default function ExportPage() {
               }}
               className="text-xs text-red-500 hover:text-red-700 font-medium"
             >
-              Clear dates
+              {t('reports.exportData.clearDates')}
             </button>
           )}
         </div>
@@ -280,12 +283,12 @@ export default function ExportPage() {
                   <Icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-dark">{option.title}</h3>
-                  <p className="text-xs text-gray-400">{count} records</p>
+                  <h3 className="text-sm font-semibold text-dark">{t('reports.exportData.options.' + option.id + '.title', option.title)}</h3>
+                  <p className="text-xs text-gray-400">{count} {t('reports.exportData.records')}</p>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-500 mb-4 leading-relaxed">{option.description}</p>
+              <p className="text-sm text-gray-500 mb-4 leading-relaxed">{t('reports.exportData.options.' + option.id + '.description', option.description)}</p>
 
               <div className="flex gap-2">
                 <button
@@ -298,7 +301,7 @@ export default function ExportPage() {
                   ) : (
                     <FileSpreadsheet className="w-4 h-4" />
                   )}
-                  {isExporting ? 'Exporting...' : 'Export CSV'}
+                  {isExporting ? t('reports.exportData.exporting') : t('reports.exportData.exportCsv')}
                 </button>
                 <button
                   disabled={isExporting || count === 0}

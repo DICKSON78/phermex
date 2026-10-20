@@ -7,10 +7,12 @@ import {
 } from 'lucide-react'
 import { currentBase } from '../../utils/roles'
 import api from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function LowStockPage() {
   const navigate = useNavigate()
   const base = currentBase()
+  const { t } = useLanguage()
   const [drugs, setDrugs] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -50,10 +52,10 @@ export default function LowStockPage() {
   }, 0)
 
   const statCards = [
-    { label: 'Total Low Stock', value: drugs.length, icon: AlertTriangle, color: 'bg-yellow-100 text-yellow-600' },
-    { label: 'Out of Stock', value: outOfStock, icon: Package, color: 'bg-red-100 text-red-600' },
-    { label: 'Below Reorder', value: belowReorder, icon: AlertTriangle, color: 'bg-orange-100 text-orange-600' },
-    { label: 'Est. Reorder Cost', value: `TZS ${estReorderCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'bg-blue-100 text-blue-600' },
+    { label: t('inventory.lowStock.totalLow'), value: drugs.length, icon: AlertTriangle, color: 'bg-yellow-100 text-yellow-600' },
+    { label: t('inventory.lowStock.outOfStock'), value: outOfStock, icon: Package, color: 'bg-red-100 text-red-600' },
+    { label: t('inventory.lowStock.belowReorder'), value: belowReorder, icon: AlertTriangle, color: 'bg-orange-100 text-orange-600' },
+    { label: t('inventory.lowStock.estCost'), value: `TZS ${estReorderCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'bg-blue-100 text-blue-600' },
   ]
 
   return (
@@ -64,8 +66,8 @@ export default function LowStockPage() {
             <AlertTriangle className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Low Stock Alerts</h1>
-            <p className="text-sm text-gray-500">Drugs below minimum stock level requiring reorder.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('inventory.lowStock.title')}</h1>
+            <p className="text-sm text-gray-500">{t('inventory.lowStock.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -76,7 +78,7 @@ export default function LowStockPage() {
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-yellow-600" />
             <p className="text-sm font-medium text-yellow-800">
-              {drugs.length} drug{drugs.length !== 1 ? 's' : ''} below reorder level — restocking recommended
+              {drugs.length} {t('inventory.lowStock.belowReorderLabel')} — {t('inventory.lowStock.restockRecommended')}
             </p>
           </div>
         </div>
@@ -105,7 +107,7 @@ export default function LowStockPage() {
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-            placeholder="Search by drug name..."
+            placeholder={t('inventory.lowStock.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-[#000F14] placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0FD452]/20 focus:border-[#0FD452] transition-all"
           />
         </div>
@@ -116,15 +118,15 @@ export default function LowStockPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>Drug Name</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell"><div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-[#0FD452]" /><span>Generic</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell"><div className="flex items-center gap-1.5"><FolderOpen className="w-3.5 h-3.5 text-[#0FD452]" /><span>Category</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>Stock</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 text-[#0FD452]" /><span>Reorder</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5 text-[#0FD452]" /><span>Shortage</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell"><div className="flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-[#0FD452]" /><span>Buying Price</span></div></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell"><div className="flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-[#0FD452]" /><span>Est. Cost</span></div></th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><Eye className="w-3.5 h-3.5 text-[#0FD452]" /><span>Actions</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('products.drugName')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell"><div className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.lowStock.generic')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell"><div className="flex items-center gap-1.5"><FolderOpen className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('products.category')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('products.stock')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.lowStock.reorder')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.lowStock.shortage')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell"><div className="flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.drug.buyingPrice')}</span></div></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell"><div className="flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.lowStock.estCostShort')}</span></div></th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><Eye className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('common.actions')}</span></div></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -138,7 +140,7 @@ export default function LowStockPage() {
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-gray-400">
                     <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                    <p>All drugs are well stocked</p>
+                    <p>{t('inventory.lowStock.allStocked')}</p>
                   </td>
                 </tr>
               ) : (
@@ -175,14 +177,14 @@ export default function LowStockPage() {
                           <button
                             onClick={() => setReorderModal(drug)}
                             className="btn-icon-primary"
-                            title="Reorder"
+                            title={t('inventory.lowStock.reorder')}
                           >
                             <ShoppingCart className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => navigate(`${base}/drugs/${drug.id}`)}
                             className="btn-icon-blue"
-                            title="View Drug"
+                            title={t('inventory.lowStock.viewDrug')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -199,8 +201,8 @@ export default function LowStockPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
             <p className="text-sm text-gray-500">
-              Showing {(currentPage - 1) * pageSize + 1} to{' '}
-              {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length}
+              {t('inventory.pagination.showing')} {(currentPage - 1) * pageSize + 1} {t('inventory.pagination.to')}{' '}
+              {Math.min(currentPage * pageSize, filtered.length)} {t('inventory.pagination.of')} {filtered.length}
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -249,7 +251,7 @@ export default function LowStockPage() {
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#000F14]">Reorder Drug</h3>
+                <h3 className="text-lg font-semibold text-[#000F14]">{t('inventory.lowStock.reorderTitle')}</h3>
                 <button onClick={() => setReorderModal(null)} className="text-gray-400 hover:text-gray-600">
                   <X className="w-5 h-5" />
                 </button>
@@ -257,10 +259,10 @@ export default function LowStockPage() {
               <div className="space-y-3">
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm font-medium text-[#000F14]">{reorderModal.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Current stock: {reorderModal.quantity} | Reorder level: {reorderModal.reorder_level}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('inventory.lowStock.currentStock')}: {reorderModal.quantity} | {t('products.reorderLevel')}: {reorderModal.reorder_level}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Quantity to Order</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('inventory.lowStock.qtyToOrder')}</label>
                   <input
                     type="number"
                     defaultValue={Math.max(0, (reorderModal.reorder_level || 0) - (reorderModal.quantity || 0))}
@@ -268,7 +270,7 @@ export default function LowStockPage() {
                   />
                 </div>
                 <div className="bg-blue-50 rounded-xl p-3 text-sm text-blue-700">
-                  Estimated cost: TZS {((Math.max(0, (reorderModal.reorder_level || 0) - (reorderModal.quantity || 0))) * (reorderModal.buying_price || 0)).toFixed(2)}
+                  {t('inventory.lowStock.estCostLabel')}: TZS {((Math.max(0, (reorderModal.reorder_level || 0) - (reorderModal.quantity || 0))) * (reorderModal.buying_price || 0)).toFixed(2)}
                 </div>
               </div>
               <div className="flex items-center gap-3 mt-6 justify-end">
@@ -276,14 +278,14 @@ export default function LowStockPage() {
                   onClick={() => setReorderModal(null)}
                   className="btn-secondary"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={() => setReorderModal(null)}
                   className="btn-primary"
                 >
                   <ShoppingCart className="w-4 h-4" />
-                  Create Reorder
+                  {t('inventory.lowStock.createReorder')}
                 </button>
               </div>
             </div>

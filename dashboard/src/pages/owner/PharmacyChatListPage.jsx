@@ -5,6 +5,7 @@ import { MessageCircle, Phone, AlertTriangle, Pill, FileText } from 'lucide-reac
 import { currentBase } from '../../utils/roles'
 import PageHeader from '../../components/PageHeader'
 import api from '../../services/api';
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const typeIcons = {
   text: null,
@@ -13,18 +14,19 @@ const typeIcons = {
   prescription_inquiry: <FileText size={12} className="text-purple-500" />,
 };
 
-function timeAgo(date) {
+function timeAgo(date, t) {
   const seconds = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (seconds < 60) return 'now';
+  if (seconds < 60) return t('people.chatList.justNow');
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 60) return `${minutes}${t('people.chatList.minuteSuffix')}`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return `${hours}${t('people.chatList.hourSuffix')}`;
   const days = Math.floor(hours / 24);
-  return `${days}d`;
+  return `${days}${t('people.chatList.daySuffix')}`;
 }
 
 export default function PharmacyChatListPage() {
+  const { t } = useLanguage()
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -38,7 +40,7 @@ export default function PharmacyChatListPage() {
 
   return (
     <div className="p-6">
-      <PageHeader icon={MessageCircle} title="Customer Messages" subtitle="Respond to customer inquiries and urgent requests" />
+      <PageHeader icon={MessageCircle} title={t('people.chatList.title')} subtitle={t('people.chatList.subtitle')} />
 
       {loading ? (
         <div className="space-y-3">
@@ -51,8 +53,8 @@ export default function PharmacyChatListPage() {
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <MessageCircle size={24} className="text-gray-300" />
           </div>
-          <p className="text-base font-bold text-gray-900 mb-1">No messages yet</p>
-          <p className="text-sm text-gray-400">Customer messages will appear here</p>
+          <p className="text-base font-bold text-gray-900 mb-1">{t('people.chatList.noMessages')}</p>
+          <p className="text-sm text-gray-400">{t('people.chatList.messagesAppearHere')}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -76,7 +78,7 @@ export default function PharmacyChatListPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <h3 className="font-bold text-sm text-gray-900 truncate">{conv.customer_name}</h3>
-                    <span className="text-[10px] text-gray-400 shrink-0 ml-2">{timeAgo(conv.last_message_time)}</span>
+                    <span className="text-[10px] text-gray-400 shrink-0 ml-2">{timeAgo(conv.last_message_time, t)}</span>
                   </div>
                   {conv.customer_phone && (
                     <div className="flex items-center gap-1 mt-0.5">

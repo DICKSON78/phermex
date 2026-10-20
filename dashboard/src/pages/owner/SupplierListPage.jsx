@@ -5,6 +5,7 @@ import { Plus, Search, Star, Eye, Trash2, Phone, Mail, ChevronLeft, ChevronRight
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { currentBase } from '../../utils/roles'
 
 function LoadingSkeleton() {
@@ -31,6 +32,7 @@ function LoadingSkeleton() {
 export default function SupplierListPage() {
   const navigate = useNavigate()
   const { pharmacyId } = useAuth()
+  const { t } = useLanguage()
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -62,17 +64,17 @@ export default function SupplierListPage() {
     try {
       if (editSupplier) {
         await api.put(`/suppliers/${editSupplier.id}`, form)
-        toast.success('Supplier updated')
+        toast.success(t('supply.suppliers.updatedToast'))
       } else {
         await api.post('/suppliers', { ...form, pharmacy_id: pharmacyId })
-        toast.success('Supplier created')
+        toast.success(t('supply.suppliers.createdToast'))
       }
       setShowForm(false)
       setEditSupplier(null)
       setForm({ name: '', contact_person: '', email: '', phone: '', address: '', city: '', country: 'Tanzania', tax_id: '', payment_terms: 'net_30', notes: '' })
       fetchSuppliers()
     } catch {
-      toast.error('Failed to save supplier')
+      toast.error(t('supply.suppliers.saveFailed'))
       setShowForm(false)
       setEditSupplier(null)
     } finally {
@@ -85,10 +87,10 @@ export default function SupplierListPage() {
       await api.delete(`/suppliers/${supplier.id}`)
       setSuppliers(prev => prev.filter(s => s.id !== supplier.id))
       setDeleteModal({ open: false, supplier: null })
-      toast.success('Supplier deleted')
+      toast.success(t('supply.suppliers.deleteToast'))
     } catch {
       setDeleteModal({ open: false, supplier: null })
-      toast.error('Failed to delete supplier')
+      toast.error(t('supply.suppliers.deleteFailed'))
     }
   }
 
@@ -127,12 +129,12 @@ export default function SupplierListPage() {
             <Users className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
-            <p className="text-sm text-gray-500">Manage your pharmaceutical suppliers.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('nav.items.suppliers')}</h1>
+            <p className="text-sm text-gray-500">{t('supply.suppliers.subtitle')}</p>
           </div>
         </div>
         <button onClick={() => { setEditSupplier(null); setForm({ name: '', contact_person: '', email: '', phone: '', address: '', city: '', country: 'Tanzania', tax_id: '', payment_terms: 'net_30', notes: '' }); setShowForm(true) }} className="btn-primary">
-          <Plus className="w-5 h-5" /> Add Supplier
+          <Plus className="w-5 h-5" /> {t('supply.suppliers.addSupplier')}
         </button>
       </div>
 
@@ -140,25 +142,25 @@ export default function SupplierListPage() {
         <div className="bg-white rounded-xl p-5 border border-gray-200">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
-            <div><p className="text-sm text-gray-500">Total</p><p className="text-2xl font-bold text-gray-900">{stats.total}</p></div>
+            <div><p className="text-sm text-gray-500">{t('common.total')}</p><p className="text-2xl font-bold text-gray-900">{stats.total}</p></div>
           </div>
         </div>
         <div className="bg-white rounded-xl p-5 border border-gray-200">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center"><Users className="w-6 h-6 text-green-600" /></div>
-            <div><p className="text-sm text-gray-500">Active</p><p className="text-2xl font-bold text-gray-900">{stats.active}</p></div>
+            <div><p className="text-sm text-gray-500">{t('common.active')}</p><p className="text-2xl font-bold text-gray-900">{stats.active}</p></div>
           </div>
         </div>
         <div className="bg-white rounded-xl p-5 border border-gray-200">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center"><Star className="w-6 h-6 text-yellow-600" /></div>
-            <div><p className="text-sm text-gray-500">Avg Rating</p><p className="text-2xl font-bold text-gray-900">{stats.avgRating}</p></div>
+            <div><p className="text-sm text-gray-500">{t('supply.suppliers.avgRating')}</p><p className="text-2xl font-bold text-gray-900">{stats.avgRating}</p></div>
           </div>
         </div>
         <div className="bg-white rounded-xl p-5 border border-gray-200">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center"><TrendingUp className="w-6 h-6 text-blue-600" /></div>
-            <div><p className="text-sm text-gray-500">Total Purchased</p><p className="text-2xl font-bold text-gray-900">TZS {stats.totalPurchased.toLocaleString()}</p></div>
+            <div><p className="text-sm text-gray-500">{t('supply.suppliers.totalPurchased')}</p><p className="text-2xl font-bold text-gray-900">TZS {stats.totalPurchased.toLocaleString()}</p></div>
           </div>
         </div>
       </div>
@@ -166,7 +168,7 @@ export default function SupplierListPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search suppliers..." className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('supply.suppliers.searchPlaceholder')} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
         </div>
       </div>
 
@@ -178,48 +180,48 @@ export default function SupplierListPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Building className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Supplier</span>
+                    <span>{t('supply.common.supplier')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Contact</span>
+                    <span>{t('supply.suppliers.contact')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>City</span>
+                    <span>{t('supply.suppliers.city')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <CreditCard className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Payment</span>
+                    <span>{t('supply.common.payment')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Star className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Rating</span>
+                    <span>{t('supply.suppliers.rating')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <BarChart className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Total Orders</span>
+                    <span>{t('dashboard.totalOrders')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Activity className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Status</span>
+                    <span>{t('common.status')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
-                    <span>Actions</span>
+                    <span>{t('common.actions')}</span>
                   </div>
                 </th>
               </tr>
@@ -246,12 +248,12 @@ export default function SupplierListPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{s.city || '—'}, {s.country}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 capitalize">{(s.payment_terms || '').replace('_', ' ')}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 capitalize">{s.payment_terms ? t(`supply.suppliers.paymentTermOptions.${s.payment_terms}`, s.payment_terms.replace('_', ' ')) : ''}</td>
                   <td className="px-6 py-4">{renderStars(s.rating)}</td>
                   <td className="px-6 py-4 text-sm text-gray-900 font-medium">{s.total_orders}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${s.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {s.is_active ? 'Active' : 'Inactive'}
+                      {s.is_active ? t('common.active') : t('common.inactive')}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -266,7 +268,7 @@ export default function SupplierListPage() {
                 <tr>
                   <td colSpan={8} className="px-6 py-10 text-center text-gray-400">
                     <Building className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                    <p className="text-sm font-medium">No suppliers found</p>
+                    <p className="text-sm font-medium">{t('supply.suppliers.noSuppliers')}</p>
                   </td>
                 </tr>
               )}
@@ -279,31 +281,31 @@ export default function SupplierListPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
           <div className="absolute inset-0 bg-black/50" onClick={() => { setShowForm(false); setEditSupplier(null) }} />
           <div className="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto z-10">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{editSupplier ? 'Edit Supplier' : 'Add Supplier'}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{editSupplier ? t('supply.suppliers.editSupplier') : t('supply.suppliers.addSupplier')}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Name *</label><input type="text" required value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('common.name')} *</label><input type="text" required value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Contact Person</label><input type="text" value={form.contact_person} onChange={(e) => setForm({...form, contact_person: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">TIN Number</label><input type="text" value={form.tax_id} onChange={(e) => setForm({...form, tax_id: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.suppliers.contactPerson')}</label><input type="text" value={form.contact_person} onChange={(e) => setForm({...form, contact_person: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.suppliers.tinNumber')}</label><input type="text" value={form.tax_id} onChange={(e) => setForm({...form, tax_id: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Phone</label><input type="text" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('common.email')}</label><input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('common.phone')}</label><input type="text" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
               </div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Address</label><textarea value={form.address} onChange={(e) => setForm({...form, address: e.target.value})} rows={2} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('common.address')}</label><textarea value={form.address} onChange={(e) => setForm({...form, address: e.target.value})} rows={2} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">City</label><input type="text" value={form.city} onChange={(e) => setForm({...form, city: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Country</label><input type="text" value={form.country} onChange={(e) => setForm({...form, country: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.suppliers.city')}</label><input type="text" value={form.city} onChange={(e) => setForm({...form, city: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.suppliers.country')}</label><input type="text" value={form.country} onChange={(e) => setForm({...form, country: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
               </div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.suppliers.paymentTerms')}</label>
                 <select value={form.payment_terms} onChange={(e) => setForm({...form, payment_terms: e.target.value})} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
-                  <option value="net_15">Net 15</option><option value="net_30">Net 30</option><option value="net_60">Net 60</option><option value="cod">Cash on Delivery</option>
+                  <option value="net_15">{t('supply.suppliers.paymentTermOptions.net_15')}</option><option value="net_30">{t('supply.suppliers.paymentTermOptions.net_30')}</option><option value="net_60">{t('supply.suppliers.paymentTermOptions.net_60')}</option><option value="cod">{t('supply.suppliers.paymentTermOptions.cod')}</option>
                 </select>
               </div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Notes</label><textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={2} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('supply.common.notes')}</label><textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={2} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" /></div>
               <div className="flex gap-3 justify-end pt-2">
-                <button type="button" onClick={() => { setShowForm(false); setEditSupplier(null) }} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="px-4 py-2.5 bg-primary text-gray-900 rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">{saving ? 'Saving...' : editSupplier ? 'Update' : 'Create'}</button>
+                <button type="button" onClick={() => { setShowForm(false); setEditSupplier(null) }} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
+                <button type="submit" disabled={saving} className="px-4 py-2.5 bg-primary text-gray-900 rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">{saving ? t('common.saving') : editSupplier ? t('supply.common.update') : t('supply.common.create')}</button>
               </div>
             </form>
           </div>
@@ -314,11 +316,11 @@ export default function SupplierListPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
           <div className="absolute inset-0 bg-black/50" onClick={() => setDeleteModal({ open: false, supplier: null })} />
           <div className="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl z-10">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Supplier</h3>
-            <p className="text-gray-600 mb-6">Are you sure you want to delete <strong>{deleteModal.supplier?.name}</strong>?</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('supply.suppliers.deleteTitle')}</h3>
+            <p className="text-gray-600 mb-6">{t('supply.suppliers.confirmDelete')} <strong>{deleteModal.supplier?.name}</strong>?</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setDeleteModal({ open: false, supplier: null })} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={() => handleDelete(deleteModal.supplier)} className="px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">Delete</button>
+              <button onClick={() => setDeleteModal({ open: false, supplier: null })} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
+              <button onClick={() => handleDelete(deleteModal.supplier)} className="px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">{t('common.delete')}</button>
             </div>
           </div>
         </div>

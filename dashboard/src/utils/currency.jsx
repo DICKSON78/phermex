@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { useLanguage } from '../contexts/LanguageContext'
 
 /**
  * Money formatting with live exchange rates.
@@ -241,6 +242,7 @@ export function formatUsdPrice(usd, options = {}) {
 const CurrencyContext = createContext(null)
 
 export function CurrencyProvider({ children }) {
+  const { t } = useLanguage()
   const [rates, setRates] = useState(() => readCache()?.rates ?? null)
   const [rateDate, setRateDate] = useState(() => readCache()?.date ?? null)
   const [currency, setCurrencyState] = useState(getDisplayCurrency)
@@ -272,9 +274,9 @@ export function CurrencyProvider({ children }) {
       setRates(fresh)
       setError('')
     } catch (e) {
-      setError(e?.message || 'Could not load exchange rates')
+      setError(e?.message || t('common.exchangeRateError'))
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     refresh()

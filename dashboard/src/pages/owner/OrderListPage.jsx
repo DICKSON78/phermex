@@ -7,6 +7,31 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
+
+const PAYMENT_KEY = {
+  unpaid: 'orders.unpaid',
+  partial: 'sales.orders.paymentPartial',
+  pending_customer_transfer: 'sales.orders.paymentPendingTransfer',
+  paid: 'orders.paid',
+}
+
+const ORDER_KEY = {
+  pending: 'orders.pending',
+  confirmed: 'orders.confirmed',
+  preparing: 'orders.preparing',
+  ready: 'orders.ready',
+  out_for_delivery: 'orders.out_for_delivery',
+  dispensed: 'orders.dispensed',
+  delivered: 'orders.delivered',
+  cancelled: 'orders.cancelled',
+}
+
+const TYPE_KEY = {
+  counter: 'orders.counter',
+  online: 'orders.online',
+  phone: 'orders.phone',
+}
 
 const PAYMENT_STYLES = {
   unpaid: 'bg-red-100 text-red-700',
@@ -29,10 +54,18 @@ const TYPE_STYLES = {
 }
 
 const STATUS_TABS = ['All', 'Pending', 'Dispensed', 'Delivered', 'Cancelled']
+const TAB_KEY = {
+  All: 'common.all',
+  Pending: 'common.pending',
+  Dispensed: 'orders.dispensed',
+  Delivered: 'orders.delivered',
+  Cancelled: 'orders.cancelled',
+}
 const ACTIONABLE_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery']
 const COMPLETED_STATUSES = ['dispensed', 'delivered']
 
 export default function OrderListPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const base = currentBase()
   const [orders, setOrders] = useState([])
@@ -83,7 +116,7 @@ export default function OrderListPage() {
 
   const getOrderCode = (o) => o.order_code || o.code || `#${o.id}`
   const getStatus = (o) => o.order_status || o.status || 'pending'
-  const getCustomerName = (o) => o.user?.name || o.customer?.name || 'Walk-in'
+  const getCustomerName = (o) => o.user?.name || o.customer?.name || t('dashboard.walkIn')
   const getItemsCount = (o) => o.items_count ?? o.items?.length ?? 0
   const getTotal = (o) => Number(o.total || 0)
 
@@ -107,10 +140,10 @@ const filtered = statusTab === 'All'
   }
 
   const statCards = [
-    { label: 'Total Orders', value: stats.total, icon: ShoppingCart, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
-    { label: 'Pending', value: stats.pending, icon: Clock, color: 'bg-yellow-100 text-yellow-600' },
-    { label: 'Completed', value: stats.completedToday, icon: CheckCircle, color: 'bg-blue-100 text-blue-600' },
-    { label: 'Total Revenue', value: `TZS ${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-purple-100 text-purple-600' },
+    { label: t('sales.orders.totalOrders'), value: stats.total, icon: ShoppingCart, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
+    { label: t('common.pending'), value: stats.pending, icon: Clock, color: 'bg-yellow-100 text-yellow-600' },
+    { label: t('sales.orders.completed'), value: stats.completedToday, icon: CheckCircle, color: 'bg-blue-100 text-blue-600' },
+    { label: t('sales.orders.totalRevenue'), value: `TZS ${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-purple-100 text-purple-600' },
   ]
 
   return (
@@ -121,8 +154,8 @@ const filtered = statusTab === 'All'
             <ShoppingCart className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-            <p className="text-sm text-gray-500">View and manage all sales orders.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('orders.title')}</h1>
+            <p className="text-sm text-gray-500">{t('sales.orders.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -152,7 +185,7 @@ const filtered = statusTab === 'All'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Search by order code..."
+              placeholder={t('sales.orders.searchByCode')}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0FD452]/20 focus:border-[#0FD452] transition-all"
             />
           </div>
@@ -167,7 +200,7 @@ const filtered = statusTab === 'All'
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                {tab}
+                {t(TAB_KEY[tab], tab)}
               </button>
             ))}
           </div>
@@ -180,54 +213,54 @@ const filtered = statusTab === 'All'
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Order Code</span>
+                    <span>{t('dashboard.orderCode')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Type</span>
+                    <span>{t('sales.orders.type')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Customer</span>
+                    <span>{t('orders.customer')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Package className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Items</span>
+                    <span>{t('orders.items')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Total</span>
+                    <span>{t('common.total')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <CreditCard className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Payment</span>
+                    <span>{t('sales.orders.payment')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Activity className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Status</span>
+                    <span>{t('common.status')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Date</span>
+                    <span>{t('common.date')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
-                    <span>Actions</span>
+                    <span>{t('common.actions')}</span>
                   </div>
                 </th>
               </tr>
@@ -243,7 +276,7 @@ const filtered = statusTab === 'All'
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-gray-400">
                     <ShoppingCart className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                    <p>No orders found</p>
+                    <p>{t('orders.noOrders')}</p>
                   </td>
                 </tr>
               ) : (
@@ -259,7 +292,7 @@ const filtered = statusTab === 'All'
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize ${TYPE_STYLES[order.order_type] || 'bg-gray-100 text-gray-600'}`}>
-                        {order.order_type || 'counter'}
+                        {t(TYPE_KEY[order.order_type], order.order_type || 'counter')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{getCustomerName(order)}</td>
@@ -267,12 +300,12 @@ const filtered = statusTab === 'All'
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">TZS {getTotal(order).toLocaleString()}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize ${PAYMENT_STYLES[order.payment_status] || 'bg-gray-100 text-gray-600'}`}>
-                        {order.payment_status || 'unpaid'}
+                        {t(PAYMENT_KEY[order.payment_status], order.payment_status || 'unpaid')}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize ${ORDER_STYLES[getStatus(order)] || 'bg-gray-100 text-gray-600'}`}>
-                        {getStatus(order)}
+                        {t(ORDER_KEY[getStatus(order)], getStatus(order))}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell">{formatDate(order.created_at)}</td>
@@ -280,7 +313,7 @@ const filtered = statusTab === 'All'
                       <button
                         onClick={() => navigate(`${base}/orders/${order.id}`)}
                         className="btn-icon-primary"
-                        title="View"
+                        title={t('common.view')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -295,7 +328,7 @@ const filtered = statusTab === 'All'
         {lastPage > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
             <p className="text-sm text-gray-500">
-              Page {currentPage} of {lastPage} ({total} orders)
+              {t('sales.orders.page')} {currentPage} {t('sales.orders.of')} {lastPage} ({total} {t('sales.orders.ordersCount')})
             </p>
             <div className="flex items-center gap-1">
               <button

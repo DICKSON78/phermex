@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import { formatUsdPrice } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 import {
   Clock,
   CreditCard,
@@ -31,6 +32,7 @@ function statusBadge(status) {
 }
 
 export default function SubscriptionsPage() {
+  const { t } = useLanguage()
   const [status, setStatus] = useState(null)
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
@@ -48,7 +50,7 @@ export default function SubscriptionsPage() {
       setStatus(statusRes.data)
       setPlans(plansRes.data?.data || plansRes.data || [])
     } catch {
-      setError('Failed to load subscription information.')
+      setError(t('reports.subscriptions.loadError'))
     } finally {
       setLoading(false)
     }
@@ -74,16 +76,16 @@ export default function SubscriptionsPage() {
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-[#0FD452]" />
-            Subscription & Billing
+            {t('subscription.billing')}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your plan, payments and subscription status.</p>
+          <p className="text-sm text-gray-500 mt-1">{t('reports.subscriptions.subtitle')}</p>
         </div>
         <button
           onClick={() => navigate('/subscribe')}
           className="px-5 py-2.5 bg-[#0FD452] text-[#000F14] rounded-xl text-sm font-bold hover:bg-[#0cb843] transition-all active:scale-95 flex items-center gap-2"
         >
           <RefreshCcw className="w-4 h-4" />
-          Upgrade / Renew Plan
+          {t('reports.subscriptions.upgradeRenew')}
         </button>
       </div>
 
@@ -97,18 +99,18 @@ export default function SubscriptionsPage() {
       <div className="rounded-2xl bg-gradient-to-br from-[#000F14] to-[#123] text-white p-6 mb-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <p className="text-xs uppercase tracking-widest text-green-300/70 font-bold mb-2">Current Plan Status</p>
+            <p className="text-xs uppercase tracking-widest text-green-300/70 font-bold mb-2">{t('reports.subscriptions.currentPlanStatus')}</p>
             <div className="flex items-center gap-3 flex-wrap">
               <h2 className="text-2xl font-black">
-                {status?.has_pharmacy ? status.pharmacy_name || 'Your Pharmacy' : 'No Pharmacy'}
+                {status?.has_pharmacy ? status.pharmacy_name || t('reports.subscriptions.yourPharmacy') : t('reports.subscriptions.noPharmacy')}
               </h2>
               <span className={statusBadge(status?.subscription_type)}>
-                {status?.subscription_type === 'subscription' ? 'SUBSCRIPTION' : (status?.subscription_type || '—').toUpperCase()}
+                {status?.subscription_type === 'subscription' ? t('reports.subscriptions.typeSubscription').toUpperCase() : (status?.subscription_type || '—').toUpperCase()}
               </span>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs uppercase tracking-widest text-white/50 font-bold mb-2">Payment Status</p>
+            <p className="text-xs uppercase tracking-widest text-white/50 font-bold mb-2">{t('reports.subscriptions.paymentStatus')}</p>
             <span className={statusBadge(status?.payment_status)}>
               {(status?.payment_status || '—').toUpperCase()}
             </span>
@@ -117,15 +119,15 @@ export default function SubscriptionsPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
           <div className="rounded-xl bg-white/10 p-4">
-            <p className="text-xs font-bold text-white/50 mb-1">Days Remaining</p>
+            <p className="text-xs font-bold text-white/50 mb-1">{t('reports.subscriptions.daysRemaining')}</p>
             <p className="text-xl font-black">{status?.days_remaining ?? '—'}</p>
           </div>
           <div className="rounded-xl bg-white/10 p-4">
-            <p className="text-xs font-bold text-white/50 mb-1">Trial Ends</p>
+            <p className="text-xs font-bold text-white/50 mb-1">{t('reports.subscriptions.trialEnds')}</p>
             <p className="text-xl font-black">{status?.trial_ends_at ? new Date(status.trial_ends_at).toLocaleDateString() : '—'}</p>
           </div>
           <div className="rounded-xl bg-white/10 p-4 col-span-2 sm:col-span-1">
-            <p className="text-xs font-bold text-white/50 mb-1">Subscription Ends</p>
+            <p className="text-xs font-bold text-white/50 mb-1">{t('reports.subscriptions.subscriptionEnds')}</p>
             <p className="text-xl font-black">{status?.subscription_end_date ? new Date(status.subscription_end_date).toLocaleDateString() : '—'}</p>
           </div>
         </div>
@@ -137,16 +139,15 @@ export default function SubscriptionsPage() {
           <div className="flex items-start gap-3">
             <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="font-bold text-amber-800 text-sm mb-1">Payment Pending</p>
+              <p className="font-bold text-amber-800 text-sm mb-1">{t('reports.subscriptions.paymentPending')}</p>
               <p className="text-amber-700 text-xs leading-relaxed mb-3">
-                You have an outstanding balance for your subscription. Complete payment from the
-                Subscribe page, or contact support if you have paid.
+                {t('reports.subscriptions.paymentPendingBody')}
               </p>
               <button
                 onClick={() => navigate('/subscribe')}
                 className="px-4 py-2 bg-amber-500 text-white rounded-lg text-xs font-bold hover:bg-amber-600 transition-all"
               >
-                Complete Payment
+                {t('reports.subscriptions.completePayment')}
               </button>
             </div>
           </div>
@@ -154,7 +155,7 @@ export default function SubscriptionsPage() {
       )}
 
       {/* Plans overview */}
-      <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Available Plans</h2>
+      <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">{t('reports.subscriptions.availablePlans')}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {plans.map((plan) => {
           const meta = PLAN_META[plan.slug] || PLAN_META_FALLBACK
@@ -167,14 +168,14 @@ export default function SubscriptionsPage() {
               <h3 className="text-lg font-extrabold text-gray-900">{plan.name}</h3>
               <p className="text-2xl font-black text-gray-900 mt-2">
                 {formatUsdPrice(plan.price, { decimals: 0 })}
-                <span className="text-sm text-gray-400 font-medium">/year</span>
+                <span className="text-sm text-gray-400 font-medium">{t('reports.subscriptions.perYear')}</span>
               </p>
               <p className="text-xs text-gray-400 mt-1 leading-relaxed line-clamp-2">{plan.description}</p>
               <button
                 onClick={() => navigate('/subscribe')}
                 className="mt-4 w-full py-2.5 rounded-xl bg-gray-50 border border-gray-100 text-gray-600 text-sm font-bold hover:border-[#0FD452]/50 hover:text-[#0FD452] transition-all"
               >
-                {isPaidUp ? 'Renew / Upgrade' : 'Subscribe'}
+                {isPaidUp ? t('reports.subscriptions.renewUpgrade') : t('subscription.subscribe')}
               </button>
             </div>
           )

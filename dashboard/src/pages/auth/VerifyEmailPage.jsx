@@ -3,9 +3,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { Pill, Mail, KeyRound, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react'
 import api from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function VerifyEmailPage() {
   const { user } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [step, setStep] = useState('input')
@@ -30,14 +32,14 @@ export default function VerifyEmailPage() {
       const res = await api.post('/email/verify/send')
       const debugCode = res.data?.debug_code
       if (debugCode) {
-        setSuccess(`Verification code sent. Debug: ${debugCode}`)
+        setSuccess(`${t('authPages.verify.codeSentBase')} Debug: ${debugCode}`)
       } else {
-        setSuccess('Verification code sent. Check your email.')
+        setSuccess(t('authPages.verify.codeSent'))
       }
       setCooldown(60)
       setStep('input')
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send code.')
+      setError(err.response?.data?.message || t('authPages.verify.sendFailed'))
     } finally {
       setSending(false)
     }
@@ -45,7 +47,7 @@ export default function VerifyEmailPage() {
 
   const verifyCode = async () => {
     if (code.length !== 6) {
-      setError('Code must be 6 characters.')
+      setError(t('authPages.verify.codeMustBe6'))
       return
     }
     setLoading(true)
@@ -55,7 +57,7 @@ export default function VerifyEmailPage() {
       setStep('done')
       setTimeout(() => navigate('/dashboard'), 2000)
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid code.')
+      setError(err.response?.data?.message || t('authPages.verify.invalidCode'))
     } finally {
       setLoading(false)
     }
@@ -66,8 +68,8 @@ export default function VerifyEmailPage() {
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="text-center">
           <CheckCircle2 className="w-16 h-16 text-[#0FD452] mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Email Verified</h1>
-          <p className="text-gray-500">Redirecting to dashboard...</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('authPages.verify.verified')}</h1>
+          <p className="text-gray-500">{t('authPages.verify.redirecting')}</p>
         </div>
       </div>
     )
@@ -86,9 +88,9 @@ export default function VerifyEmailPage() {
           <div className="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <Mail className="w-8 h-8 text-yellow-600" />
           </div>
-          <h1 className="text-3xl font-black text-gray-900 mb-2">Verify Your Email</h1>
+          <h1 className="text-3xl font-black text-gray-900 mb-2">{t('authPages.verify.title')}</h1>
           <p className="text-gray-500">
-            We sent a 6-digit code to <strong>{user?.email || 'your email'}</strong>
+            {t('authPages.shared.sentCodeTo')} <strong>{user?.email || t('authPages.verify.yourEmail')}</strong>
           </p>
         </div>
 
@@ -105,7 +107,7 @@ export default function VerifyEmailPage() {
 
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1.5">Verification Code</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('authPages.shared.verificationCode')}</label>
             <div className="relative">
               <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -126,7 +128,7 @@ export default function VerifyEmailPage() {
             className="w-full py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 disabled:opacity-50 shadow-md"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : null}
-            Verify Email
+            {t('authPages.verify.verifyBtn')}
           </button>
 
           <button
@@ -134,7 +136,7 @@ export default function VerifyEmailPage() {
             disabled={sending || cooldown > 0}
             className="w-full py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200 disabled:opacity-50"
           >
-            {sending ? 'Sending...' : cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Code'}
+            {sending ? t('authPages.shared.sending') : cooldown > 0 ? `${t('authPages.verify.resendIn')} ${cooldown}s` : t('authPages.verify.resendCode')}
           </button>
         </div>
 
@@ -144,7 +146,7 @@ export default function VerifyEmailPage() {
             className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Skip for now
+            {t('authPages.verify.skip')}
           </button>
         </div>
       </div>

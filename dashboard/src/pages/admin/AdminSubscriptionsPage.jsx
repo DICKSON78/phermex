@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const PLAN_STYLES = {
   Trial: 'badge badge-gray',
@@ -47,6 +48,7 @@ function formatCurrency(amount) {
 }
 
 export default function AdminSubscriptionsPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -137,7 +139,7 @@ export default function AdminSubscriptionsPage() {
     <div className="space-y-6">
       {error && (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Using offline data — could not reach server.
+          {t('dashboard.usingOfflineData', 'Using offline data — could not reach server.')}
         </div>
       )}
 
@@ -147,8 +149,8 @@ export default function AdminSubscriptionsPage() {
             <CreditCard className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Subscriptions</h1>
-            <p className="text-sm text-gray-500">Manage pharmacy subscription plans and billing cycles.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('nav.items.subscriptions', 'Subscriptions')}</h1>
+            <p className="text-sm text-gray-500">{t('adminUsers.subscriptions.subtitle', 'Manage pharmacy subscription plans and billing cycles.')}</p>
           </div>
         </div>
         <button
@@ -156,15 +158,15 @@ export default function AdminSubscriptionsPage() {
           className="btn-primary"
         >
           <Plus className="h-4 w-4" />
-          New Subscription
+          {t('adminUsers.subscriptions.newSubscription', 'New Subscription')}
         </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <StatCard label="Active Subscriptions" value={data.stats?.activeSubscriptions || 0} icon={<Users className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix="Currently active" />
-        <StatCard label="Monthly Revenue" value={formatCurrency(data.stats?.monthlyRevenue || 0)} icon={<TrendingUp className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix="Recurring revenue" />
-        <StatCard label="Trial Users" value={data.stats?.trialUsers || 0} icon={<BarChart3 className="w-5 h-5" />} iconColor="text-purple-600" bg="bg-purple-100" suffix="On free trial" />
-        <StatCard label="Churn Rate" value={`${data.stats?.churnRate || 0}%`} icon={<AlertTriangle className="w-5 h-5" />} iconColor="text-red-600" bg="bg-red-100" suffix="Monthly churn" />
+        <StatCard label={t('adminUsers.subscriptions.activeSubscriptions', 'Active Subscriptions')} value={data.stats?.activeSubscriptions || 0} icon={<Users className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix={t('adminUsers.subscriptions.currentlyActive', 'Currently active')} />
+        <StatCard label={t('dashboard.monthlyRevenue', 'Monthly Revenue')} value={formatCurrency(data.stats?.monthlyRevenue || 0)} icon={<TrendingUp className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix={t('adminUsers.subscriptions.recurringRevenue', 'Recurring revenue')} />
+        <StatCard label={t('adminUsers.subscriptions.trialUsers', 'Trial Users')} value={data.stats?.trialUsers || 0} icon={<BarChart3 className="w-5 h-5" />} iconColor="text-purple-600" bg="bg-purple-100" suffix={t('adminUsers.subscriptions.onFreeTrial', 'On free trial')} />
+        <StatCard label={t('adminUsers.subscriptions.churnRate', 'Churn Rate')} value={`${data.stats?.churnRate || 0}%`} icon={<AlertTriangle className="w-5 h-5" />} iconColor="text-red-600" bg="bg-red-100" suffix={t('adminUsers.subscriptions.monthlyChurn', 'Monthly churn')} />
       </div>
 
       <div className="card">
@@ -176,7 +178,7 @@ export default function AdminSubscriptionsPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by pharmacy name..."
+                placeholder={t('adminUsers.subscriptions.searchPlaceholder', 'Search by pharmacy name...')}
                 className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-[#000F14] placeholder-gray-400 outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
               />
             </div>
@@ -185,9 +187,9 @@ export default function AdminSubscriptionsPage() {
               onChange={(e) => setPlanFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
             >
-              <option value="">All Plans</option>
+              <option value="">{t('adminUsers.subscriptions.allPlans', 'All Plans')}</option>
               {PLANS.map((p) => (
-                <option key={p} value={p}>{p}</option>
+                <option key={p} value={p}>{t('adminUsers.shared.plans.' + p, p)}</option>
               ))}
             </select>
             <select
@@ -195,9 +197,9 @@ export default function AdminSubscriptionsPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
             >
-              <option value="">All Statuses</option>
+              <option value="">{t('adminUsers.subscriptions.allStatuses', 'All Statuses')}</option>
               {STATUSES.map((s) => (
-                <option key={s} value={s} className="capitalize">{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                <option key={s} value={s} className="capitalize">{t('adminUsers.subscriptions.statuses.' + s, s.charAt(0).toUpperCase() + s.slice(1))}</option>
               ))}
             </select>
           </div>
@@ -207,8 +209,8 @@ export default function AdminSubscriptionsPage() {
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl bg-white py-16 shadow-sm">
           <CreditCard className="mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-semibold text-gray-900">No subscriptions found</h3>
-          <p className="text-sm text-gray-500">Try adjusting your filters</p>
+          <h3 className="text-lg font-semibold text-gray-900">{t('adminUsers.subscriptions.noSubscriptions', 'No subscriptions found')}</h3>
+          <p className="text-sm text-gray-500">{t('adminUsers.subscriptions.tryAdjust', 'Try adjusting your filters')}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -219,43 +221,43 @@ export default function AdminSubscriptionsPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Building2 className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Pharmacy</span>
+                      <span>{t('adminUsers.shared.pharmacy', 'Pharmacy')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Plan</span>
+                      <span>{t('adminUsers.shared.plan', 'Plan')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Status</span>
+                      <span>{t('common.status', 'Status')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Amount/mo</span>
+                      <span>{t('orders.amount', 'Amount')}{t('adminUsers.subscriptions.perMo', '/mo')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Start Date</span>
+                      <span>{t('adminUsers.subscriptions.startDate', 'Start Date')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Expiry Date</span>
+                      <span>{t('products.expiryDate', 'Expiry Date')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <Zap className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Actions</span>
+                      <span>{t('common.actions', 'Actions')}</span>
                     </div>
                   </th>
                 </tr>
@@ -272,12 +274,12 @@ export default function AdminSubscriptionsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={PLAN_STYLES[sub.plan] || 'badge badge-gray'}>{sub.plan}</span>
+                      <span className={PLAN_STYLES[sub.plan] || 'badge badge-gray'}>{t('adminUsers.shared.plans.' + sub.plan, sub.plan)}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={STATUS_STYLES[sub.status] || 'badge badge-gray'}>{sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}</span>
+                      <span className={STATUS_STYLES[sub.status] || 'badge badge-gray'}>{t('adminUsers.subscriptions.statuses.' + sub.status, sub.status.charAt(0).toUpperCase() + sub.status.slice(1))}</span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-[#000F14]">{sub.amount === 0 ? 'Free' : formatCurrency(sub.amount)}</td>
+                    <td className="px-6 py-4 text-sm text-[#000F14]">{sub.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(sub.amount)}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{sub.startDate}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{sub.expiryDate}</td>
                     <td className="px-6 py-4 text-right">
@@ -285,14 +287,14 @@ export default function AdminSubscriptionsPage() {
                         <button
                           onClick={() => navigate('/dashboard/subscriptions/' + sub.id)}
                           className="btn-icon-primary"
-                          title="View Details"
+                          title={t('adminUsers.subscriptions.viewDetails', 'View Details')}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => navigate('/dashboard/subscriptions/' + sub.id + '/edit')}
                           className="btn-icon-blue"
-                          title="Edit Subscription"
+                          title={t('adminUsers.subscriptions.editSubscription', 'Edit Subscription')}
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
@@ -300,7 +302,7 @@ export default function AdminSubscriptionsPage() {
                           <button
                             onClick={() => handleAction('upgrade', sub)}
                             className="btn-icon-blue"
-                            title="Upgrade Plan"
+                            title={t('adminUsers.subscriptions.upgradePlan', 'Upgrade Plan')}
                           >
                             <ArrowUpCircle className="h-4 w-4" />
                           </button>
@@ -309,7 +311,7 @@ export default function AdminSubscriptionsPage() {
                           <button
                             onClick={() => handleAction('downgrade', sub)}
                             className="btn-icon-blue"
-                            title="Downgrade Plan"
+                            title={t('adminUsers.subscriptions.downgradePlan', 'Downgrade Plan')}
                           >
                             <ArrowDownCircle className="h-4 w-4" />
                           </button>
@@ -318,7 +320,7 @@ export default function AdminSubscriptionsPage() {
                           <button
                             onClick={() => handleAction('cancel', sub)}
                             className="btn-icon-red"
-                            title="Cancel Subscription"
+                            title={t('adminUsers.subscriptions.cancelSubscription', 'Cancel Subscription')}
                           >
                             <XCircle className="h-4 w-4" />
                           </button>
@@ -333,8 +335,9 @@ export default function AdminSubscriptionsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
               <p className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} entries
+                {t('adminUsers.shared.showing', 'Showing')} {(currentPage - 1) * pageSize + 1}{' '}
+                {t('adminUsers.shared.to', 'to')} {Math.min(currentPage * pageSize, filtered.length)}{' '}
+                {t('adminUsers.shared.of', 'of')} {filtered.length} {t('adminUsers.shared.entries', 'entries')}
               </p>
               <div className="flex items-center gap-1">
                 <button

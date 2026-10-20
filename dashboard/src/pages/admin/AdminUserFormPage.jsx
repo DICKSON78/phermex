@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { UserPlus, ArrowLeft, Save, User, Mail, Phone, Shield, Lock, Loader2, CheckCircle, Building2 } from 'lucide-react'
 import api from '../../services/api'
 import Modal from '../../components/Modal'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const INITIAL_FORM = { name: '', email: '', phone: '', role: 'pharmacist', pharmacy_id: '', password: '' }
 
@@ -18,6 +19,7 @@ const ROLES = [
 export default function AdminUserFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const isEdit = Boolean(id)
 
   const [form, setForm] = useState({ ...INITIAL_FORM })
@@ -70,12 +72,12 @@ export default function AdminUserFormPage() {
 
   const validate = () => {
     const errs = {}
-    if (!form.name.trim()) errs.name = 'Name is required'
-    if (!form.email.trim()) errs.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email'
-    if (!form.phone.trim()) errs.phone = 'Phone is required'
-    if (!form.role) errs.role = 'Role is required'
-    if (!isEdit && !form.password) errs.password = 'Password is required'
+    if (!form.name.trim()) errs.name = t('adminUsers.users.nameRequired')
+    if (!form.email.trim()) errs.email = t('auth.emailRequired')
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t('adminUsers.users.invalidEmail')
+    if (!form.phone.trim()) errs.phone = t('adminUsers.users.phoneRequired')
+    if (!form.role) errs.role = t('adminUsers.users.roleRequired')
+    if (!isEdit && !form.password) errs.password = t('auth.passwordRequired')
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -122,11 +124,11 @@ export default function AdminUserFormPage() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">
-              {isEdit ? 'Edit User' : 'Create New User'}
+              {isEdit ? t('adminUsers.users.editUser') : t('adminUsers.users.createNewUser')}
             </h1>
           </div>
           <p className="text-gray-600">
-            {isEdit ? 'Update existing user details' : 'Add a new user to the platform'}
+            {isEdit ? t('adminUsers.users.editUserSubtitle') : t('adminUsers.users.createUserSubtitle')}
           </p>
         </div>
       </div>
@@ -140,14 +142,14 @@ export default function AdminUserFormPage() {
                 <User className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Personal Information</h3>
-                <p className="text-sm text-gray-600">User's personal contact details</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('profile.personalInfo')}</h3>
+                <p className="text-sm text-gray-600">{t('adminUsers.users.personalInfoSub')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Full Name <span className="text-red-500">*</span>
+                  {t('adminUsers.users.fullName')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -158,14 +160,14 @@ export default function AdminUserFormPage() {
                     value={form.name}
                     onChange={(e) => handleChange('name', e.target.value)}
                     className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.name ? '!border-red-400' : ''}`}
-                    placeholder="Enter full name"
+                    placeholder={t('adminUsers.users.enterFullName')}
                   />
                 </div>
                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Email Address <span className="text-red-500">*</span>
+                  {t('customers.emailAddress')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -183,7 +185,7 @@ export default function AdminUserFormPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Phone Number <span className="text-red-500">*</span>
+                  {t('customers.phoneNumber')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -209,14 +211,14 @@ export default function AdminUserFormPage() {
                 <Shield className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Role & Access</h3>
-                <p className="text-sm text-gray-600">Assign role and pharmacy assignment</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminUsers.users.roleAccess')}</h3>
+                <p className="text-sm text-gray-600">{t('adminUsers.users.roleAccessSub')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Role <span className="text-red-500">*</span>
+                  {t('adminUsers.shared.role')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -228,7 +230,7 @@ export default function AdminUserFormPage() {
                     className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.role ? '!border-red-400' : ''}`}
                   >
                     {ROLES.map((r) => (
-                      <option key={r.value} value={r.value}>{r.label}</option>
+                      <option key={r.value} value={r.value}>{t('common.role' + r.value.charAt(0).toUpperCase() + r.value.slice(1), r.label)}</option>
                     ))}
                   </select>
                 </div>
@@ -237,7 +239,7 @@ export default function AdminUserFormPage() {
               {['owner', 'pharmacist', 'cashier', 'delivery'].includes(form.role) && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Pharmacy <span className="text-red-500">*</span>
+                    {t('adminUsers.shared.pharmacy')} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -248,7 +250,7 @@ export default function AdminUserFormPage() {
                       onChange={(e) => handleChange('pharmacy_id', e.target.value)}
                       className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.pharmacy_id ? '!border-red-400' : ''}`}
                     >
-                      <option value="">Select pharmacy</option>
+                      <option value="">{t('common.selectPharmacy')}</option>
                       {pharmacies.map((p) => (
                         <option key={p.id} value={p.id}>{p.pharmacy_name}</option>
                       ))}
@@ -267,14 +269,14 @@ export default function AdminUserFormPage() {
                 <Lock className="w-5 h-5 text-[#0FD452]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Security</h3>
-                <p className="text-sm text-gray-600">Password and authentication settings</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('adminUsers.users.security')}</h3>
+                <p className="text-sm text-gray-600">{t('adminUsers.users.securitySub')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Password {!isEdit && <span className="text-red-500">*</span>}
+                  {t('auth.password')} {!isEdit && <span className="text-red-500">*</span>}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -285,7 +287,7 @@ export default function AdminUserFormPage() {
                     value={form.password}
                     onChange={(e) => handleChange('password', e.target.value)}
                     className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.password ? '!border-red-400' : ''}`}
-                    placeholder={isEdit ? 'Leave blank to keep current' : 'Min 8 characters'}
+                    placeholder={isEdit ? t('adminUsers.users.keepCurrent') : t('adminUsers.users.min8')}
                   />
                 </div>
                 {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
@@ -296,11 +298,11 @@ export default function AdminUserFormPage() {
           {/* Sticky bottom bar */}
           <div className="sticky bottom-0 bg-white px-6 py-5 border-t border-gray-200 flex justify-end space-x-4">
             <Link to="/dashboard/users" className="btn-secondary">
-              <span>Cancel</span>
+              <span>{t('common.cancel')}</span>
             </Link>
             <button type="submit" disabled={submitting} className="btn-primary">
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isEdit ? 'Update User' : 'Create User'}</span>
+              <span>{isEdit ? t('adminUsers.users.updateUser') : t('adminUsers.users.createUser')}</span>
             </button>
           </div>
         </form>
@@ -311,8 +313,8 @@ export default function AdminUserFormPage() {
           <div className="w-16 h-16 rounded-full bg-[#0FD452]/10 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-[#0FD452]" />
           </div>
-          <h3 className="text-lg font-bold text-[#000F14] mb-1">{isEdit ? 'User Updated' : 'User Created'}</h3>
-          <p className="text-sm text-gray-500">Redirecting to users list...</p>
+          <h3 className="text-lg font-bold text-[#000F14] mb-1">{isEdit ? t('adminUsers.users.userUpdated') : t('adminUsers.users.userCreated')}</h3>
+          <p className="text-sm text-gray-500">{t('adminUsers.users.redirecting')}</p>
         </div>
       </Modal>
     </div>

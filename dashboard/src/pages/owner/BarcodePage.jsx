@@ -13,6 +13,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import api from '../../services/api'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const LABEL_FORMATS = [
   { value: 'name_only', label: 'Drug Name' },
@@ -69,6 +70,7 @@ function BarcodeStrip({ width = 120, height = 50, text = '' }) {
 }
 
 export default function BarcodePage() {
+  const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [selectedDrugs, setSelectedDrugs] = useState([])
@@ -157,8 +159,8 @@ export default function BarcodePage() {
               <Barcode className="w-5 h-5 text-[#0FD452]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Barcode Generator</h1>
-              <p className="text-sm text-gray-500">Generate and print barcodes for products.</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('supply.barcode.title')}</h1>
+              <p className="text-sm text-gray-500">{t('supply.barcode.subtitle')}</p>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 no-print">
@@ -167,14 +169,14 @@ export default function BarcodePage() {
               className="btn-secondary"
             >
               <Eye className="w-4 h-4" />
-              {showPreview ? 'Hide Preview' : 'Show Preview'}
+              {showPreview ? t('supply.barcode.hidePreview') : t('supply.barcode.showPreview')}
             </button>
             <button
               onClick={handlePrint}
               className="btn-primary"
             >
               <Printer className="w-4 h-4" />
-              Print Labels
+              {t('supply.barcode.printLabels')}
             </button>
           </div>
         </div>
@@ -186,7 +188,7 @@ export default function BarcodePage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6 no-print">
               <h3 className="text-sm font-semibold text-dark mb-3 flex items-center gap-2">
                 <Search className="w-4 h-4" />
-                Search Drugs
+                {t('supply.barcode.searchDrugs')}
               </h3>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -198,7 +200,7 @@ export default function BarcodePage() {
                     setShowDropdown(true)
                   }}
                   onFocus={() => setShowDropdown(true)}
-                  placeholder="Search by drug name or barcode..."
+                  placeholder={t('supply.barcode.searchPlaceholder')}
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-dark placeholder-gray-400 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
                 {searching && (
@@ -232,14 +234,14 @@ export default function BarcodePage() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-dark flex items-center gap-2">
                   <FileText className="w-4 h-4" />
-                  Selected Drugs ({selectedDrugs.length})
+                  {t('supply.barcode.selectedDrugs')} ({selectedDrugs.length})
                 </h3>
                 {selectedDrugs.length > 0 && (
                   <button
                     onClick={() => setSelectedDrugs([])}
                     className="text-xs text-red-500 hover:text-red-700 font-medium no-print"
                   >
-                    Clear All
+                    {t('supply.barcode.clearAll')}
                   </button>
                 )}
               </div>
@@ -247,7 +249,7 @@ export default function BarcodePage() {
               {selectedDrugs.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <Barcode className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No drugs selected. Search above to add drugs.</p>
+                  <p className="text-sm">{t('supply.barcode.noDrugs')}</p>
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -274,7 +276,7 @@ export default function BarcodePage() {
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <h3 className="text-sm font-semibold text-dark mb-4 flex items-center gap-2">
                   <Eye className="w-4 h-4" />
-                  Barcode Preview
+                  {t('supply.barcode.preview')}
                 </h3>
                 <div className="print-area border border-gray-200 rounded-lg p-4">
                   <div
@@ -302,7 +304,7 @@ export default function BarcodePage() {
                   </div>
                   {totalLabels > 20 && (
                     <p className="text-xs text-gray-400 text-center mt-4">
-                      Showing 20 of {totalLabels} labels
+                      {t('supply.barcode.showing')} 20 {t('supply.barcode.of')} {totalLabels} {t('supply.barcode.labels')}
                     </p>
                   )}
                 </div>
@@ -315,13 +317,13 @@ export default function BarcodePage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6 no-print">
               <h3 className="text-sm font-semibold text-dark mb-4 flex items-center gap-2">
                 <Settings className="w-4 h-4" />
-                Barcode Settings
+                {t('supply.barcode.settings')}
               </h3>
 
               <div className="space-y-4">
                 {/* Label Format */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Label Format</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('supply.barcode.labelFormat')}</label>
                   <select
                     value={labelFormat}
                     onChange={(e) => setLabelFormat(e.target.value)}
@@ -329,7 +331,7 @@ export default function BarcodePage() {
                   >
                     {LABEL_FORMATS.map((f) => (
                       <option key={f.value} value={f.value}>
-                        {f.label}
+                        {t(`supply.barcode.formats.${f.value}`)}
                       </option>
                     ))}
                   </select>
@@ -337,7 +339,7 @@ export default function BarcodePage() {
 
                 {/* Barcode Type */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Barcode Type</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('supply.barcode.barcodeType')}</label>
                   <select
                     value={barcodeType}
                     onChange={(e) => setBarcodeType(e.target.value)}
@@ -353,7 +355,7 @@ export default function BarcodePage() {
 
                 {/* Paper Size */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Paper Size</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('supply.barcode.paperSize')}</label>
                   <select
                     value={paperSize}
                     onChange={(e) => setPaperSize(e.target.value)}
@@ -361,7 +363,7 @@ export default function BarcodePage() {
                   >
                     {PAPER_SIZES.map((p) => (
                       <option key={p.value} value={p.value}>
-                        {p.label}
+                        {t(`supply.barcode.paper.${p.value}`)}
                       </option>
                     ))}
                   </select>
@@ -369,7 +371,7 @@ export default function BarcodePage() {
 
                 {/* Labels Per Row */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Labels Per Row</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('supply.barcode.labelsPerRow')}</label>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4].map((n) => (
                       <button
@@ -389,7 +391,7 @@ export default function BarcodePage() {
 
                 {/* Copies */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Copies</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('supply.barcode.copies')}</label>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setCopies(Math.max(1, copies - 1))}
@@ -418,23 +420,23 @@ export default function BarcodePage() {
 
             {/* Summary */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-sm font-semibold text-dark mb-3">Summary</h3>
+              <h3 className="text-sm font-semibold text-dark mb-3">{t('supply.barcode.summary')}</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600">
-                  <span>Drugs selected</span>
+                  <span>{t('supply.barcode.drugsSelected')}</span>
                   <span className="font-medium text-dark">{selectedDrugs.length}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Copies per drug</span>
+                  <span>{t('supply.barcode.copiesPerDrug')}</span>
                   <span className="font-medium text-dark">{copies}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Labels per row</span>
+                  <span>{t('supply.barcode.labelsPerRowShort')}</span>
                   <span className="font-medium text-dark">{labelsPerRow}</span>
                 </div>
                 <div className="border-t border-gray-100 pt-2 mt-2">
                   <div className="flex justify-between">
-                    <span className="font-medium text-dark">Total labels</span>
+                    <span className="font-medium text-dark">{t('supply.barcode.totalLabels')}</span>
                     <span className="font-bold text-primary">{totalLabels}</span>
                   </div>
                 </div>
@@ -448,7 +450,7 @@ export default function BarcodePage() {
               className="btn-primary"
             >
               <Printer className="w-5 h-5" />
-              Print Preview
+              {t('supply.barcode.printPreview')}
             </button>
           </div>
         </div>

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const AUDIENCE_CONFIG = {
   customer: { label: 'All Customers', color: 'bg-blue-100 text-blue-700', icon: Users },
@@ -35,6 +36,7 @@ function formatDate(dateStr) {
 const PAGE_SIZE = 10
 
 export default function AdminBroadcastPage() {
+  const { t } = useLanguage()
   const [broadcasts, setBroadcasts] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
@@ -80,22 +82,28 @@ export default function AdminBroadcastPage() {
     setTimeout(() => setToast(null), 3000)
   }
 
+  const audienceLabels = {
+    customer: t('adminContent.broadcast.audienceLabels.customer'),
+    pharmacy: t('adminContent.broadcast.audienceLabels.pharmacy'),
+    all: t('adminContent.broadcast.audienceLabels.all'),
+  }
+
   const handleCreate = async () => {
     if (!title.trim() || !message.trim()) {
-      showToast('Title and message are required', 'error')
+      showToast(t('adminContent.broadcast.titleMessageRequired'), 'error')
       return
     }
     setCreating(true)
     try {
       await api.post('/admin/broadcasts', { title: title.trim(), message: message.trim(), audience })
-      showToast('Broadcast created successfully')
+      showToast(t('adminContent.broadcast.createdSuccessfully'))
       setShowCreate(false)
       setTitle('')
       setMessage('')
       setAudience('customer')
       fetchBroadcasts(1)
     } catch (e) {
-      showToast(e.response?.data?.message || 'Failed to create broadcast', 'error')
+      showToast(e.response?.data?.message || t('adminContent.broadcast.createFailed'), 'error')
     } finally {
       setCreating(false)
     }
@@ -106,10 +114,10 @@ export default function AdminBroadcastPage() {
     setBroadcasts((prev) => prev.map((x) => (x.id === b.id ? { ...x, is_active: next } : x)))
     try {
       await api.patch(`/admin/broadcasts/${b.id}/toggle-active`)
-      showToast(next ? 'Broadcast activated' : 'Broadcast deactivated')
+      showToast(next ? t('adminContent.broadcast.activated') : t('adminContent.broadcast.deactivated'))
     } catch (e) {
       setBroadcasts((prev) => prev.map((x) => (x.id === b.id ? { ...x, is_active: !next } : x)))
-      showToast(e.response?.data?.message || 'Failed to update', 'error')
+      showToast(e.response?.data?.message || t('adminContent.broadcast.updateFailed'), 'error')
     }
   }
 
@@ -117,10 +125,10 @@ export default function AdminBroadcastPage() {
     if (!deleteTarget) return
     try {
       await api.delete(`/admin/broadcasts/${deleteTarget.id}`)
-      showToast('Broadcast deleted')
+      showToast(t('adminContent.broadcast.deleted'))
       setBroadcasts((prev) => prev.filter((x) => x.id !== deleteTarget.id))
     } catch (e) {
-      showToast(e.response?.data?.message || 'Failed to delete', 'error')
+      showToast(e.response?.data?.message || t('adminContent.broadcast.deleteFailed'), 'error')
     } finally {
       setDeleteTarget(null)
     }
@@ -134,13 +142,13 @@ export default function AdminBroadcastPage() {
             <Megaphone className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Broadcasts</h1>
-            <p className="text-sm text-gray-500">Send announcements to customers and pharmacies.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('nav.items.broadcasts')}</h1>
+            <p className="text-sm text-gray-500">{t('adminContent.broadcast.subtitle')}</p>
           </div>
         </div>
         <button onClick={() => setShowCreate(true)} className="btn-primary">
           <Plus className="h-4 w-4" />
-          New Broadcast
+          {t('adminContent.broadcast.newBroadcast')}
         </button>
       </div>
 
@@ -153,8 +161,8 @@ export default function AdminBroadcastPage() {
       ) : broadcasts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl bg-white py-16 shadow-sm">
           <Megaphone className="mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-semibold text-gray-900">No broadcasts yet</h3>
-          <p className="text-sm text-gray-500">Create your first broadcast to reach your audience.</p>
+          <h3 className="text-lg font-semibold text-gray-900">{t('adminContent.broadcast.emptyTitle')}</h3>
+          <p className="text-sm text-gray-500">{t('adminContent.broadcast.emptySubtitle')}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -165,31 +173,31 @@ export default function AdminBroadcastPage() {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Megaphone className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Broadcast</span>
+                      <span>{t('adminContent.broadcast.broadcast')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Audience</span>
+                      <span>{t('adminContent.broadcast.audience')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Created</span>
+                      <span>{t('adminContent.broadcast.created')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Status</span>
+                      <span>{t('common.status')}</span>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5 justify-end">
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#0FD452]" />
-                      <span>Actions</span>
+                      <span>{t('common.actions')}</span>
                     </div>
                   </th>
                 </tr>
@@ -214,7 +222,7 @@ export default function AdminBroadcastPage() {
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.color}`}>
                           <AudIcon className="w-3.5 h-3.5" />
-                          {cfg.label}
+                          {audienceLabels[b.audience] || cfg.label}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{formatDate(b.created_at)}</td>
@@ -223,7 +231,7 @@ export default function AdminBroadcastPage() {
                           b.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${b.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
-                          {b.is_active ? 'Active' : 'Inactive'}
+                          {b.is_active ? t('common.active') : t('common.inactive')}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -235,15 +243,15 @@ export default function AdminBroadcastPage() {
                                 ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 : 'bg-[#0FD452]/10 text-[#0FD452] hover:bg-[#0FD452]/20'
                             }`}
-                            title={b.is_active ? 'Deactivate' : 'Activate'}
+                            title={b.is_active ? t('adminContent.broadcast.deactivate') : t('adminContent.broadcast.activate')}
                           >
                             {b.is_active ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                            {b.is_active ? 'Deactivate' : 'Activate'}
+                            {b.is_active ? t('adminContent.broadcast.deactivate') : t('adminContent.broadcast.activate')}
                           </button>
                           <button
                             onClick={() => setDeleteTarget(b)}
                             className="btn-icon-red"
-                            title="Delete"
+                            title={t('common.delete')}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -257,7 +265,7 @@ export default function AdminBroadcastPage() {
           </div>
           {lastPage > 1 && (
             <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
-              <p className="text-sm text-gray-500">Total {total} broadcasts</p>
+              <p className="text-sm text-gray-500">{t('common.total')} {total} {t('adminContent.broadcast.broadcastsCount')}</p>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => fetchBroadcasts(page - 1)}
@@ -291,8 +299,8 @@ export default function AdminBroadcastPage() {
                   <Megaphone className="w-5 h-5 text-[#0FD452]" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">New Broadcast</h2>
-                  <p className="text-xs text-gray-500">Send an announcement to your audience.</p>
+                  <h2 className="text-lg font-bold text-gray-900">{t('adminContent.broadcast.newBroadcast')}</h2>
+                  <p className="text-xs text-gray-500">{t('adminContent.broadcast.modalSubtitle')}</p>
                 </div>
               </div>
               <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600 p-1">
@@ -302,43 +310,43 @@ export default function AdminBroadcastPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Title</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t('adminContent.broadcast.title')}</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   maxLength={255}
-                  placeholder="e.g. New feature announcement"
+                  placeholder={t('adminContent.broadcast.titlePlaceholder')}
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 outline-none focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Message</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t('adminContent.broadcast.message')}</label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
-                  placeholder="Write your broadcast message..."
+                  placeholder={t('adminContent.broadcast.messagePlaceholder')}
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 outline-none focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 resize-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Audience</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t('adminContent.broadcast.audience')}</label>
                 <select
                   value={audience}
                   onChange={(e) => setAudience(e.target.value)}
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
                 >
-                  <option value="customer">All Customers</option>
-                  <option value="pharmacy">All Pharmacies</option>
-                  <option value="all">Everyone</option>
+                  <option value="customer">{audienceLabels.customer}</option>
+                  <option value="pharmacy">{audienceLabels.pharmacy}</option>
+                  <option value="all">{audienceLabels.all}</option>
                 </select>
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowCreate(false)} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleCreate}
@@ -350,7 +358,7 @@ export default function AdminBroadcastPage() {
                 ) : (
                   <Megaphone className="w-4 h-4" />
                 )}
-                Send Broadcast
+                {t('adminContent.broadcast.send')}
               </button>
             </div>
           </div>
@@ -359,9 +367,9 @@ export default function AdminBroadcastPage() {
 
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Broadcast"
-        message={`Are you sure you want to delete "${deleteTarget?.title || 'this broadcast'}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('adminContent.broadcast.deleteTitle')}
+        message={`${t('adminContent.broadcast.deleteMessage1')} "${deleteTarget?.title || t('adminContent.broadcast.thisBroadcast')}"? ${t('common.cannotBeUndone')}`}
+        confirmText={t('common.delete')}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
         variant="danger"

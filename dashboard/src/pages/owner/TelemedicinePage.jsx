@@ -8,24 +8,26 @@ import {
 import api from '../../services/api'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const STATUS_CONFIG = {
-  requested: { label: 'Pending', cls: 'bg-amber-100 text-amber-700', icon: Timer },
-  scheduled: { label: 'Scheduled', cls: 'bg-blue-100 text-blue-700', icon: Clock4 },
-  live: { label: 'Live', cls: 'bg-green-100 text-green-700', icon: Phone },
-  ended: { label: 'Ended', cls: 'bg-gray-100 text-gray-600', icon: FileText },
-  missed: { label: 'Missed', cls: 'bg-orange-100 text-orange-600', icon: X },
-  cancelled: { label: 'Cancelled', cls: 'bg-red-100 text-red-600', icon: X },
+  requested: { labelKey: 'reports.telemedicine.status.requested', cls: 'bg-amber-100 text-amber-700', icon: Timer },
+  scheduled: { labelKey: 'reports.telemedicine.status.scheduled', cls: 'bg-blue-100 text-blue-700', icon: Clock4 },
+  live: { labelKey: 'reports.telemedicine.status.live', cls: 'bg-green-100 text-green-700', icon: Phone },
+  ended: { labelKey: 'reports.telemedicine.status.ended', cls: 'bg-gray-100 text-gray-600', icon: FileText },
+  missed: { labelKey: 'reports.telemedicine.status.missed', cls: 'bg-orange-100 text-orange-600', icon: X },
+  cancelled: { labelKey: 'reports.telemedicine.status.cancelled', cls: 'bg-red-100 text-red-600', icon: X },
 }
 
 function StatusPill({ status }) {
+  const { t } = useLanguage()
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.ended
   const Icon = cfg.icon
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>
-      <Icon className="w-3 h-3" /> {cfg.label}
+      <Icon className="w-3 h-3" /> {t(cfg.labelKey)}
     </span>
   )
 }
@@ -49,6 +51,7 @@ const EmptyRow = ({ colSpan, message }) => (
 )
 
 export default function TelemedicinePage() {
+  const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState('consults')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -92,7 +95,7 @@ export default function TelemedicinePage() {
       setSlots(toArray(slotsRes.data))
       setSettings(slotsResFn(settingsRes))
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Could not load telemedicine data', 'error')
+      showToast(err?.response?.data?.message || t('reports.telemedicine.loadError'), 'error')
     } finally {
       setLoading(false)
     }
@@ -122,35 +125,35 @@ export default function TelemedicinePage() {
   }
 
   const statCards = [
-    { label: 'Pending Requests', value: stats.pending, icon: Timer, color: 'bg-amber-100 text-amber-600' },
-    { label: 'Live Now', value: stats.live, icon: Phone, color: 'bg-green-100 text-green-600' },
-    { label: 'Scheduled', value: stats.scheduled, icon: Clock4, color: 'bg-blue-100 text-blue-600' },
-    { label: 'Completed', value: stats.completed, icon: FileText, color: 'bg-gray-100 text-gray-600' },
+    { label: t('reports.telemedicine.pendingRequests'), value: stats.pending, icon: Timer, color: 'bg-amber-100 text-amber-600' },
+    { label: t('reports.telemedicine.liveNow'), value: stats.live, icon: Phone, color: 'bg-green-100 text-green-600' },
+    { label: t('reports.telemedicine.scheduled'), value: stats.scheduled, icon: Clock4, color: 'bg-blue-100 text-blue-600' },
+    { label: t('common.completed'), value: stats.completed, icon: FileText, color: 'bg-gray-100 text-gray-600' },
   ]
 
   // ---- Actions ----
   const startConsult = async (id) => {
     try {
       await api.post(`/telemedicine/${id}/accept`)
-      showToast('Consultation is now LIVE')
+      showToast(t('reports.telemedicine.toastLive'))
       setActiveMenu(null); load()
-    } catch (err) { showToast(err?.response?.data?.message || 'Could not start consult', 'error') }
+    } catch (err) { showToast(err?.response?.data?.message || t('reports.telemedicine.toastLiveError'), 'error') }
   }
 
   const notifyPatient = async (id) => {
     try {
       await api.post(`/telemedicine/${id}/notify`)
-      showToast('Patient notified — join when ready')
+      showToast(t('reports.telemedicine.toastNotified'))
       setActiveMenu(null)
-    } catch (err) { showToast(err?.response?.data?.message || 'Could not notify', 'error') }
+    } catch (err) { showToast(err?.response?.data?.message || t('reports.telemedicine.toastNotifyError'), 'error') }
   }
 
   const endConsult = async (id) => {
     try {
       await api.post(`/telemedicine/${id}/end`)
-      showToast('Consultation ended')
+      showToast(t('reports.telemedicine.toastEnded'))
       setActiveMenu(null); load()
-    } catch (err) { showToast(err?.response?.data?.message || 'Could not end consult', 'error') }
+    } catch (err) { showToast(err?.response?.data?.message || t('reports.telemedicine.toastEndError'), 'error') }
   }
 
   const openNotes = (item) => { setModal('notes'); setModalItem(item) }
@@ -160,29 +163,29 @@ export default function TelemedicinePage() {
     try {
       if (form.id) {
         await api.put(`/telemedicine/slots/${form.id}`, form)
-        showToast('Slot updated')
+        showToast(t('reports.telemedicine.toastSlotUpdated'))
       } else {
         await api.post('/telemedicine/slots', form)
-        showToast('Slot created')
+        showToast(t('reports.telemedicine.toastSlotCreated'))
       }
       setModal(null); setModalItem(null); load()
-    } catch (err) { showToast(err?.response?.data?.message || 'Could not save slot', 'error') }
+    } catch (err) { showToast(err?.response?.data?.message || t('reports.telemedicine.toastSlotSaveError'), 'error') }
   }
 
   const deleteSlot = async () => {
     try {
       await api.delete(`/telemedicine/slots/${confirmDelete.id}`)
-      showToast('Slot deleted')
+      showToast(t('reports.telemedicine.toastSlotDeleted'))
       setConfirmDelete(null); load()
-    } catch (err) { showToast(err?.response?.data?.message || 'Could not delete slot', 'error') }
+    } catch (err) { showToast(err?.response?.data?.message || t('reports.telemedicine.toastSlotDeleteError'), 'error') }
   }
 
   const saveSettings = async (form) => {
     try {
       await api.put('/telemedicine/slot-settings', form)
-      showToast('Slot settings saved')
+      showToast(t('reports.telemedicine.toastSettingsSaved'))
       setModal(null); load()
-    } catch (err) { showToast(err?.response?.data?.message || 'Could not save settings', 'error') }
+    } catch (err) { showToast(err?.response?.data?.message || t('reports.telemedicine.toastSettingsError'), 'error') }
   }
 
   // ---- Render ----
@@ -203,14 +206,14 @@ export default function TelemedicinePage() {
             <Stethoscope className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Telemedicine</h1>
-            <p className="text-sm text-gray-500">Manage consultation slots and video consultations.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('reports.telemedicine.title')}</h1>
+            <p className="text-sm text-gray-500">{t('reports.telemedicine.subtitle')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={load} className="btn-secondary">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('common.refresh')}
           </button>
           {activeTab === 'slots' ? (
             <button
@@ -218,12 +221,12 @@ export default function TelemedicinePage() {
               className="btn-primary"
             >
               <Plus className="w-5 h-5" />
-              Add Slot
+              {t('reports.telemedicine.addSlot')}
             </button>
           ) : (
             <button onClick={() => setModal('settings')} className="btn-primary">
               <CalendarDays className="w-5 h-5" />
-              Slot Settings
+              {t('reports.telemedicine.slotSettings')}
             </button>
           )}
         </div>
@@ -246,12 +249,12 @@ export default function TelemedicinePage() {
 
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-gray-200 mb-5">
-        <TabBtn active={activeTab === 'consults'} onClick={() => setActiveTab('consults')} label="Consultations" count={consultations.length} icon={Stethoscope} />
-        <TabBtn active={activeTab === 'slots'} onClick={() => setActiveTab('slots')} label="Slots" count={slots.length} icon={CalendarDays} />
+        <TabBtn active={activeTab === 'consults'} onClick={() => setActiveTab('consults')} label={t('reports.telemedicine.tabConsults')} count={consultations.length} icon={Stethoscope} />
+        <TabBtn active={activeTab === 'slots'} onClick={() => setActiveTab('slots')} label={t('reports.telemedicine.tabSlots')} count={slots.length} icon={CalendarDays} />
         {!loading && settings?.slots && (
           <span className="ml-auto hidden sm:flex items-center gap-2 text-xs text-gray-400 py-2.5">
             <Clock4 className="w-3.5 h-3.5" />
-            Next {settings.slots.length} generated slots available
+            {t('reports.telemedicine.nextSlotsPrefix')} {settings.slots.length} {t('reports.telemedicine.nextSlotsSuffix')}
           </span>
         )}
       </div>
@@ -267,7 +270,7 @@ export default function TelemedicinePage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search patient, phone or room..."
+                placeholder={t('reports.telemedicine.searchPlaceholder')}
                 className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full"
               />
             </div>
@@ -283,7 +286,7 @@ export default function TelemedicinePage() {
                       statusFilter === st ? 'bg-primary text-dark' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                     }`}
                   >
-                    {cfg.label}
+                    {t(cfg.labelKey)}
                   </button>
                 )
               })}
@@ -296,23 +299,23 @@ export default function TelemedicinePage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50">
-                    <TH icon={User}>Patient</TH>
-                    <TH icon={Timer}>Status</TH>
-                    <TH icon={Clock4}>Scheduled</TH>
-                    <TH icon={PhoneCall}>Room</TH>
-                    <TH icon={FileText}>Topic / Patient note</TH>
-                    <TH icon={PencilLine}>Pharmacist notes</TH>
-                    <TH align="right">Actions</TH>
+                    <TH icon={User}>{t('reports.telemedicine.patient')}</TH>
+                    <TH icon={Timer}>{t('common.status')}</TH>
+                    <TH icon={Clock4}>{t('reports.telemedicine.scheduled')}</TH>
+                    <TH icon={PhoneCall}>{t('reports.telemedicine.room')}</TH>
+                    <TH icon={FileText}>{t('reports.telemedicine.topicNote')}</TH>
+                    <TH icon={PencilLine}>{t('reports.telemedicine.pharmacistNotes')}</TH>
+                    <TH align="right">{t('common.actions')}</TH>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
                     renderLoadRow()
                   ) : consultations.length === 0 ? (
-                    <EmptyRow colSpan={7} message="No consultations found" />
+                    <EmptyRow colSpan={7} message={t('reports.telemedicine.emptyConsults')} />
                   ) : (
                     consultations.map((item, index) => {
-                      const patientName = item.patient?.name || item.patient?.phone || 'Patient'
+                      const patientName = item.patient?.name || item.patient?.phone || t('reports.telemedicine.patient')
                       return (
                         <tr key={item.id} className="transition-colors hover:bg-[#0FD452]/5">
                           <td className="px-6 py-4">
@@ -339,12 +342,12 @@ export default function TelemedicinePage() {
                                     onClick={() => startConsult(item.id)}
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0FD452] text-[#000F14] text-xs font-semibold hover:bg-[#0bc246]"
                                   >
-                                    <Video className="w-3.5 h-3.5" /> Go Live
+                                    <Video className="w-3.5 h-3.5" /> {t('reports.telemedicine.goLive')}
                                   </button>
                                   {item.status === 'scheduled' && (
                                     <button
                                       onClick={() => notifyPatient(item.id)}
-                                      title="Notify patient"
+                                      title={t('reports.telemedicine.notifyPatient')}
                                       className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
                                     >
                                       <Bell className="w-4 h-4" />
@@ -360,20 +363,20 @@ export default function TelemedicinePage() {
                                     rel="noreferrer"
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0FD452] text-[#000F14] text-xs font-semibold hover:bg-[#0bc246]"
                                   >
-                                    <PhoneCall className="w-3.5 h-3.5" /> Join Room
+                                    <PhoneCall className="w-3.5 h-3.5" /> {t('reports.telemedicine.joinRoom')}
                                   </a>
                                   <button
                                     onClick={() => endConsult(item.id)}
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100"
                                   >
-                                    End
+                                    {t('reports.telemedicine.end')}
                                   </button>
                                 </>
                               )}
                               {item.status === 'requested' || item.status === 'live' ? (
                                 <button
                                   onClick={() => openNotes(item)}
-                                  title="Notes / prescription"
+                                  title={t('reports.telemedicine.notesTooltip')}
                                   className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
                                 >
                                   <PencilLine className="w-4 h-4" />
@@ -383,7 +386,7 @@ export default function TelemedicinePage() {
                                   onClick={() => openNotes(item)}
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50"
                                 >
-                                  <PencilLine className="w-3.5 h-3.5" /> {item.pharmacist_notes ? 'Edit Notes' : 'Add Notes'}
+                                  <PencilLine className="w-3.5 h-3.5" /> {item.pharmacist_notes ? t('reports.telemedicine.editNotes') : t('reports.telemedicine.addNotes')}
                                 </button>
                               )}
                             </div>
@@ -410,10 +413,10 @@ export default function TelemedicinePage() {
                 </span>
               </div>
               <span className="text-xs text-gray-400">
-                {settings.working_hours?.open} – {settings.working_hours?.close} · {settings.slot_minutes}min slots · {settings.slot_gap_minutes}min gap
+                {settings.working_hours?.open} – {settings.working_hours?.close} · {settings.slot_minutes}{t('reports.telemedicine.minSlots')} · {settings.slot_gap_minutes}{t('reports.telemedicine.minGap')}
               </span>
               <button onClick={() => setModal('settings')} className="ml-auto text-xs font-semibold text-[#0FD452] hover:underline">
-                Edit Slot Settings
+                {t('reports.telemedicine.editSlotSettings')}
               </button>
             </div>
           )}
@@ -421,11 +424,11 @@ export default function TelemedicinePage() {
           {/* Table */}
           <div className="overflow-hidden rounded-xl bg-white shadow-sm">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Slots</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('reports.telemedicine.slotsTitle')}</h3>
               {(slots.length > 40 || true) && (
                 <div className="flex items-center gap-2 text-sm text-gray-400">
                   <Search className="w-4 h-4" />
-                  <span>{slots.length} slot{slots.length === 1 ? '' : 's'} managed</span>
+                  <span>{slots.length} {slots.length === 1 ? t('reports.telemedicine.slotManagedOne') : t('reports.telemedicine.slotManaged')}</span>
                 </div>
               )}
             </div>
@@ -433,11 +436,11 @@ export default function TelemedicinePage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50">
-                    <TH icon={CalendarDays}>Date</TH>
-                    <TH icon={Clock4}>Start</TH>
-                    <TH icon={Clock4}>End</TH>
-                    <TH icon={ToggleRight}>Status</TH>
-                    <TH align="right">Actions</TH>
+                    <TH icon={CalendarDays}>{t('common.date')}</TH>
+                    <TH icon={Clock4}>{t('reports.telemedicine.start')}</TH>
+                    <TH icon={Clock4}>{t('reports.telemedicine.endColumn')}</TH>
+                    <TH icon={ToggleRight}>{t('common.status')}</TH>
+                    <TH align="right">{t('common.actions')}</TH>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -448,7 +451,7 @@ export default function TelemedicinePage() {
                       </td>
                     </tr>
                   ) : slots.length === 0 ? (
-                    <EmptyRow colSpan={5} message="No slots yet — click Add Slot to create your first one" />
+                    <EmptyRow colSpan={5} message={t('reports.telemedicine.emptySlots')} />
                   ) : (
                     slots.map((slot, index) => (
                       <tr key={slot.id} className="transition-colors hover:bg-[#0FD452]/5">
@@ -465,25 +468,25 @@ export default function TelemedicinePage() {
                         <td className="px-6 py-4">
                           {slot.is_available ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                              <ToggleRight className="w-3 h-3" /> Available
+                              <ToggleRight className="w-3 h-3" /> {t('reports.telemedicine.available')}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">
-                              <ToggleLeft className="w-3 h-3" /> Unavailable
+                              <ToggleLeft className="w-3 h-3" /> {t('reports.telemedicine.unavailable')}
                             </span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <button
-                              title="Edit slot"
+                              title={t('reports.telemedicine.editSlotTitle')}
                               onClick={() => { setModal('slot'); setModalItem(slot) }}
                               className="btn-icon-blue"
                             >
                               <PencilLine className="w-4 h-4" />
                             </button>
                             <button
-                              title="Delete slot"
+                              title={t('reports.telemedicine.deleteSlotTitle')}
                               onClick={() => setConfirmDelete(slot)}
                               className="btn-icon-red"
                             >
@@ -502,8 +505,8 @@ export default function TelemedicinePage() {
             {!loading && settings?.slots && (
               <div className="border-t border-gray-100 px-6 py-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold text-gray-700">Upcoming slots patients can book</p>
-                  <span className="text-xs text-gray-400">{settings.slots.length} generated</span>
+                  <p className="text-sm font-semibold text-gray-700">{t('reports.telemedicine.upcomingSlots')}</p>
+                  <span className="text-xs text-gray-400">{settings.slots.length} {t('reports.telemedicine.generated')}</span>
                 </div>
                 <div className="flex gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
                   {settings.slots.slice(0, 12).map((s, i) => (
@@ -512,11 +515,11 @@ export default function TelemedicinePage() {
                       className={`shrink-0 inline-flex flex-col items-center px-3 py-1.5 rounded-lg text-xs border ${
                         s.booked ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-100 text-gray-600'
                       }`}
-                      title={s.booked ? 'Booked' : 'Available'}
+                      title={s.booked ? t('reports.telemedicine.booked') : t('reports.telemedicine.available')}
                     >
                       <span className="font-semibold">{s.date_label}</span>
                       <span>{s.time_label}</span>
-                      {s.booked && <span className="text-[9px] font-bold text-blue-600">BOOKED</span>}
+                      {s.booked && <span className="text-[9px] font-bold text-blue-600">{t('reports.telemedicine.bookedChip')}</span>}
                     </span>
                   ))}
                 </div>
@@ -556,10 +559,10 @@ export default function TelemedicinePage() {
       {/* Delete confirm */}
       <ConfirmDialog
         isOpen={!!confirmDelete}
-        title="Delete Slot"
-        message="Are you sure you want to delete this slot? Patients will no longer be able to book it."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('reports.telemedicine.deleteTitle')}
+        message={t('reports.telemedicine.deleteMessage')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         variant="danger"
         onConfirm={deleteSlot}
         onCancel={() => setConfirmDelete(null)}
@@ -607,6 +610,7 @@ function TH({ icon: Icon, children, align }) {
 
 // ---- Slot form modal ----
 function SlotFormModal({ item, onClose, onSave }) {
+  const { t } = useLanguage()
   const [form, setForm] = useState({
     id: item?.id || null,
     slot_date: item?.slot_date || '',
@@ -617,7 +621,7 @@ function SlotFormModal({ item, onClose, onSave }) {
   const [saving, setSaving] = useState(false)
 
   const submit = async () => {
-    if (!form.slot_date) { alert('Please choose a date'); return }
+    if (!form.slot_date) { alert(t('reports.telemedicine.chooseDate')); return }
     setSaving(true)
     try {
       await onSave({ ...form, is_available: !!form.is_available })
@@ -625,10 +629,10 @@ function SlotFormModal({ item, onClose, onSave }) {
   }
 
   return (
-    <Modal isOpen onClose={onClose} title={item ? 'Edit Slot' : 'Add Slot'} subtitle="Create a consultation slot patients can book.">
+    <Modal isOpen onClose={onClose} title={item ? t('reports.telemedicine.editSlot') : t('reports.telemedicine.addSlot')} subtitle={t('reports.telemedicine.slotModalSubtitle')}>
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Date</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('common.date')}</label>
           <input
             type="date"
             value={form.slot_date}
@@ -639,7 +643,7 @@ function SlotFormModal({ item, onClose, onSave }) {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Start</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.telemedicine.start')}</label>
             <input
               type="time"
               value={form.start_time}
@@ -648,7 +652,7 @@ function SlotFormModal({ item, onClose, onSave }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">End</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.telemedicine.endColumn')}</label>
             <input
               type="time"
               value={form.end_time}
@@ -669,14 +673,14 @@ function SlotFormModal({ item, onClose, onSave }) {
               ? <ToggleRight className="w-5 h-5 text-green-600 shrink-0" />
               : <ToggleLeft className="w-5 h-5 text-red-600 shrink-0" />}
             <span className="text-sm font-medium text-gray-800">
-              {form.is_available ? 'Available — patients can book this slot' : 'Unavailable — slot is blocked'}
+              {form.is_available ? t('reports.telemedicine.availableOn') : t('reports.telemedicine.availableOff')}
             </span>
           </button>
         </div>
         <div className="flex items-center gap-3 pt-2 justify-end">
-          <button onClick={onClose} className="btn-secondary">Cancel</button>
+          <button onClick={onClose} className="btn-secondary">{t('common.cancel')}</button>
           <button onClick={submit} disabled={saving} className="btn-primary disabled:opacity-50">
-            {saving ? 'Saving…' : (item ? 'Save Changes' : 'Create Slot')}
+            {saving ? t('common.saving') : (item ? t('reports.telemedicine.saveChanges') : t('reports.telemedicine.createSlot'))}
           </button>
         </div>
       </div>
@@ -686,6 +690,7 @@ function SlotFormModal({ item, onClose, onSave }) {
 
 // ---- Notes modal ----
 function NotesModal({ item, onClose, onSaved }) {
+  const { t } = useLanguage()
   const [notes, setNotes] = useState(item.pharmacist_notes || '')
   const [saving, setSaving] = useState(false)
 
@@ -693,9 +698,9 @@ function NotesModal({ item, onClose, onSaved }) {
     setSaving(true)
     try {
       await api.put(`/telemedicine/${item.id}/notes`, { pharmacist_notes: notes })
-      onSaved('Notes saved')
+      onSaved(t('reports.telemedicine.toastNotesSaved'))
     } catch (err) {
-      onSaved(err?.response?.data?.message || 'Could not save notes')
+      onSaved(err?.response?.data?.message || t('reports.telemedicine.toastNotesError'))
     } finally { setSaving(false) }
   }
 
@@ -703,50 +708,50 @@ function NotesModal({ item, onClose, onSaved }) {
     <Modal
       isOpen
       onClose={onClose}
-      title="Consultation Notes & Prescription"
-      subtitle={`${item.patient?.name || item.patient?.phone || 'Patient'} · ${item.room_code}`}
+      title={t('reports.telemedicine.notesTitle')}
+      subtitle={`${item.patient?.name || item.patient?.phone || t('reports.telemedicine.patient')} · ${item.room_code}`}
       maxWidth="max-w-xl"
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-gray-50 rounded-lg px-3 py-2">
-            <p className="text-[10px] uppercase tracking-wide text-gray-400">Status</p>
+            <p className="text-[10px] uppercase tracking-wide text-gray-400">{t('common.status')}</p>
             <div className="mt-1"><StatusPill status={item.status} /></div>
           </div>
           <div className="bg-gray-50 rounded-lg px-3 py-2">
-            <p className="text-[10px] uppercase tracking-wide text-gray-400">Scheduled</p>
+            <p className="text-[10px] uppercase tracking-wide text-gray-400">{t('reports.telemedicine.scheduled')}</p>
             <p className="text-sm font-semibold text-gray-900 mt-1">{formatDate(item.scheduled_at)}</p>
           </div>
         </div>
 
         {item.topic && (
           <div className="bg-gray-50 rounded-lg px-3 py-2">
-            <p className="text-[10px] uppercase tracking-wide text-gray-400">Patient note</p>
+            <p className="text-[10px] uppercase tracking-wide text-gray-400">{t('reports.telemedicine.patientNote')}</p>
             <p className="text-sm text-gray-700 mt-1">{item.topic}</p>
           </div>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Pharmacist notes / Prescription</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.telemedicine.notesLabel')}</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={7}
-            placeholder="Diagnosis, prescribed medicines, dosage, follow-up instructions…"
+            placeholder={t('reports.telemedicine.notesPlaceholder')}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 resize-y"
           />
         </div>
 
         {item.room_url && (
           <a href={item.room_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-[#0FD452] font-semibold hover:underline">
-            <Video className="w-4 h-4" /> Open video room in new tab
+            <Video className="w-4 h-4" /> {t('reports.telemedicine.openRoom')}
           </a>
         )}
 
         <div className="flex items-center justify-end gap-2 pt-2">
-          <button onClick={onClose} className="btn-secondary">Cancel</button>
+          <button onClick={onClose} className="btn-secondary">{t('common.cancel', 'Cancel')}</button>
           <button onClick={save} disabled={saving} className="btn-primary disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save Notes'}
+            {saving ? t('common.saving') : t('reports.telemedicine.saveNotes')}
           </button>
         </div>
       </div>
@@ -756,6 +761,7 @@ function NotesModal({ item, onClose, onSaved }) {
 
 // ---- Settings modal ----
 function SettingsModal({ settings, onClose, onSave }) {
+  const { t } = useLanguage()
   const [form, setForm] = useState({
     working_days: settings?.working_days && settings.working_days.length ? settings.working_days : [...DAYS],
     working_hours: {
@@ -779,10 +785,10 @@ function SettingsModal({ settings, onClose, onSave }) {
   }
 
   return (
-    <Modal isOpen onClose={onClose} title="Slot Settings" subtitle="Default hours used to generate patient-facing booking slots." maxWidth="max-w-xl">
+    <Modal isOpen onClose={onClose} title={t('reports.telemedicine.slotSettings')} subtitle={t('reports.telemedicine.settingsSubtitle')} maxWidth="max-w-xl">
       <div className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Working days</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t('reports.telemedicine.workingDays')}</label>
           <div className="flex flex-wrap gap-2">
             {DAYS.map((d) => (
               <button
@@ -793,7 +799,7 @@ function SettingsModal({ settings, onClose, onSave }) {
                   form.working_days.includes(d) ? 'bg-[#0FD452] text-[#000F14] border-transparent' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
                 }`}
               >
-                {d}
+                {t(`reports.telemedicine.days.${d}`)}
               </button>
             ))}
           </div>
@@ -801,7 +807,7 @@ function SettingsModal({ settings, onClose, onSave }) {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Open</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.telemedicine.open')}</label>
             <input
               type="time"
               value={form.working_hours.open}
@@ -810,7 +816,7 @@ function SettingsModal({ settings, onClose, onSave }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Close</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('common.close')}</label>
             <input
               type="time"
               value={form.working_hours.close}
@@ -819,7 +825,7 @@ function SettingsModal({ settings, onClose, onSave }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Slot (min)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.telemedicine.slotMinutes')}</label>
             <input
               type="number"
               min="10"
@@ -830,7 +836,7 @@ function SettingsModal({ settings, onClose, onSave }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Gap (min)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.telemedicine.gapMinutes')}</label>
             <input
               type="number"
               min="0"
@@ -843,9 +849,9 @@ function SettingsModal({ settings, onClose, onSave }) {
         </div>
 
         <div className="flex items-center gap-3 pt-2 justify-end">
-          <button onClick={onClose} className="btn-secondary">Cancel</button>
+          <button onClick={onClose} className="btn-secondary">{t('common.cancel')}</button>
           <button onClick={submit} disabled={saving} className="btn-primary disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save Settings'}
+            {saving ? t('common.saving') : t('reports.telemedicine.saveSettings')}
           </button>
         </div>
       </div>

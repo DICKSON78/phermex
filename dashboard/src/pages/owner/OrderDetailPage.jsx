@@ -8,6 +8,38 @@ import {
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
+
+const ORDER_KEY = {
+  pending: 'orders.pending',
+  confirmed: 'orders.confirmed',
+  preparing: 'orders.preparing',
+  ready: 'orders.ready',
+  out_for_delivery: 'orders.out_for_delivery',
+  dispensed: 'orders.dispensed',
+  delivered: 'orders.delivered',
+  cancelled: 'orders.cancelled',
+}
+
+const PAYMENT_KEY = {
+  unpaid: 'orders.unpaid',
+  partial: 'sales.orders.paymentPartial',
+  pending_customer_transfer: 'sales.orders.paymentPendingTransfer',
+  paid: 'orders.paid',
+}
+
+const TYPE_KEY = {
+  counter: 'orders.counter',
+  online: 'orders.online',
+  phone: 'orders.phone',
+}
+
+const METHOD_KEY = {
+  cash: 'sales.orders.methods.cash',
+  card: 'sales.orders.methods.card',
+  mobile_money: 'sales.orders.methods.mobile_money',
+  bank_transfer: 'sales.orders.methods.bank_transfer',
+}
 
 const STATUS_STYLES = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -30,6 +62,7 @@ const PAYMENT_STYLES = {
 const STATUS_STEPS = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered']
 
 export default function OrderDetailPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const base = currentBase()
   const { id } = useParams()
@@ -61,9 +94,9 @@ export default function OrderDetailPage() {
     try {
       const res = await api.put(`/orders/${id}/payment`, { payment_status: 'paid' })
       setOrder(res.data.order || res.data)
-      toast.success('Payment marked as received')
+      toast.success(t('sales.orders.paymentMarkedToast'))
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update payment')
+      toast.error(err.response?.data?.message || t('sales.orders.paymentUpdateFailed'))
     } finally {
       setUpdating(false)
     }
@@ -81,9 +114,9 @@ export default function OrderDetailPage() {
       }
       const res = await api.put(`/orders/${id}/status`, payload)
       setOrder(res.data.order || res.data)
-      toast.success(`Order ${newStatus}`)
+      toast.success(`${t('sales.orders.order')} ${t(ORDER_KEY[newStatus], newStatus)}`)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update status')
+      toast.error(err.response?.data?.message || t('sales.orders.statusUpdateFailed'))
     } finally {
       setUpdating(false)
     }
@@ -100,7 +133,7 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="p-6 text-center py-20">
-        <p className="text-gray-500">Order not found</p>
+        <p className="text-gray-500">{t('sales.orders.notFound')}</p>
       </div>
     )
   }
@@ -108,7 +141,7 @@ export default function OrderDetailPage() {
   const status = order.order_status || order.status || 'pending'
   const currentStepIndex = STATUS_STEPS.indexOf(status)
   const orderCode = order.order_code || order.code || `#${order.id}`
-  const customerName = order.user?.name || order.customer?.name || 'Walk-in'
+  const customerName = order.user?.name || order.customer?.name || t('dashboard.walkIn')
   const customerPhone = order.user?.phone || order.customer?.phone || null
   const customerEmail = order.user?.email || null
   const processorName = order.processor?.name || '—'
@@ -130,13 +163,13 @@ export default function OrderDetailPage() {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('sales.orders.details')}</h1>
             <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[status] || 'bg-gray-100 text-gray-600'}`}>
-              {status}
+              {t(ORDER_KEY[status], status)}
             </span>
             {order.order_type && (
               <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize bg-purple-100 text-purple-700">
-                {order.order_type}
+                {t(TYPE_KEY[order.order_type], order.order_type)}
               </span>
             )}
           </div>
@@ -158,7 +191,7 @@ export default function OrderDetailPage() {
                     {i < currentStepIndex ? <CheckCircle className="w-5 h-5" /> : i + 1}
                   </div>
                   <span className={`text-xs mt-1.5 font-medium capitalize ${i <= currentStepIndex ? 'text-[#000F14]' : 'text-gray-400'}`}>
-                    {step === 'out_for_delivery' ? 'On the Way' : step}
+                    {step === 'out_for_delivery' ? t('sales.orders.onTheWay') : t(ORDER_KEY[step], step)}
                   </span>
                 </div>
                 {i < STATUS_STEPS.length - 1 && (
@@ -172,26 +205,26 @@ export default function OrderDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6 lg:col-span-2">
-          <h3 className="text-lg font-semibold text-[#000F14] mb-4">Order Information</h3>
+          <h3 className="text-lg font-semibold text-[#000F14] mb-4">{t('sales.orders.information')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
               <FileText className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Order Code</p>
+                <p className="text-xs text-gray-500">{t('dashboard.orderCode')}</p>
                 <p className="text-sm font-medium text-[#000F14]">{orderCode}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Package className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Type</p>
-                <p className="text-sm font-medium text-[#000F14] capitalize">{order.order_type || 'counter'}</p>
+                <p className="text-xs text-gray-500">{t('sales.orders.type')}</p>
+                <p className="text-sm font-medium text-[#000F14] capitalize">{t(TYPE_KEY[order.order_type], order.order_type || 'counter')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Date</p>
+                <p className="text-xs text-gray-500">{t('common.date')}</p>
                 <p className="text-sm font-medium text-[#000F14]">
                   {order.created_at ? new Date(order.created_at).toLocaleString('en-TZ') : '—'}
                 </p>
@@ -200,14 +233,14 @@ export default function OrderDetailPage() {
             <div className="flex items-start gap-3">
               <User className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Processed By</p>
+                <p className="text-xs text-gray-500">{t('sales.orders.processedBy')}</p>
                 <p className="text-sm font-medium text-[#000F14]">{processorName}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <User className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Customer</p>
+                <p className="text-xs text-gray-500">{t('orders.customer')}</p>
                 <p className="text-sm font-medium text-[#000F14]">{customerName}</p>
                 {customerPhone && (
                   <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
@@ -224,17 +257,17 @@ export default function OrderDetailPage() {
             <div className="flex items-start gap-3">
               <CreditCard className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Payment</p>
+                <p className="text-xs text-gray-500">{t('sales.orders.payment')}</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-[#000F14] capitalize">{order.payment_method || '—'}</span>
+                  <span className="text-sm font-medium text-[#000F14] capitalize">{t(METHOD_KEY[order.payment_method], order.payment_method || '—')}</span>
                   <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize ${PAYMENT_STYLES[order.payment_status] || 'bg-gray-100 text-gray-600'}`}>
-                    {(order.payment_status || 'unpaid').replace(/_/g, ' ')}
+                    {t(PAYMENT_KEY[order.payment_status], (order.payment_status || 'unpaid').replace(/_/g, ' '))}
                   </span>
                 </div>
                 {paymentDetails && (
                   <div className="mt-3 rounded-lg bg-amber-50 border border-amber-100 p-3">
                     <p className="text-xs font-medium text-amber-800 mb-1.5">
-                      Customer was told to pay this account directly
+                      {t('sales.orders.payDirectly')}
                     </p>
                     <p className="text-sm text-[#000F14] font-medium">
                       {[paymentDetails.pharmacy_payment_method, paymentDetails.pharmacy_payment_number]
@@ -250,7 +283,7 @@ export default function OrderDetailPage() {
                         className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#16A34A] px-3 py-2 text-xs font-semibold text-white hover:bg-[#15803D] disabled:opacity-50"
                       >
                         <DollarSign className="h-3.5 w-3.5" />
-                        {updating ? 'Saving…' : 'Confirm payment received'}
+                        {updating ? t('common.saving') : t('sales.orders.confirmPayment')}
                       </button>
                     )}
                   </div>
@@ -260,29 +293,29 @@ export default function OrderDetailPage() {
           </div>
           {order.notes && (
             <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-500 mb-1">Notes</p>
+              <p className="text-xs text-gray-500 mb-1">{t('sales.shared.notes')}</p>
               <p className="text-sm text-[#000F14]">{order.notes}</p>
             </div>
           )}
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-[#000F14] mb-4">Order Summary</h3>
+          <h3 className="text-lg font-semibold text-[#000F14] mb-4">{t('sales.orders.summary')}</h3>
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Subtotal</span>
+              <span className="text-gray-500">{t('pos.subtotal')}</span>
               <span className="font-medium text-[#000F14]">TZS {formatCurrency(order.subtotal)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Discount</span>
+              <span className="text-gray-500">{t('sales.pos.discountShort')}</span>
               <span className="font-medium text-[#000F14]">-TZS {formatCurrency(order.discount || 0)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Tax</span>
+              <span className="text-gray-500">{t('sales.pos.tax')}</span>
               <span className="font-medium text-[#000F14]">TZS {formatCurrency(order.tax || 0)}</span>
             </div>
             <div className="border-t border-gray-200 pt-3 flex justify-between">
-              <span className="text-sm font-semibold text-[#000F14]">Grand Total</span>
+              <span className="text-sm font-semibold text-[#000F14]">{t('sales.orders.grandTotal')}</span>
               <span className="text-lg font-bold text-[#0FD452]">TZS {formatCurrency(order.total || order.grand_total)}</span>
             </div>
           </div>
@@ -291,7 +324,7 @@ export default function OrderDetailPage() {
 
       <div className="overflow-hidden rounded-xl bg-white shadow-sm mb-6">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-[#000F14]">Order Items</h3>
+          <h3 className="text-lg font-semibold text-[#000F14]">{t('sales.orders.itemsTable')}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -300,25 +333,25 @@ export default function OrderDetailPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Pill className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Drug</span>
+                    <span>{t('sales.shared.drug')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Package className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Qty</span>
+                    <span>{t('sales.shared.qty')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Unit Price</span>
+                    <span>{t('sales.orders.unitPrice')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Total</span>
+                    <span>{t('common.total')}</span>
                   </div>
                 </th>
               </tr>
@@ -331,7 +364,7 @@ export default function OrderDetailPage() {
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">
                         <Pill className="h-4 w-4 text-[#0FD452]" />
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{item.drug?.name || item.drug_name || 'Drug'}</span>
+                      <span className="text-sm font-medium text-gray-900">{item.drug?.name || item.drug_name || t('sales.shared.drug')}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{item.quantity}</td>
@@ -354,7 +387,7 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                Confirm Order
+                {t('sales.orders.confirmOrder')}
               </button>
               <button
                 onClick={() => handleStatusChange('cancelled')}
@@ -362,7 +395,7 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2 border border-red-300 text-red-600 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
               >
                 <XCircle className="w-4 h-4" />
-                Cancel
+                {t('common.cancel')}
               </button>
             </>
           )}
@@ -374,7 +407,7 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-orange-700 transition-colors disabled:opacity-50"
               >
                 {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pill className="w-4 h-4" />}
-                Start Preparing
+                {t('sales.orders.startPreparing')}
               </button>
               <button
                 onClick={() => handleStatusChange('cancelled')}
@@ -382,7 +415,7 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2 border border-red-300 text-red-600 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
               >
                 <XCircle className="w-4 h-4" />
-                Cancel
+                {t('common.cancel')}
               </button>
             </>
           )}
@@ -394,7 +427,7 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2 bg-purple-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50"
               >
                 {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Package className="w-4 h-4" />}
-                Mark Ready
+                {t('sales.orders.markReady')}
               </button>
               <button
                 onClick={() => handleStatusChange('cancelled')}
@@ -402,7 +435,7 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2 border border-red-300 text-red-600 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
               >
                 <XCircle className="w-4 h-4" />
-                Cancel
+                {t('common.cancel')}
               </button>
             </>
           )}
@@ -414,7 +447,7 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2 bg-cyan-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-cyan-700 transition-colors disabled:opacity-50"
               >
                 {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />}
-                Send for Delivery
+                {t('sales.orders.sendForDelivery')}
               </button>
               <button
                 onClick={() => handleStatusChange('delivered')}
@@ -422,7 +455,7 @@ export default function OrderDetailPage() {
                 className="flex items-center gap-2 bg-[#0FD452] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#0CB844] transition-colors disabled:opacity-50"
               >
                 {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                Mark Dispensed
+                {t('sales.orders.markDispensed')}
               </button>
             </>
           )}
@@ -433,7 +466,7 @@ export default function OrderDetailPage() {
               className="flex items-center gap-2 bg-[#0FD452] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#0CB844] transition-colors disabled:opacity-50"
             >
               {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-              Mark Delivered
+              {t('sales.orders.markDelivered')}
             </button>
           )}
         </div>

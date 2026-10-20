@@ -4,6 +4,7 @@ import { toArray } from '../../utils/safeData';
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
 import {
   FileText,
   Plus,
@@ -35,8 +36,20 @@ const STATUS_STYLES = {
 }
 
 const STATUS_FILTERS = ['All', 'Pending', 'Dispensed', 'Cancelled']
+const STATUS_KEY = {
+  All: 'common.all',
+  Pending: 'common.pending',
+  Dispensed: 'orders.dispensed',
+  Cancelled: 'orders.cancelled',
+}
+const RX_STATUS_KEY = {
+  pending: 'orders.pending',
+  dispensed: 'orders.dispensed',
+  cancelled: 'orders.cancelled',
+}
 
 export default function PrescriptionListPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const base = currentBase()
   const [prescriptions, setPrescriptions] = useState([])
@@ -63,7 +76,7 @@ export default function PrescriptionListPage() {
         })))
       } catch {
         setPrescriptions([])
-        toast.error('Failed to load prescriptions')
+        toast.error(t('sales.prescriptions.loadError'))
       } finally {
         setLoading(false)
       }
@@ -95,10 +108,10 @@ export default function PrescriptionListPage() {
   }
 
   const statCards = [
-    { label: 'Total', value: stats.total, icon: FileText, color: 'bg-blue-500/10 text-blue-500' },
-    { label: 'Pending', value: stats.pending, icon: Clock, color: 'bg-yellow-500/10 text-yellow-600' },
-    { label: 'Dispensed Today', value: stats.dispensedToday, icon: CheckCircle, color: 'bg-green-500/10 text-green-600' },
-    { label: 'Cancelled', value: stats.cancelled, icon: XCircle, color: 'bg-red-500/10 text-red-500' },
+    { label: t('common.total'), value: stats.total, icon: FileText, color: 'bg-blue-500/10 text-blue-500' },
+    { label: t('common.pending'), value: stats.pending, icon: Clock, color: 'bg-yellow-500/10 text-yellow-600' },
+    { label: t('sales.prescriptions.dispensedToday'), value: stats.dispensedToday, icon: CheckCircle, color: 'bg-green-500/10 text-green-600' },
+    { label: t('orders.cancelled'), value: stats.cancelled, icon: XCircle, color: 'bg-red-500/10 text-red-500' },
   ]
 
   return (
@@ -110,8 +123,8 @@ export default function PrescriptionListPage() {
             <FileText className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Prescriptions</h1>
-            <p className="text-sm text-gray-500">Manage patient prescriptions and dispensing.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('sales.prescriptions.title')}</h1>
+            <p className="text-sm text-gray-500">{t('sales.prescriptions.listSubtitle')}</p>
           </div>
         </div>
         <button
@@ -119,7 +132,7 @@ export default function PrescriptionListPage() {
           className="btn-primary"
         >
           <Plus className="w-4 h-4" />
-          New Prescription
+          {t('sales.prescriptions.newPrescription')}
         </button>
       </div>
 
@@ -150,7 +163,7 @@ export default function PrescriptionListPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
-              placeholder="Search by RX code, doctor, or patient..."
+              placeholder={t('sales.prescriptions.searchPlaceholder')}
               className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0FD452] transition"
             />
           </div>
@@ -165,7 +178,7 @@ export default function PrescriptionListPage() {
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                {f}
+                {t(STATUS_KEY[f], f)}
               </button>
             ))}
           </div>
@@ -179,48 +192,48 @@ export default function PrescriptionListPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>RX Code</span>
+                    <span>{t('sales.prescriptions.rxCode')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Stethoscope className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Doctor</span>
+                    <span>{t('sales.prescriptions.doctor')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden md:table-cell">
                   <div className="flex items-center gap-1.5">
                     <Building className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Hospital</span>
+                    <span>{t('sales.prescriptions.hospital')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Patient</span>
+                    <span>{t('sales.prescriptions.patient')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Package className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Items</span>
+                    <span>{t('orders.items')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Activity className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Status</span>
+                    <span>{t('common.status')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 hidden lg:table-cell">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Date</span>
+                    <span>{t('common.date')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
-                    <span>Actions</span>
+                    <span>{t('common.actions')}</span>
                   </div>
                 </th>
               </tr>
@@ -230,14 +243,14 @@ export default function PrescriptionListPage() {
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-                    Loading...
+                    {t('common.loading')}
                   </td>
                 </tr>
               ) : paginatedData.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                     <FileText className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                    <p>No prescriptions found</p>
+                    <p>{t('sales.prescriptions.noneFound')}</p>
                   </td>
                 </tr>
               ) : (
@@ -270,7 +283,7 @@ export default function PrescriptionListPage() {
                           STATUS_STYLES[rx.status] || 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {rx.status}
+                        {t(RX_STATUS_KEY[rx.status], rx.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-400 hidden lg:table-cell">{rx.date}</td>
@@ -279,7 +292,7 @@ export default function PrescriptionListPage() {
                         <button
                           onClick={() => navigate(`${base}/prescriptions/${rx.id}`)}
                           className="btn-icon-primary"
-                          title="View"
+                          title={t('common.view')}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -287,7 +300,7 @@ export default function PrescriptionListPage() {
                           <button
                             onClick={() => navigate(`${base}/prescriptions/${rx.id}`)}
                             className="btn-icon-primary"
-                            title="Dispense"
+                            title={t('sales.prescriptions.dispense')}
                           >
                             <Pill className="w-4 h-4" />
                           </button>
@@ -305,8 +318,9 @@ export default function PrescriptionListPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
             <p className="text-sm text-gray-500">
-              Showing {(currentPage - 1) * pageSize + 1} to{' '}
-              {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length}
+              {t('sales.prescriptions.showing')} {(currentPage - 1) * pageSize + 1}{' '}
+              {t('sales.prescriptions.to')} {Math.min(currentPage * pageSize, filtered.length)}{' '}
+              {t('sales.shared.of')} {filtered.length}
             </p>
             <div className="flex items-center gap-1">
               <button

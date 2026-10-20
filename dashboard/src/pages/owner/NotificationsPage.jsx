@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import Tabs from '../../components/Tabs'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 // Only allow navigation to internal dashboard paths. Blocks javascript:,
 // external URLs, and protocol-relative links injected by attackers.
@@ -27,22 +28,23 @@ const TYPE_CONFIG = {
   danger: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50' },
 }
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr, t) {
   const now = new Date()
   const date = new Date(dateStr)
   const seconds = Math.floor((now - date) / 1000)
-  if (seconds < 60) return 'Just now'
+  if (seconds < 60) return t('reports.notifications.justNow')
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 60) return `${minutes}${t('reports.notifications.minutesAgo')}`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24) return `${hours}${t('reports.notifications.hoursAgo')}`
   const days = Math.floor(hours / 24)
-  if (days < 7) return `${days}d ago`
+  if (days < 7) return `${days}${t('reports.notifications.daysAgo')}`
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 
 export default function NotificationsPage() {
+  const { t } = useLanguage()
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('All')
@@ -191,9 +193,9 @@ export default function NotificationsPage() {
             <Bell className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('common.notifications')}</h1>
             <p className="text-sm text-gray-500">
-              {view === 'mine' ? 'View and manage your notifications.' : 'View notifications for your whole pharmacy.'}
+              {view === 'mine' ? t('reports.notifications.subtitleMine') : t('reports.notifications.subtitlePharmacy')}
             </p>
           </div>
         </div>
@@ -204,7 +206,7 @@ export default function NotificationsPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0FD452]/10 text-[#0FD452] text-sm font-medium hover:bg-[#0FD452]/20 transition-colors"
             >
               <Check className="w-4 h-4" />
-              Mark All Read
+              {t('common.markAllRead')}
             </button>
           ))
           : (pharmacyUnread > 0 && (
@@ -213,7 +215,7 @@ export default function NotificationsPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0FD452]/10 text-[#0FD452] text-sm font-medium hover:bg-[#0FD452]/20 transition-colors"
             >
               <Check className="w-4 h-4" />
-              Mark Pharmacy Read
+              {t('reports.notifications.markPharmacyRead')}
             </button>
           ))
         }
@@ -222,8 +224,8 @@ export default function NotificationsPage() {
       {/* View Toggle: My Notifications / Pharmacy Inbox */}
       <Tabs
         tabs={[
-          { id: 'mine', label: 'My Notifications', icon: User, count: notifications.length },
-          { id: 'pharmacy', label: 'Pharmacy Inbox', icon: Building2, count: pharmacyUnread },
+          { id: 'mine', label: t('reports.notifications.tabMine'), icon: User, count: notifications.length },
+          { id: 'pharmacy', label: t('reports.notifications.tabPharmacy'), icon: Building2, count: pharmacyUnread },
         ]}
         active={view}
         onChange={setView}
@@ -233,10 +235,10 @@ export default function NotificationsPage() {
       {view === 'mine' && (
         <Tabs
           tabs={[
-            { id: 'All', label: 'All', icon: Bell, count: notifications.length },
-            { id: 'Unread', label: 'Unread', icon: CheckCircle, count: unreadCount },
-            { id: 'Alerts', label: 'Alerts', icon: AlertTriangle, count: notifications.filter((n) => n.type === 'warning' || n.type === 'danger').length },
-            { id: 'Info', label: 'Info', icon: Info, count: notifications.filter((n) => n.type === 'info' || n.type === 'success').length },
+            { id: 'All', label: t('common.all'), icon: Bell, count: notifications.length },
+            { id: 'Unread', label: t('reports.notifications.unread'), icon: CheckCircle, count: unreadCount },
+            { id: 'Alerts', label: t('reports.notifications.alerts'), icon: AlertTriangle, count: notifications.filter((n) => n.type === 'warning' || n.type === 'danger').length },
+            { id: 'Info', label: t('reports.notifications.info'), icon: Info, count: notifications.filter((n) => n.type === 'info' || n.type === 'success').length },
           ]}
           active={activeTab}
           onChange={setActiveTab}
@@ -263,9 +265,9 @@ export default function NotificationsPage() {
               <div className="w-16 h-16 rounded-full bg-[#0FD452]/10 flex items-center justify-center mx-auto mb-4">
                 <Building2 className="w-8 h-8 text-[#0FD452]" />
               </div>
-              <h3 className="text-lg font-semibold text-[#000F14] mb-1">No pharmacy notifications</h3>
+              <h3 className="text-lg font-semibold text-[#000F14] mb-1">{t('reports.notifications.pharmacyEmptyTitle')}</h3>
               <p className="text-sm text-gray-500">
-                Order, prescription and activity events for your pharmacy will appear here.
+                {t('reports.notifications.pharmacyEmptySubtitle')}
               </p>
             </div>
           ) : (
@@ -299,7 +301,7 @@ export default function NotificationsPage() {
                           )}
                         </div>
                         <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{notification.message}</p>
-                        <span className="text-xs text-gray-400 mt-1 block">{timeAgo(notification.created_at)}</span>
+                        <span className="text-xs text-gray-400 mt-1 block">{timeAgo(notification.created_at, t)}</span>
                       </div>
                     </div>
                   )
@@ -315,10 +317,10 @@ export default function NotificationsPage() {
                     {pharmacyLoadingMore ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Loading...
+                        {t('common.loading')}
                       </>
                     ) : (
-                      'Load More'
+                      t('reports.notifications.loadMore')
                     )}
                   </button>
                 </div>
@@ -336,8 +338,8 @@ export default function NotificationsPage() {
           <div className="w-16 h-16 rounded-full bg-[#0FD452]/10 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-[#0FD452]" />
           </div>
-          <h3 className="text-lg font-semibold text-[#000F14] mb-1">You're all caught up!</h3>
-          <p className="text-sm text-gray-500">No notifications to show right now.</p>
+          <h3 className="text-lg font-semibold text-[#000F14] mb-1">{t('reports.notifications.emptyTitle')}</h3>
+          <p className="text-sm text-gray-500">{t('reports.notifications.emptySubtitle')}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -371,7 +373,7 @@ export default function NotificationsPage() {
                     )}
                   </div>
                   <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{notification.message}</p>
-                  <span className="text-xs text-gray-400 mt-1 block">{timeAgo(notification.created_at)}</span>
+                  <span className="text-xs text-gray-400 mt-1 block">{timeAgo(notification.created_at, t)}</span>
                 </div>
                 <button
                   onClick={(e) => {
@@ -398,10 +400,10 @@ export default function NotificationsPage() {
             {loadingMore ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Loading...
+                {t('common.loading')}
               </>
             ) : (
-              'Load More'
+              t('reports.notifications.loadMore')
             )}
           </button>
         </div>

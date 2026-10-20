@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { formatMoney as sharedMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 
 const categoryColors = {
@@ -29,6 +30,7 @@ const dateRanges = {
 }
 
 export default function ExpenseListPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [expenses, setExpenses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -103,9 +105,9 @@ export default function ExpenseListPage() {
   }
 
   const statCards = [
-    { label: 'Total This Month', value: formatMoney(totalThisMonth), icon: DollarSign, color: 'bg-primary/10 text-primary' },
-    { label: 'Average Daily', value: formatMoney(avgDaily), icon: TrendingDown, color: 'bg-blue-500/10 text-blue-500' },
-    { label: 'Biggest Category', value: biggestCategory ? biggestCategory[0] : 'N/A', icon: BarChart3, color: 'bg-purple-500/10 text-purple-500' },
+    { label: t('reports.expenses.totalThisMonth'), value: formatMoney(totalThisMonth), icon: DollarSign, color: 'bg-primary/10 text-primary' },
+    { label: t('reports.expenses.averageDaily'), value: formatMoney(avgDaily), icon: TrendingDown, color: 'bg-blue-500/10 text-blue-500' },
+    { label: t('reports.expenses.biggestCategory'), value: biggestCategory ? biggestCategory[0] : t('reports.expenses.notAvailable'), icon: BarChart3, color: 'bg-purple-500/10 text-purple-500' },
   ]
 
   return (
@@ -117,8 +119,8 @@ export default function ExpenseListPage() {
             <Receipt className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
-            <p className="text-sm text-gray-500">Track and manage pharmacy expenses.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('reports.expenses.title')}</h1>
+            <p className="text-sm text-gray-500">{t('reports.expenses.subtitle')}</p>
           </div>
         </div>
         <button
@@ -126,7 +128,7 @@ export default function ExpenseListPage() {
           className="btn-primary"
         >
           <Plus className="w-5 h-5" />
-          Add Expense
+          {t('reports.expenses.addExpense')}
         </button>
       </div>
 
@@ -147,7 +149,7 @@ export default function ExpenseListPage() {
 
       {/* Chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Expenses</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('reports.expenses.monthlyExpenses')}</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyData}>
@@ -156,7 +158,7 @@ export default function ExpenseListPage() {
               <YAxis tick={{ fontSize: 12, fill: '#888' }} />
               <Tooltip
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', fontSize: '13px' }}
-                formatter={(value) => [formatMoney(value), 'Amount']}
+                formatter={(value) => [formatMoney(value), t('reports.expenses.amount')]}
               />
               <Bar dataKey="amount" fill="#0FD452" radius={[6, 6, 0, 0]} />
             </BarChart>
@@ -173,7 +175,7 @@ export default function ExpenseListPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search expenses..."
+              placeholder={t('reports.expenses.searchPlaceholder')}
               className="bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none w-full"
             />
           </div>
@@ -186,7 +188,7 @@ export default function ExpenseListPage() {
                   dateRange === key ? 'bg-primary text-dark' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                {label}
+                {t('reports.expenses.ranges.' + key, label)}
               </button>
             ))}
           </div>
@@ -197,12 +199,12 @@ export default function ExpenseListPage() {
             }`}
           >
             <Filter className="w-3.5 h-3.5" />
-            Category
+            {t('reports.expenses.category')}
           </button>
         </div>
         {showFilters && (
           <div className="px-6 pb-4 border-t border-gray-100 pt-4 flex items-center gap-3 flex-wrap">
-            <span className="text-xs text-gray-500">Category:</span>
+            <span className="text-xs text-gray-500">{t('reports.expenses.categoryLabel')}</span>
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -222,7 +224,7 @@ export default function ExpenseListPage() {
                 className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
               >
                 <X className="w-3 h-3" />
-                Clear
+                {t('common.clear')}
               </button>
             )}
           </div>
@@ -238,43 +240,43 @@ export default function ExpenseListPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Date</span>
+                    <span>{t('common.date')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Category</span>
+                    <span>{t('reports.expenses.category')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Description</span>
+                    <span>{t('reports.expenses.description')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Amount</span>
+                    <span>{t('reports.expenses.amount')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Recorded By</span>
+                    <span>{t('reports.expenses.recordedBy')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center gap-1.5">
                     <Hash className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Receipt #</span>
+                    <span>{t('reports.expenses.receiptNumber')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <div className="flex items-center justify-end gap-1.5">
                     <Settings className="w-3.5 h-3.5 text-[#0FD452]" />
-                    <span>Actions</span>
+                    <span>{t('common.actions')}</span>
                   </div>
                 </th>
               </tr>
@@ -288,7 +290,7 @@ export default function ExpenseListPage() {
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400">No expenses found</td>
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400">{t('reports.expenses.noExpenses')}</td>
                 </tr>
               ) : (
                 filtered.map((expense, index) => {
@@ -328,14 +330,14 @@ export default function ExpenseListPage() {
                                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                               >
                                 <Edit className="w-4 h-4" />
-                                Edit
+                                {t('common.edit')}
                               </button>
                               <button
                                 onClick={() => { setConfirmAction(() => () => { handleDelete(expense); setActiveMenu(null) }); setActiveMenu(null) }}
                                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                               >
                                 <Trash2 className="w-4 h-4" />
-                                Delete
+                                {t('common.delete')}
                               </button>
                             </div>
                           </>
@@ -352,10 +354,10 @@ export default function ExpenseListPage() {
 
       <ConfirmDialog
         isOpen={!!confirmAction}
-        title="Delete Expense"
-        message="Are you sure you want to delete this expense? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('reports.expenses.deleteTitle')}
+        message={t('reports.expenses.deleteMessage')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         variant="danger"
         onConfirm={() => { confirmAction?.(); setConfirmAction(null) }}
         onCancel={() => setConfirmAction(null)}

@@ -5,6 +5,7 @@ import { insurance } from '../../services/api'
 import PageHeader from '../../components/PageHeader'
 import Tabs from '../../components/Tabs'
 import { formatMoney as sharedMoney } from '../../utils/currency'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const STATUS_COLORS = {
   draft: 'bg-gray-100 text-gray-600',
@@ -16,6 +17,15 @@ const STATUS_COLORS = {
 
 const STATUS_FILTERS = ['all', 'draft', 'submitted', 'approved', 'rejected', 'paid']
 
+const STATUS_TAB_KEYS = {
+  all: 'common.all',
+  draft: 'sales.insurance.status.draft',
+  submitted: 'sales.insurance.status.submitted',
+  approved: 'sales.insurance.status.approved',
+  rejected: 'sales.insurance.status.rejected',
+  paid: 'sales.insurance.status.paid',
+}
+
 const emptyForm = {
   patient_insurance_id: '',
   order_id: '',
@@ -24,6 +34,7 @@ const emptyForm = {
 }
 
 export default function InsuranceClaimsPage() {
+  const { t } = useLanguage()
   const [claims, setClaims] = useState([])
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -54,7 +65,7 @@ export default function InsuranceClaimsPage() {
       setStats(statsRes.data?.data || statsRes.data || null)
       setPatients(toArray(patientsRes.data))
     } catch {
-      showToast('Could not load insurance claims', 'error')
+      showToast(t('sales.insurance.loadClaimsError'), 'error')
     } finally {
       setLoading(false)
     }
@@ -74,8 +85,8 @@ export default function InsuranceClaimsPage() {
   const copay = Math.round((totalAmount - approvedAmount) * 100) / 100
 
   const save = async () => {
-    if (!form.patient_insurance_id) { showToast('Please select a patient insurance record', 'error'); return }
-    if (!form.total_amount || Number(form.total_amount) <= 0) { showToast('Enter a valid claim amount', 'error'); return }
+    if (!form.patient_insurance_id) { showToast(t('sales.insurance.selectRecordError'), 'error'); return }
+    if (!form.total_amount || Number(form.total_amount) <= 0) { showToast(t('sales.insurance.validAmountError'), 'error'); return }
     setSaving(true)
     try {
       const res = await insurance.createClaim({
@@ -84,11 +95,11 @@ export default function InsuranceClaimsPage() {
         total_amount: Number(form.total_amount),
         notes: form.notes || null,
       })
-      showToast(res.data?.message || 'Claim created')
+      showToast(res.data?.message || t('sales.insurance.createdToast'))
       setModal(false)
       await load()
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Could not create claim', 'error')
+      showToast(err?.response?.data?.message || t('sales.insurance.createError'), 'error')
     } finally {
       setSaving(false)
     }
@@ -96,12 +107,12 @@ export default function InsuranceClaimsPage() {
 
   const changeStatus = async (claim, nextStatus) => {
     const confirm = nextStatus === 'rejected'
-      ? window.confirm(`Reject claim ${claim.claim_number}?`)
+      ? window.confirm(`${t('sales.insurance.rejectConfirm')} ${claim.claim_number}?`)
       : true
     if (!confirm) return
     try {
       const res = await insurance.updateClaim(claim.id, { status: nextStatus })
-      showToast(res.data?.message || `Claim ${nextStatus}`)
+      showToast(res.data?.message || `${t('sales.insurance.claim')} ${t(STATUS_TAB_KEYS[nextStatus] || 'common.status')}`)
       if (selected?.id === claim.id) setSelected(null)
       await load()
       if (nextStatus === 'submitted' || nextStatus === 'approved') {
@@ -112,7 +123,7 @@ export default function InsuranceClaimsPage() {
         } finally { setLoadingDetail(false) }
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Could not update claim', 'error')
+      showToast(err?.response?.data?.message || t('sales.insurance.updateError'), 'error')
     }
   }
 
@@ -143,11 +154,11 @@ export default function InsuranceClaimsPage() {
 
       <PageHeader
         icon={FileText}
-        title="Insurance Claims"
-        subtitle="Track insurance reimbursements from submission to payment"
+        title={t('nav.items.insuranceClaims')}
+        subtitle={t('sales.insurance.subtitle')}
         actions={
           <button onClick={openForm} className="btn-primary">
-            <Plus className="w-4 h-4" /> New Claim
+            <Plus className="w-4 h-4" /> {t('sales.insurance.newClaim')}
           </button>
         }
       />
@@ -155,10 +166,10 @@ export default function InsuranceClaimsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total Claims', value: stats?.total_claims ?? 0, icon: FileText, color: 'text-blue-600 bg-blue-100' },
-          { label: 'Pending (Submitted)', value: stats?.pending_claims ?? 0, icon: Send, color: 'text-amber-600 bg-amber-100' },
-          { label: 'Approved Value', value: formatMoney(stats?.approved_value ?? 0), icon: BadgeCheck, color: 'text-green-600 bg-green-100' },
-          { label: 'Insured Patients', value: stats?.insured_patients ?? 0, icon: ShieldCheck, color: 'text-purple-600 bg-purple-100' },
+          { label: t('sales.insurance.totalClaims'), value: stats?.total_claims ?? 0, icon: FileText, color: 'text-blue-600 bg-blue-100' },
+          { label: t('sales.insurance.pendingSubmitted'), value: stats?.pending_claims ?? 0, icon: Send, color: 'text-amber-600 bg-amber-100' },
+          { label: t('sales.insurance.approvedValue'), value: formatMoney(stats?.approved_value ?? 0), icon: BadgeCheck, color: 'text-green-600 bg-green-100' },
+          { label: t('sales.insurance.insuredPatients'), value: stats?.insured_patients ?? 0, icon: ShieldCheck, color: 'text-purple-600 bg-purple-100' },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100">
             <div className="flex items-center gap-3">
@@ -175,10 +186,10 @@ export default function InsuranceClaimsPage() {
       {/* Status filter */}
       <Tabs
         tabs={[
-          { id: 'all', label: 'All', count: claims.length },
+          { id: 'all', label: t('common.all'), count: claims.length },
           ...STATUS_FILTERS.filter((s) => s !== 'all').map((s) => ({
             id: s,
-            label: s.charAt(0).toUpperCase() + s.slice(1),
+            label: t(STATUS_TAB_KEYS[s]),
             count: claims.filter((c) => c.status === s).length,
           })),
         ]}
@@ -191,19 +202,19 @@ export default function InsuranceClaimsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50/80">
-                <th className="text-left px-5 py-3 font-medium text-gray-500">Claim No.</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-500">Patient</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-500">Provider</th>
-                <th className="text-right px-5 py-3 font-medium text-gray-500">Amount</th>
-                <th className="text-right px-5 py-3 font-medium text-gray-500">Approved</th>
-                <th className="text-right px-5 py-3 font-medium text-gray-500">Co-pay</th>
-                <th className="text-center px-5 py-3 font-medium text-gray-500">Status</th>
-                <th className="text-center px-5 py-3 font-medium text-gray-500">Actions</th>
+                <th className="text-left px-5 py-3 font-medium text-gray-500">{t('sales.insurance.claimNo')}</th>
+                <th className="text-left px-5 py-3 font-medium text-gray-500">{t('sales.insurance.patient')}</th>
+                <th className="text-left px-5 py-3 font-medium text-gray-500">{t('sales.insurance.provider')}</th>
+                <th className="text-right px-5 py-3 font-medium text-gray-500">{t('orders.amount')}</th>
+                <th className="text-right px-5 py-3 font-medium text-gray-500">{t('sales.insurance.approved')}</th>
+                <th className="text-right px-5 py-3 font-medium text-gray-500">{t('sales.insurance.copay')}</th>
+                <th className="text-center px-5 py-3 font-medium text-gray-500">{t('common.status')}</th>
+                <th className="text-center px-5 py-3 font-medium text-gray-500">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
               {claims.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-12 text-gray-400">No claims found</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-gray-400">{t('sales.insurance.noneFound')}</td></tr>
               ) : claims.map((c) => (
                 <tr key={c.id} className="border-t border-gray-100 hover:bg-gray-50/50">
                   <td className="px-5 py-3.5 font-mono text-xs font-medium text-gray-700">{c.claim_number}</td>
@@ -213,11 +224,11 @@ export default function InsuranceClaimsPage() {
                   <td className="px-5 py-3.5 text-right text-green-600 font-medium">{c.approved_amount != null ? formatMoney(c.approved_amount) : '—'}</td>
                   <td className="px-5 py-3.5 text-right text-gray-600">{c.patient_copay != null ? formatMoney(c.patient_copay) : '—'}</td>
                   <td className="px-5 py-3.5 text-center">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${STATUS_COLORS[c.status] || STATUS_COLORS.draft}`}>{c.status}</span>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${STATUS_COLORS[c.status] || STATUS_COLORS.draft}`}>{t(`sales.insurance.status.${c.status}`, c.status)}</span>
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center justify-center gap-1">
-                      <button onClick={() => openDetail(c)} className="text-xs font-semibold text-gray-600 hover:text-[#0FD452] flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> View</button>
+                      <button onClick={() => openDetail(c)} className="text-xs font-semibold text-gray-600 hover:text-[#0FD452] flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {t('common.view')}</button>
                     </div>
                   </td>
                 </tr>
@@ -232,31 +243,31 @@ export default function InsuranceClaimsPage() {
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setModal(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-gray-900">New Insurance Claim</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t('sales.insurance.newClaimTitle')}</h3>
               <button onClick={() => setModal(false)} className="p-2 hover:bg-gray-100 rounded-xl"><X className="w-5 h-5" /></button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Patient Insurance Record *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.insurance.patientRecord')} *</label>
                 <select
                   value={form.patient_insurance_id}
                   onChange={(e) => setForm({ ...form, patient_insurance_id: e.target.value })}
                   className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm bg-white"
                 >
-                  <option value="">Select insured patient…</option>
+                  <option value="">{t('sales.insurance.selectPatient')}</option>
                   {patients.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.customer_user?.name || 'Unknown'} — {p.provider?.name || 'Provider'} ({p.coverage_percent}%)
+                      {p.customer_user?.name || 'Unknown'} — {p.provider?.name || t('sales.insurance.provider')} ({p.coverage_percent}%)
                     </option>
                   ))}
                 </select>
                 {selectedPatient && (
-                  <p className="text-xs text-gray-400 mt-1">Coverage: {coveragePct}% · Policy: {selectedPatient.policy_number}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('sales.insurance.coverage')}: {coveragePct}% · {t('sales.insurance.policyNumber')}: {selectedPatient.policy_number}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount (TZS) *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.insurance.totalAmount')} (TZS) *</label>
                 <input
                   type="number"
                   min="0"
@@ -270,31 +281,31 @@ export default function InsuranceClaimsPage() {
               {selectedPatient && totalAmount > 0 && (
                 <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-xl p-4">
                   <div>
-                    <p className="text-xs text-gray-500">Insurer Pays</p>
+                    <p className="text-xs text-gray-500">{t('sales.insurance.insurerPays')}</p>
                     <p className="text-sm font-bold text-green-600">{formatMoney(approvedAmount)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Patient Co-pay</p>
+                    <p className="text-xs text-gray-500">{t('sales.insurance.patientCopay')}</p>
                     <p className="text-sm font-bold text-gray-800">{formatMoney(copay)}</p>
                   </div>
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.shared.notes')}</label>
                 <textarea
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows="2"
-                  placeholder="Optional notes"
+                  placeholder={t('sales.insurance.notesPlaceholder')}
                   className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm resize-none"
                 />
               </div>
 
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button onClick={() => setModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
                 <button onClick={save} disabled={saving} className="flex-1 py-2.5 rounded-xl bg-[#000F14] text-white text-sm font-semibold hover:bg-[#0a2015] disabled:opacity-50">
-                  {saving ? 'Saving…' : 'Create Claim'}
+                  {saving ? t('common.saving') : t('sales.insurance.createClaim')}
                 </button>
               </div>
             </div>
@@ -310,7 +321,7 @@ export default function InsuranceClaimsPage() {
               <div>
                 <h2 className="text-lg font-bold text-gray-900">{detail?.claim_number || selected.claim_number}</h2>
                 <p className="text-sm text-gray-500">
-                  {detail?.patient_insurance?.provider?.name || selected.patient_insurance?.provider?.name || ''} · Created {selected.created_at}
+                  {detail?.patient_insurance?.provider?.name || selected.patient_insurance?.provider?.name || ''} · {t('sales.insurance.created')} {selected.created_at}
                 </p>
               </div>
               <button onClick={() => setSelected(null)} className="p-2 hover:bg-gray-100 rounded-xl"><X className="w-5 h-5" /></button>
@@ -322,16 +333,16 @@ export default function InsuranceClaimsPage() {
               <>
                 <div className="bg-gray-50 rounded-xl p-5 mb-6 flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-gray-500">Status</p>
-                    <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold capitalize ${STATUS_COLORS[detail?.status] || STATUS_COLORS.draft}`}>{detail?.status}</span>
+                    <p className="text-xs text-gray-500">{t('common.status')}</p>
+                    <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold capitalize ${STATUS_COLORS[detail?.status] || STATUS_COLORS.draft}`}>{t(`sales.insurance.status.${detail?.status}`, detail?.status)}</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-500">Claim Value</p>
+                    <p className="text-xs text-gray-500">{t('sales.insurance.claimValue')}</p>
                     <p className="text-xl font-bold text-gray-900">{formatMoney(detail?.total_amount)}</p>
                   </div>
                 </div>
 
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">Patient</h3>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">{t('sales.insurance.patient')}</h3>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-full bg-green-100 text-[#0FD452] flex items-center justify-center">
                     <ShieldCheck className="w-5 h-5" />
@@ -342,16 +353,16 @@ export default function InsuranceClaimsPage() {
                   </div>
                 </div>
 
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">Billing Summary</h3>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">{t('sales.insurance.billingSummary')}</h3>
                 <div className="space-y-2 mb-6">
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Total Amount</span><span className="font-semibold">{formatMoney(detail?.total_amount)}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Insurer Pays ({detail?.patient_insurance?.coverage_percent}%)</span><span className="font-semibold text-green-600">{formatMoney(detail?.approved_amount)}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Patient Co-pay</span><span className="font-semibold">{formatMoney(detail?.patient_copay)}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">{t('sales.insurance.totalAmount')}</span><span className="font-semibold">{formatMoney(detail?.total_amount)}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">{t('sales.insurance.insurerPays')} ({detail?.patient_insurance?.coverage_percent}%)</span><span className="font-semibold text-green-600">{formatMoney(detail?.approved_amount)}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">{t('sales.insurance.patientCopay')}</span><span className="font-semibold">{formatMoney(detail?.patient_copay)}</span></div>
                 </div>
 
                 {detail?.notes && (
                   <>
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">Notes</h3>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">{t('sales.shared.notes')}</h3>
                     <p className="text-sm text-gray-600 mb-6 bg-gray-50 rounded-xl p-4">{detail.notes}</p>
                   </>
                 )}
@@ -361,29 +372,29 @@ export default function InsuranceClaimsPage() {
                     <button
                       onClick={() => changeStatus(detail, 'submitted')}
                       className="w-full py-3 rounded-xl bg-[#000F14] text-white text-sm font-semibold hover:bg-[#0a2015] flex items-center justify-center gap-2"
-                    ><Send className="w-4 h-4" /> Submit Claim</button>
+                    ><Send className="w-4 h-4" /> {t('sales.insurance.submitClaim')}</button>
                   )}
                   {detail?.status === 'submitted' && (
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => changeStatus(detail, 'approved')}
                         className="py-3 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 flex items-center justify-center gap-2"
-                      ><BadgeCheck className="w-4 h-4" /> Approve</button>
+                      ><BadgeCheck className="w-4 h-4" /> {t('leaves.approve')}</button>
                       <button
                         onClick={() => changeStatus(detail, 'rejected')}
                         className="py-3 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 flex items-center justify-center gap-2"
-                      ><XCircle className="w-4 h-4" /> Reject</button>
+                      ><XCircle className="w-4 h-4" /> {t('leaves.reject')}</button>
                     </div>
                   )}
                   {detail?.status === 'approved' && (
                     <button
                       onClick={() => changeStatus(detail, 'paid')}
                       className="w-full py-3 rounded-xl bg-[#000F14] text-white text-sm font-semibold hover:bg-[#0a2015] flex items-center justify-center gap-2"
-                    ><CheckCircle2 className="w-4 h-4" /> Mark as Paid</button>
+                    ><CheckCircle2 className="w-4 h-4" /> {t('sales.insurance.markPaid')}</button>
                   )}
                   {(detail?.status === 'paid' || detail?.status === 'rejected') && (
                     <p className="text-center text-xs text-gray-400 py-3">
-                      {detail?.status === 'paid' ? 'This claim has been full processed.' : 'This claim was rejected.'}
+                      {detail?.status === 'paid' ? t('sales.insurance.paidNote') : t('sales.insurance.rejectedNote')}
                     </p>
                   )}
                 </div>

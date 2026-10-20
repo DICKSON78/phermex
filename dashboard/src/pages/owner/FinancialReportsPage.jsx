@@ -8,6 +8,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
 import Tabs from '../../components/Tabs'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const PIE_COLORS = ['#0FD452', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6']
 
@@ -24,6 +25,7 @@ function formatCurrency(amount) {
 }
 
 export default function FinancialReportsPage() {
+  const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState('income')
   const [dateFrom, setDateFrom] = useState(new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0])
   const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0])
@@ -68,21 +70,21 @@ export default function FinancialReportsPage() {
             <BarChart3 className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Financial Reports</h1>
-            <p className="text-sm text-gray-500 mt-1">View and generate financial statements.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('reports.financial.title')}</h1>
+            <p className="text-sm text-gray-500 mt-1">{t('reports.financial.subtitle')}</p>
           </div>
         </div>
         <button className="btn-secondary">
-          <Printer className="w-4 h-4" /> Print Report
+          <Printer className="w-4 h-4" /> {t('reports.financial.printReport')}
         </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Tabs tabs={REPORT_TABS} active={activeTab} onChange={setActiveTab} className="mb-0 flex-1 min-w-[220px]" />
+        <Tabs tabs={REPORT_TABS.map((tab) => ({ ...tab, label: t('reports.financial.tabs.' + tab.id, tab.label) }))} active={activeTab} onChange={setActiveTab} className="mb-0 flex-1 min-w-[220px]" />
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-500" />
           <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0FD452]" />
-          <span className="text-gray-500 text-sm">to</span>
+          <span className="text-gray-500 text-sm">{t('reports.financial.to')}</span>
           <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0FD452]" />
         </div>
       </div>
@@ -96,46 +98,47 @@ export default function FinancialReportsPage() {
 }
 
 function IncomeStatement({ data, dateFrom, dateTo }) {
-  if (!data) return <div className="card p-12 text-center text-gray-400"><FileText className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No income statement data available</p></div>
+  const { t } = useLanguage()
+  if (!data) return <div className="card p-12 text-center text-gray-400"><FileText className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>{t('reports.financial.incomeEmpty')}</p></div>
   return (
     <div className="space-y-6">
       <div className="bg-white backdrop-blur border border-gray-200 rounded-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 text-center">
-          <h2 className="text-lg font-bold text-gray-900">Income Statement</h2>
-          <p className="text-xs text-gray-500">Period: {dateFrom} to {dateTo}</p>
+          <h2 className="text-lg font-bold text-gray-900">{t('reports.financial.tabs.income')}</h2>
+          <p className="text-xs text-gray-500">{t('reports.financial.period')} {dateFrom} {t('reports.financial.to')} {dateTo}</p>
         </div>
         <div className="p-6 space-y-6">
           <div>
-            <h3 className="text-sm font-semibold text-[#0FD452] uppercase tracking-wider mb-3">Revenue</h3>
+            <h3 className="text-sm font-semibold text-[#0FD452] uppercase tracking-wider mb-3">{t('reports.financial.revenue')}</h3>
             {data.revenue.length > 0 ? data.revenue.map((item, idx) => (
               <div key={idx} className="flex justify-between py-2 border-b border-gray-100">
                 <span className="text-sm text-gray-600">{item.account}</span>
                 <span className="text-sm font-mono tabular-nums text-gray-900">{formatCurrency(item.amount)}</span>
               </div>
-            )) : <p className="text-sm text-gray-400 py-2">No revenue records</p>}
+            )) : <p className="text-sm text-gray-400 py-2">{t('reports.financial.noRevenueRecords')}</p>}
             <div className="flex justify-between py-2 font-bold border-t border-gray-200 mt-1">
-              <span className="text-sm text-gray-900">Total Revenue</span>
+              <span className="text-sm text-gray-900">{t('reports.financial.totalRevenue')}</span>
               <span className="text-sm font-mono tabular-nums text-[#0FD452]">{formatCurrency(data.totalRevenue)}</span>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wider mb-3">Expenses</h3>
+            <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wider mb-3">{t('reports.financial.expenses')}</h3>
             {data.expenses.length > 0 ? data.expenses.map((item, idx) => (
               <div key={idx} className="flex justify-between py-2 border-b border-gray-100">
                 <span className="text-sm text-gray-600">{item.account}</span>
                 <span className="text-sm font-mono tabular-nums text-gray-900">{formatCurrency(item.amount)}</span>
               </div>
-            )) : <p className="text-sm text-gray-400 py-2">No expense records</p>}
+            )) : <p className="text-sm text-gray-400 py-2">{t('reports.financial.noExpenseRecords')}</p>}
             <div className="flex justify-between py-2 font-bold border-t border-gray-200 mt-1">
-              <span className="text-sm text-gray-900">Total Expenses</span>
+              <span className="text-sm text-gray-900">{t('reports.financial.totalExpenses')}</span>
               <span className="text-sm font-mono tabular-nums text-red-400">{formatCurrency(data.totalExpenses)}</span>
             </div>
           </div>
 
           <div className="border-t-2 border-[#0FD452]/30 pt-4">
             <div className="flex justify-between">
-              <span className="text-lg font-bold text-gray-900">Net Income</span>
+              <span className="text-lg font-bold text-gray-900">{t('reports.financial.netIncome')}</span>
               <span className={`text-lg font-bold font-mono tabular-nums ${data.netIncome >= 0 ? 'text-[#0FD452]' : 'text-red-400'}`}></span>
                 {formatCurrency(data.netIncome)}
               

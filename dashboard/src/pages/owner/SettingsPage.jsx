@@ -27,6 +27,7 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { currentBase } from '../../utils/roles'
+import { useLanguage } from '../../contexts/LanguageContext'
 import {
   useCurrency,
   formatMoney,
@@ -37,54 +38,54 @@ const WORKING_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const PLAN_FEATURES = {
   trial: [
-    'Up to 50 drugs in inventory',
-    'Basic sales tracking',
-    '1 staff member',
-    'Email support',
+    'up_to_50_drugs_in_inventory',
+    'basic_sales_tracking',
+    '1_staff_member',
+    'email_support',
   ],
   basic: [
-    'Up to 200 drugs in inventory',
-    'Sales & purchase tracking',
-    '5 staff members',
-    'Basic reports',
-    'Email support',
+    'up_to_200_drugs_in_inventory',
+    'sales_purchase_tracking',
+    '5_staff_members',
+    'basic_reports',
+    'email_support',
   ],
   starter: [
-    'Up to 3 branches',
-    'Up to 200 drugs in inventory',
-    'Sales & purchase tracking',
-    '5 staff members',
-    'Basic reports',
-    'Email support',
+    'up_to_3_branches',
+    'up_to_200_drugs_in_inventory',
+    'sales_purchase_tracking',
+    '5_staff_members',
+    'basic_reports',
+    'email_support',
   ],
   pro: [
-    'Unlimited drugs in inventory',
-    'Advanced analytics & reports',
-    'Unlimited staff members',
-    'Prescription management',
-    'Delivery tracking',
-    'Insurance claims',
-    'Telemedicine',
-    'Accounting & HR tools',
-    'Priority support',
+    'unlimited_drugs_in_inventory',
+    'advanced_analytics_reports',
+    'unlimited_staff_members',
+    'prescription_management',
+    'delivery_tracking',
+    'insurance_claims',
+    'telemedicine',
+    'accounting_hr_tools',
+    'priority_support',
   ],
   professional: [
-    'Unlimited drugs in inventory',
-    'Advanced analytics & reports',
-    'Unlimited staff members',
-    'Prescription management',
-    'Delivery tracking',
-    'Insurance claims',
-    'Telemedicine',
-    'Accounting & HR tools',
-    'Priority support',
+    'unlimited_drugs_in_inventory',
+    'advanced_analytics_reports',
+    'unlimited_staff_members',
+    'prescription_management',
+    'delivery_tracking',
+    'insurance_claims',
+    'telemedicine',
+    'accounting_hr_tools',
+    'priority_support',
   ],
   enterprise: [
-    'Everything in Professional',
-    'Consolidated multi-branch reports',
-    'Outbreak & demand prediction',
-    'Custom integrations & API access',
-    'Dedicated account manager',
+    'everything_in_professional',
+    'consolidated_multi_branch_reports',
+    'outbreak_demand_prediction',
+    'custom_integrations_api_access',
+    'dedicated_account_manager',
   ],
 }
 
@@ -99,6 +100,7 @@ const PLAN_COLORS = {
 
 export default function SettingsPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const { user } = useAuth()
   const { currency: displayCurrency, setCurrency } = useCurrency()
   const [pharmacy, setPharmacy] = useState(null)
@@ -259,9 +261,9 @@ export default function SettingsPage() {
 
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)
-      toast.success('Settings saved successfully')
+      toast.success(t('reports.settings.saved'))
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save settings')
+      setError(err.response?.data?.message || t('reports.settings.saveFailed'))
     } finally {
       setSaving(false)
     }
@@ -291,8 +293,8 @@ export default function SettingsPage() {
           <Settings className="w-5 h-5 text-[#0FD452]" />
         </div>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-sm text-gray-500">Configure your pharmacy profile and preferences.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('common.settings')}</h1>
+          <p className="text-sm text-gray-500">{t('reports.settings.subtitle')}</p>
         </div>
         {user?.isOwner?.() || user?.role === 'owner' ? (
           <button
@@ -300,7 +302,7 @@ export default function SettingsPage() {
             className="flex items-center gap-2 px-4 py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl text-sm font-bold transition-all duration-200 shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            Add Pharmacy
+            {t('reports.settings.addPharmacy')}
           </button>
         ) : null}
       </div>
@@ -315,7 +317,7 @@ export default function SettingsPage() {
       {saveSuccess && (
         <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
           <Check className="w-4 h-4 shrink-0" />
-          Settings saved successfully!
+          {t('reports.settings.saved')}!
         </div>
       )}
 
@@ -325,12 +327,12 @@ export default function SettingsPage() {
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
             <Building2 className="w-5 h-5 text-[#0FD452]" />
           </div>
-          <h2 className="text-lg font-bold text-[#000F14]">Pharmacy Profile</h2>
+          <h2 className="text-lg font-bold text-[#000F14]">{t('reports.settings.profileTitle')}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Pharmacy Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.pharmacyName')}</label>
             <input
               type="text"
               name="name"
@@ -340,21 +342,21 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Pharmacy Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.pharmacyType')}</label>
             <select
               name="type"
               value={form.type}
               onChange={handleChange}
               className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-[#000F14] focus:border-[#0FD452] focus:ring-1 focus:ring-[#0FD452] outline-none transition bg-white"
             >
-              <option value="retail">Retail Pharmacy</option>
-              <option value="wholesale">Wholesale Pharmacy</option>
-              <option value="hospital">Hospital Pharmacy</option>
-              <option value="clinic">Clinic Pharmacy</option>
+              <option value="retail">{t('reports.settings.typeRetail')}</option>
+              <option value="wholesale">{t('reports.settings.typeWholesale')}</option>
+              <option value="hospital">{t('reports.settings.typeHospital')}</option>
+              <option value="clinic">{t('reports.settings.typeClinic')}</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">License Number</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.licenseNumber')}</label>
             <input
               type="text"
               name="license_number"
@@ -364,7 +366,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">License Expiry</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.licenseExpiry')}</label>
             <input
               type="date"
               name="license_expiry"
@@ -377,11 +379,11 @@ export default function SettingsPage() {
 
         {/* Logo Upload */}
         <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Pharmacy Logo</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t('reports.settings.logo')}</label>
           <div className="flex items-center gap-4">
             {form.logo_preview ? (
               <div className="relative w-20 h-20 rounded-xl border-2 border-gray-200 overflow-hidden">
-                <img src={form.logo_preview} alt="Logo preview" className="w-full h-full object-cover" />
+                <img src={form.logo_preview} alt={t('reports.settings.logoAlt')} className="w-full h-full object-cover" />
                 <button
                   onClick={removeLogo}
                   className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
@@ -395,7 +397,7 @@ export default function SettingsPage() {
                 className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-[#0FD452] hover:text-[#0FD452] transition-colors"
               >
                 <Camera className="w-6 h-6" />
-                <span className="text-[10px] mt-1">Upload</span>
+                <span className="text-[10px] mt-1">{t('reports.settings.upload')}</span>
               </button>
             )}
             <input
@@ -406,13 +408,13 @@ export default function SettingsPage() {
               className="hidden"
             />
             <div>
-              <p className="text-sm text-gray-500">JPG, PNG or SVG. Max 2MB.</p>
+              <p className="text-sm text-gray-500">{t('reports.settings.logoFormat')}</p>
               {form.logo_preview && (
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="text-sm text-[#0FD452] hover:underline mt-1"
                 >
-                  Change logo
+                  {t('reports.settings.changeLogo')}
                 </button>
               )}
             </div>
@@ -421,7 +423,7 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('common.phone')}</label>
             <input
               type="tel"
               name="phone"
@@ -431,7 +433,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('common.email')}</label>
             <input
               type="email"
               name="email"
@@ -441,7 +443,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Website</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.website')}</label>
             <input
               type="url"
               name="website"
@@ -460,12 +462,12 @@ export default function SettingsPage() {
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
             <MapPin className="w-5 h-5 text-[#0FD452]" />
           </div>
-          <h2 className="text-lg font-bold text-[#000F14]">Location</h2>
+          <h2 className="text-lg font-bold text-[#000F14]">{t('reports.settings.locationTitle')}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.country')}</label>
             <input
               type="text"
               name="country"
@@ -475,7 +477,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Region</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.region')}</label>
             <input
               type="text"
               name="region"
@@ -485,7 +487,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">District</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.district')}</label>
             <input
               type="text"
               name="district"
@@ -495,7 +497,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Ward</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.ward')}</label>
             <input
               type="text"
               name="ward"
@@ -505,7 +507,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Street</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.street')}</label>
             <input
               type="text"
               name="street"
@@ -523,11 +525,11 @@ export default function SettingsPage() {
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
             <Clock className="w-5 h-5 text-[#0FD452]" />
           </div>
-          <h2 className="text-lg font-bold text-[#000F14]">Operating Hours</h2>
+          <h2 className="text-lg font-bold text-[#000F14]">{t('reports.settings.operatingHours')}</h2>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">Working Days</label>
+          <label className="block text-sm font-medium text-gray-700 mb-3">{t('reports.settings.workingDays')}</label>
           <div className="flex flex-wrap gap-2 mb-6">
             {WORKING_DAYS.map((day) => (
               <button
@@ -540,7 +542,7 @@ export default function SettingsPage() {
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {day}
+                {t(`reports.settings.days.${day}`)}
               </button>
             ))}
           </div>
@@ -548,7 +550,7 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Opening Time</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.openingTime')}</label>
             <input
               type="time"
               name="opening_time"
@@ -558,7 +560,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Closing Time</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.closingTime')}</label>
             <input
               type="time"
               name="closing_time"
@@ -576,22 +578,22 @@ export default function SettingsPage() {
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
             <DollarSign className="w-5 h-5 text-[#0FD452]" />
           </div>
-          <h2 className="text-lg font-bold text-[#000F14]">Financial</h2>
+          <h2 className="text-lg font-bold text-[#000F14]">{t('reports.settings.financialTitle')}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Opening Capital ({form.currency || 'TZS'})</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.openingCapital')} ({form.currency || 'TZS'})</label>
             <input
               type="text"
               value={formatMoney(form.opening_capital, { decimals: 0 })}
               readOnly
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-600 cursor-not-allowed"
             />
-            <p className="text-xs text-gray-400 mt-1">Opening capital is set during registration</p>
+            <p className="text-xs text-gray-400 mt-1">{t('reports.settings.openingCapitalHint')}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Currency</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('reports.settings.currency')}</label>
             <select
               name="currency"
               value={form.currency}
@@ -601,7 +603,7 @@ export default function SettingsPage() {
               <option value="TZS">TZS</option>
               <option value="USD">USD</option>
             </select>
-            <p className="text-xs text-gray-400 mt-1">Amounts across the whole system are shown in this currency</p>
+            <p className="text-xs text-gray-400 mt-1">{t('reports.settings.currencyHint')}</p>
           </div>
         </div>
       </div>
@@ -612,25 +614,25 @@ export default function SettingsPage() {
           <div className="w-10 h-10 rounded-xl bg-[#0FD452]/10 flex items-center justify-center">
             <CreditCard className="w-5 h-5 text-[#0FD452]" />
           </div>
-          <h2 className="text-lg font-bold text-[#000F14]">Subscription</h2>
+          <h2 className="text-lg font-bold text-[#000F14]">{t('subscription.subscriptionLabel')}</h2>
         </div>
 
         <div className="flex items-center justify-between mb-6">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <span className="text-sm font-medium text-gray-500">Current Plan</span>
+              <span className="text-sm font-medium text-gray-500">{t('subscription.currentPlan')}</span>
               <span className={`px-3 py-0.5 rounded-full text-xs font-semibold uppercase ${PLAN_COLORS[subStatus.plan] || PLAN_COLORS.trial}`}>
-                {subStatus.plan_name || subStatus.plan || 'Trial'}
+                {subStatus.plan_name || subStatus.plan || t('reports.settings.trial')}
               </span>
               <span className={`px-3 py-0.5 rounded-full text-xs font-semibold uppercase ${
                 subStatus.payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'
               }`}>
-                {subStatus.payment_status === 'paid' ? 'Active' : 'Trial'}
+                {subStatus.payment_status === 'paid' ? t('common.active') : t('reports.settings.trial')}
               </span>
             </div>
             {subStatus.expiry && (
               <p className="text-sm text-gray-500">
-                Expires: {new Date(subStatus.expiry).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                {t('reports.settings.expires')}: {new Date(subStatus.expiry).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             )}
           </div>
@@ -638,17 +640,17 @@ export default function SettingsPage() {
             onClick={() => navigate('/subscribe')}
             className="btn-primary"
           >
-            Upgrade Plan
+            {t('reports.settings.upgradePlan')}
           </button>
         </div>
 
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Plan Features</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-3">{t('reports.settings.planFeatures')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {(PLAN_FEATURES[subStatus.plan] || PLAN_FEATURES.trial).map((feature, idx) => (
               <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
                 <Check className="w-4 h-4 text-[#0FD452] shrink-0" />
-                {feature}
+                {t(`reports.settings.${feature}`)}
               </div>
             ))}
           </div>
@@ -656,7 +658,7 @@ export default function SettingsPage() {
 
         {subStatus.payment_history.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Payment History</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">{t('reports.settings.paymentHistory')}</h3>
             <div className="overflow-hidden rounded-xl bg-white shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -665,25 +667,25 @@ export default function SettingsPage() {
                       <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
-                          <span>Date</span>
+                          <span>{t('common.date')}</span>
                         </div>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                          <span>Amount</span>
+                          <span>{t('reports.settings.amount')}</span>
                         </div>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <CreditCard className="w-3.5 h-3.5 text-[#0FD452]" />
-                          <span>Plan</span>
+                          <span>{t('reports.settings.plan')}</span>
                         </div>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <ShieldCheck className="w-3.5 h-3.5 text-[#0FD452]" />
-                          <span>Status</span>
+                          <span>{t('common.status')}</span>
                         </div>
                       </th>
                     </tr>
@@ -723,7 +725,7 @@ export default function SettingsPage() {
 
         {subStatus.payment_history.length === 0 && (
           <div className="text-center py-6 text-gray-400 text-sm">
-            No payment history yet
+            {t('reports.settings.noPaymentHistory')}
           </div>
         )}
       </div>
@@ -735,20 +737,20 @@ export default function SettingsPage() {
             <ShieldAlert className="w-5 h-5 text-red-500" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-red-600">Danger Zone</h2>
-            <p className="text-sm text-gray-500">Irreversible actions</p>
+            <h2 className="text-lg font-bold text-red-600">{t('reports.settings.dangerTitle')}</h2>
+            <p className="text-sm text-gray-500">{t('reports.settings.dangerSubtitle')}</p>
           </div>
         </div>
 
         <div className="bg-red-50 rounded-xl p-4 mb-4">
           <p className="text-sm text-red-700">
-            Deactivating your pharmacy will:
+            {t('reports.settings.deactivateIntro')}
           </p>
           <ul className="mt-2 space-y-1 text-sm text-red-600 list-disc list-inside">
-            <li>Stop all active subscriptions and billing</li>
-            <li>Hide your pharmacy from the platform</li>
-            <li>Archive all sales records and customer data</li>
-            <li>Remove staff access immediately</li>
+            <li>{t('reports.settings.deactivateBullet1')}</li>
+            <li>{t('reports.settings.deactivateBullet2')}</li>
+            <li>{t('reports.settings.deactivateBullet3')}</li>
+            <li>{t('reports.settings.deactivateBullet4')}</li>
           </ul>
         </div>
 
@@ -756,7 +758,7 @@ export default function SettingsPage() {
           onClick={() => setShowDeactivateConfirm(true)}
           className="px-5 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
         >
-          Deactivate Pharmacy
+          {t('reports.settings.deactivateButton')}
         </button>
       </div>
 
@@ -769,31 +771,31 @@ export default function SettingsPage() {
               <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-[#000F14]">Deactivate Pharmacy?</h3>
+              <h3 className="text-lg font-bold text-[#000F14]">{t('reports.settings.deactivateConfirmTitle')}</h3>
             </div>
             <p className="text-sm text-gray-600 mb-6">
-              This action cannot be undone. All your data will be permanently archived. Type <strong>DEACTIVATE</strong> to confirm.
+              {t('reports.settings.deactivateConfirmPrefix')} <strong>DEACTIVATE</strong> {t('reports.settings.deactivateConfirmSuffix')}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeactivateConfirm(false)}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={async () => {
                   try {
                     await api.post('/subscriptions/cancel')
-                    toast.success('Subscription deactivated')
+                    toast.success(t('reports.settings.deactivateSuccess'))
                     setShowDeactivateConfirm(false)
                   } catch (err) {
-                    toast.error(err.response?.data?.message || 'Failed to deactivate')
+                    toast.error(err.response?.data?.message || t('reports.settings.deactivateFailed'))
                   }
                 }}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
               >
-                Deactivate
+                {t('reports.settings.deactivate')}
               </button>
             </div>
           </div>
@@ -810,12 +812,12 @@ export default function SettingsPage() {
           {saving ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Saving...
+              {t('common.saving')}
             </>
           ) : (
             <>
               <Save className="w-4 h-4" />
-              Save Changes
+              {t('reports.settings.saveChanges')}
             </>
           )}
         </button>

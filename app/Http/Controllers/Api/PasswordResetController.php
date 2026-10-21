@@ -73,7 +73,10 @@ class PasswordResetController extends Controller
             'code' => 'required|string|digits:6',
             // Same three rules the dashboard checklist shows: 8 characters,
             // one uppercase letter and one number.
-            'password' => ['required', 'string', 'confirmed', \Illuminate\Validation\Rules\Password::min(8)->letters()->mixedCase()->numbers()],
+            'password' => ['required', 'string', 'confirmed', 'min:8', 'regex:/[A-Z]/', 'regex:/[0-9]/'],
+        ], [
+            'password.regex' => 'Password must contain at least one uppercase letter and one number.',
+            'password.min' => 'Password must be at least 8 characters.',
         ]);
 
         $user = $this->findUserByIdentifier($validated['identifier']);

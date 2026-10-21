@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -31,11 +30,11 @@ class AuthController extends Controller
                 // typo. A loose max:20 was storing whatever was typed as
                 // somebody's actual contact number.
                 'phone' => ['required', 'string', 'regex:/^\+?[0-9]{9,13}$/'],
-                // The dashboard shows a live checklist (8 characters, one
-                // uppercase letter, one number). The server enforces the
-                // same three rules, so a password rejected here and a
-                // password rejected there read the same way.
-                'password' => ['required', 'string', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
+                // The dashboard shows a live checklist: 8 characters, one
+                // uppercase letter, one number. The server enforces exactly
+                // those three rules, so a password the checklist accepts is
+                // never rejected here with a different reason.
+                'password' => ['required', 'string', 'confirmed', 'min:8', 'regex:/[A-Z]/', 'regex:/[0-9]/'],
                 'role' => 'sometimes|in:owner,pharmacist,cashier,delivery,customer',
             ];
 
@@ -81,7 +80,15 @@ class AuthController extends Controller
                 $rules['pharmacies.*.pharmacy_logo'] = 'sometimes|nullable';
             }
 
-            $validated = $request->validate($rules);
+            // The dashboard checks the password live and shows which rule is
+            // still outstanding, so the server repeats the same wording when
+            // it does reject one.
+            $messages = [
+                'password.regex' => 'Password must contain at least one uppercase letter and one number.',
+                'password.min' => 'Password must be at least 8 characters.',
+            ];
+
+            $validated = $request->validate($rules, $messages);
 
             $userCode = User::generateUserCode();
 

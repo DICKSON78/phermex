@@ -730,7 +730,7 @@ export default function AdminPharmacyShowPage() {
               </div>
             </div>
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-              <p className="text-sm text-green-800">This will approve the pharmacy application and start their 7-day free trial. The owner will be notified.</p>
+              <p className="text-sm text-green-800">This will approve the pharmacy application and start their 30-day free trial. The owner will be notified.</p>
             </div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5">Comment (optional)</label>
             <textarea value={approveComment} onChange={(e) => setApproveComment(e.target.value)} rows={3}

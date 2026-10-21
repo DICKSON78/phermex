@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
-import { formatUsdPrice } from '../../utils/currency'
+import { formatUsdPrice, formatMoney } from '../../utils/currency'
 import { useLanguage } from '../../contexts/LanguageContext'
 import {
   Clock,
@@ -16,12 +16,12 @@ import {
 } from 'lucide-react'
 
 const PLAN_META = {
-  starter: { icon: Sparkles, accent: 'from-emerald-500 to-green-600', ring: 'ring-emerald-200', check: 'text-emerald-500' },
-  professional: { icon: Card, accent: 'from-blue-500 to-indigo-600', ring: 'ring-blue-200', check: 'text-blue-500' },
-  enterprise: { icon: Shield, accent: 'from-amber-400 to-orange-500', ring: 'ring-amber-200', check: 'text-amber-500' },
+  starter: { icon: Sparkles },
+  professional: { icon: Card },
+  enterprise: { icon: Shield },
 }
 
-const PLAN_META_FALLBACK = { icon: CreditCard, accent: 'from-slate-500 to-slate-600', ring: 'ring-slate-200', check: 'text-slate-500' }
+const PLAN_META_FALLBACK = { icon: CreditCard }
 
 function statusBadge(status) {
   const base = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold '
@@ -42,17 +42,20 @@ export default function SubscriptionsPage() {
   const [loading, setLoading] = useState(true)
   const [activationLoading, setActivationLoading] = useState(false)
   const [error, setError] = useState('')
+  const [rates, setRates] = useState(null)
   const navigate = useNavigate()
 
   const fetchAll = async () => {
     setLoading(true)
     try {
-      const [statusRes, plansRes] = await Promise.all([
+      const [statusRes, plansRes, ratesRes] = await Promise.all([
         api.get('/subscriptions/status'),
         api.get('/subscriptions/plans'),
+        api.get('/exchange-rates'),
       ])
       setStatus(statusRes.data)
       setPlans(plansRes.data?.data || plansRes.data || [])
+      setRates(ratesRes.data)
     } catch {
       setError(t('reports.subscriptions.loadError'))
     } finally {
@@ -63,6 +66,19 @@ export default function SubscriptionsPage() {
   useEffect(() => {
     fetchAll()
   }, [])
+
+  const tzsRate = Number(rates?.TZS)
+  const hasRate = Number.isFinite(tzsRate) && tzsRate > 0
+  const toTzs = (usd) => (hasRate ? Math.round(Number(usd) * tzsRate) : null)
+  const formatTzs = (usd) => {
+    const value = toTzs(usd)
+    if (value == null) return ''
+    return new Intl.NumberFormat('en-TZ', {
+      style: 'currency',
+      currency: 'TZS',
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
 
   if (loading) {
     return (
@@ -243,9 +259,10 @@ export default function SubscriptionsPage() {
         {plans.map((plan) => {
           const meta = PLAN_META[plan.slug] || PLAN_META_FALLBACK
           const Icon = meta.icon
+          const tzsAmount = toTzs(plan.price)
           return (
             <div key={plan.id} className="rounded-2xl bg-white border border-gray-100 p-5">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${meta.accent} flex items-center justify-center mb-3`}>
+              <div className="w-10 h-10 rounded-xl bg-[#0FD452] flex items-center justify-center mb-3">
                 <Icon className="w-5 h-5 text-white" />
               </div>
               <h3 className="text-lg font-extrabold text-gray-900">{plan.name}</h3>
@@ -253,10 +270,21 @@ export default function SubscriptionsPage() {
                 {formatUsdPrice(plan.price, { decimals: 0 })}
                 <span className="text-sm text-gray-400 font-medium">{t('reports.subscriptions.perYear')}</span>
               </p>
+              {tzsAmount && (
+                <>
+                  <p className="mt-1 text-sm font-bold text-emerald-600">
+                    ≈ {formatMoney(tzsAmount, { decimals: 0 })}
+                  </p>
+                  <p className="mt-1 text-[11px] text-gray-400">
+                    {t('authPages.plans.exchangeRateNote', 'Rate: 1 USD =')} {' '}
+                    {Math.round(tzsRate).toLocaleString()} TZS
+                  </p>
+                </>
+              )}
               <p className="text-xs text-gray-400 mt-1 leading-relaxed line-clamp-2">{plan.description}</p>
               <button
                 onClick={() => navigate('/subscribe')}
-                className="mt-4 w-full py-2.5 rounded-xl bg-gray-50 border border-gray-100 text-gray-600 text-sm font-bold hover:border-[#0FD452]/50 hover:text-[#0FD452] transition-all"
+                className="mt-4 w-full py-2.5 rounded-xl bg-[#0FD452] text-[#000F14] text-sm font-bold hover:bg-[#0cb843] transition-all active:scale-[0.98]"
               >
                 {isPaidUp ? t('reports.subscriptions.renewUpgrade') : t('subscription.subscribe')}
               </button>

@@ -221,6 +221,9 @@ export default {
       deleteQuestion: 'Una uhakika unataka kufuta usajili wa ',
       statuses: {
         active: 'Inafanya kazi',
+        pending: 'Inasubiri malipo',
+        trial: 'Jaribio',
+        cancelled: 'Imebatilishwa',
         expired: 'Umeisha Muda',
         suspended: 'Umesimamishwa',
       },

@@ -12,6 +12,7 @@ import {
   Sparkles,
   CreditCard as Card,
   Shield,
+  AlertCircle,
 } from 'lucide-react'
 
 const PLAN_META = {
@@ -28,6 +29,8 @@ function statusBadge(status) {
     case 'paid': return base + 'bg-emerald-50 text-emerald-700'
     case 'pending': return base + 'bg-amber-50 text-amber-700'
     case 'trial': return base + 'bg-blue-50 text-blue-700'
+    case 'failed': return base + 'bg-red-50 text-red-700'
+    case 'refunded': return base + 'bg-red-50 text-red-700'
     default: return base + 'bg-gray-100 text-gray-600'
   }
 }
@@ -204,6 +207,30 @@ export default function SubscriptionsPage() {
                 className="px-4 py-2 bg-amber-500 text-white rounded-lg text-xs font-bold hover:bg-amber-600 transition-all"
               >
                 {t('reports.subscriptions.completePayment')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* The payment did not go through, so it can be tried again. */}
+      {status?.payment_status === 'failed' && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 mb-8">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-bold text-red-800 text-sm mb-1">
+                {t('reports.subscriptions.paymentFailed', 'Payment failed')}
+              </p>
+              <p className="text-red-700 text-xs leading-relaxed mb-3">
+                {status?.payment_failure_reason
+                  || t('reports.subscriptions.paymentFailedBody', 'The payment did not go through. Please try again.')}
+              </p>
+              <button
+                onClick={() => navigate('/subscribe')}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600 transition-all"
+              >
+                {t('reports.subscriptions.tryAgain', 'Try again')}
               </button>
             </div>
           </div>

@@ -221,6 +221,9 @@ export default {
       deleteQuestion: 'Are you sure you want to delete the subscription for ',
       statuses: {
         active: 'Active',
+        pending: 'Awaiting payment',
+        trial: 'Trial',
+        cancelled: 'Cancelled',
         expired: 'Expired',
         suspended: 'Suspended',
       },

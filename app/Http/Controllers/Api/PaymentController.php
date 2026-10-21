@@ -204,6 +204,11 @@ class PaymentController extends Controller
                 'event' => $event ?: null,
             ];
 
+            // Whether the gateway had already told us how this payment ended,
+            // read before anything is written, so a callback that arrives twice
+            // does not tell the owner twice.
+            $previousState = Payment::findByReference($orderReference)?->state;
+
             // Written down before anything else happens, so the gateway's own
             // account of the payment survives even when the confirmation below
             // cannot be made.
@@ -214,7 +219,7 @@ class PaymentController extends Controller
             }
 
             if ($revenue) {
-                return $this->handleSubscriptionPayment($revenue, $orderReference, $context, $outcome);
+                return $this->handleSubscriptionPayment($revenue, $orderReference, $context, $outcome, $previousState);
             }
 
             return response()->json(['message' => 'OK']);
@@ -276,15 +281,11 @@ class PaymentController extends Controller
      * before a package is granted: the callback is a request from the internet
      * and only the gateway knows whether the money actually arrived.
      */
-    private function handleSubscriptionPayment(RevenueRecord $revenue, string $orderReference, array $context, string $outcome): JsonResponse
+    private function handleSubscriptionPayment(RevenueRecord $revenue, string $orderReference, array $context, string $outcome, ?string $previousState): JsonResponse
     {
         $payments = app(ClickPesaPaymentService::class);
 
         $expectPaid = $outcome === 'PAYMENT RECEIVED' || ClickPesaPaymentService::isPaid($outcome);
-
-        // Whether the gateway had already told us how this payment ended, so a
-        // callback that arrives twice does not tell the owner twice.
-        $previousState = Payment::findByReference($orderReference)?->state;
 
         try {
             $gateway = $payments->confirm($orderReference, $expectPaid);

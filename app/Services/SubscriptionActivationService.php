@@ -31,13 +31,21 @@ class SubscriptionActivationService
             ]);
         }
 
-        $subscription = Subscription::where('pharmacy_id', $revenue->pharmacy_id)
-            ->where('status', 'active')
-            ->latest('id')
-            ->first();
+        // The package this invoice pays for: the row that carries the
+        // reference of the payment, and after that the newest one that is
+        // still waiting for its money.
+        $subscription = null;
+
+        if ($revenue->payment_reference) {
+            $subscription = Subscription::where('pharmacy_id', $revenue->pharmacy_id)
+                ->where('transaction_id', $revenue->payment_reference)
+                ->latest('id')
+                ->first();
+        }
 
         if (! $subscription) {
             $subscription = Subscription::where('pharmacy_id', $revenue->pharmacy_id)
+                ->whereIn('status', ['pending', 'active'])
                 ->latest('id')
                 ->first();
         }

@@ -47,6 +47,12 @@ function formatCurrency(amount) {
   return formatMoney(amount || 0, { decimals: 0 })
 }
 
+// What the customer was actually charged, in shillings. The price on the
+// package is in dollars, which is not what was billed.
+function billedAmount(subscription) {
+  return subscription?.amount_tzs != null ? subscription.amount_tzs : (subscription?.amount || 0)
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '—'
   try {
@@ -146,7 +152,7 @@ export default function AdminSubscriptionShowPage() {
     ? Math.floor((Date.now() - new Date(subscription.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30))
     : 0
 
-  const totalPaid = (subscription.amount || 0) * monthsActive
+  const totalPaid = billedAmount(subscription) * monthsActive
 
   return (
     <div className="space-y-4">
@@ -197,19 +203,19 @@ export default function AdminSubscriptionShowPage() {
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 truncate">{t('adminUsers.subscriptions.amountPerMonth', 'Amount / Month')}</p>
                 <p className="text-lg font-bold text-[#000F14]">
-                  {subscription.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(subscription.amount)}
+                  {subscription.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(billedAmount(subscription))}
                 </p>
               </div>
             </div>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${subscription.status === 'active' ? 'bg-green-50' : 'bg-red-50'}`}>
-                <span className={`w-3 h-3 rounded-full ${subscription.status === 'active' ? 'bg-green-500' : 'bg-red-500'}`} />
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${subscription.payment_status === 'paid' || subscription.payment_status === 'active' ? 'bg-green-50' : 'bg-red-50'}`}>
+                <span className={`w-3 h-3 rounded-full ${subscription.payment_status === 'paid' || subscription.payment_status === 'active' ? 'bg-green-500' : 'bg-red-500'}`} />
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 truncate">{t('common.status', 'Status')}</p>
-                <p className="text-sm font-bold text-[#000F14] capitalize">{t('adminUsers.subscriptions.statuses.' + subscription.status, subscription.status)}</p>
+                <p className="text-sm font-bold text-[#000F14] capitalize">{t('adminUsers.subscriptions.statuses.' + (subscription.payment_status || subscription.status), subscription.payment_status || subscription.status)}</p>
               </div>
             </div>
           </div>
@@ -283,7 +289,7 @@ export default function AdminSubscriptionShowPage() {
                     <span className="text-xs text-gray-500">{t('orders.amount', 'Amount')}</span>
                   </div>
                   <p className="text-sm font-medium text-[#000F14]">
-                    {subscription.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(subscription.amount)}
+                    {subscription.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(billedAmount(subscription))}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -425,7 +431,7 @@ export default function AdminSubscriptionShowPage() {
                     <span className="text-sm text-gray-500">{t('adminUsers.subscriptions.planValue', 'Plan Value')}</span>
                   </div>
                   <span className="text-sm font-medium text-[#000F14]">
-                    {subscription.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(subscription.amount) + t('adminUsers.subscriptions.perMo', '/mo')}
+                    {subscription.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(billedAmount(subscription)) + t('adminUsers.subscriptions.perMo', '/mo')}
                   </span>
                   
                 </div>

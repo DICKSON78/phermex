@@ -40,7 +40,13 @@ class RevenueRecord extends Model
     public static function generateInvoiceNumber(): string
     {
         $prefix = 'INV-' . now()->format('Ym') . '-';
-        $last = static::where('invoice_number', 'like', $prefix . '%')
+
+        // The number has to be unique across every pharmacy, so the search is
+        // not narrowed to the one raising the invoice. Two pharmacies paying
+        // in the same month would otherwise be handed the same number, and the
+        // second invoice would be refused.
+        $last = static::withoutGlobalScopes()
+            ->where('invoice_number', 'like', $prefix . '%')
             ->orderByDesc('invoice_number')
             ->value('invoice_number');
 

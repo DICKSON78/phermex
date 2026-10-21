@@ -68,10 +68,28 @@ class SubscriptionController extends Controller
             'trial_ends_at' => $pharmacy->trial_ends_at?->toISOString(),
             'subscription_end_date' => $pharmacy->subscription_end_date?->toISOString(),
             'payment_status' => $pharmacy->payment_status,
+            'payment_failure_reason' => $this->paymentFailureReason($pharmacy),
             'rejection_reason' => $pharmacy->rejection_reason,
             'pharmacy_name' => $pharmacy->pharmacy_name,
             'payment_history' => $this->paymentHistory($pharmacy),
         ]);
+    }
+
+    /**
+     * The reason the gateway gave when the last payment did not go through.
+     *
+     * "Transaction timed out" or "Insufficient balance" tells the owner what
+     * to fix, which a plain "failed" does not.
+     */
+    private function paymentFailureReason(Pharmacy $pharmacy): ?string
+    {
+        $payment = Payment::withoutGlobalScopes()
+            ->where('pharmacy_id', $pharmacy->id)
+            ->where('state', ClickPesaPaymentService::STATE_FAILED)
+            ->orderByDesc('id')
+            ->first();
+
+        return $payment?->message;
     }
 
     /**
@@ -164,11 +182,17 @@ class SubscriptionController extends Controller
 
         $planSlug = $this->planSlug($plan);
 
+        // The invoice is in shillings, which is what the customer is charged.
+        // The price of the plan in dollars is kept on the package itself.
+        $exchangeRates = app(ExchangeRateService::class);
+        $amountTzs = round((float) $plan->price * $exchangeRates->tzsPerUsd());
+
         Subscription::create([
             'pharmacy_id' => $pharmacy->id,
             'plan' => $planSlug,
             'amount' => $plan->price,
-            'status' => 'active',
+            // Chosen, not yet paid for. The money turns it active.
+            'status' => 'pending',
             'start_date' => $startDate,
             'end_date' => $endDate,
         ]);
@@ -177,17 +201,17 @@ class SubscriptionController extends Controller
             'pharmacy_id' => $pharmacy->id,
             'pharmacy_name' => $pharmacy->pharmacy_name,
             'type' => 'subscription',
-            'amount' => $plan->price,
+            'amount' => $amountTzs,
             'description' => 'Subscription: ' . $plan->name,
             'invoice_number' => RevenueRecord::generateInvoiceNumber(),
             'status' => 'pending',
             'due_date' => $startDate->copy()->addDays(7),
-            'payment_method' => $validated['payment_method'] ?? null,
+            'payment_method' => $validated['payment_method'] ?? 'mobile',
         ]);
 
         $pharmacy->update([
             'subscription_plan_id' => $plan->id,
-            'subscription_amount' => $plan->price,
+            'subscription_amount' => $amountTzs,
             'payment_status' => 'pending',
             'subscription_start_date' => $startDate,
             'subscription_end_date' => $endDate,
@@ -244,11 +268,13 @@ class SubscriptionController extends Controller
         $startDate = now();
         $endDate = $startDate->copy()->addMonths($plan->duration_months);
 
-        // If a pending record already exists for this plan, re-use it so the
-        // checkout is idempotent (no duplicated invoices on retry).
+        // If a record already exists for this plan, re-use it so the checkout
+        // is idempotent (no duplicated invoices on retry). A package that is
+        // still waiting for its money keeps saying so, and one that has been
+        // paid for stays active.
         $subscription = Subscription::where('pharmacy_id', $pharmacy->id)
             ->where('plan', $this->planSlug($plan))
-            ->where('status', 'active')
+            ->whereIn('status', ['pending', 'active'])
             ->latest('id')
             ->first();
 
@@ -257,7 +283,8 @@ class SubscriptionController extends Controller
                 'pharmacy_id' => $pharmacy->id,
                 'plan' => $this->planSlug($plan),
                 'amount' => $plan->price,
-                'status' => 'active',
+                // Chosen, not yet paid for. The money turns it active.
+                'status' => 'pending',
                 'start_date' => $startDate,
                 'end_date' => $endDate,
             ]);

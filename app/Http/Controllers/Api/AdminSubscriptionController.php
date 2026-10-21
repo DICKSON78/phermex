@@ -5,14 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Pharmacy;
+use App\Models\RevenueRecord;
 use App\Models\Subscription;
+use App\Services\ExchangeRateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AdminSubscriptionController extends Controller
 {
-    private function toApi(Subscription $subscription): array
+    private function toApi(Subscription $subscription, ?RevenueRecord $invoice = null): array
     {
         return [
             'id' => $subscription->id,
@@ -20,6 +22,12 @@ class AdminSubscriptionController extends Controller
             'pharmacy' => $subscription->pharmacy?->pharmacy_name ?? 'Unknown Pharmacy',
             'plan' => ucfirst($subscription->plan),
             'amount' => (float) $subscription->amount,
+            // What the customer was actually charged, in shillings, and what
+            // the invoice says about the money. The package price above is in
+            // dollars, which is not what was billed.
+            'amount_tzs' => $invoice ? (float) $invoice->amount : null,
+            'payment_status' => $invoice?->status ?? $subscription->status,
+            'paid_at' => $invoice?->paid_at?->toISOString(),
             'status' => $subscription->status,
             'startDate' => $subscription->start_date?->toDateString(),
             'expiryDate' => $subscription->end_date?->toDateString(),
@@ -29,6 +37,42 @@ class AdminSubscriptionController extends Controller
             'auto_renew' => true,
             'created_at' => $subscription->created_at?->toISOString(),
         ];
+    }
+
+    /**
+     * The amount in shillings and the price in dollars for what was entered.
+     *
+     * The admin enters shillings, which is what the customer is charged. The
+     * package keeps the price of the plan in dollars, the same as everywhere
+     * else, so the two are worked out from one another.
+     *
+     * @return array{0: float, 1: float}
+     */
+    private function splitAmount(float $amountTzs): array
+    {
+        $rate = (float) app(ExchangeRateService::class)->tzsPerUsd();
+
+        return [
+            round($amountTzs, 2),
+            round($amountTzs / ($rate > 0 ? $rate : 1), 2),
+        ];
+    }
+
+    /**
+     * The invoice behind a package: what the customer was charged and what
+     * became of the money.
+     */
+    private function invoiceFor(Subscription $subscription): ?RevenueRecord
+    {
+        if (! $subscription->transaction_id) {
+            return null;
+        }
+
+        return RevenueRecord::withoutGlobalScopes()
+            ->where('type', 'subscription')
+            ->where('payment_reference', $subscription->transaction_id)
+            ->latest('id')
+            ->first();
     }
 
     public function index(Request $request): JsonResponse
@@ -48,13 +92,27 @@ class AdminSubscriptionController extends Controller
 
             $active = $subscriptions->where('status', 'active')->count();
             $trial = $subscriptions->where('status', 'trial')->count();
+            $pending = $subscriptions->where('status', 'pending')->count();
             $expired = $subscriptions->where('status', 'expired')->count();
             $suspended = $subscriptions->where('status', 'suspended')->count();
 
-            $thisMonth = now()->month;
-            $thisYear = now()->year;
-            $monthlyRevenue = $subscriptions->where('status', 'active')
-                ->filter(fn ($s) => $s->created_at && $s->created_at->month === $thisMonth && $s->created_at->year === $thisYear)
+            // The invoices behind these packages, so the list can say what was
+            // really paid and not only what was chosen.
+            $invoices = RevenueRecord::withoutGlobalScopes()
+                ->where('type', 'subscription')
+                ->whereIn('payment_reference', $subscriptions->pluck('transaction_id')->filter()->all())
+                ->get()
+                ->keyBy('payment_reference');
+
+            // The money that actually arrived this month, in shillings. It
+            // comes from the invoices, because the price on the package is in
+            // dollars and the invoice is what the customer was charged.
+            $paidOn = 'COALESCE(paid_at, created_at)';
+
+            $monthlyRevenue = RevenueRecord::withoutGlobalScopes()
+                ->where('type', 'subscription')
+                ->where('status', 'paid')
+                ->whereRaw($paidOn . ' >= ?', [now()->startOfMonth()])
                 ->sum('amount');
 
             $churnRate = $subscriptions->count() > 0
@@ -63,7 +121,7 @@ class AdminSubscriptionController extends Controller
 
             return response()->json([
                 'data' => [
-                    'subscriptions' => $subscriptions->map(fn ($s) => $this->toApi($s)),
+                    'subscriptions' => $subscriptions->map(fn ($s) => $this->toApi($s, $invoices->get($s->transaction_id))),
                     'stats' => [
                         'activeSubscriptions' => $active,
                         'monthlyRevenue' => $monthlyRevenue,
@@ -71,6 +129,7 @@ class AdminSubscriptionController extends Controller
                         'churnRate' => $churnRate,
                         'expired' => $expired,
                         'suspended' => $suspended,
+                        'pending' => $pending,
                         'total' => $subscriptions->count(),
                     ],
                 ],
@@ -105,15 +164,36 @@ class AdminSubscriptionController extends Controller
 
             DB::beginTransaction();
 
+            // The admin enters the amount in shillings, which is what the
+            // customer is charged. The package keeps the price of the plan in
+            // dollars, the same as everywhere else.
+            [$amountTzs, $amountUsd] = $this->splitAmount((float) $validated['amount']);
+
             $subscription = Subscription::create([
                 'pharmacy_id' => $pharmacy->id,
                 'plan' => strtolower($validated['plan']),
-                'amount' => $validated['amount'],
+                'amount' => $amountUsd,
                 'status' => 'active',
                 'start_date' => $validated['startDate'],
                 'end_date' => $validated['expiryDate'],
                 'payment_method' => $request->input('payment_method'),
                 'transaction_id' => $request->input('transaction_id'),
+            ]);
+
+            // A package the admin records is money that has come in, so it is
+            // written down as an invoice that has been paid. Without it the
+            // revenue would not show what the platform has actually earned.
+            RevenueRecord::create([
+                'pharmacy_id' => $pharmacy->id,
+                'pharmacy_name' => $pharmacy->pharmacy_name,
+                'type' => 'subscription',
+                'amount' => $amountTzs,
+                'description' => 'Subscription: ' . $validated['plan'],
+                'invoice_number' => RevenueRecord::generateInvoiceNumber(),
+                'status' => 'paid',
+                'due_date' => now()->toDateString(),
+                'paid_at' => now(),
+                'payment_method' => $request->input('payment_method') ?: 'manual',
             ]);
 
             $pharmacy->update([
@@ -155,7 +235,7 @@ class AdminSubscriptionController extends Controller
         try {
             $subscription = Subscription::with('pharmacy')->findOrFail($id);
 
-            return response()->json(['data' => $this->toApi($subscription)]);
+            return response()->json(['data' => $this->toApi($subscription, $this->invoiceFor($subscription))]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return response()->json(['message' => 'Subscription not found.'], 404);
         } catch (\Exception $e) {
@@ -195,7 +275,16 @@ class AdminSubscriptionController extends Controller
             }
 
             if (array_key_exists('amount', $validated)) {
-                $data['amount'] = $validated['amount'];
+                [$amountTzs, $amountUsd] = $this->splitAmount((float) $validated['amount']);
+
+                $data['amount'] = $amountUsd;
+
+                // The invoice carries the money, so it is corrected as well.
+                $invoice = $this->invoiceFor($subscription);
+
+                if ($invoice && $invoice->status === 'paid') {
+                    $invoice->update(['amount' => $amountTzs]);
+                }
             }
 
             if (!empty($validated['startDate'])) {

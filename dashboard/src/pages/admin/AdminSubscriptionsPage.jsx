@@ -22,7 +22,7 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../../services/api'
-import { formatMoney } from '../../utils/currency'
+import { formatMoney, formatUsdPrice } from '../../utils/currency'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 const PLAN_STYLES = {
@@ -36,12 +36,15 @@ const PLAN_STYLES = {
 
 const STATUS_STYLES = {
   active: 'badge badge-green',
+  pending: 'badge badge-yellow',
+  trial: 'badge badge-blue',
   expired: 'badge badge-gray',
   suspended: 'badge badge-red',
+  cancelled: 'badge badge-gray',
 }
 
 const PLANS = ['Trial', 'Basic', 'Starter', 'Pro', 'Professional', 'Enterprise']
-const STATUSES = ['active', 'expired', 'suspended']
+const STATUSES = ['active', 'pending', 'trial', 'expired', 'suspended', 'cancelled']
 
 function formatCurrency(amount) {
   return formatMoney(amount, { decimals: 0 })
@@ -277,9 +280,28 @@ export default function AdminSubscriptionsPage() {
                       <span className={PLAN_STYLES[sub.plan] || 'badge badge-gray'}>{t('adminUsers.shared.plans.' + sub.plan, sub.plan)}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={STATUS_STYLES[sub.status] || 'badge badge-gray'}>{t('adminUsers.subscriptions.statuses.' + sub.status, sub.status.charAt(0).toUpperCase() + sub.status.slice(1))}</span>
+                      {/* What the money did, and what state the package is in. */}
+                      <span className={STATUS_STYLES[sub.payment_status] || 'badge badge-gray'}>
+                        {t('adminUsers.subscriptions.statuses.' + sub.payment_status, (sub.payment_status || '').charAt(0).toUpperCase() + (sub.payment_status || '').slice(1))}
+                      </span>
+                      {sub.payment_status !== sub.status && (
+                        <span className="mt-1 block text-[11px] text-gray-400 capitalize">{sub.status}</span>
+                      )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-[#000F14]">{sub.amount === 0 ? t('adminUsers.shared.free', 'Free') : formatCurrency(sub.amount)}</td>
+                    <td className="px-6 py-4 text-sm text-[#000F14]">
+                      {/* What the customer was charged, in shillings, with the
+                          price of the package in dollars underneath it. */}
+                      {sub.amount_tzs != null ? (
+                        <>
+                          {formatCurrency(sub.amount_tzs)}
+                          <span className="block text-[11px] text-gray-400">{formatUsdPrice(sub.amount)}</span>
+                        </>
+                      ) : sub.amount === 0 ? (
+                        t('adminUsers.shared.free', 'Free')
+                      ) : (
+                        formatUsdPrice(sub.amount)
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-500">{sub.startDate}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{sub.expiryDate}</td>
                     <td className="px-6 py-4 text-right">

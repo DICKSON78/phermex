@@ -37,6 +37,8 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = ['status'];
+
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_active' => 'boolean',

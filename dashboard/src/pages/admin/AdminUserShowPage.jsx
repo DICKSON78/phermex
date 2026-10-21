@@ -227,7 +227,20 @@ export default function AdminUserShowPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-2">{user.email} — {user.role ? t('role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : '—'} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${ROLE_STYLES[user.role] || 'bg-gray-100 text-gray-600'}`}>{user.role ? t('role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : '—'} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[user.status] || 'bg-gray-100 text-gray-600'}`}>{t(user.status, user.status)}</span></span></p>
+            <p className="text-sm text-gray-500 flex items-center gap-2">
+              {user.email} — 
+              {user.role
+                ? t('role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role)
+                : '—'}
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${ROLE_STYLES[user.role] || 'bg-gray-100 text-gray-600'}`}>
+                {user.role
+                  ? t('role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role)
+                  : '—'}
+              </span>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[user.status] || 'bg-gray-100 text-gray-600'}`}>
+                {t(user.status, user.status)}
+              </span>
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">

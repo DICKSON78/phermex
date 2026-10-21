@@ -5,6 +5,7 @@ import { formatUsdPrice } from '../../utils/currency'
 import { useLanguage } from '../../contexts/LanguageContext'
 import {
   Clock,
+  CheckCircle2,
   CreditCard,
   Loader2,
   RefreshCcw,
@@ -69,6 +70,13 @@ export default function SubscriptionsPage() {
   }
 
   const isPaidUp = status?.payment_status === 'paid' && status?.subscription_type === 'subscription'
+  const onTrial = status?.plan === 'trial'
+  const planName = status?.plan_name || status?.plan || '—'
+  const featureSections = status?.plan_features || []
+  const featureCount = featureSections.reduce(
+    (total, section) => total + ((section?.rows || []).length || 0),
+    0,
+  )
 
   return (
     <div className="p-4 sm:p-6 max-w-5xl mx-auto">
@@ -131,7 +139,55 @@ export default function SubscriptionsPage() {
             <p className="text-xl font-black">{status?.subscription_end_date ? new Date(status.subscription_end_date).toLocaleDateString() : '—'}</p>
           </div>
         </div>
+
+        {/* The package whose features are switched on right now. */}
+        <div className="mt-6 rounded-xl bg-white/10 p-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold text-white/50 mb-1">{t('reports.subscriptions.activePackage')}</p>
+            <p className="text-lg font-black uppercase">{planName}</p>
+          </div>
+          {onTrial && (
+            <span className="px-3 py-1.5 rounded-full bg-[#0FD452] text-[#000F14] text-xs font-bold uppercase tracking-wider">
+              {t('reports.subscriptions.fullAccess', 'Full access')}
+            </span>
+          )}
+        </div>
+
+        {onTrial && (
+          <p className="mt-3 text-xs text-white/70 leading-relaxed">
+            {t('reports.subscriptions.trialFullAccessNote')}
+          </p>
+        )}
       </div>
+
+      {/* What this package includes right now */}
+      {featureSections.length > 0 && (
+        <div className="rounded-2xl bg-white border border-gray-100 p-6 mb-8">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+              {t('reports.subscriptions.includedFeatures')}
+            </h2>
+            <span className="text-xs font-bold text-gray-400">
+              {featureCount} {t('reports.subscriptions.featuresCount', 'features')}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+            {featureSections.map((section) => (
+              <div key={section.section}>
+                <p className="text-xs font-black text-[#000F14] uppercase tracking-wider mb-2">{section.section}</p>
+                <ul className="space-y-1">
+                  {(section.rows || []).map((row) => (
+                    <li key={row.name} className="flex items-start gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="w-4 h-4 text-[#0FD452] shrink-0 mt-0.5" />
+                      <span>{row.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Payment / activation manual confirm */}
       {status?.payment_status === 'pending' && (

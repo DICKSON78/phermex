@@ -451,6 +451,12 @@ export default {
       availablePlans: 'Available Plans',
       perYear: '/year',
       renewUpgrade: 'Renew / Upgrade',
+      activePackage: 'Active Package',
+      fullAccess: 'Full Access',
+      includedFeatures: 'Included in this package',
+      featuresCount: 'features',
+      trialFullAccessNote:
+        'During the trial you can use every feature of the platform. Once you choose a package, your access follows that package.',
     },
 
     // ---- SupportPage ----

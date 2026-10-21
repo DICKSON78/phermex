@@ -46,16 +46,21 @@ class SubscriptionController extends Controller
             ]);
         }
 
-        $latestSubscription = $pharmacy->subscriptions()->latest('id')->first();
+        // The package in force: the one the owner chose, or the trial (which
+        // carries the full feature set) while no package has been chosen.
+        $effectivePlan = $pharmacy->effectivePlan();
+        $onTrial = $effectivePlan === 'trial';
 
         return response()->json([
             'has_pharmacy' => true,
             'application_status' => $pharmacy->application_status,
             'subscription_type' => $pharmacy->subscriptionType(),
-            'plan' => $latestSubscription?->plan ?? ($pharmacy->hasTrial() ? 'trial' : null),
-            'plan_name' => $latestSubscription
-                ? ucfirst(str_replace('-', ' ', $latestSubscription->plan))
-                : ($pharmacy->hasTrial() ? 'Trial' : null),
+            'plan' => $effectivePlan,
+            'plan_name' => $effectivePlan
+                ? ($onTrial ? 'Trial' : ucfirst(str_replace('-', ' ', $effectivePlan)))
+                : null,
+            'plan_access' => $onTrial ? 'full' : $effectivePlan,
+            'plan_features' => $pharmacy->planFeatures(),
             'days_remaining' => $pharmacy->daysRemaining(),
             'trial_ends_at' => $pharmacy->trial_ends_at?->toISOString(),
             'subscription_end_date' => $pharmacy->subscription_end_date?->toISOString(),

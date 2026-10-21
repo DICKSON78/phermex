@@ -16,6 +16,7 @@ import {
   Pill,
   ShoppingCart,
   Smartphone,
+  Sparkles,
   X,
 } from 'lucide-react'
 
@@ -518,6 +519,12 @@ export default function SubscriptionPlansPage() {
           <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto">
             {t('authPages.plans.subtitle')}
           </p>
+          <div className="max-w-2xl mx-auto mt-5 flex items-start gap-3 text-left bg-[#0FD452]/10 border border-[#0FD452]/30 rounded-2xl px-4 py-3">
+            <Sparkles className="w-5 h-5 text-[#0FD452] shrink-0 mt-0.5" />
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {t('authPages.plans.trialFullAccessNote')}
+            </p>
+          </div>
         </div>
 
         {/* Plan cards */}

@@ -1,12 +1,19 @@
 // Central plan levels and feature-to-plan mapping.
 // Levels: higher number = more features.
-export const PLAN_LEVELS = {
-  trial: 2,          // trial gives STARTER access during trial window
+const TIERS = {
   basic: 1,          // legacy
   starter: 2,
   professional: 3,
   pro: 3,
   enterprise: 4,
+}
+
+// A trial hands over the whole feature set for as long as it runs, so it
+// sits at the top tier. Once a package is chosen the level drops to that
+// package and the features follow it.
+export const PLAN_LEVELS = {
+  ...TIERS,
+  trial: Math.max(...Object.values(TIERS)),
 }
 
 export const PLAN_LABELS = {
@@ -114,5 +121,5 @@ export const PHARMACY_LIMIT = {
   starter: 3,
   professional: Infinity,
   enterprise: Infinity,
-  trial: 3,
+  trial: Infinity,
 }

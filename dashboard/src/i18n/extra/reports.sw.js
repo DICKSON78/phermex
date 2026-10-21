@@ -451,6 +451,12 @@ export default {
       availablePlans: 'Mipango Inayopatikana',
       perYear: '/mwaka',
       renewUpgrade: 'Sasisha / Pandisha',
+      activePackage: 'Mpango Unaotumika',
+      fullAccess: 'Ufikiaji Kamili',
+      includedFeatures: 'IIncluded katika mpango huu',
+      featuresCount: 'huduma',
+      trialFullAccessNote:
+        'Wakati wa jaribio unaweza kutumia kila huduma ya jukwaa. Ukichagua mpango, ufikiaji wako utafuata mpango huo.',
     },
 
     // ---- SupportPage ----

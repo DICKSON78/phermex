@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DrugController;
 use App\Http\Controllers\Api\DrugMovementController;
 use App\Http\Middleware\AutoScopePharmacy;
+use App\Http\Middleware\EnsurePlanAccess;
 use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\PharmacistController;
@@ -184,7 +185,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/payments/{order_id}/status', [PaymentController::class, 'queryPaymentStatus']);
     });
 
-    Route::middleware([EnsureSubscriptionActive::class, AutoScopePharmacy::class, PharmacyScopeMiddleware::class])->group(function () {
+    Route::middleware([EnsureSubscriptionActive::class, EnsurePlanAccess::class, AutoScopePharmacy::class, PharmacyScopeMiddleware::class])->group(function () {
         Route::get('/pharmacies', [PharmacyController::class, 'index']);
         Route::post('/pharmacies', [PharmacyController::class, 'store']);
         Route::post('/pharmacies/{id}/switch', [PharmacyController::class, 'switchPharmacy']);

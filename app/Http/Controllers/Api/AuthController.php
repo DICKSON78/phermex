@@ -343,7 +343,10 @@ class AuthController extends Controller
 
         if ($pharmacy) {
             $appStatus = $pharmacy->application_status;
-            $subscriptionPlan = $pharmacy->subscriptions()->latest('id')->value('plan');
+            // The package that is in force right now. A live trial with no
+            // package chosen yet counts as the full package, so the owner
+            // reaches every feature for the whole trial window.
+            $subscriptionPlan = $pharmacy->effectivePlan();
 
             $subscriptionInfo = [
                 'application_status' => $appStatus,
@@ -353,6 +356,7 @@ class AuthController extends Controller
                 'subscription_end_date' => $pharmacy->subscription_end_date?->toISOString(),
                 'payment_status' => $pharmacy->payment_status,
                 'plan' => $subscriptionPlan,
+                'plan_features' => $pharmacy->planFeatures(),
             ];
 
             if ($appStatus === 'rejected') {

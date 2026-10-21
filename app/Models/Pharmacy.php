@@ -187,6 +187,43 @@ class Pharmacy extends Model
         return 'expired';
     }
 
+    /**
+     * The package whose features this pharmacy may use right now.
+     *
+     * A package the owner has chosen always wins — from that moment on the
+     * pharmacy gets exactly what that package includes. Until a package is
+     * chosen, a live trial stands in for one and the owner gets the full
+     * feature set (the top package) for the whole trial window.
+     */
+    public function effectivePlan(): ?string
+    {
+        // withoutGlobalScopes(): the tenant scope filters by the pharmacies
+        // the caller may see, but this row already belongs to this pharmacy.
+        $chosen = $this->subscriptions()->withoutGlobalScopes()->latest('id')->value('plan');
+        if ($chosen) return strtolower($chosen);
+
+        if ($this->hasTrial()) return 'trial';
+
+        $linked = $this->subscriptionPlan?->slug;
+        return $linked ? strtolower($linked) : null;
+    }
+
+    /**
+     * The feature matrix that matches the effective plan. A trial unlocks
+     * everything, so it shows the top package.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function planFeatures(): array
+    {
+        $plan = $this->effectivePlan();
+        if (!$plan) return [];
+
+        $slug = $plan === 'trial' ? 'enterprise' : $plan;
+
+        return SubscriptionPlan::where('slug', $slug)->first()?->features ?? [];
+    }
+
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class);

@@ -227,7 +227,7 @@ export default function AdminUserShowPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-2">{user.email} — {user.role ? t('common.role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : user.role} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${ROLE_STYLES[user.role] || 'bg-gray-100 text-gray-600'}`}>{user.role ? t('common.role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : user.role} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[user.status] || 'bg-gray-100 text-gray-600'}`}>{t('common.' + user.status, user.status)}</span></span></p>
+            <p className="text-sm text-gray-500 flex items-center gap-2">{user.email} — {user.role ? t('role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : '—'} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${ROLE_STYLES[user.role] || 'bg-gray-100 text-gray-600'}`}>{user.role ? t('role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : '—'} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[user.status] || 'bg-gray-100 text-gray-600'}`}>{t(user.status, user.status)}</span></span></p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -251,7 +251,7 @@ export default function AdminUserShowPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 truncate">{t('adminUsers.shared.role')}</p>
-                <p className="text-sm font-bold text-[#000F14] capitalize">{user.role ? t('common.role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : user.role}</p>
+                <p className="text-sm font-bold text-[#000F14] capitalize">{user.role ? t('role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : '—'}</p>
               </div>
             </div>
           </div>
@@ -273,7 +273,7 @@ export default function AdminUserShowPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 truncate">{t('common.status')}</p>
-                <p className="text-sm font-bold text-[#000F14] capitalize">{t('common.' + user.status, user.status)}</p>
+                <p className="text-sm font-bold text-[#000F14] capitalize">{t(user.status, user.status)}</p>
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@ export default function AdminUserShowPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 truncate">{t('adminUsers.users.lastActive')}</p>
-                <p className="text-sm font-bold text-[#000F14]">{formatDate(user.last_active)}</p>
+                <p className="text-sm font-bold text-[#000F14]">{formatDate(user.last_active || user.created_at)}</p>
               </div>
             </div>
           </div>
@@ -295,7 +295,7 @@ export default function AdminUserShowPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 truncate">{t('adminUsers.users.joined')}</p>
-                <p className="text-sm font-bold text-[#000F14]">{formatDate(user.joined)}</p>
+                <p className="text-sm font-bold text-[#000F14]">{formatDate(user.created_at)}</p>
               </div>
             </div>
           </div>
@@ -350,7 +350,7 @@ export default function AdminUserShowPage() {
                     <Shield className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-xs text-gray-500">{t('adminUsers.shared.role')}</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14] capitalize">{user.role ? t('common.role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : user.role}</p>
+                  <p className="text-sm font-medium text-[#000F14] capitalize">{user.role ? t('role' + user.role.charAt(0).toUpperCase() + user.role.slice(1), user.role) : '—'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
@@ -358,7 +358,7 @@ export default function AdminUserShowPage() {
                     <span className="text-xs text-gray-500">{t('common.status')}</span>
                   </div>
                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[user.status] || 'bg-gray-100 text-gray-600'}`}>
-                     {t('common.' + user.status, user.status)}
+                     {t(user.status, user.status)}
                    </span>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -366,7 +366,7 @@ export default function AdminUserShowPage() {
                     <Calendar className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-xs text-gray-500">{t('adminUsers.users.dob')}</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14]">{formatDate(user.date_of_birth)}</p>
+                  <p className="text-sm font-medium text-[#000F14]">{formatDate(user.date_of_birth) || '—'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
@@ -432,7 +432,7 @@ export default function AdminUserShowPage() {
                     <Calendar className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-xs text-gray-500">{t('adminUsers.users.hireDate')}</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14]">{formatDate(user.hire_date || user.joined)}</p>
+                  <p className="text-sm font-medium text-[#000F14]">{formatDate(user.created_at)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
@@ -472,7 +472,7 @@ export default function AdminUserShowPage() {
                     <Clock className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-500">{t('adminUsers.users.lastLogin')}</span>
                   </div>
-                  <span className="text-sm font-medium text-[#000F14]">{formatDate(user.last_active)}</span>
+                  <span className="text-sm font-medium text-[#000F14]">{formatDate(user.last_active || user.created_at)}</span>
                 </div>
                 <div className="border-t border-gray-100" />
                 <div className="flex items-center justify-between">

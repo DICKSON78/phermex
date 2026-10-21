@@ -16,6 +16,26 @@ import { useLanguage } from '../../contexts/LanguageContext'
 
 const CODE_LENGTH = 6
 
+/**
+ * A live requirement checklist under a password field. Each rule earns its
+ * tick as it is met, so the owner sees what is still missing while typing
+ * rather than only being told after the fact.
+ */
+function PasswordRequirement({ met, children }) {
+  return (
+    <span className={`flex items-center gap-1.5 text-xs ${met ? 'text-[#0FD452]' : 'text-gray-400'}`}>
+      <span
+        className={`flex items-center justify-center w-3.5 h-3.5 rounded-full border shrink-0 transition-colors ${
+          met ? 'bg-[#0FD452] border-[#0FD452] text-[#000F14]' : 'border-gray-300 text-transparent'
+        }`}
+      >
+        <CheckCircle className="w-2.5 h-2.5" strokeWidth={3} />
+      </span>
+      {children}
+    </span>
+  )
+}
+
 export default function ForgotPasswordPage() {
   const { t } = useLanguage()
   const [step, setStep] = useState(1)
@@ -92,8 +112,12 @@ export default function ForgotPasswordPage() {
       setError(t('authPages.validation.passwordsNoMatch'))
       return
     }
-    if (newPassword.length < 6) {
-      setError(t('authPages.validation.passwordMin6'))
+    if (newPassword.length < 8) {
+      setError(t('authPages.validation.passwordMin8'))
+      return
+    }
+    if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      setError(t('authPages.validation.passwordNeedsUpperNumber'))
       return
     }
 
@@ -249,6 +273,17 @@ export default function ForgotPasswordPage() {
                     {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                  <PasswordRequirement met={newPassword.length >= 8}>
+                    {t('authPages.validation.passwordHasMin8')}
+                  </PasswordRequirement>
+                  <PasswordRequirement met={/[A-Z]/.test(newPassword)}>
+                    {t('authPages.validation.passwordHasUppercase')}
+                  </PasswordRequirement>
+                  <PasswordRequirement met={/[0-9]/.test(newPassword)}>
+                    {t('authPages.validation.passwordHasNumber')}
+                  </PasswordRequirement>
+                </div>
               </div>
 
               {/* Confirm Password */}
@@ -265,6 +300,13 @@ export default function ForgotPasswordPage() {
                     className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
                   />
                 </div>
+                {confirmPassword && (
+                  <div className="mt-2">
+                    <PasswordRequirement met={confirmPassword === newPassword}>
+                      {t('authPages.validation.passwordMatches')}
+                    </PasswordRequirement>
+                  </div>
+                )}
               </div>
 
               <button

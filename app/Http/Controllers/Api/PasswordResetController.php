@@ -71,7 +71,9 @@ class PasswordResetController extends Controller
         $validated = $request->validate([
             'identifier' => 'required|string|max:255',
             'code' => 'required|string|digits:6',
-            'password' => 'required|string|min:8|confirmed',
+            // Same three rules the dashboard checklist shows: 8 characters,
+            // one uppercase letter and one number.
+            'password' => ['required', 'string', 'confirmed', \Illuminate\Validation\Rules\Password::min(8)->letters()->mixedCase()->numbers()],
         ]);
 
         $user = $this->findUserByIdentifier($validated['identifier']);

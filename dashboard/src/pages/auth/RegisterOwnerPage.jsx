@@ -39,6 +39,30 @@ import { useLanguage } from '../../contexts/LanguageContext'
 // are the fields it actually insists on.
 const Required = () => <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
 
+/**
+ * A live requirement checklist under a password field.
+ *
+ * The old form only complained after the owner pressed Continue, and the
+ * message ("Password must contain at least one letter and one number") said
+ * nothing about which half was missing. Each rule now shows its own tick as
+ * soon as it is satisfied, so the owner can see what is still outstanding
+ * while typing.
+ */
+function PasswordRequirement({ met, children }) {
+  return (
+    <span className={`flex items-center gap-1.5 text-xs ${met ? 'text-[#0FD452]' : 'text-gray-400'}`}>
+      <span
+        className={`flex items-center justify-center w-3.5 h-3.5 rounded-full border shrink-0 transition-colors ${
+          met ? 'bg-[#0FD452] border-[#0FD452] text-[#000F14]' : 'border-gray-300 text-transparent'
+        }`}
+      >
+        <Check className="w-2.5 h-2.5" strokeWidth={3} />
+      </span>
+      {children}
+    </span>
+  )
+}
+
 const findRegion = (name) => TANZANIA_REGIONS.find((r) => r.name === name)
 
 const districtsFor = (region) => findRegion(region)?.districts.map((d) => d.name) ?? []
@@ -592,8 +616,8 @@ export default function RegisterOwnerPage() {
 
     if (!form.password) errs.password = t('auth.passwordRequired')
     else if (form.password.length < 8) errs.password = t('authPages.validation.passwordMin8')
-    else if (!/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
-      errs.password = t('authPages.validation.passwordNeedsLetterNumber')
+    else if (!/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password) || !/[A-Z]/.test(form.password)) {
+      errs.password = t('authPages.validation.passwordNeedsUpperNumber')
     }
     if (form.password_confirmation && form.password !== form.password_confirmation) {
       errs.password_confirmation = t('authPages.validation.passwordsNoMatch')
@@ -798,11 +822,57 @@ export default function RegisterOwnerPage() {
       clearDraft()
       navigate('/pending-approval')
     } catch (err) {
-      setError(err.response?.data?.message || t('authPages.registerOwner.registrationFailed'))
-      if (err.response?.data?.errors) setErrors(err.response.data.errors)
+      const serverErrors = err.response?.data?.errors
+      if (serverErrors) {
+        // The server names its fields in Laravel's own notation
+        // ("pharmacies.0.region"), while the form tracks them as "p0_region".
+        // Pushing the server keys in as they arrive left every field blank
+        // and the owner staring at a bare "Validation failed.".
+        const mapped = {}
+        Object.entries(serverErrors).forEach(([key, messages]) => {
+          const message = Array.isArray(messages) ? messages[0] : messages
+          const branch = key.match(/^pharmacies\.(\d+)\.(.+)$/)
+          mapped[branch ? `p${branch[1]}_${branch[2]}` : key] = message
+        })
+        setErrors((prev) => ({ ...prev, ...mapped }))
+
+        // Take the owner back to the screen that holds the offending field,
+        // otherwise a rejected email is reported on a screen they have
+        // already moved past.
+        const firstField = Object.keys(mapped)[0]
+        const target = stepForField(firstField)
+        if (target) {
+          setError(t('authPages.registerOwner.registrationFailed'))
+          goStep(target, 'right')
+        } else {
+          setError(t('authPages.registerOwner.registrationFailed'))
+        }
+      } else {
+        setError(err.response?.data?.message || t('authPages.registerOwner.registrationFailed'))
+      }
     } finally {
       setLoading(false)
     }
+  }
+
+  /**
+   * Which wizard step holds a given field, so a server rejection can send
+   * the owner back to the screen they need to fix.
+   */
+  const stepForField = (field) => {
+    if (!field) return null
+    if (['name', 'email', 'phone', 'password', 'password_confirmation'].includes(field)) return 1
+    if (field === 'subscription_plan_id') return totalSteps
+    const branch = field.match(/^p(\d+)_(.+)$/)
+    if (!branch) return null
+    const index = Number(branch[1])
+    const name = branch[2]
+    if (['pharmacy_name', 'pharmacy_type', 'pharmacy_logo', 'license_number', 'license_expiry', 'country', 'region', 'district', 'ward', 'street', 'opening_capital', 'description'].includes(name)) {
+      return 2 + index * 3
+    }
+    if (['latitude', 'longitude'].includes(name)) return 3 + index * 3
+    if (['working_days', 'working_hours'].includes(name)) return 4 + index * 3
+    return null
   }
 
   const inputClasses = "w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
@@ -960,6 +1030,20 @@ export default function RegisterOwnerPage() {
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
+                  {/* Live checklist: each rule earns its tick as it is met,
+                      so the owner sees what is still missing while typing
+                      instead of only being told after the fact. */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                    <PasswordRequirement met={form.password.length >= 8}>
+                      {t('authPages.validation.passwordHasMin8')}
+                    </PasswordRequirement>
+                    <PasswordRequirement met={/[A-Z]/.test(form.password)}>
+                      {t('authPages.validation.passwordHasUppercase')}
+                    </PasswordRequirement>
+                    <PasswordRequirement met={/[0-9]/.test(form.password)}>
+                      {t('authPages.validation.passwordHasNumber')}
+                    </PasswordRequirement>
+                  </div>
                   {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
                 </div>
                 <div>
@@ -970,6 +1054,15 @@ export default function RegisterOwnerPage() {
                     </div>
                     <input type={showConfirmPassword ? 'text' : 'password'} value={form.password_confirmation} onChange={(e) => updateForm('password_confirmation', e.target.value)} className={`${inputClasses} ${errors.password_confirmation ? 'border-red-400' : ''}`} placeholder={t('authPages.registerOwner.reenterPasswordPh')} />
                   </div>
+                  {/* The confirm field gets its own tick the moment the two
+                      match, which is the moment the owner is looking for. */}
+                  {form.password_confirmation && (
+                    <div className="mt-2">
+                      <PasswordRequirement met={form.password_confirmation === form.password}>
+                        {t('authPages.validation.passwordMatches')}
+                      </PasswordRequirement>
+                    </div>
+                  )}
                   {errors.password_confirmation && <p className="text-red-500 text-xs mt-1">{errors.password_confirmation}</p>}
                 </div>
               </div>

@@ -31,7 +31,11 @@ class AuthController extends Controller
                 // typo. A loose max:20 was storing whatever was typed as
                 // somebody's actual contact number.
                 'phone' => ['required', 'string', 'regex:/^\+?[0-9]{9,13}$/'],
-                'password' => ['required', 'string', 'min:8', 'confirmed'],
+                // The dashboard shows a live checklist (8 characters, one
+                // uppercase letter, one number). The server enforces the
+                // same three rules, so a password rejected here and a
+                // password rejected there read the same way.
+                'password' => ['required', 'string', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
                 'role' => 'sometimes|in:owner,pharmacist,cashier,delivery,customer',
             ];
 

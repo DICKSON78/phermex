@@ -271,7 +271,7 @@ export default {
       adjustSearchFilters: 'Jaribu kurekebisha utafutaji au vichujio vyako',
       viewDetails: 'Ona maelezo',
       approveApplication: 'Idhini Maombi',
-      approveInfo: 'Kitendo hiki kitaidhinisha maombi ya farmasia na kuanza jaribio la bure la siku 7. Mmiliki atajulishwa.',
+      approveInfo: 'Kitendo hiki kitaidhinisha maombi ya farmasia na kuanza jaribio la bure la siku 30. Mmiliki atajulishwa.',
       commentOptional: 'Maoni (si lazima)',
       commentPlaceholder: 'Vidokezo vyovyote kwa idhini hii...',
       rejectApplication: 'Kataa Maombi',

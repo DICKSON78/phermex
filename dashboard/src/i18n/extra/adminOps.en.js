@@ -273,7 +273,7 @@ export default {
       adjustSearchFilters: 'Try adjusting your search or filters',
       viewDetails: 'View details',
       approveApplication: 'Approve Application',
-      approveInfo: 'This will approve the pharmacy application and start their 7-day free trial. The owner will be notified.',
+      approveInfo: 'This will approve the pharmacy application and start their 30-day free trial. The owner will be notified.',
       commentOptional: 'Comment (optional)',
       commentPlaceholder: 'Any notes for this approval...',
       rejectApplication: 'Reject Application',

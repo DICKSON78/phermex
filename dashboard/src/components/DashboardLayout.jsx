@@ -88,7 +88,6 @@ import InsuranceClaimsPage from '../pages/owner/InsuranceClaimsPage'
 import ConsolidatedFinancialReportPage from '../pages/owner/ConsolidatedFinancialReportPage'
 import PlanGate from '../components/PlanGate'
 import UpgradeWall from '../components/UpgradeWall'
-import SubscriptionBanner from '../components/SubscriptionBanner'
 import { hasPlanAccess, requiredPlanForPath, PLAN_LABELS, canAddPharmacy } from '../utils/planConfig'
 import { navKeyForPath, groupKeyForLabel } from '../utils/navI18n'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -849,6 +848,17 @@ export default function DashboardLayout({ role }) {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Upgrade button — shows when owner has no active paid subscription */}
+            {role === 'owner' && subscription && subscription.subscription_type !== 'subscription' && !ownerExpired && (
+              <NavLink
+                to={`${basePath}/subscriptions`}
+                onClick={() => setSidebarOpen(false)}
+                className="hidden sm:inline-flex items-center gap-2 px-4 h-9 rounded-full bg-[#0FD452] text-[#000F14] text-sm font-bold hover:bg-[#0cb843] transition-all active:scale-[0.98]"
+              >
+                <CreditCard className="w-4 h-4" />
+                {t('subscription.upgrade')}
+              </NavLink>
+            )}
             {ownerExpired && (
               <button
                 onClick={() => navigate('/subscribe')}
@@ -1009,10 +1019,7 @@ export default function DashboardLayout({ role }) {
               )
             ) : (
             <>
-            {/* The owner always needs to know where the account stands: a trial
-                runs on the full feature set, and it only ends when a package
-                is chosen and paid for. */}
-            {location.pathname !== basePath && <SubscriptionBanner />}
+            {/* The Upgrade button in the header replaces the banner. */}
             <Routes>
               <Route index element={<OwnerDashboard />} />
               <Route path="pos" element={<POSPage />} />

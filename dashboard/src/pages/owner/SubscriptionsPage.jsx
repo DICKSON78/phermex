@@ -82,7 +82,7 @@ export default function SubscriptionsPage() {
   )
 
   return (
-    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6">
       <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">

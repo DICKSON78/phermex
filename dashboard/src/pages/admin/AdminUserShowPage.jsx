@@ -203,8 +203,8 @@ export default function AdminUserShowPage() {
 
   const userCode = user.code || user.user_code || '—'
 
-  const accountAge = user.joined
-    ? Math.floor((Date.now() - new Date(user.joined).getTime()) / (1000 * 60 * 60 * 24))
+  const accountAge = user.created_at
+    ? Math.floor((Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24))
     : 0
 
   const initials = (user.name || '?')

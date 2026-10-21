@@ -27,6 +27,7 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { currentBase } from '../../utils/roles'
+import { canAddPharmacy } from '../../utils/planConfig'
 import { useLanguage } from '../../contexts/LanguageContext'
 import {
   useCurrency,
@@ -296,7 +297,7 @@ export default function SettingsPage() {
           <h1 className="text-2xl font-bold text-gray-900">{t('common.settings')}</h1>
           <p className="text-sm text-gray-500">{t('reports.settings.subtitle')}</p>
         </div>
-        {user?.isOwner?.() || user?.role === 'owner' ? (
+        {(user?.isOwner?.() || user?.role === 'owner') && canAddPharmacy(subStatus) ? (
           <button
             onClick={() => navigate('/dashboard/settings/pharmacies/new')}
             className="flex items-center gap-2 px-4 py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl text-sm font-bold transition-all duration-200 shadow-sm"

@@ -88,7 +88,7 @@ import InsuranceClaimsPage from '../pages/owner/InsuranceClaimsPage'
 import ConsolidatedFinancialReportPage from '../pages/owner/ConsolidatedFinancialReportPage'
 import PlanGate from '../components/PlanGate'
 import UpgradeWall from '../components/UpgradeWall'
-import { hasPlanAccess, requiredPlanForPath, PLAN_LABELS } from '../utils/planConfig'
+import { hasPlanAccess, requiredPlanForPath, PLAN_LABELS, canAddPharmacy } from '../utils/planConfig'
 import { navKeyForPath, groupKeyForLabel } from '../utils/navI18n'
 import { useLanguage } from '../contexts/LanguageContext'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -438,6 +438,9 @@ export default function DashboardLayout({ role }) {
     ?? accessiblePharmacies[0]
   const currentPlan = subscription?.plan || subscription?.subscription_plan || user?.subscription?.plan || currentPharmacy?.subscription_plan || null
   const ownerExpired = role === 'owner' && subscription?.subscription_type === 'expired'
+  // A trial runs on one pharmacy, so the owner picks a package before another
+  // one can be added.
+  const mayAddPharmacy = role === 'owner' && canAddPharmacy(subscription)
   const currentPharmacyIsActive =
     accessiblePharmacies.find(p => p.id === (currentPharmacy?.id ?? pharmacyId))?.is_active ??
     currentPharmacy?.is_active ??
@@ -645,16 +648,30 @@ export default function DashboardLayout({ role }) {
               )})}
               <div className="border-t border-white/10 mt-1 pt-1">
                 {!ownerExpired && (
-                  <button
-                    onClick={() => {
-                      setPharmacyDropdownOpen(false)
-                      navigate('/dashboard/settings/pharmacies/new')
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-primary hover:bg-white/10 transition-colors font-semibold"
-                  >
-                    <Plus className="w-4 h-4 shrink-0" />
-                    Add Pharmacy
-                  </button>
+                  mayAddPharmacy ? (
+                    <button
+                      onClick={() => {
+                        setPharmacyDropdownOpen(false)
+                        navigate('/dashboard/settings/pharmacies/new')
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-primary hover:bg-white/10 transition-colors font-semibold"
+                    >
+                      <Plus className="w-4 h-4 shrink-0" />
+                      Add Pharmacy
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setPharmacyDropdownOpen(false)
+                        navigate('/subscribe')
+                      }}
+                      title={t('subscription.trialNoAddPharmacy')}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-white/50 hover:bg-white/10 transition-colors font-semibold text-left"
+                    >
+                      <Lock className="w-4 h-4 shrink-0" />
+                      {t('subscription.choosePackageToAddPharmacy')}
+                    </button>
+                  )
                 )}
               </div>
             </div>

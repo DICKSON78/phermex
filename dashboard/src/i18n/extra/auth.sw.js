@@ -234,6 +234,7 @@ export default {
     },
     plans: {
       title: 'Mipango ya Usajili',
+      backToDashboard: 'Rudi kwenye Dashboard',
       subtitle: 'Chagua mpango, ongeza kwenye kikapu chako na lipa kwa usalama. Usajili wako unaanzishwa mara moja.',
       mostPopular: 'Maarufu Zaidi',
       trialFullAccessNote:

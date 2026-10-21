@@ -234,6 +234,7 @@ export default {
     },
     plans: {
       title: 'Subscription Plans',
+      backToDashboard: 'Back to Dashboard',
       subtitle: 'Pick a plan, add it to your cart and pay securely. Your subscription activates instantly.',
       mostPopular: 'Most Popular',
       trialFullAccessNote:

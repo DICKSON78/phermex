@@ -71,6 +71,7 @@ export const en = {
     errorTitle: 'Something went wrong',
     errorMessage: 'An unexpected error occurred. Please try again.',
     goHome: 'Go Home',
+    backToDashboard: 'Back to Dashboard',
     exchangeRateError: 'Could not load exchange rates',
     pageNotFound: 'Page Not Found',
     pageNotFoundDesc: "The page you're looking for doesn't exist or has been moved.",
@@ -451,6 +452,9 @@ export const en = {
     expiredLabel: 'Expired',
     renewToContinue: 'Renew to continue',
     renew: 'Renew',
+    choosePackageToAddPharmacy: 'Choose a package to add a pharmacy',
+    trialNoAddPharmacy:
+      'Your free trial runs on this pharmacy only. Choose a package to add another one.',
   },
 }
 

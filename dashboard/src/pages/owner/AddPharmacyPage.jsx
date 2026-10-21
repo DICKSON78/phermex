@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { canAddPharmacy } from '../../utils/planConfig'
 import api from '../../services/api'
 import {
   Store,
@@ -15,6 +16,7 @@ import {
   Loader2,
   ArrowLeft,
   Check,
+  Lock,
   Navigation,
   Crosshair,
 } from 'lucide-react'
@@ -189,6 +191,10 @@ export default function AddPharmacyPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [plans, setPlans] = useState([])
+  // The package in force decides whether a pharmacy may be added at all. A
+  // free trial runs on one pharmacy, so it says no until a package is paid for.
+  const [subscription, setSubscription] = useState(null)
+  const [checkingPlan, setCheckingPlan] = useState(true)
 
   const currentPharmacy = user?.current_pharmacy ?? user?.currentPharmacy
     ?? (Array.isArray(user?.accessible_pharmacies) ? user.accessible_pharmacies[0] : null)
@@ -223,6 +229,13 @@ export default function AddPharmacyPage() {
       }).catch(() => {})
     }
   }, [plans.length])
+
+  useEffect(() => {
+    api.get('/subscriptions/status')
+      .then((res) => setSubscription(res.data))
+      .catch(() => setSubscription(null))
+      .finally(() => setCheckingPlan(false))
+  }, [])
 
   const updateForm = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -297,6 +310,48 @@ export default function AddPharmacyPage() {
   }
 
   const inputClasses = "w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
+
+  if (checkingPlan) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#0FD452] animate-spin" />
+      </div>
+    )
+  }
+
+  // A trial cannot add a pharmacy. Say so plainly instead of letting the
+  // owner fill in the whole form only to be refused at the end.
+  if (!canAddPharmacy(subscription)) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
+            <Lock className="w-8 h-8 text-amber-500" />
+          </div>
+          <h1 className="text-2xl font-black text-gray-800 mb-2">
+            {t('subscription.trialNoAddPharmacy')}
+          </h1>
+          <p className="text-gray-500 text-sm mb-6">
+            {t('subscription.choosePackageToAddPharmacy')}
+          </p>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <button
+              onClick={() => navigate('/dashboard/settings')}
+              className="px-5 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
+            >
+              {t('supply.addPharmacy.backToSettings')}
+            </button>
+            <button
+              onClick={() => navigate('/subscribe')}
+              className="px-5 py-3 bg-[#0FD452] text-[#000F14] rounded-xl text-sm font-bold hover:bg-[#0cb843] transition-all active:scale-95"
+            >
+              {t('subscription.choosePlan')}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

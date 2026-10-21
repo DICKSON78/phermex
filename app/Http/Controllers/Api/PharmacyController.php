@@ -50,26 +50,41 @@ class PharmacyController extends Controller
             }
 
             $existingCount = Pharmacy::where('owner_id', $user->id)->count();
-            // Trial and starter get 3 pharmacies, professional/enterprise unlimited,
+
+            $currentPharmacy = $user->resolveCurrentPharmacyId()
+                ? Pharmacy::find($user->resolveCurrentPharmacyId())
+                : null;
+
+            // The package in force for this account. A trial has none yet, so
+            // it reads as 'trial' until the owner chooses one.
+            $ownerPlan = $currentPharmacy?->effectivePlan();
+
+            // A free trial runs on the pharmacy the owner signed up with.
+            // Growing the account waits until a package has been paid for.
+            $onTrial = (bool) $currentPharmacy?->hasTrial();
+            $isPaidSubscriber = (bool) $currentPharmacy?->hasSubscription();
+
+            if ($onTrial && !$isPaidSubscriber) {
+                return response()->json([
+                    'message' => 'You cannot add another pharmacy while your account is on the free trial. Choose a package to add more pharmacies.',
+                    'trial_restriction' => true,
+                    'upgrade_url' => '/subscribe',
+                ], 403);
+            }
+
+            // Starter gets 3 pharmacies, professional/enterprise unlimited,
             // owners without a plan (legacy) get 1 until they subscribe.
             $cap = 1;
-            $ownerPlan = \App\Models\Subscription::whereIn('pharmacy_id', $user->accessiblePharmacyIds())
-                ->latest('id')
-                ->value('plan');
-            // Also check the pharmacy's own plan slug or trial window
-            if (!$ownerPlan) {
-                $currentPharmacy = $user->resolveCurrentPharmacyId() ? \App\Models\Pharmacy::find($user->resolveCurrentPharmacyId()) : null;
-                $ownerPlan = $currentPharmacy?->subscriptionPlan?->slug ?? ($currentPharmacy?->trial_ends_at?->isFuture() ? 'trial' : null);
-            }
             if (in_array($ownerPlan, ['professional', 'enterprise', 'pro'], true)) {
                 $cap = PHP_INT_MAX;
-            } elseif (in_array($ownerPlan, ['starter', 'trial'], true)) {
+            } elseif ($ownerPlan === 'starter') {
                 $cap = 3;
             }
 
             if ($existingCount >= $cap) {
                 return response()->json([
                     'message' => 'Your current plan allows a maximum of ' . ($cap === PHP_INT_MAX ? 'unlimited' : $cap) . ' pharmacies. Upgrade your plan to add more.',
+                    'upgrade_url' => '/subscribe',
                 ], 422);
             }
 

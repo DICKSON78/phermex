@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useCurrency, STORED_CURRENCY } from '../../utils/currency'
 import {
+  ArrowLeft,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -510,6 +511,18 @@ export default function SubscriptionPlansPage() {
   return (
     <div className="h-[100dvh] overflow-y-auto bg-[#F5F7F5] px-4 sm:px-6 py-8 sm:py-12" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="max-w-6xl mx-auto">
+        {/* Way back into the system. Someone who opened this page to look at
+            the packages should be able to leave without signing out. */}
+        <div className="flex justify-end mb-5">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white ring-1 ring-gray-200 text-sm font-bold text-gray-700 hover:ring-[#0FD452] hover:text-gray-900 transition-all active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t('authPages.plans.backToDashboard')}
+          </button>
+        </div>
+
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-[#0FD452] rounded-2xl mb-4">
             <Pill className="w-9 h-9 text-[#000F14]" />

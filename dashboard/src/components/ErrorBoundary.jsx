@@ -25,11 +25,17 @@ class ErrorBoundaryInner extends Component {
             {t('common.errorMessage')}
           </p>
           <button
-            onClick={() => { this.setState({ hasError: false }); window.location.href = '/'; }}
+            onClick={() => {
+              this.setState({ hasError: false })
+              // Back into the system, not out to the marketing site. The token
+              // lives in localStorage, so the visitor stays signed in. /home
+              // sends an owner to the dashboard and a customer to their app.
+              window.location.href = '/home'
+            }}
             className="bg-[#0FD452] text-[#000F14] rounded-2xl font-bold text-sm px-6 py-3 flex items-center gap-2 active:scale-95"
           >
             <RefreshCw size={16} />
-            {t('common.goHome')}
+            {t('common.backToDashboard')}
           </button>
         </div>
       );

@@ -71,6 +71,7 @@ export const sw = {
     errorTitle: 'Kuna hitilafu',
     errorMessage: 'Kuna hitilafu isiyotarajiwa. Tafadhali jaribu tena.',
     goHome: 'Nenda Nyumbani',
+    backToDashboard: 'Rudi kwenye Dashboard',
     exchangeRateError: 'Imeshindwa kupakia viwango vya sarafu',
     pageNotFound: 'Ukurasa Haupo',
     pageNotFoundDesc: 'Ukurasa unaoutafuta haupo au umebadilishwa mahali.',
@@ -451,6 +452,9 @@ export const sw = {
     expiredLabel: 'Umeisha Muda',
     renewToContinue: 'Sasisha ili kuendelea',
     renew: 'Sasisha',
+    choosePackageToAddPharmacy: 'Chagua mpango ili kuongeza farmasia',
+    trialNoAddPharmacy:
+      'Jaribio lako la bure linafanya kazi kwenye farmasia hii pekee. Chagua mpango ili kuongeza nyingine.',
   },
 }
 

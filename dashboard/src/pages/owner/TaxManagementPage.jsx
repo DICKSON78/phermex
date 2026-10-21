@@ -8,6 +8,12 @@ import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
 import { useLanguage } from '../../contexts/LanguageContext'
+// The page renders a PageHeader but never imported it, so React threw
+// "PageHeader is not defined" the moment the route was opened and the whole
+// dashboard fell over to the error screen.
+import PageHeader from '../../components/PageHeader'
+// Same story with the tab strip further down the page.
+import Tabs from '../../components/Tabs'
 
 const TAX_TYPES = [
   { id: 'VAT', label: 'VAT', rate: 18, color: 'blue' },

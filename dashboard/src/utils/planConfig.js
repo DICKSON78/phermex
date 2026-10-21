@@ -120,6 +120,24 @@ export function requiredPlanForPath(path) {
 export const PHARMACY_LIMIT = {
   starter: 3,
   professional: Infinity,
+  pro: Infinity,
   enterprise: Infinity,
-  trial: Infinity,
+  // A trial runs on the pharmacy the owner signed up with. The account only
+  // grows once a package has been chosen and paid for.
+  trial: 0,
+}
+
+// A free trial cannot add a pharmacy. Once a package has been chosen and paid
+// for, the account grows within the limits of that package.
+export function canAddPharmacy(subscription) {
+  if (!subscription) return true
+
+  const plan = String(subscription.plan || subscription.subscription_plan || '').toLowerCase()
+  if (!plan) return true
+  if (plan === 'trial') return false
+  // Still inside the trial window with the package not paid for yet.
+  if (subscription.subscription_type === 'trial' && subscription.payment_status !== 'paid') {
+    return false
+  }
+  return (PHARMACY_LIMIT[plan] ?? 1) > 0
 }

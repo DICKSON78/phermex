@@ -122,22 +122,24 @@ export const PHARMACY_LIMIT = {
   professional: Infinity,
   pro: Infinity,
   enterprise: Infinity,
-  // A trial runs on the pharmacy the owner signed up with. The account only
-  // grows once a package has been chosen and paid for.
+  // An account that has never paid for a package runs on the pharmacy the
+  // owner signed up with. The account only grows once a package has been
+  // chosen and paid for.
   trial: 0,
+  legacy: 1,
 }
 
-// A free trial cannot add a pharmacy. Once a package has been chosen and paid
-// for, the account grows within the limits of that package.
+// A free trial cannot add a pharmacy, and neither can a package whose payment
+// is still pending. Once a package has been paid for, the account grows within
+// the limits of that package.
 export function canAddPharmacy(subscription) {
   if (!subscription) return true
 
+  // The money has to have arrived. A package that was picked but not paid for
+  // does not unlock another pharmacy, and neither does a running trial.
+  if (subscription.payment_status !== 'paid') return false
+
   const plan = String(subscription.plan || subscription.subscription_plan || '').toLowerCase()
-  if (!plan) return true
-  if (plan === 'trial') return false
-  // Still inside the trial window with the package not paid for yet.
-  if (subscription.subscription_type === 'trial' && subscription.payment_status !== 'paid') {
-    return false
-  }
-  return (PHARMACY_LIMIT[plan] ?? 1) > 0
+  if (!plan) return PHARMACY_LIMIT.legacy > 0
+  return (PHARMACY_LIMIT[plan] ?? PHARMACY_LIMIT.legacy) > 0
 }

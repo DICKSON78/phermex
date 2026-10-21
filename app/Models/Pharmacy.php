@@ -188,24 +188,48 @@ class Pharmacy extends Model
     }
 
     /**
+     * Has a package actually been paid for?
+     *
+     * The checkout writes the package row before the money moves, so a row on
+     * its own only means the owner picked a package. The payment is what turns
+     * the choice into a package that is in force.
+     */
+    public function hasPaidPlan(): bool
+    {
+        if ($this->payment_status !== 'paid') return false;
+
+        // Older rows were paid without an end date being written. They are
+        // still paid, so they keep their package.
+        if (! $this->subscription_end_date) return true;
+
+        return $this->subscription_end_date->isFuture();
+    }
+
+    /**
      * The package whose features this pharmacy may use right now.
      *
-     * A package the owner has chosen always wins — from that moment on the
-     * pharmacy gets exactly what that package includes. Until a package is
-     * chosen, a live trial stands in for one and the owner gets the full
-     * feature set (the top package) for the whole trial window.
+     * A paid package always wins. Until the money has arrived, a live trial
+     * stands in for one and the owner gets the full feature set (the top
+     * package) for the whole trial window — clicking "Pay" must not take
+     * features away from an owner whose payment is still pending.
+     *
+     * When the trial is over and nothing was paid there is no package at all,
+     * so the owner is pushed to choose and pay for one.
      */
     public function effectivePlan(): ?string
     {
         // withoutGlobalScopes(): the tenant scope filters by the pharmacies
         // the caller may see, but this row already belongs to this pharmacy.
         $chosen = $this->subscriptions()->withoutGlobalScopes()->latest('id')->value('plan');
-        if ($chosen) return strtolower($chosen);
+
+        if ($this->hasPaidPlan()) {
+            $paid = strtolower($chosen ?: (string) $this->subscriptionPlan?->slug);
+            return $paid ?: null;
+        }
 
         if ($this->hasTrial()) return 'trial';
 
-        $linked = $this->subscriptionPlan?->slug;
-        return $linked ? strtolower($linked) : null;
+        return null;
     }
 
     /**

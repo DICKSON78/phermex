@@ -62,7 +62,7 @@ class PharmacyController extends Controller
             // A free trial runs on the pharmacy the owner signed up with.
             // Growing the account waits until a package has been paid for.
             $onTrial = (bool) $currentPharmacy?->hasTrial();
-            $isPaidSubscriber = (bool) $currentPharmacy?->hasSubscription();
+            $isPaidSubscriber = (bool) $currentPharmacy?->hasPaidPlan();
 
             if ($onTrial && !$isPaidSubscriber) {
                 return response()->json([

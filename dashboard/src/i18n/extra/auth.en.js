@@ -32,6 +32,31 @@ export default {
       invalidCodeOrPassword: 'Invalid code or password. Please try again.',
       invalidEmail: 'Enter a valid email address, for example name@example.com',
     },
+    // Laravel rejects a form in English. These are the sentences the owner
+    // should read instead, matched to the server's message by
+    // utils/serverErrors.js.
+    serverErrors: {
+      emailTaken: 'This email address is already registered. Sign in instead, or register with another address.',
+      phoneTaken: 'This phone number is already registered.',
+      emailInvalid: 'Enter a valid email address, for example name@example.com',
+      emailRequired: 'Email address is required',
+      nameRequired: 'Full name is required',
+      phoneRequired: 'Phone number is required',
+      passwordRequired: 'Password is required',
+      passwordMismatch: 'The two passwords do not match',
+      passwordMin8: 'Password must be at least 8 characters',
+      passwordFormat: 'Password must contain at least one uppercase letter and one number',
+      pharmacyNameRequired: 'The pharmacy name is required',
+      regionRequired: 'The region is required',
+      districtRequired: 'The district is required',
+      wardRequired: 'The ward is required',
+      countryRequired: 'The country is required',
+      licenseFuture: 'The licence expiry date must be a date after today',
+      planInvalid: 'Please choose one of the subscription plans on offer',
+      capitalNegative: 'Opening capital cannot be negative',
+      tooShort: 'This value is too short',
+      tooLong: 'This value is too long',
+    },
     login: {
       applicationRejected: 'Your application has been rejected.',
       googleSignInFailed: 'Google sign-in failed',

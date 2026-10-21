@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import { TANZANIA_REGIONS } from '../../data/tanzaniaLocations'
 import { useCurrency, tzsFromUsd } from '../../utils/currency'
+import { translateServerError } from '../../utils/serverErrors'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 // Required fields are marked with this. The browser's own required attribute
@@ -832,7 +833,7 @@ export default function RegisterOwnerPage() {
         Object.entries(serverErrors).forEach(([key, messages]) => {
           const message = Array.isArray(messages) ? messages[0] : messages
           const branch = key.match(/^pharmacies\.(\d+)\.(.+)$/)
-          mapped[branch ? `p${branch[1]}_${branch[2]}` : key] = message
+          mapped[branch ? `p${branch[1]}_${branch[2]}` : key] = translateServerError(message, t)
         })
         setErrors((prev) => ({ ...prev, ...mapped }))
 
@@ -842,7 +843,10 @@ export default function RegisterOwnerPage() {
         const firstField = Object.keys(mapped)[0]
         const target = stepForField(firstField)
         if (target) {
-          setError(t('authPages.registerOwner.registrationFailed'))
+          // The banner repeats what the field says, in the owner's language,
+          // instead of the flat "registration failed" that told them nothing
+          // about which part of the form the server objected to.
+          setError(mapped[firstField] || t('authPages.registerOwner.registrationFailed'))
           goStep(target, 'right')
         } else {
           setError(t('authPages.registerOwner.registrationFailed'))
@@ -1010,6 +1014,15 @@ export default function RegisterOwnerPage() {
                         // silently becoming "2557123456".
                         if (dial && digits.startsWith(dial) && digits.length > PHONE_MAX) {
                           digits = digits.slice(dial.length)
+                        }
+                        // A national number is written with a leading zero
+                        // ("0750731387"), but the country code already sits in
+                        // the dropdown, so that zero is only the trunk prefix.
+                        // Leaving it on would file the contact as
+                        // "+2550750731387", which is not a number anybody can
+                        // dial.
+                        if (digits.length > 1 && digits.startsWith('0')) {
+                          digits = digits.slice(1)
                         }
                         updateForm('phone', digits.slice(0, PHONE_MAX))
                       }} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]" placeholder="712 345 678" />

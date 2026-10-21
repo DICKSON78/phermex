@@ -32,6 +32,31 @@ export default {
       invalidCodeOrPassword: 'Msimbo au nenosiri si sahihi. Tafadhali jaribu tena.',
       invalidEmail: 'Weka anwani sahihi ya barua pepe, kwa mfano name@example.com',
     },
+    // Laravel rejects a form in English. These are the sentences the owner
+    // should read instead, matched to the server's message by
+    // utils/serverErrors.js.
+    serverErrors: {
+      emailTaken: 'Barua pepe hii imeshajitwa tayari. Ingia kwa akaunti yako au usajilie kwa barua pepe nyingine.',
+      phoneTaken: 'Namba ya simu hii imeshajitwa tayari.',
+      emailInvalid: 'Weka anwani sahihi ya barua pepe, kwa mfano name@example.com',
+      emailRequired: 'Anwani ya barua pepe inahitajika',
+      nameRequired: 'Jina kamili linahitajika',
+      phoneRequired: 'Namba ya simu inahitajika',
+      passwordRequired: 'Nenosiri linahitajika',
+      passwordMismatch: 'Nenosiri hazilingani',
+      passwordMin8: 'Nenosiri linapaswa kuwa na angalau herufi 8',
+      passwordFormat: 'Nenosiri lazima liwe na herufi moja kubwa na namba moja',
+      pharmacyNameRequired: 'Jina la farmasia linahitajika',
+      regionRequired: 'Mkoa unahitajika',
+      districtRequired: 'Wilaya inahitajika',
+      wardRequired: 'Kadi ya shehia inahitajika',
+      countryRequired: 'Nchi inahitajika',
+      licenseFuture: 'Tarehe ya mwisho wa leseni lazima iwe baada ya leo',
+      planInvalid: 'Tafadhali chagua mojawapo ya mipango ya usajili inayotolewa',
+      capitalNegative: 'Mafungu ya kufungua yatakiwe yatowe hasi',
+      tooShort: 'Thamani hii ni fupi mno',
+      tooLong: 'Thamani hii ni ndefu mno',
+    },
     login: {
       applicationRejected: 'Maombi yako yamekataliwa.',
       googleSignInFailed: 'Kuingia kwa Google kumeshindwa',

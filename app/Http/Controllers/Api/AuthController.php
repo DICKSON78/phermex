@@ -39,14 +39,28 @@ class AuthController extends Controller
             ];
 
             if ($request->role === 'owner' || $request->input('role', 'owner') === 'owner') {
-                $rules['pharmacy_name'] = 'sometimes|required_without:pharmacies|string|max:255';
+                // The dashboard sends a nested pharmacies[] array with one entry
+                // per branch. An API client may instead send a single flat set
+                // of pharmacy fields. Only one of the two shapes can be present,
+                // so the rules for the other shape must not be required.
+                //
+                // "required_without:pharmacies" was meant to express that, but
+                // it never fired: the request went through with neither shape
+                // and the controller then read a key that was not there and
+                // answered 500. The shape is therefore decided up front.
+                $usesBranches = $request->has('pharmacies');
+
+                if (!$usesBranches) {
+                    $rules['pharmacy_name'] = 'required|string|max:255';
+                    $rules['region'] = 'required|string|max:255';
+                    $rules['district'] = 'required|string|max:255';
+                }
+
                 $rules['pharmacy_type'] = 'sometimes|string|max:50';
                 $rules['pharmacy_logo'] = 'sometimes|nullable';
                 $rules['license_number'] = 'sometimes|string|max:100';
                 $rules['license_expiry'] = 'sometimes|nullable|date';
                 $rules['country'] = 'required|string|max:100';
-                $rules['region'] = 'sometimes|required_without:pharmacies|string|max:255';
-                $rules['district'] = 'sometimes|required_without:pharmacies|string|max:255';
                 $rules['ward'] = 'sometimes|nullable|string|max:255';
                 $rules['street'] = 'sometimes|nullable|string|max:255';
                 $rules['latitude'] = 'sometimes|nullable|numeric|between:-90,90';
@@ -114,7 +128,7 @@ class AuthController extends Controller
                     $pharmacyInputs = $validated['pharmacies'];
                 } else {
                     $pharmacyInputs[] = [
-                        'pharmacy_name' => $validated['pharmacy_name'],
+                        'pharmacy_name' => $validated['pharmacy_name'] ?? '',
                         'pharmacy_type' => $validated['pharmacy_type'] ?? 'independent',
                         'pharmacy_logo' => $validated['pharmacy_logo'] ?? null,
                         'license_number' => $validated['license_number'] ?? null,
@@ -145,8 +159,8 @@ class AuthController extends Controller
                         'license_number' => $input['license_number'] ?? null,
                         'license_expiry' => $input['license_expiry'] ?? null,
                         'country' => $input['country'] ?? $validated['country'],
-                        'region' => $input['region'],
-                        'district' => $input['district'],
+                        'region' => $input['region'] ?? null,
+                        'district' => $input['district'] ?? null,
                         'ward' => $input['ward'] ?? null,
                         'street' => $input['street'] ?? null,
                         'latitude' => $input['latitude'] ?? null,

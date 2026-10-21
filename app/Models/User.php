@@ -138,4 +138,9 @@ class User extends Authenticatable
     {
         return $this->role === 'customer';
     }
+
+    public function getStatusAttribute(): string
+    {
+        return $this->is_active ? 'active' : 'inactive';
+    }
 }

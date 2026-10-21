@@ -45,3 +45,8 @@ storage/logs/*
 # /dashboard/ is served from. Keeping a second copy only invites builds that
 # never reach anyone.
 dashboard/dist
+
+# AI Service models and cache
+ai-service/models/
+ai-service/__pycache__/
+ai-service/*.pkl

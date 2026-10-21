@@ -59,6 +59,7 @@ use App\Http\Controllers\Api\AdminJobController;
 use App\Http\Controllers\Api\AdminMarketingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\AIController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\SubscriptionController;
@@ -647,5 +648,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/checkout', [SubscriptionController::class, 'checkout']);
         Route::get('/payment-status', [SubscriptionController::class, 'paymentStatus']);
         Route::post('/confirm-payment', [SubscriptionController::class, 'confirmPayment']);
+    });
+
+    // AI Service routes - for demand forecasting, recommendations, embeddings
+    Route::prefix('ai')->group(function () {
+        Route::get('/sales-history', [AIController::class, 'salesHistory']);
+        Route::get('/sales-history/total', [AIController::class, 'totalSalesHistory']);
+        Route::get('/interactions', [AIController::class, 'interactions']);
+        Route::get('/top-selling', [AIController::class, 'topSelling']);
+        Route::post('/drugs/batch', [AIController::class, 'drugsBatch']);
     });
 });

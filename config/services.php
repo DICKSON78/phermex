@@ -70,4 +70,9 @@ return [
     'jitsi' => [
         'server' => env('JITSI_SERVER', 'https://meet.jit.si'),
     ],
+
+    'ai' => [
+        'url' => env('AI_SERVICE_URL', 'http://localhost:8000'),
+        'token' => env('AI_SERVICE_TOKEN', ''),
+    ],
 ];

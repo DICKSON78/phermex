@@ -52,6 +52,14 @@ const ROLE_ICONS = {
 
 const ROLES = ['admin', 'owner', 'pharmacist', 'cashier', 'delivery', 'customer']
 
+const truncateEmail = (email, maxLength = 24) => {
+  if (!email || email.length <= maxLength) return email || '—'
+  const [local, domain] = email.split('@')
+  if (!domain) return email.slice(0, maxLength) + '…'
+  const visibleLocal = local.slice(0, Math.max(3, maxLength - domain.length - 4))
+  return `${visibleLocal}…@${domain}`
+}
+
 export default function AdminUsersPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
@@ -302,7 +310,7 @@ export default function AdminUsersPage() {
                         <span className="text-sm font-medium text-[#000F14]">{user.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600" title={user.email}>{truncateEmail(user.email)}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{user.phone}</td>
                     <td className="px-6 py-4 font-mono text-sm text-gray-600">{user.user_code || user.code}</td>
                     <td className="px-6 py-4">

@@ -52,7 +52,11 @@ class SubscriptionActivationService
 
         if ($subscription) {
             $subscription->update([
-                'transaction_id' => $revenue->payment_reference ?? $subscription->transaction_id,
+                // The reference the gateway knows the payment by. It comes
+                // from the invoice first, and from the payment when the
+                // invoice has not been told.
+                'transaction_id' => $revenue->payment_reference
+                    ?: ($payment?->order_reference ?: $subscription->transaction_id),
                 // The channel the money came through, when the gateway told us.
                 'payment_method' => $payment?->channel ?: ($subscription->payment_method ?: 'mobile'),
                 'status' => 'active',

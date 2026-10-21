@@ -1,10 +1,12 @@
-// Bumped to v5 to drop the stale v3 caches. Static assets are served
+// Bumped to v6 to drop the stale v5 caches. Static assets are served
 // cache-first, so the old bundle that carried the React crash stayed pinned in
-// a visitor's cache even after a correct one had been deployed.
-const CACHE_NAME = 'helix-cache-v5';
-const SHELL_CACHE = 'helix-shell-v5';
-const API_CACHE = 'helix-api-v5';
-const STATIC_CACHE = 'helix-static-v5';
+// a visitor's cache even after a correct one had been deployed. Every deploy
+// that changes the bundle bumps this number, because the caches are named
+// after it and the old ones are deleted on activate.
+const CACHE_NAME = 'helix-cache-v6';
+const SHELL_CACHE = 'helix-shell-v6';
+const API_CACHE = 'helix-api-v6';
+const STATIC_CACHE = 'helix-static-v6';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

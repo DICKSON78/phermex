@@ -88,6 +88,7 @@ import InsuranceClaimsPage from '../pages/owner/InsuranceClaimsPage'
 import ConsolidatedFinancialReportPage from '../pages/owner/ConsolidatedFinancialReportPage'
 import PlanGate from '../components/PlanGate'
 import UpgradeWall from '../components/UpgradeWall'
+import SubscriptionBanner from '../components/SubscriptionBanner'
 import { hasPlanAccess, requiredPlanForPath, PLAN_LABELS, canAddPharmacy } from '../utils/planConfig'
 import { navKeyForPath, groupKeyForLabel } from '../utils/navI18n'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -1007,6 +1008,11 @@ export default function DashboardLayout({ role }) {
                 <UpgradeWall />
               )
             ) : (
+            <>
+            {/* The owner always needs to know where the account stands: a trial
+                runs on the full feature set, and it only ends when a package
+                is chosen and paid for. */}
+            {location.pathname !== basePath && <SubscriptionBanner />}
             <Routes>
               <Route index element={<OwnerDashboard />} />
               <Route path="pos" element={<POSPage />} />
@@ -1093,6 +1099,7 @@ export default function DashboardLayout({ role }) {
               <Route path="support" element={<OwnerSupportPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
+            </>
             )
           ) : role === 'seller' ? (
             <Routes>

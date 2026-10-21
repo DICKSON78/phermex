@@ -358,10 +358,18 @@ export default function SubscriptionPlansPage() {
                 <Clock className="w-8 h-8 text-amber-500" />
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-2">{t('authPages.plans.completePayment')}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed mb-4">
-                {t('authPages.plans.referenceLabel')} <span className="font-mono text-gray-900 font-bold">{pushResult?.reference || '—'}</span>
-              </p>
+              {pushResult?.reference && (
+                <p className="text-gray-500 text-sm leading-relaxed mb-4">
+                  {t('authPages.plans.referenceLabel')} <span className="font-mono text-gray-900 font-bold">{pushResult.reference}</span>
+                </p>
+              )}
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 text-left">
+                {/* Why the prompt never came. Without this the customer only
+                    sees a reference that is empty and no way to tell whether
+                    the gateway refused the request or the phone never rang. */}
+                {pushResult?.push_error && (
+                  <p className="text-amber-900 text-xs font-bold leading-relaxed mb-2">{pushResult.push_error}</p>
+                )}
                 <p className="text-amber-800 text-xs leading-relaxed">
                   {t('authPages.plans.pushMissing')}
                 </p>

@@ -76,6 +76,8 @@ function statusConfig(t, status) {
 function OwnerDashboard() {
   const { t } = useLanguage()
   const { subscription } = useAuth()
+  // A trial with no package chosen yet runs on the full feature set.
+  const trialHasFullAccess = !subscription?.plan || subscription?.plan === 'trial'
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -202,6 +204,12 @@ function OwnerDashboard() {
             <div>
               <p className="text-[10px] font-bold text-[#0FD452] uppercase tracking-wider">{t('subscription.freeTrial')}</p>
               <p className="text-sm font-bold text-gray-900">{subscription.days_remaining} {t('subscription.daysRemaining')}</p>
+              <p className="text-[11px] text-gray-500">
+                {trialHasFullAccess ? t('subscription.trialFullAccess') : t('subscription.trialPlanLimited')}
+              </p>
+              {trialHasFullAccess && (
+                <p className="text-[11px] text-gray-500">{t('subscription.trialNoAddPharmacy')}</p>
+              )}
             </div>
             <button onClick={() => window.location.href = '/subscribe'} className="ml-2 px-3.5 py-1.5 bg-[#0FD452] text-[#000F14] rounded-xl text-xs font-bold hover:bg-[#0cb843] transition-all active:scale-95">
               {t('subscription.subscribe')}

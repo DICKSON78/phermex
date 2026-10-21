@@ -406,6 +406,8 @@ export default {
       custom_integrations_api_access: 'Muunganisho maalum na ufikiaji wa API',
       dedicated_account_manager: 'Meneja maalum wa akaunti',
       paymentHistory: 'Historia ya Malipo',
+      paymentMethod: 'Njia ya Malipo',
+      amountCollected: 'Ilichukuliwa',
       amount: 'Kiasi',
       plan: 'Mpango',
       noPaymentHistory: 'Hakuna historia ya malipo bado',

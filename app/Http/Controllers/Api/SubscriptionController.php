@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pharmacy;
+use App\Models\Payment;
 use App\Models\RevenueRecord;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use App\Services\ClickPesaPaymentService;
 use App\Services\ClickPesaService;
 use App\Services\ExchangeRateService;
+use App\Services\SubscriptionActivationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -77,7 +80,9 @@ class SubscriptionController extends Controller
      * The status comes from the revenue records, which are the invoices: a
      * package that was chosen but not paid for is pending, not active. The
      * revenue record also carries the amount that was actually charged, in
-     * TZS, next to the price of the package in USD.
+     * TZS, next to the price of the package in USD. The payments are what the
+     * gateway said about each of them: the channel the money came through,
+     * the amount it collected and the reason when there was one.
      */
     private function paymentHistory(Pharmacy $pharmacy): array
     {
@@ -94,12 +99,21 @@ class SubscriptionController extends Controller
             ->limit(20)
             ->get(['payment_reference', 'amount', 'status', 'paid_at']);
 
-        return $subscriptions->map(function ($sub) use ($invoices) {
+        $payments = Payment::withoutGlobalScopes()
+            ->where('pharmacy_id', $pharmacy->id)
+            ->orderByDesc('id')
+            ->limit(20)
+            ->get();
+
+        return $subscriptions->map(function ($sub) use ($invoices, $payments) {
             // The invoice that belongs to this package: the one carrying its
             // reference, or the newest one when the reference is still empty
             // because the payment has not been confirmed yet.
             $invoice = $invoices->firstWhere('payment_reference', $sub->transaction_id)
                 ?: ($sub->transaction_id ? null : $invoices->first());
+
+            $payment = $payments->firstWhere('order_reference', $sub->transaction_id)
+                ?: ($sub->transaction_id ? null : $payments->first());
 
             return [
                 'plan' => $sub->plan,
@@ -111,6 +125,16 @@ class SubscriptionController extends Controller
                 'start_date' => $sub->start_date?->toISOString(),
                 'end_date' => $sub->end_date?->toISOString(),
                 'paid_at' => $invoice?->paid_at?->toISOString(),
+                // What the gateway reported about this payment.
+                'channel' => $payment?->channel,
+                'gateway_status' => $payment?->status,
+                'gateway_state' => $payment?->state,
+                'collected_amount' => $payment?->collected_amount !== null ? (float) $payment->collected_amount : null,
+                'fee' => $payment?->fee !== null ? (float) $payment->fee : null,
+                'payment_reference' => $payment?->payment_reference,
+                'gateway_transaction_id' => $payment?->transaction_id,
+                'gateway_message' => $payment?->message,
+                'phone' => $payment?->phone,
             ];
         })->values()->all();
     }
@@ -330,6 +354,30 @@ class SubscriptionController extends Controller
                     'payment_reference' => $reference,
                     'payment_method' => 'mobile',
                 ]);
+
+                // What the gateway said about this payment is written down
+                // straight away: the reference, the channel the prompt went
+                // through and the amount it will collect. The customer has not
+                // answered yet, so it is recorded as still in progress.
+                $fee = null;
+
+                foreach ($supportedChannels as $method) {
+                    if (strcasecmp((string) ($method['name'] ?? ''), (string) $pushChannel) === 0) {
+                        $fee = $method['fee'] ?? null;
+
+                        break;
+                    }
+                }
+
+                app(ClickPesaPaymentService::class)->record($push, [
+                    'pharmacy_id' => $pharmacy->id,
+                    'revenue_record_id' => $revenue->id,
+                    'subscription_id' => $subscription->id,
+                    'amount' => $amountTzs,
+                    'fee' => $fee,
+                    'phone' => ClickPesaService::normalizePhone($validated['phone']),
+                    'order_reference' => $reference,
+                ]);
             } catch (\Throwable $e) {
                 // Log for us, but also hand the reason to the owner. A push that
                 // never left was previously reported as "reserved, complete
@@ -421,8 +469,18 @@ class SubscriptionController extends Controller
 
         [$paid, $gatewayStatus] = $this->interpretGatewayStatus($status);
 
+        // What the gateway says about the payment is written down, so the
+        // channel, the amount it collected and the reason when there is one
+        // are on file and not only in the browser.
+        $payment = app(ClickPesaPaymentService::class)->record($status, [
+            'pharmacy_id' => $revenue->pharmacy_id,
+            'revenue_record_id' => $revenue->id,
+            'amount' => $revenue->amount,
+            'order_reference' => $validated['reference'],
+        ]);
+
         if ($paid && $revenue->status !== 'paid') {
-            $this->activateSubscription($revenue);
+            $this->activateSubscription($revenue, $payment);
         }
 
         return response()->json([
@@ -430,6 +488,10 @@ class SubscriptionController extends Controller
             'status' => $revenue->fresh()->status,
             'gateway_status' => $gatewayStatus,
             'paid' => $paid,
+            'channel' => $payment?->channel,
+            'collected_amount' => $payment?->collected_amount !== null ? (float) $payment->collected_amount : null,
+            'reference' => $validated['reference'],
+            'message_from_gateway' => $payment?->message,
         ]);
     }
 
@@ -523,19 +585,30 @@ class SubscriptionController extends Controller
 
         [$paid, $gatewayStatus] = $this->interpretGatewayStatus($gateway);
 
+        $payment = app(ClickPesaPaymentService::class)->record($gateway, [
+            'pharmacy_id' => $revenue->pharmacy_id,
+            'revenue_record_id' => $revenue->id,
+            'amount' => $revenue->amount,
+            'order_reference' => $validated['payment_ref'],
+        ]);
+
         if (!$paid) {
             return response()->json([
                 'message' => 'The payment has not been received yet.',
                 'status' => 'pending',
                 'gateway_status' => $gatewayStatus,
+                'channel' => $payment?->channel,
+                'message_from_gateway' => $payment?->message,
             ], 402);
         }
 
-        $this->activateSubscription($revenue);
+        $this->activateSubscription($revenue, $payment);
 
         return response()->json([
             'message' => 'Payment confirmed with the payment provider. Subscription activated.',
             'gateway_status' => $gatewayStatus,
+            'channel' => $payment?->channel,
+            'collected_amount' => $payment?->collected_amount !== null ? (float) $payment->collected_amount : null,
             'pharmacy' => $pharmacy->fresh(),
         ]);
     }
@@ -543,17 +616,17 @@ class SubscriptionController extends Controller
     /**
      * Decide whether a gateway response means the money actually arrived.
      *
+     * The gateway's own statuses are the only ones that count: SUCCESS and
+     * SETTLED mean the money is ours, PROCESSING and PENDING mean it is on its
+     * way, and FAILED, ON-HOLD, REFUNDED and REVERSED mean it is not.
+     *
      * @return array{0: bool, 1: string}
      */
     private function interpretGatewayStatus(array $gateway): array
     {
         $status = strtoupper((string) ($gateway['status'] ?? 'PROCESSING'));
 
-        $paid = str_contains($status, 'SUCCESS')
-            || str_contains($status, 'SETTLED')
-            || str_contains($status, 'RECEIVED');
-
-        return [$paid, $status];
+        return [ClickPesaPaymentService::isPaid($status), $status];
     }
 
     private function planSlug(SubscriptionPlan $plan): string
@@ -565,30 +638,8 @@ class SubscriptionController extends Controller
             : strtolower(str_replace(' ', '-', $plan->name));
     }
 
-    private function activateSubscription(RevenueRecord $revenue): void
+    private function activateSubscription(RevenueRecord $revenue, ?Payment $payment = null): void
     {
-        $revenue->update([
-            'status' => 'paid',
-            'paid_at' => now(),
-        ]);
-
-        $subscription = Subscription::where('pharmacy_id', $revenue->pharmacy_id)
-            ->where('status', 'active')
-            ->latest('id')
-            ->first();
-
-        if ($subscription) {
-            $subscription->update([
-                'transaction_id' => $revenue->payment_reference ?? $subscription->transaction_id,
-                'payment_method' => 'mobile',
-                'status' => 'active',
-            ]);
-        }
-
-        Pharmacy::where('id', $revenue->pharmacy_id)->update([
-            'payment_status' => 'paid',
-            'status' => 'active',
-            'is_published' => true,
-        ]);
+        app(SubscriptionActivationService::class)->activate($revenue, $payment);
     }
 }

@@ -310,9 +310,58 @@ class ClickPesaService
         $body = $response->json();
 
         if (is_array($body) && array_key_exists(0, $body)) {
-            $body = $body[0];
+            $body = $this->pickLatest($body, $orderReference);
         }
 
         return (array) $body;
+    }
+
+    /**
+     * Choose the entry that describes the payment as it stands now.
+     *
+     * The gateway answers with every payment that carries the reference, and a
+     * payment that went through leaves more than one entry behind: the one
+     * that was opened when the prompt went out and the one that was closed
+     * when the customer answered. Taking the first entry would keep reading
+     * PROCESSING for ever, so a state the payment has already left wins over
+     * one it is still in, and between two such states the later one wins.
+     *
+     * @param array<int, mixed> $entries
+     * @return array<string, mixed>
+     */
+    private function pickLatest(array $entries, string $orderReference): array
+    {
+        $matching = array_values(array_filter($entries, function ($entry) use ($orderReference) {
+            $reference = is_array($entry) ? ($entry['orderReference'] ?? null) : null;
+
+            return $reference === null || strcasecmp((string) $reference, $orderReference) === 0;
+        }));
+
+        if ($matching === []) {
+            $matching = array_values($entries);
+        }
+
+        $settled = ['SUCCESS', 'SETTLED', 'FAILED', 'REFUNDED', 'REVERSED'];
+
+        usort($matching, function ($a, $b) use ($settled) {
+            $aStatus = strtoupper((string) (is_array($a) ? ($a['status'] ?? '') : ''));
+            $bStatus = strtoupper((string) (is_array($b) ? ($b['status'] ?? '') : ''));
+
+            $aSettled = in_array($aStatus, $settled, true);
+            $bSettled = in_array($bStatus, $settled, true);
+
+            if ($aSettled !== $bSettled) {
+                return $aSettled ? -1 : 1;
+            }
+
+            $aTime = is_array($a) ? strtotime((string) ($a['updatedAt'] ?? '')) : 0;
+            $bTime = is_array($b) ? strtotime((string) ($b['updatedAt'] ?? '')) : 0;
+
+            return ($bTime ?: 0) <=> ($aTime ?: 0);
+        });
+
+        $first = $matching[0];
+
+        return is_array($first) ? $first : [];
     }
 }

@@ -406,6 +406,8 @@ export default {
       custom_integrations_api_access: 'Custom integrations & API access',
       dedicated_account_manager: 'Dedicated account manager',
       paymentHistory: 'Payment History',
+      paymentMethod: 'Payment Method',
+      amountCollected: 'Collected',
       amount: 'Amount',
       plan: 'Plan',
       noPaymentHistory: 'No payment history yet',

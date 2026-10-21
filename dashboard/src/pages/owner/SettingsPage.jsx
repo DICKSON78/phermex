@@ -685,6 +685,12 @@ export default function SettingsPage() {
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                         <div className="flex items-center gap-1.5">
+                          <CreditCard className="w-3.5 h-3.5 text-[#0FD452]" />
+                          <span>{t('reports.settings.paymentMethod', 'Payment Method')}</span>
+                        </div>
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        <div className="flex items-center gap-1.5">
                           <ShieldCheck className="w-3.5 h-3.5 text-[#0FD452]" />
                           <span>{t('common.status')}</span>
                         </div>
@@ -717,12 +723,39 @@ export default function SettingsPage() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 capitalize">{payment.plan}</td>
+                        {/* How the money was meant to arrive, and what the
+                            gateway says happened to it. */}
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {payment.channel ? (
+                            <span className="font-medium text-[#000F14]">{payment.channel}</span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                          {payment.reference && (
+                            <span className="block text-[11px] text-gray-400 font-mono">{payment.reference}</span>
+                          )}
+                          {payment.collected_amount != null && payment.amount_tzs != null && Number(payment.collected_amount) !== Number(payment.amount_tzs) && (
+                            <span className="block text-[11px] text-gray-400">
+                              {t('reports.settings.amountCollected', 'Collected')}: {formatMoney(payment.collected_amount, { decimals: 0 })}
+                            </span>
+                          )}
+                        </td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            payment.status === 'paid' || payment.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                            payment.status === 'paid' || payment.status === 'active'
+                              ? 'bg-green-100 text-green-700'
+                              : payment.status === 'failed' || payment.status === 'refunded'
+                                ? 'bg-red-100 text-red-700'
+                                : payment.status === 'cancelled'
+                                  ? 'bg-gray-100 text-gray-600'
+                                  : 'bg-yellow-100 text-yellow-700'
                           }`}>
                             {payment.status}
                           </span>
+                          {/* The reason the gateway gave when it did not go through. */}
+                          {payment.gateway_message && payment.status !== 'paid' && (
+                            <span className="block mt-1 text-[11px] text-red-600">{payment.gateway_message}</span>
+                          )}
                         </td>
                       </tr>
                     ))}

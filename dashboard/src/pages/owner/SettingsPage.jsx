@@ -32,7 +32,6 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import {
   useCurrency,
   formatMoney,
-  formatUsdPrice,
 } from '../../utils/currency'
 
 const WORKING_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -716,10 +715,10 @@ export default function SettingsPage() {
                           {payment.amount_tzs != null ? (
                             <>
                               {formatMoney(payment.amount_tzs, { decimals: 0 })}
-                              <span className="block text-[11px] text-gray-400">{formatUsdPrice(payment.amount)}</span>
+                              <span className="block text-[11px] text-gray-400">${Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                             </>
                           ) : (
-                            formatUsdPrice(payment.amount)
+                            `${Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
                           )}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 capitalize">{payment.plan}</td>

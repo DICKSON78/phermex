@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
-import { formatUsdPrice, formatMoney } from '../../utils/currency'
+import { formatMoney } from '../../utils/currency'
 import { useLanguage } from '../../contexts/LanguageContext'
 import {
   Clock,
@@ -267,7 +267,7 @@ export default function SubscriptionsPage() {
               </div>
               <h3 className="text-lg font-extrabold text-gray-900">{plan.name}</h3>
               <p className="text-2xl font-black text-gray-900 mt-2">
-                {formatUsdPrice(plan.price, { decimals: 0 })}
+                {plan.currency === 'USD' ? '$' : plan.currency || ''}{Number(plan.price).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 <span className="text-sm text-gray-400 font-medium">{t('reports.subscriptions.perYear')}</span>
               </p>
               {tzsAmount && (

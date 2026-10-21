@@ -22,7 +22,7 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../../services/api'
-import { formatMoney, formatUsdPrice } from '../../utils/currency'
+import { formatMoney } from '../../utils/currency'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 const PLAN_STYLES = {
@@ -294,12 +294,12 @@ export default function AdminSubscriptionsPage() {
                       {sub.amount_tzs != null ? (
                         <>
                           {formatCurrency(sub.amount_tzs)}
-                          <span className="block text-[11px] text-gray-400">{formatUsdPrice(sub.amount)}</span>
+                          <span className="block text-[11px] text-gray-400">${Number(sub.amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         </>
                       ) : sub.amount === 0 ? (
                         t('adminUsers.shared.free', 'Free')
                       ) : (
-                        formatUsdPrice(sub.amount)
+                        `${Number(sub.amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">{sub.startDate}</td>

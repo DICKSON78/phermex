@@ -354,8 +354,8 @@ export default function SubscriptionPlansPage() {
             </div>
           ) : paymentStep === 'manual' ? (
             <div className="p-8 text-center">
-              <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-5">
-                <Clock className="w-8 h-8 text-amber-500" />
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-5">
+                <Clock className="w-8 h-8 text-emerald-500" />
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-2">{t('authPages.plans.completePayment')}</h3>
               {pushResult?.reference && (
@@ -363,7 +363,7 @@ export default function SubscriptionPlansPage() {
                   {t('authPages.plans.referenceLabel')} <span className="font-mono text-gray-900 font-bold">{pushResult.reference}</span>
                 </p>
               )}
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 text-left">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-5 text-left">
                 {/* Why the prompt never came. Without this the customer only
                     sees a reference that is empty and no way to tell whether
                     the gateway refused the request or the phone never rang. */}
@@ -588,9 +588,15 @@ export default function SubscriptionPlansPage() {
                   / {plan.duration_months} {plan.duration_months > 1 ? t('authPages.shared.months') : t('authPages.shared.month')}
                 </p>
                 {hasRate && (plan.currency || 'USD') === 'USD' && (
-                  <p className={`mt-1 text-sm font-bold ${popular ? 'text-[#0FD452]' : 'text-emerald-600'}`}>
-                    ≈ {formatTzs(plan.price)}
-                  </p>
+                  <>
+                    <p className={`mt-1 text-sm font-bold ${popular ? 'text-[#0FD452]' : 'text-emerald-600'}`}>
+                      ≈ {formatTzs(plan.price)}
+                    </p>
+                    <p className={`mt-1 text-[11px] ${popular ? 'text-white/50' : 'text-gray-400'}`}>
+                      {t('authPages.plans.exchangeRateNote', 'Rate: 1 USD =')} {' '}
+                      {Math.round(tzsRate).toLocaleString()} TZS
+                    </p>
+                  </>
                 )}
 
                 <div className={`mt-5 rounded-xl px-4 py-3 text-sm ${popular ? 'bg-white/10' : 'bg-gray-50 border border-gray-100'}`}>
@@ -613,11 +619,7 @@ export default function SubscriptionPlansPage() {
 
                 <button
                   onClick={() => openCart(plan)}
-                  className={`mt-8 flex items-center justify-center gap-2 w-full h-12 rounded-xl text-sm font-bold transition-all active:scale-[0.98] ${
-                    popular
-                      ? 'bg-[#0FD452] text-[#000F14] hover:bg-[#0cb843]'
-                      : 'border border-[#0FD452]/60 text-[#0FD452] hover:bg-[#0FD452] hover:text-[#000F14]'
-                  }`}
+                  className="mt-8 flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#0FD452] text-[#000F14] text-sm font-bold hover:bg-[#0cb843] transition-all active:scale-[0.98]"
                 >
                   {t('authPages.plans.choosePlanBtn')} <ShoppingCart className="w-4 h-4" />
                 </button>

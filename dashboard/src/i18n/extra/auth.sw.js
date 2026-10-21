@@ -278,6 +278,7 @@ export default {
       convertedAt: 'Imebadilishwa kwa',
       rateOf: 'bei ya',
       chargedNote: 'Unaachwa kiasi cha shilingi.',
+      exchangeRateNote: 'Bei: 1 USD =',
       mpesaTitle: 'Malipo ya M-PESA hayapatikani bado',
       mpesaBody: 'Namba hii inaonekana ni ya Vodacom. M-PESA inakuja hivi karibuni. Unaweza kulipa leo kwa Tigo Pesa, Airtel Money au HaloPesa.',
       mpesaUnavailableError: 'Malipo ya M-PESA hayapatikani bado. Tafadhali lipa kwa Tigo Pesa, Airtel Money au HaloPesa.',

@@ -278,6 +278,7 @@ export default {
       convertedAt: 'Converted at',
       rateOf: 'rate of',
       chargedNote: 'You are charged the shilling amount.',
+      exchangeRateNote: 'Rate: 1 USD =',
       mpesaTitle: 'M-PESA payments are not available yet',
       mpesaBody: 'This looks like a Vodacom number. M-PESA is coming soon. You can pay today with Tigo Pesa, Airtel Money or HaloPesa.',
       mpesaUnavailableError: 'M-PESA payments are not available yet. Please pay with Tigo Pesa, Airtel Money or HaloPesa.',

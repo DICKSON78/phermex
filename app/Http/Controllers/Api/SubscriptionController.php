@@ -67,20 +67,52 @@ class SubscriptionController extends Controller
             'payment_status' => $pharmacy->payment_status,
             'rejection_reason' => $pharmacy->rejection_reason,
             'pharmacy_name' => $pharmacy->pharmacy_name,
-            'payment_history' => $pharmacy->subscriptions()
-                ->orderByDesc('id')
-                ->limit(20)
-                ->get(['plan', 'amount', 'status', 'start_date', 'end_date'])
-                ->map(function ($sub) {
-                    return [
-                        'plan' => $sub->plan,
-                        'amount' => (float) $sub->amount,
-                        'status' => $sub->status,
-                        'start_date' => $sub->start_date?->toISOString(),
-                        'end_date' => $sub->end_date?->toISOString(),
-                    ];
-                }),
+            'payment_history' => $this->paymentHistory($pharmacy),
         ]);
+    }
+
+    /**
+     * The invoice history of this pharmacy, newest first.
+     *
+     * The status comes from the revenue records, which are the invoices: a
+     * package that was chosen but not paid for is pending, not active. The
+     * revenue record also carries the amount that was actually charged, in
+     * TZS, next to the price of the package in USD.
+     */
+    private function paymentHistory(Pharmacy $pharmacy): array
+    {
+        $subscriptions = $pharmacy->subscriptions()
+            ->withoutGlobalScopes()
+            ->orderByDesc('id')
+            ->limit(20)
+            ->get(['id', 'plan', 'amount', 'status', 'transaction_id', 'start_date', 'end_date']);
+
+        $invoices = RevenueRecord::withoutGlobalScopes()
+            ->where('pharmacy_id', $pharmacy->id)
+            ->where('type', 'subscription')
+            ->orderByDesc('id')
+            ->limit(20)
+            ->get(['payment_reference', 'amount', 'status', 'paid_at']);
+
+        return $subscriptions->map(function ($sub) use ($invoices) {
+            // The invoice that belongs to this package: the one carrying its
+            // reference, or the newest one when the reference is still empty
+            // because the payment has not been confirmed yet.
+            $invoice = $invoices->firstWhere('payment_reference', $sub->transaction_id)
+                ?: ($sub->transaction_id ? null : $invoices->first());
+
+            return [
+                'plan' => $sub->plan,
+                'amount' => (float) $sub->amount,
+                'amount_tzs' => $invoice ? (float) $invoice->amount : null,
+                'status' => $invoice?->status ?? $sub->status,
+                'payment_status' => $invoice?->status ?? $sub->status,
+                'reference' => $sub->transaction_id,
+                'start_date' => $sub->start_date?->toISOString(),
+                'end_date' => $sub->end_date?->toISOString(),
+                'paid_at' => $invoice?->paid_at?->toISOString(),
+            ];
+        })->values()->all();
     }
 
     public function subscribe(Request $request): JsonResponse

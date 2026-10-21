@@ -705,7 +705,16 @@ export default function SettingsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm font-medium text-[#000F14]">
-                          {formatUsdPrice(payment.amount)}
+                          {/* The amount that was actually charged, with the
+                              price of the package underneath it. */}
+                          {payment.amount_tzs != null ? (
+                            <>
+                              {formatMoney(payment.amount_tzs, { decimals: 0 })}
+                              <span className="block text-[11px] text-gray-400">{formatUsdPrice(payment.amount)}</span>
+                            </>
+                          ) : (
+                            formatUsdPrice(payment.amount)
+                          )}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 capitalize">{payment.plan}</td>
                         <td className="px-6 py-4">

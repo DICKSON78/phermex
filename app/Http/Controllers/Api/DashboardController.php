@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Pharmacy;
 use App\Models\Prescription;
+use App\Models\RevenueRecord;
 use App\Models\Subscription;
 use App\Models\SupportTicket;
 use App\Models\User;
@@ -232,19 +233,34 @@ class DashboardController extends Controller
         try {
             $totalPharmacies = Pharmacy::count();
             $totalUsers = User::count();
-            $activeSubscriptions = Subscription::where('status', 'active')->count();
+
+            // Revenue comes from the revenue records, which hold the amount in
+            // TZS, and only money that has actually arrived counts. A package
+            // that was chosen but not paid for is still a pending invoice, so
+            // it must not show up as revenue.
+            $paidRevenue = RevenueRecord::where('status', 'paid');
+
+            $activeSubscriptions = (clone $paidRevenue)
+                ->where('type', 'subscription')
+                ->distinct()
+                ->count('pharmacy_id');
 
             $monthStart = now()->startOfMonth();
             $lastMonthStart = now()->subMonth()->startOfMonth();
             $lastMonthEnd = now()->subMonth()->endOfMonth();
 
-            $monthlyRevenue = Subscription::where('status', 'active')
-                ->where('created_at', '>=', $monthStart)
+            // The day the money arrived, not the day the invoice was written.
+            $paidOn = 'COALESCE(paid_at, created_at)';
+
+            $monthlyRevenue = (clone $paidRevenue)
+                ->whereRaw($paidOn . ' >= ?', [$monthStart])
                 ->sum('amount');
 
-            $lastMonthRevenue = Subscription::where('status', 'active')
-                ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            $lastMonthRevenue = (clone $paidRevenue)
+                ->whereRaw($paidOn . ' between ? and ?', [$lastMonthStart, $lastMonthEnd])
                 ->sum('amount');
+
+            $totalRevenue = (float) (clone $paidRevenue)->sum('amount');
 
             $monthlyGrowth = $lastMonthRevenue > 0
                 ? round((($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1)
@@ -256,10 +272,10 @@ class DashboardController extends Controller
                 ->groupBy('status')
                 ->get();
 
-            $revenueChart = Subscription::where('status', 'active')
-                ->where('created_at', '>=', now()->subDays(30))
+            $revenueChart = (clone $paidRevenue)
+                ->whereRaw($paidOn . ' >= ?', [now()->subDays(30)])
                 ->select(
-                    DB::raw('DATE(created_at) as date'),
+                    DB::raw('DATE(' . $paidOn . ') as date'),
                     DB::raw('SUM(amount) as revenue')
                 )
                 ->groupBy('date')
@@ -288,6 +304,7 @@ class DashboardController extends Controller
                 'total_users' => $totalUsers,
                 'active_subscriptions' => $activeSubscriptions,
                 'monthly_revenue' => (float) $monthlyRevenue,
+                'total_revenue' => (float) $totalRevenue,
                 'monthly_growth' => $monthlyGrowth,
                 'new_registrations_this_month' => $newRegistrationsThisMonth,
                 'pharmacies_by_status' => $pharmaciesByStatus,

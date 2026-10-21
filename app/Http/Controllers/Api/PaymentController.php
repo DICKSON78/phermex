@@ -361,7 +361,7 @@ class PaymentController extends Controller
             'title' => 'Subscription Payment Failed',
             'message' => 'Your subscription payment did not go through'
                 . ($reason ? ': ' . $reason : '.') . ' Please try again.',
-            'type' => 'error',
+            'type' => 'danger',
             'is_read' => false,
             'link' => '/dashboard/subscriptions',
         ]);
@@ -396,7 +396,7 @@ class PaymentController extends Controller
             'title' => 'Subscription Payment Refunded',
             'message' => 'Your subscription payment was refunded'
                 . ($reason ? ': ' . $reason : '.') . ' The plan is no longer active.',
-            'type' => 'error',
+            'type' => 'danger',
             'is_read' => false,
             'link' => '/dashboard/subscriptions',
         ]);

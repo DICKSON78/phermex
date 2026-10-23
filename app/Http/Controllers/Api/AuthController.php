@@ -171,8 +171,13 @@ class AuthController extends Controller
                         'working_days' => $input['working_days'] ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
                         'working_hours' => $input['working_hours'] ?? ['open' => '08:00', 'close' => '18:00'],
                         'opening_capital' => $input['opening_capital'] ?? 0,
-                        'status' => 'pending',
-                        'application_status' => 'pending',
+                        // The 30 day trial starts the moment the pharmacy is
+                        // created. There is no manual approval queue: the owner
+                        // can sign in and use every module right away, and the
+                        // package is chosen and paid while the trial runs.
+                        'status' => 'active',
+                        'application_status' => 'approved',
+                        'trial_ends_at' => now()->addDays(30),
                         'is_published' => false,
                         'subscription_plan_id' => $validated['subscription_plan_id'],
                         'subscription_amount' => \App\Models\SubscriptionPlan::find($validated['subscription_plan_id'])?->price,
@@ -342,6 +347,13 @@ class AuthController extends Controller
         $rejectionReason = null;
 
         if ($pharmacy) {
+            // Accounts that were created while approval was still manual get
+            // their trial on the first sign-in instead of waiting for an admin.
+            if ($pharmacy->application_status === 'pending') {
+                $pharmacy->autoApprove();
+                $pharmacy->refresh();
+            }
+
             $appStatus = $pharmacy->application_status;
             // The package that is in force right now. A live trial with no
             // package chosen yet counts as the full package, so the owner

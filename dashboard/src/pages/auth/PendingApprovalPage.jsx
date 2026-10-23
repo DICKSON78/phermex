@@ -40,7 +40,9 @@ export default function PendingApprovalPage() {
   }, [])
 
   useEffect(() => {
-    if (status?.application_status === 'approved' && status?.payment_status === 'paid') {
+    // Approved means the trial is running, whether or not a package has been
+    // paid for yet, so there is nothing left to wait for on this page.
+    if (status?.application_status === 'approved') {
       navigate('/dashboard')
     }
   }, [status, navigate])

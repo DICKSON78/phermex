@@ -821,7 +821,10 @@ export default function RegisterOwnerPage() {
       // The account exists now, so the draft has done its job. Leaving it
       // behind would repopulate the form if they register again.
       clearDraft()
-      navigate('/pending-approval')
+      // No approval queue: the pharmacy is active on a 30 day trial as soon as
+      // it is created, so the owner lands in the dashboard and can pick a
+      // package from there whenever they are ready.
+      navigate('/dashboard')
     } catch (err) {
       const serverErrors = err.response?.data?.errors
       if (serverErrors) {

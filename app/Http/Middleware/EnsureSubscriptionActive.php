@@ -31,14 +31,21 @@ class EnsureSubscriptionActive
             return $next($request);
         }
 
+        // Manual approval is gone: a pending pharmacy is approved on the spot
+        // and its 30 day trial starts, so old tokens keep working too. A
+        // rejected application is the only one that still gets blocked.
         if ($pharmacy->application_status !== 'approved') {
-            return response()->json([
-                'message' => 'Your pharmacy application has not been approved yet.',
-                'subscription' => [
-                    'application_status' => $pharmacy->application_status,
-                    'rejection_reason' => $pharmacy->rejection_reason,
-                ],
-            ], 403);
+            if (! $pharmacy->autoApprove()) {
+                return response()->json([
+                    'message' => 'Your pharmacy application has been rejected.',
+                    'subscription' => [
+                        'application_status' => $pharmacy->application_status,
+                        'rejection_reason' => $pharmacy->rejection_reason,
+                    ],
+                ], 403);
+            }
+
+            $pharmacy->refresh();
         }
 
         if (!$pharmacy->isActive()) {

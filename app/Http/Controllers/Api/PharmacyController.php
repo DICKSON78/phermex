@@ -127,8 +127,9 @@ class PharmacyController extends Controller
                 'working_days' => $validated['working_days'] ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
                 'working_hours' => $validated['working_hours'] ?? ['open' => '08:00', 'close' => '18:00'],
                 'opening_capital' => $validated['opening_capital'] ?? 0,
-                'status' => 'pending',
-                'application_status' => 'pending',
+                'status' => 'active',
+                'application_status' => 'approved',
+                'trial_ends_at' => now()->addDays(30),
                 'is_published' => false,
                 'subscription_plan_id' => $validated['subscription_plan_id'],
                 'subscription_amount' => \App\Models\SubscriptionPlan::find($validated['subscription_plan_id'])?->price,
@@ -138,7 +139,7 @@ class PharmacyController extends Controller
             $user->pharmacy()->attach($pharmacy->id);
 
             return response()->json([
-                'message' => 'Pharmacy created successfully. Awaiting approval.',
+                'message' => 'Pharmacy created successfully.',
                 'pharmacy' => $pharmacy,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {

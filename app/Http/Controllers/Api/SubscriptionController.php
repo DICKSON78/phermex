@@ -49,6 +49,14 @@ class SubscriptionController extends Controller
             ]);
         }
 
+        // A pending row is a leftover from the manual approval flow. Approve it
+        // here as well so an owner who is already signed in (or still holding
+        // an old token) is not stuck on the "under review" screen.
+        if ($pharmacy->application_status === 'pending') {
+            $pharmacy->autoApprove();
+            $pharmacy->refresh();
+        }
+
         // The package in force: the one the owner chose, or the trial (which
         // carries the full feature set) while no package has been chosen.
         $effectivePlan = $pharmacy->effectivePlan();

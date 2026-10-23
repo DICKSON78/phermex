@@ -159,6 +159,26 @@ class Pharmacy extends Model
         return false;
     }
 
+    /**
+     * Approve the pharmacy without waiting for an admin review.
+     *
+     * Owners used to be parked on "application under review" until somebody
+     * clicked Approve, so a fresh sign-up could not use the trial at all. The
+     * trial is the review now: the account is usable as soon as it exists and
+     * an admin can still reject it afterwards. Only pending rows are touched,
+     * so re-running this on every login cannot extend an expired trial.
+     */
+    public function autoApprove(): bool
+    {
+        if ($this->application_status !== 'pending') return false;
+
+        return $this->update([
+            'application_status' => 'approved',
+            'status' => 'active',
+            'trial_ends_at' => $this->trial_ends_at ?: now()->addDays(30),
+        ]);
+    }
+
     public function hasTrial(): bool
     {
         return $this->trial_ends_at && $this->trial_ends_at->isFuture();

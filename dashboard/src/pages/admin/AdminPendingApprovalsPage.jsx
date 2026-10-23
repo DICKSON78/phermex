@@ -8,6 +8,7 @@ import {
   ChevronLeft, ChevronRight, Zap, FileText, ExternalLink, X,
 } from 'lucide-react'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { tzsFromUsd, useCurrency } from '../../utils/currency'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
@@ -42,6 +43,16 @@ function InfoItem({ icon: Icon, label, value }) {
 export default function AdminPendingApprovalsPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const { rates } = useCurrency()
+
+  // Plan prices are stored in USD. Show the price in dollars and the live
+  // shilling equivalent, not the USD number relabelled as TZS.
+  const planPriceLabel = (usd) => {
+    const value = Number(usd)
+    if (!Number.isFinite(value)) return '—'
+    const tzs = tzsFromUsd(value, rates)
+    return `$${value.toLocaleString()}${tzs != null ? ` · ≈ TZS ${tzs.toLocaleString()}` : ''}`
+  }
   const [pharmacies, setPharmacies] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
@@ -263,7 +274,7 @@ export default function AdminPendingApprovalsPage() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <InfoItem icon={CreditCard} label={t('adminOps.fields.plan')} value={selectedPharmacy.subscription_plan?.name || '—'} />
-                  <InfoItem icon={CreditCard} label={t('adminOps.fields.amount')} value={selectedPharmacy.subscription_plan ? `TZS ${Number(selectedPharmacy.subscription_plan.price).toLocaleString()}` : '—'} />
+                  <InfoItem icon={CreditCard} label={t('adminOps.fields.amount')} value={selectedPharmacy.subscription_plan ? planPriceLabel(selectedPharmacy.subscription_plan.price) : '—'} />
                   <InfoItem icon={Calendar} label={t('adminOps.fields.trialEnds')} value={formatDate(selectedPharmacy.trial_ends_at)} />
                   <InfoItem icon={Calendar} label={t('adminOps.fields.created')} value={formatDate(selectedPharmacy.created_at)} />
                 </div>
@@ -473,7 +484,14 @@ export default function AdminPendingApprovalsPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] text-gray-400 uppercase tracking-wider">{t('adminOps.fields.amount')}</p>
-                    <p className="text-sm font-bold text-[#0FD452]">TZS {Number(paymentPharmacy.subscription_plan.price).toLocaleString()}</p>
+                    <p className="text-sm font-bold text-[#0FD452]">
+                      ${Number(paymentPharmacy.subscription_plan.price).toLocaleString()}
+                      {tzsFromUsd(paymentPharmacy.subscription_plan.price, rates) != null && (
+                        <span className="block text-[11px] font-medium text-gray-500">
+                          ≈ TZS {tzsFromUsd(paymentPharmacy.subscription_plan.price, rates).toLocaleString()}
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>

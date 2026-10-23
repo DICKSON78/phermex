@@ -147,6 +147,15 @@ class AuthController extends Controller
                     ];
                 }
 
+                // Plans are priced in dollars, but the amount recorded on the
+                // pharmacy is what will be charged, so store it in shillings at
+                // the live rate. Storing the raw USD figure here made admin
+                // screens show "TZS 250" for a $250 plan.
+                $selectedPlan = \App\Models\SubscriptionPlan::find($validated['subscription_plan_id']);
+                $subscriptionAmountTzs = $selectedPlan
+                    ? round((float) $selectedPlan->price * app(\App\Services\ExchangeRateService::class)->tzsPerUsd())
+                    : null;
+
                 foreach ($pharmacyInputs as $index => $input) {
                     $input['pharmacy_logo'] = $this->resolvePharmacyLogo($request, $index, $input['pharmacy_logo'] ?? null);
 
@@ -180,7 +189,7 @@ class AuthController extends Controller
                         'trial_ends_at' => now()->addDays(30),
                         'is_published' => false,
                         'subscription_plan_id' => $validated['subscription_plan_id'],
-                        'subscription_amount' => \App\Models\SubscriptionPlan::find($validated['subscription_plan_id'])?->price,
+                        'subscription_amount' => $subscriptionAmountTzs,
                         'payment_status' => 'unpaid',
                     ];
 

@@ -107,6 +107,13 @@ class PharmacyController extends Controller
                 'subscription_plan_id' => 'required|exists:subscription_plans,id',
             ]);
 
+            // The plan price is in USD; the pharmacy records the shilling
+            // amount that will actually be charged at the live rate.
+            $selectedPlan = \App\Models\SubscriptionPlan::find($validated['subscription_plan_id']);
+            $subscriptionAmountTzs = $selectedPlan
+                ? round((float) $selectedPlan->price * app(\App\Services\ExchangeRateService::class)->tzsPerUsd())
+                : null;
+
             $pharmacy = Pharmacy::create([
                 'owner_id' => $user->id,
                 'pharmacy_name' => $validated['pharmacy_name'],
@@ -132,7 +139,7 @@ class PharmacyController extends Controller
                 'trial_ends_at' => now()->addDays(30),
                 'is_published' => false,
                 'subscription_plan_id' => $validated['subscription_plan_id'],
-                'subscription_amount' => \App\Models\SubscriptionPlan::find($validated['subscription_plan_id'])?->price,
+                'subscription_amount' => $subscriptionAmountTzs,
                 'payment_status' => 'unpaid',
             ]);
 

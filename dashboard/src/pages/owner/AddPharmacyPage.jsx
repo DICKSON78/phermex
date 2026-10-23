@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { canAddPharmacy } from '../../utils/planConfig'
+import { tzsFromUsd, useCurrency } from '../../utils/currency'
 import api from '../../services/api'
 import {
   Store,
@@ -186,6 +187,7 @@ export default function AddPharmacyPage() {
   const navigate = useNavigate()
   const { user, switchPharmacy } = useAuth()
   const { t } = useLanguage()
+  const { rates } = useCurrency()
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -557,26 +559,32 @@ export default function AddPharmacyPage() {
           <div>
             <label className="block text-sm font-semibold text-gray-600 mb-1.5">{t('supply.addPharmacy.subscriptionPlan')}</label>
             <div className="grid gap-2">
-              {plans.length > 0 ? plans.map((plan) => (
-                <button
-                  key={plan.id}
-                  type="button"
-                  onClick={() => updateForm('subscription_plan_id', plan.id)}
-                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-                    form.subscription_plan_id === plan.id
-                      ? 'border-[#0FD452] bg-[#0FD452]/5'
-                      : 'border-gray-200 hover:border-[#0FD452]/50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-gray-800 text-sm">{plan.name}</h4>
-                      <p className="text-xs text-gray-500">{plan.description}</p>
+              {plans.length > 0 ? plans.map((plan) => {
+                const planTzs = tzsFromUsd(plan.price, rates)
+                return (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() => updateForm('subscription_plan_id', plan.id)}
+                    className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                      form.subscription_plan_id === plan.id
+                        ? 'border-[#0FD452] bg-[#0FD452]/5'
+                        : 'border-gray-200 hover:border-[#0FD452]/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-gray-800 text-sm">{plan.name}</h4>
+                        <p className="text-xs text-gray-500">{plan.description}</p>
+                      </div>
+                      <div className="text-right ml-3 shrink-0">
+                        <p className="text-sm font-black text-[#000F14]">${Number(plan.price).toLocaleString()}</p>
+                        {planTzs != null && <p className="text-[10px] font-medium text-gray-400">≈ TZS {planTzs.toLocaleString()}</p>}
+                      </div>
                     </div>
-                    <p className="text-sm font-black text-[#000F14] ml-3 shrink-0">TZS {Number(plan.price).toLocaleString()}</p>
-                  </div>
-                </button>
-              )) : (
+                  </button>
+                )
+              }) : (
                 <p className="text-sm text-gray-400">{t('supply.addPharmacy.loadingPlans')}</p>
               )}
             </div>

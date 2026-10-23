@@ -37,7 +37,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import ConfirmDialog from '../../components/ConfirmDialog'
-import { formatMoney } from '../../utils/currency'
+import { formatMoney, tzsFromUsd, useCurrency } from '../../utils/currency'
 
 function Th({ children }) {
   return (
@@ -115,6 +115,7 @@ function InfoItem({ icon: Icon, label, value, mono, span }) {
 export default function AdminPharmacyShowPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { rates } = useCurrency()
   const [pharmacy, setPharmacy] = useState(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -280,6 +281,11 @@ export default function AdminPharmacyShowPage() {
     } catch {} finally { setConfirmOpen(false) }
   }
 
+  // Plan prices live in USD; the shilling figure is what the customer is
+  // actually charged at the live rate, so never print the USD number as TZS.
+  const planUsd = pharmacy?.subscription_plan?.price != null ? Number(pharmacy.subscription_plan.price) : null
+  const planTzs = planUsd != null ? tzsFromUsd(planUsd, rates) : null
+
   if (loading) {
     return (
       <div className="space-y-5">
@@ -374,7 +380,7 @@ export default function AdminPharmacyShowPage() {
           { icon: DollarSign, label: 'Monthly Revenue', value: formatCurrency(pharmacy.monthly_revenue), color: 'text-green-600', bg: 'bg-green-50' },
           { icon: ShoppingCart, label: 'Total Orders', value: pharmacy.orders_count || 0, color: 'text-purple-600', bg: 'bg-purple-50' },
           { icon: Users, label: 'Customers', value: pharmacy.customers_count || 0, color: 'text-orange-600', bg: 'bg-orange-50' },
-          { icon: CreditCard, label: 'Plan Amount', value: formatCurrency(pharmacy.subscription_amount), color: 'text-amber-600', bg: 'bg-amber-50' },
+          { icon: CreditCard, label: 'Plan Amount', value: planUsd != null ? `$${planUsd.toLocaleString()}` : '—', sub: planTzs != null ? `≈ TZS ${planTzs.toLocaleString()}` : null, color: 'text-amber-600', bg: 'bg-amber-50' },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
             <div className="flex items-center gap-3">
@@ -384,6 +390,7 @@ export default function AdminPharmacyShowPage() {
               <div>
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{s.label}</p>
                 <p className="text-xl font-bold text-[#000F14] leading-tight">{s.value}</p>
+                {s.sub && <p className="text-[10px] font-medium text-gray-400 leading-tight">{s.sub}</p>}
               </div>
             </div>
           </div>
@@ -403,7 +410,12 @@ export default function AdminPharmacyShowPage() {
                   { label: 'Subscription', value: subCfg.label, badge: subCfg.color },
                   { label: 'Payment', value: payCfg.label, badge: payCfg.color },
                   { label: 'Plan', value: pharmacy.subscription_plan?.name || '—' },
-                  { label: 'Amount', value: formatCurrency(pharmacy.subscription_amount) },
+                  { label: 'Amount', value: planUsd != null ? (
+                    <>
+                      ${planUsd.toLocaleString()}
+                      {planTzs != null && <span className="block text-[11px] font-normal text-gray-400">≈ TZS {planTzs.toLocaleString()}</span>}
+                    </>
+                  ) : '—' },
                   { label: 'Start Date', value: formatDate(pharmacy.subscription_start_date) },
                   { label: 'End Date', value: formatDate(pharmacy.subscription_end_date) },
                   { label: 'Trial Ends', value: formatDate(pharmacy.trial_ends_at) },
@@ -806,7 +818,10 @@ export default function AdminPharmacyShowPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-400 uppercase tracking-wider">Amount</p>
-                    <p className="text-sm font-bold text-[#0FD452]">TZS {(pharmacy.subscription_plan.price || 0).toLocaleString()}</p>
+                    <p className="text-sm font-bold text-[#0FD452]">
+                      ${Number(pharmacy.subscription_plan.price || 0).toLocaleString()}
+                      {planTzs != null && <span className="block text-[11px] font-medium text-gray-500">≈ TZS {planTzs.toLocaleString()}</span>}
+                    </p>
                   </div>
                 </div>
               </div>

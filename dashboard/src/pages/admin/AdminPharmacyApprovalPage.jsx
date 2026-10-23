@@ -6,6 +6,7 @@ import {
   FileText, Hash, Phone, Mail, Map, ExternalLink, ChevronRight
 } from 'lucide-react'
 import api from '../../services/api'
+import { tzsFromUsd, useCurrency } from '../../utils/currency'
 
 function InfoRow({ icon: Icon, label, value, mono, span }) {
   return (
@@ -32,6 +33,7 @@ function Badge({ label, color }) {
 export default function AdminPharmacyApprovalPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { rates } = useCurrency()
   const [pharmacy, setPharmacy] = useState(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -118,6 +120,11 @@ export default function AdminPharmacyApprovalPage() {
       setActionLoading(false)
     }
   }
+
+  // Plan prices are stored in USD; show the shilling amount at the live rate
+  // instead of relabelling the USD number as TZS.
+  const planUsd = pharmacy?.subscription_plan?.price != null ? Number(pharmacy.subscription_plan.price) : null
+  const planTzs = planUsd != null ? tzsFromUsd(planUsd, rates) : null
 
   if (loading) {
     return (
@@ -263,7 +270,8 @@ export default function AdminPharmacyApprovalPage() {
           <div className="bg-gray-50 rounded-xl p-3">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider">Amount</p>
             <p className="text-sm font-bold text-[#0FD452]">
-              {pharmacy.subscription_plan ? `TZS ${Number(pharmacy.subscription_plan.price).toLocaleString()}` : '—'}
+              {planUsd != null ? `$${planUsd.toLocaleString()}` : '—'}
+              {planTzs != null && <span className="block text-[10px] font-medium text-gray-400">≈ TZS {planTzs.toLocaleString()}</span>}
             </p>
           </div>
           <div className="bg-gray-50 rounded-xl p-3">
@@ -392,7 +400,10 @@ export default function AdminPharmacyApprovalPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] text-gray-400 uppercase tracking-wider">Amount</p>
-                    <p className="text-sm font-bold text-[#0FD452]">TZS {Number(pharmacy.subscription_plan.price).toLocaleString()}</p>
+                    <p className="text-sm font-bold text-[#0FD452]">
+                      ${Number(pharmacy.subscription_plan.price).toLocaleString()}
+                      {planTzs != null && <span className="block text-[11px] font-medium text-gray-500">≈ TZS {planTzs.toLocaleString()}</span>}
+                    </p>
                   </div>
                 </div>
               </div>

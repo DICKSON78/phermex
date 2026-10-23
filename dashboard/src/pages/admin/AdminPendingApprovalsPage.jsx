@@ -46,18 +46,16 @@ export default function AdminPendingApprovalsPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [showRejectModal, setShowRejectModal] = useState(false)
-  const [showApproveModal, setShowApproveModal] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('approved')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedPharmacy, setSelectedPharmacy] = useState(null)
   const [paymentPharmacy, setPaymentPharmacy] = useState(null)
-  const [rejectReason, setRejectReason] = useState('')
-  const [approveComment, setApproveComment] = useState('')
   const [paymentNote, setPaymentNote] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
+  const [weekly, setWeekly] = useState([])
+  const [summary, setSummary] = useState({ total: 0, this_week: 0, last_week: 0, average_per_week: 0 })
   const [toast, setToast] = useState(null)
   const pageSize = 15
 
@@ -69,6 +67,8 @@ export default function AdminPendingApprovalsPage() {
       const res = await api.get(`/admin/pending-pharmacies?${params}`)
       const data = res.data
       setPharmacies(data.data || [])
+      setWeekly(data.weekly_registrations || [])
+      setSummary(data.stats || { total: 0, this_week: 0, last_week: 0, average_per_week: 0 })
       setCurrentPage(data.current_page || 1)
       setTotalPages(data.last_page || 1)
       setTotalCount(data.total || 0)
@@ -78,12 +78,18 @@ export default function AdminPendingApprovalsPage() {
   useEffect(() => { fetchPharmacies(1) }, [statusFilter])
   useEffect(() => { setCurrentPage(1) }, [searchQuery, statusFilter])
 
-  const stats = useMemo(() => ({
-    total: totalCount,
-    pending: pharmacies.filter((p) => p.application_status === 'pending').length,
-    approved: pharmacies.filter((p) => p.application_status === 'approved').length,
-    rejected: pharmacies.filter((p) => p.application_status === 'rejected').length,
-  }), [pharmacies, totalCount])
+  const goToPage = (page) => {
+    const next = Math.max(1, Math.min(totalPages, page))
+    setCurrentPage(next)
+    fetchPharmacies(next)
+  }
+
+  const stats = useMemo(() => ([
+    { icon: Building2, label: t('adminOps.approvals.totalPharmacies'), value: summary.total, color: 'text-[#000F14]', bg: 'bg-gray-100' },
+    { icon: Calendar, label: t('adminOps.approvals.thisWeek'), value: summary.this_week, color: 'text-green-600', bg: 'bg-green-50' },
+    { icon: Clock, label: t('adminOps.approvals.lastWeek'), value: summary.last_week, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { icon: Zap, label: t('adminOps.approvals.perWeek'), value: summary.average_per_week, color: 'text-[#0FD452]', bg: 'bg-[#0FD452]/10' },
+  ]), [summary, t])
 
   const filteredPharmacies = useMemo(() => {
     if (!searchQuery.trim()) return pharmacies
@@ -94,37 +100,11 @@ export default function AdminPendingApprovalsPage() {
     )
   }, [pharmacies, searchQuery])
 
-  const paginated = filteredPharmacies.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const maxWeekCount = Math.max(...weekly.map((w) => w.count), 1)
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 3000)
-  }
-
-  const handleApprove = async () => {
-    if (!selectedPharmacy) return
-    try {
-      setActionLoading(selectedPharmacy.id)
-      await api.patch(`/admin/pharmacies/${selectedPharmacy.id}/approve`)
-      setPharmacies((prev) => prev.map((p) => (p.id === selectedPharmacy.id ? { ...p, application_status: 'approved' } : p)))
-      if (selectedPharmacy) setSelectedPharmacy((s) => s ? { ...s, application_status: 'approved' } : null)
-      setShowApproveModal(false)
-      setApproveComment('')
-      showToast(t('adminOps.approvals.pharmacyApproved'))
-    } catch (err) { console.error(err) } finally { setActionLoading(null) }
-  }
-
-  const handleReject = async () => {
-    if (!selectedPharmacy || !rejectReason.trim()) return
-    try {
-      setActionLoading(selectedPharmacy.id)
-      await api.patch(`/admin/pharmacies/${selectedPharmacy.id}/reject`, { rejection_reason: rejectReason })
-      setPharmacies((prev) => prev.map((p) => (p.id === selectedPharmacy.id ? { ...p, application_status: 'rejected', rejection_reason: rejectReason } : p)))
-      if (selectedPharmacy) setSelectedPharmacy((s) => s ? { ...s, application_status: 'rejected', rejection_reason: rejectReason } : null)
-      setShowRejectModal(false)
-      setRejectReason('')
-      showToast(t('adminOps.approvals.pharmacyRejected'))
-    } catch (err) { console.error(err) } finally { setActionLoading(null) }
   }
 
   const handleConfirmPayment = async () => {
@@ -170,12 +150,7 @@ export default function AdminPendingApprovalsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { icon: Building2, label: t('common.total'), value: stats.total, color: 'text-[#000F14]', bg: 'bg-gray-100' },
-          { icon: Clock, label: t('common.pending'), value: stats.pending, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { icon: CheckCircle2, label: t('common.approved'), value: stats.approved, color: 'text-green-600', bg: 'bg-green-50' },
-          { icon: XCircle, label: t('common.rejected'), value: stats.rejected, color: 'text-red-600', bg: 'bg-red-50' },
-        ].map((s, i) => (
+        {stats.map((s, i) => (
           <div key={i} className="rounded-xl bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
@@ -188,6 +163,34 @@ export default function AdminPendingApprovalsPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Weekly registrations */}
+      <div className="rounded-xl bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-5">
+          <div>
+            <h3 className="text-sm font-semibold text-[#000F14]">{t('adminOps.approvals.weeklyTitle')}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{t('adminOps.approvals.weeklySubtitle')}</p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0FD452]/10 px-3 py-1 text-xs font-semibold text-[#0cb843]">
+            <Zap className="w-3.5 h-3.5" />
+            {summary.average_per_week} {t('adminOps.approvals.perWeekShort')}
+          </span>
+        </div>
+        <div className="flex items-end gap-1.5 sm:gap-3 h-44">
+          {weekly.map((w) => {
+            const height = w.count ? Math.max(10, Math.round((w.count / maxWeekCount) * 100)) : 4
+            return (
+              <div key={w.week_start} className="flex-1 h-full flex flex-col items-center justify-end gap-2"
+                title={`${w.count} ${t('adminOps.approvals.pharmaciesShort')} · ${w.week_start} → ${w.week_end}`}>
+                <span className="text-xs font-bold text-gray-700">{w.count}</span>
+                <div className={`w-full rounded-t-lg transition-all ${w.count ? 'bg-[#0FD452]' : 'bg-gray-100'}`}
+                  style={{ height: `${height}%` }} />
+                <span className="text-[10px] text-gray-400 whitespace-nowrap">{w.label}</span>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {/* Detail Modal */}
@@ -278,16 +281,6 @@ export default function AdminPendingApprovalsPage() {
                   </a>
                 )}
                 <div className="flex-1" />
-                {selectedPharmacy.application_status === 'pending' && (
-                  <>
-                    <button onClick={() => setShowApproveModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl text-sm font-bold transition-all">
-                      <CheckCircle2 className="w-4 h-4" /> {t('leaves.approve')}
-                    </button>
-                    <button onClick={() => setShowRejectModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-red-300 text-red-600 rounded-xl text-sm font-bold hover:bg-red-50 transition-all">
-                      <XCircle className="w-4 h-4" /> {t('leaves.reject')}
-                    </button>
-                  </>
-                )}
                 {selectedPharmacy.application_status === 'approved' && selectedPharmacy.payment_status !== 'confirmed' && selectedPharmacy.payment_status !== 'paid' && (
                   <button onClick={() => { setPaymentPharmacy(selectedPharmacy); setShowPaymentModal(true) }} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl text-sm font-bold transition-all">
                     <CreditCard className="w-4 h-4" /> {t('adminOps.approvals.confirmPayment')}
@@ -312,10 +305,8 @@ export default function AdminPendingApprovalsPage() {
             <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-8 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20 appearance-none cursor-pointer">
-              <option value="all">{t('adminOps.approvals.allApplications')}</option>
-              <option value="pending">{t('adminOps.labels.Pending Review')}</option>
               <option value="approved">{t('adminOps.labels.Approved')}</option>
-              <option value="rejected">{t('adminOps.labels.Rejected')}</option>
+              <option value="all">{t('adminOps.approvals.allApplications')}</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
@@ -364,7 +355,7 @@ export default function AdminPendingApprovalsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {paginated.map((p) => {
+                {filteredPharmacies.map((p) => {
                   const initials = (p.pharmacy_name || 'P').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
                   const isSelected = selectedPharmacy?.id === p.id
                   return (
@@ -409,18 +400,6 @@ export default function AdminPendingApprovalsPage() {
                             className="btn-icon-primary" title={t('adminOps.approvals.viewDetails')}>
                             <Eye className="h-4 w-4" />
                           </button>
-                          {p.application_status === 'pending' && (
-                            <>
-                              <button onClick={(e) => { e.stopPropagation(); setSelectedPharmacy(p); setShowApproveModal(true) }}
-                                className="btn-icon-primary" title={t('leaves.approve')}>
-                                <CheckCircle2 className="h-4 w-4" />
-                              </button>
-                              <button onClick={(e) => { e.stopPropagation(); setSelectedPharmacy(p); setShowRejectModal(true) }}
-                                className="btn-icon-red" title={t('leaves.reject')}>
-                                <XCircle className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
                           {p.application_status === 'approved' && p.payment_status !== 'confirmed' && p.payment_status !== 'paid' && (
                             <button onClick={(e) => { e.stopPropagation(); setPaymentPharmacy(p); setShowPaymentModal(true) }}
                               className="btn-icon-green" title={t('adminOps.approvals.confirmPayment')}>
@@ -437,13 +416,13 @@ export default function AdminPendingApprovalsPage() {
           </div>
 
           {/* Pagination */}
-          {filteredPharmacies.length > pageSize && (
+          {totalCount > pageSize && (
             <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
               <p className="text-sm text-gray-500">
-                {t('adminOps.pagination.showing')} {(currentPage - 1) * pageSize + 1} {t('adminOps.pagination.to')} {Math.min(currentPage * pageSize, filteredPharmacies.length)} {t('adminOps.pagination.of')} {filteredPharmacies.length} {t('adminOps.pagination.entries')}
+                {t('adminOps.pagination.showing')} {(currentPage - 1) * pageSize + 1} {t('adminOps.pagination.to')} {Math.min(currentPage * pageSize, totalCount)} {t('adminOps.pagination.of')} {totalCount} {t('adminOps.pagination.entries')}
               </p>
               <div className="flex items-center gap-1">
-                <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="btn-ghost">
+                <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} className="btn-ghost">
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
@@ -453,84 +432,18 @@ export default function AdminPendingApprovalsPage() {
                   else if (currentPage >= totalPages - 2) page = totalPages - 4 + i
                   else page = currentPage - 2 + i
                   return (
-                    <button key={page} onClick={() => setCurrentPage(page)}
+                    <button key={page} onClick={() => goToPage(page)}
                       className={`h-8 w-8 rounded-lg text-sm font-medium transition-colors ${currentPage === page ? 'bg-[#0FD452] text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
                       {page}
                     </button>
                   )
                 })}
-                <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="btn-ghost">
+                <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} className="btn-ghost">
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Approve Modal */}
-      {showApproveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
-          <div className="absolute inset-0 bg-black/50" onClick={() => { setShowApproveModal(false); setApproveComment('') }} />
-          <div className="relative bg-white rounded-2xl p-6 w-full max-w-md shadow-xl z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">{t('adminOps.approvals.approveApplication')}</h3>
-                <p className="text-xs text-gray-500">{selectedPharmacy?.pharmacy_name}</p>
-              </div>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-              <p className="text-sm text-green-800">{t('adminOps.approvals.approveInfo')}</p>
-            </div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t('adminOps.approvals.commentOptional')}</label>
-            <textarea value={approveComment} onChange={(e) => setApproveComment(e.target.value)} rows={3}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0FD452]/30 resize-none"
-              placeholder={t('adminOps.approvals.commentPlaceholder')} />
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => { setShowApproveModal(false); setApproveComment('') }}
-                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">{t('common.cancel')}</button>
-              <button onClick={handleApprove} disabled={actionLoading}
-                className="flex-1 py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} {t('leaves.approve')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Reject Modal */}
-      {showRejectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ margin: 0, padding: '16px', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
-          <div className="absolute inset-0 bg-black/50" onClick={() => { setShowRejectModal(false); setRejectReason('') }} />
-          <div className="relative bg-white rounded-2xl p-6 w-full max-w-md shadow-xl z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">{t('adminOps.approvals.rejectApplication')}</h3>
-                <p className="text-xs text-gray-500">{selectedPharmacy?.pharmacy_name}</p>
-              </div>
-            </div>
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-              <p className="text-sm text-red-800">{t('adminOps.approvals.rejectInfo')}</p>
-            </div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">{t('adminOps.approvals.rejectionReason')} *</label>
-            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={4}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-red-400 resize-none"
-              placeholder={t('adminOps.approvals.rejectPlaceholder')} />
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => { setShowRejectModal(false); setRejectReason('') }}
-                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all">{t('common.cancel')}</button>
-              <button onClick={handleReject} disabled={!rejectReason.trim() || actionLoading}
-                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />} {t('leaves.reject')}
-              </button>
-            </div>
-          </div>
         </div>
       )}
 

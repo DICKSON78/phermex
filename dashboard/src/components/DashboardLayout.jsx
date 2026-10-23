@@ -301,7 +301,7 @@ const adminNavGroups = [
     label: 'MAIN',
     items: [
       { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-      { path: '/dashboard/pending-approvals', icon: Clock, label: 'Pending Approvals' },
+      { path: '/dashboard/pending-approvals', icon: BadgeCheck, label: 'Approved Pharmacies' },
     ],
   },
   {

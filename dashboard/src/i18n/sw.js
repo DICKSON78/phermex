@@ -161,7 +161,7 @@ export const sw = {
       jobListings: 'List ya Kazi',
       auditLogs: 'Kumbukumbu za Ukaguzi',
       platformSettings: 'Mipangilio ya MFumo',
-      pendingApprovals: 'Idhini Zinazosubiri',
+      pendingApprovals: 'Farmasia Zilizoidhinishwa',
       reportsAnalytics: 'Ripoti na Uchambuzi',
     },
   },

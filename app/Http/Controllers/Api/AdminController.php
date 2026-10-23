@@ -699,15 +699,65 @@ class AdminController extends Controller
     public function listPendingPharmacies(Request $request): JsonResponse
     {
         try {
+            // This screen is the register of pharmacies that are on the
+            // platform, with a per-week count of new sign-ups. Approval itself
+            // is automatic now, so the default view is the approved set.
             $query = Pharmacy::with(['owner', 'subscriptionPlan']);
 
-            if ($request->filled('status') && $request->input('status') !== 'all') {
-                $query->where('application_status', $request->input('status'));
+            $status = $request->input('status', 'approved');
+            if ($status && $status !== 'all') {
+                $query->where('application_status', $status);
             }
 
             $pharmacies = $query->latest()->paginate($request->input('per_page', 20));
 
-            return response()->json($pharmacies);
+            // Sign-ups per week for the last eight weeks, including the
+            // current one. The grouping happens in PHP because the rows are
+            // few and the application's timezone is what an admin expects to
+            // see, not the database's.
+            $weekStart = now()->startOfWeek();
+            $createdAt = Pharmacy::where('application_status', 'approved')
+                ->where('created_at', '>=', $weekStart->copy()->subWeeks(7))
+                ->pluck('created_at');
+
+            $counts = $createdAt->groupBy(
+                fn ($date) => \Illuminate\Support\Carbon::parse($date)->startOfWeek()->toDateString()
+            )->map->count();
+
+            $weeks = collect(range(7, 0))->map(function ($i) use ($counts) {
+                $start = now()->startOfWeek()->subWeeks($i);
+
+                return [
+                    'week_start' => $start->toDateString(),
+                    'week_end' => $start->copy()->endOfWeek()->toDateString(),
+                    'label' => $start->format('M j'),
+                    'count' => (int) ($counts[$start->toDateString()] ?? 0),
+                ];
+            })->values();
+
+            $approved = Pharmacy::where('application_status', 'approved');
+            $total = (clone $approved)->count();
+            $thisWeek = (clone $approved)
+                ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+                ->count();
+            $lastWeek = (clone $approved)
+                ->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])
+                ->count();
+
+            return response()->json([
+                'data' => $pharmacies->items(),
+                'current_page' => $pharmacies->currentPage(),
+                'last_page' => $pharmacies->lastPage(),
+                'per_page' => $pharmacies->perPage(),
+                'total' => $pharmacies->total(),
+                'weekly_registrations' => $weeks,
+                'stats' => [
+                    'total' => $total,
+                    'this_week' => $thisWeek,
+                    'last_week' => $lastWeek,
+                    'average_per_week' => round($weeks->sum('count') / max($weeks->count(), 1), 1),
+                ],
+            ]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to fetch pharmacies.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }

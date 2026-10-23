@@ -582,7 +582,7 @@ export default function AdminPharmacyShowPage() {
               { id: 'prescriptions', label: 'Prescriptions', icon: FileText },
             ]}
             active={activeTab}
-            onChange={(tab) => fetchTab(tab, 1)}
+            onChange={(tab) => { setActiveTab(tab); fetchTab(tab, 1) }}
           />
         </div>
         <div className="p-5">

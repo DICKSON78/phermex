@@ -161,7 +161,7 @@ export const en = {
       jobListings: 'Job Listings',
       auditLogs: 'Audit Logs',
       platformSettings: 'Platform Settings',
-      pendingApprovals: 'Pending Approvals',
+      pendingApprovals: 'Approved Pharmacies',
       reportsAnalytics: 'Reports & Analytics',
     },
   },

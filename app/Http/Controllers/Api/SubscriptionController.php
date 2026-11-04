@@ -32,7 +32,26 @@ class SubscriptionController extends Controller
     {
         $plans = SubscriptionPlan::where('is_active', true)
             ->orderBy('sort_order')
-            ->get();
+            ->get()
+            ->map(function ($plan) {
+                return [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'slug' => $plan->slug,
+                    'description' => $plan->description,
+                    'price' => (float) $plan->price,
+                    'currency' => $plan->currency,
+                    'duration_months' => $plan->duration_months,
+                    // Display monthly equivalent (annual price / 12)
+                    'price_monthly' => round((float) $plan->price / 12, 2),
+                    'display_as_monthly' => true,  // Always show as monthly to user
+                    'features' => $plan->features,
+                    'is_active' => $plan->is_active,
+                    'grace_period_days' => $plan->grace_period_days ?? 3,
+                    'is_monthly' => $plan->is_monthly ?? false,
+                    'payment_gateway' => $plan->payment_gateway,
+                ];
+            });
 
         return response()->json(['data' => $plans]);
     }

@@ -28,11 +28,17 @@ return new class extends Migration
             $table->boolean('show_wholesale_sales')->default(true)->after('show_retail_sales');
         });
 
-        // Products/Drugs: add wholesale pricing
+        // Products/Drugs: add wholesale pricing (only if columns don't exist)
         Schema::table('drugs', function (Blueprint $table) {
-            $table->decimal('wholesale_price', 12, 2)->nullable()->after('selling_price');
-            $table->decimal('wholesale_quantity_min', 10, 2)->default(10)->after('wholesale_price');
-            $table->boolean('is_wholesale_available')->default(false)->after('wholesale_quantity_min');
+            if (!Schema::hasColumn('drugs', 'wholesale_price')) {
+                $table->decimal('wholesale_price', 12, 2)->nullable()->after('selling_price');
+            }
+            if (!Schema::hasColumn('drugs', 'wholesale_quantity_min')) {
+                $table->decimal('wholesale_quantity_min', 10, 2)->default(10)->after('wholesale_price');
+            }
+            if (!Schema::hasColumn('drugs', 'is_wholesale_available')) {
+                $table->boolean('is_wholesale_available')->default(false)->after('wholesale_quantity_min');
+            }
         });
 
         // Orders: differentiate wholesale vs retail

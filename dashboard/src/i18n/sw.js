@@ -79,6 +79,8 @@ export const sw = {
     useAppTitle: 'Tumia Programu ya Helix',
     useAppDesc:
       'Kuagiza kumekwenda kwenye programu ya Helix kwenye simu. Ipakue kwenye simu yako ili uone maduka ya dawa, uagize dawa, upakie maagizo ya dawa, na ufuatilie usafirishaji wako.',
+    billed: 'Imekopiwa',
+    year: 'mwaka',
   },
   nav: {
     main: 'KUU',

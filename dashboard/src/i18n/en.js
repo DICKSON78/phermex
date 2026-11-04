@@ -79,6 +79,8 @@ export const en = {
     useAppTitle: 'Use the Helix App',
     useAppDesc:
       'Ordering has moved to the Helix mobile app. Download it on your phone to browse pharmacies, order medicines, upload prescriptions, and track your deliveries.',
+    billed: 'Billed',
+    year: 'year',
   },
   nav: {
     main: 'MAIN',

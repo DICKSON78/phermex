@@ -578,14 +578,17 @@ export default function SubscriptionPlansPage() {
 
                 <div className="mt-5 flex items-baseline gap-1">
                   <span className={`text-sm font-bold ${popular ? 'text-white/55' : 'text-gray-400'}`}>
-                    {plan.currency === 'USD' ? '$' : plan.currency || ''}
+                    $
                   </span>
                   <span className="rp-plan-price text-4xl font-black tabular-nums tracking-tight">
-                    {Number(plan.price).toLocaleString()}
+                    {Number(plan.price_monthly || plan.price).toLocaleString()}
                   </span>
                 </div>
                 <p className={`mt-1 text-sm ${popular ? 'text-white/55' : 'text-gray-400'}`}>
-                  / {plan.duration_months} {plan.duration_months > 1 ? t('authPages.shared.months') : t('authPages.shared.month')}
+                  / {t('authPages.shared.month')}
+                </p>
+                <p className={`mt-0.5 text-xs ${popular ? 'text-white/50' : 'text-gray-400'}`}>
+                  ({t('common.billed')} ${Number(plan.price).toLocaleString()}/{t('common.year')})
                 </p>
                 {hasRate && (plan.currency || 'USD') === 'USD' && (
                   <>
@@ -645,10 +648,10 @@ export default function SubscriptionPlansPage() {
                   <thead>
                     <tr className="bg-gray-50/80">
                       <th className="text-left px-6 py-4 font-bold text-gray-800 text-xs uppercase tracking-wider w-1/2">{t('authPages.plans.featureTh')}</th>
-                      {COLUMNS.map((col) => (
-                        <th key={col.key} className="px-3 py-4 text-center">
-                          <span className="text-xs font-black text-gray-900 block">{col.name}</span>
-                          <span className="text-xs text-[#0FD452] font-extrabold block mt-1">{col.price}/{t('authPages.plans.priceUnit')}</span>
+                      {plans.map((plan) => (
+                        <th key={plan.id} className="px-3 py-4 text-center">
+                          <span className="text-xs font-black text-gray-900 block">{plan.name}</span>
+                          <span className="text-xs text-[#0FD452] font-extrabold block mt-1">${Number(plan.price_monthly || plan.price).toLocaleString()}/{t('authPages.shared.month')}</span>
                         </th>
                       ))}
                     </tr>

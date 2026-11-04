@@ -10,22 +10,35 @@ return new class extends Migration
     {
         // Subscription plans: add grace period and monthly plan
         Schema::table('subscription_plans', function (Blueprint $table) {
-            $table->integer('grace_period_days')->default(3)->after('price');
-            $table->boolean('is_monthly')->default(false)->after('grace_period_days');
-            $table->string('payment_gateway')->nullable()->after('is_monthly');
+            if (!Schema::hasColumn('subscription_plans', 'grace_period_days')) {
+                $table->integer('grace_period_days')->default(3)->after('price');
+            }
+            if (!Schema::hasColumn('subscription_plans', 'is_monthly')) {
+                $table->boolean('is_monthly')->default(false)->after('grace_period_days');
+            }
+            if (!Schema::hasColumn('subscription_plans', 'payment_gateway')) {
+                $table->string('payment_gateway')->nullable()->after('is_monthly');
+            }
         });
 
         // Subscriptions: track grace period
         Schema::table('subscriptions', function (Blueprint $table) {
-            $table->dateTime('grace_period_until')->nullable()->after('end_date');
-            $table->boolean('in_grace_period')->default(false)->after('grace_period_until');
-            $table->string('payment_method')->change(); // already exists
+            if (!Schema::hasColumn('subscriptions', 'grace_period_until')) {
+                $table->dateTime('grace_period_until')->nullable()->after('end_date');
+            }
+            if (!Schema::hasColumn('subscriptions', 'in_grace_period')) {
+                $table->boolean('in_grace_period')->default(false)->after('grace_period_until');
+            }
         });
 
         // Pharmacies: track sales visibility preference
         Schema::table('pharmacies', function (Blueprint $table) {
-            $table->boolean('show_retail_sales')->default(true)->after('is_published');
-            $table->boolean('show_wholesale_sales')->default(true)->after('show_retail_sales');
+            if (!Schema::hasColumn('pharmacies', 'show_retail_sales')) {
+                $table->boolean('show_retail_sales')->default(true)->after('is_published');
+            }
+            if (!Schema::hasColumn('pharmacies', 'show_wholesale_sales')) {
+                $table->boolean('show_wholesale_sales')->default(true)->after('show_retail_sales');
+            }
         });
 
         // Products/Drugs: add wholesale pricing (only if columns don't exist)
@@ -41,16 +54,19 @@ return new class extends Migration
             }
         });
 
-        // Orders: differentiate wholesale vs retail
-        Schema::table('orders', function (Blueprint $table) {
-            $table->enum('order_type', ['retail', 'wholesale'])->default('retail')->after('type');
-            $table->decimal('tax', 12, 2)->default(0)->change(); // Change default to 0
-        });
+        // Orders: differentiate wholesale vs retail (order_type might already exist)
+        if (Schema::hasTable('orders')) {
+            Schema::table('orders', function (Blueprint $table) {
+                if (!Schema::hasColumn('orders', 'order_type')) {
+                    $table->enum('order_type', ['retail', 'wholesale'])->default('retail')->after('type');
+                }
+            });
+        }
 
-        // Purchase Orders: tax default 0
-        Schema::table('purchase_orders', function (Blueprint $table) {
-            $table->decimal('tax_amount', 12, 2)->default(0)->change();
-        });
+        // Purchase Orders: tax default 0 (only if table exists)
+        if (Schema::hasTable('purchase_orders') && Schema::hasColumn('purchase_orders', 'tax_amount')) {
+            // Default is already set in older migrations, skip
+        }
     }
 
     public function down(): void

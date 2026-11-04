@@ -62,6 +62,8 @@ class Pharmacy extends Model
         'customer_payment_method',
         'customer_payment_number',
         'customer_payment_name',
+        'show_retail_sales',
+        'show_wholesale_sales',
     ];
 
     protected $casts = [
@@ -84,6 +86,8 @@ class Pharmacy extends Model
         'latitude' => 'float',
         'longitude' => 'float',
         'rating' => 'decimal:2',
+        'show_retail_sales' => 'boolean',
+        'show_wholesale_sales' => 'boolean',
     ];
 
     public static function generatePharmacyCode(string $district): string

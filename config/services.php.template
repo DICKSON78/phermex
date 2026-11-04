@@ -1,0 +1,18 @@
+<?php
+
+return [
+    // ... existing services ...
+
+    'crdb' => [
+        'merchant_id' => env('CRDB_MERCHANT_ID'),
+        'api_key' => env('CRDB_API_KEY'),
+        'api_url' => env('CRDB_API_URL', 'https://api.crdb.co.tz/payment/v1'),
+        'timeout' => env('CRDB_TIMEOUT', 30),
+    ],
+
+    'clickpesa' => [
+        'api_key' => env('CLICKPESA_API_KEY'),
+        'public_key' => env('CLICKPESA_PUBLIC_KEY'),
+        'webhook_secret' => env('CLICKPESA_WEBHOOK_SECRET'),
+    ],
+];

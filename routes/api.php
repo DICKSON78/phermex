@@ -123,6 +123,9 @@ Route::prefix('customer-app')->group(function () {
 Route::post('/payments/webhook', [PaymentController::class, 'handleWebhook'])
     ->middleware('throttle:120,1');
 
+Route::post('/payments/webhook/crdb', [\App\Http\Controllers\Api\CardPaymentController::class, 'webhook'])
+    ->middleware('throttle:120,1');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload', [UploadController::class, 'store']);
 
@@ -648,6 +651,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/checkout', [SubscriptionController::class, 'checkout']);
         Route::get('/payment-status', [SubscriptionController::class, 'paymentStatus']);
         Route::post('/confirm-payment', [SubscriptionController::class, 'confirmPayment']);
+    });
+
+    // Card payment routes
+    Route::prefix('payments/card')->group(function () {
+        Route::post('/initiate', [\App\Http\Controllers\Api\CardPaymentController::class, 'initiate']);
+        Route::get('/methods', [\App\Http\Controllers\Api\CardPaymentController::class, 'getPaymentMethods']);
+    });
+
+    // Wholesale routes
+    Route::prefix('wholesale')->group(function () {
+        Route::get('/products', [\App\Http\Controllers\Api\WholesaleController::class, 'products']);
+        Route::get('/pricing-comparison', [\App\Http\Controllers\Api\WholesaleController::class, 'pricingComparison']);
+        Route::post('/orders', [\App\Http\Controllers\Api\WholesaleController::class, 'createOrder']);
+        Route::post('/settings', [\App\Http\Controllers\Api\WholesaleController::class, 'toggleSalesVisibility']);
     });
 
     // AI Service routes - for demand forecasting, recommendations, embeddings

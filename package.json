@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "deploy": "vite build && cp -r dist/assets public/website/assets && cp -r dist/dashboard/assets public/website/dashboard/assets && php artisan cache:clear",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -180,6 +180,7 @@ export const en = {
         careers: 'CAREERS',
         newsroom: 'NEWSROOM',
         faq: 'FAQ',
+        api: 'API',
         contact: 'CONTACT',
       },
       cta: {

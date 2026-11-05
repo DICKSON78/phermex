@@ -11,6 +11,7 @@ import JobDetailPage from './pages/JobDetailPage'
 import NewsroomPage from './pages/NewsroomPage'
 import ArticlePage from './pages/ArticlePage'
 import FAQPage from './pages/FAQPage'
+import APIDocumentationPage from './pages/APIDocumentationPage'
 import ApplyPage from './pages/ApplyPage'
 import ContactPage from './pages/ContactPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -40,6 +41,7 @@ function App() {
           <Route path="/newsroom" element={<NewsroomPage />} />
           <Route path="/newsroom/:slug" element={<ArticlePage />} />
           <Route path="/faq" element={<FAQPage />} />
+          <Route path="/api" element={<APIDocumentationPage />} />
           <Route path="/apply" element={<ApplyPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFoundPage />} />

@@ -23,5 +23,6 @@ export const NAV_LINKS = [
   { key: 'careers', to: '/careers' },
   { key: 'newsroom', to: '/newsroom' },
   { key: 'faq', to: '/faq' },
+  { key: 'api', to: '/api' },
   { key: 'contact', to: '/contact' },
 ]

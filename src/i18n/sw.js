@@ -180,6 +180,7 @@ export const sw = {
         careers: 'KAZI',
         newsroom: 'HABARI',
         faq: 'MASWALI',
+        api: 'API',
         contact: 'WASILIANI',
       },
       cta: {

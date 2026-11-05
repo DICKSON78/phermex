@@ -20,6 +20,14 @@ if [ ! -f "dist/index.html" ] || [ ! -d "dist/assets" ]; then
     exit 1
 fi
 
+# Restore the dashboard SPA if its tracked files were ever removed locally.
+# Laravel routes /login, /register and /app to public/dashboard/index.html.
+if [ ! -f "public/dashboard/index.html" ]; then
+    echo "📦 Restoring dashboard build from git..."
+    git checkout -- public/dashboard
+    echo "✅ Dashboard restored"
+fi
+
 deploy_webroot() {
     local target="$1"
     echo "📁 Copying build into $target ..."

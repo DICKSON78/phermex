@@ -306,8 +306,8 @@ export default function PackagesPage() {
                     )}
 
                     <div className="mt-auto pt-8">
-                      <Link
-                        to={`${DASHBOARD_URL}/register/owner`}
+                      <a
+                        href={`${DASHBOARD_URL}/register/owner`}
                         className={
                           popular
                             ? 'block w-full rounded-xl bg-[#0FD452] px-6 py-3 text-center text-sm font-black text-[#000F14] transition-colors hover:bg-[#0cb843]'
@@ -315,7 +315,7 @@ export default function PackagesPage() {
                         }
                       >
                         {t('site.cta.getStarted')}
-                      </Link>
+                      </a>
                     </div>
                   </div>
                 )

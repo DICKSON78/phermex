@@ -153,6 +153,7 @@ export const sw = {
       messages: 'Ujumbe',
       reviews: 'Maoni',
       pharmacies: 'Farmasia',
+      wholesalers: 'Wauzaji Jumla',
       users: 'Watumiaji',
       drugDatabase: 'Kanzidata ya Dawa',
       subscriptions: 'Usajili',

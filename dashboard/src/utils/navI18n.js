@@ -52,6 +52,7 @@ const PATH_KEYS = {
   '/dashboard/chats': 'nav.items.messages',
   '/dashboard/reviews': 'nav.items.reviews',
   '/dashboard/pharmacies': 'nav.items.pharmacies',
+  '/dashboard/wholesalers': 'nav.items.wholesalers',
   '/dashboard/users': 'nav.items.users',
   '/dashboard/drug-database': 'nav.items.drugDatabase',
   '/dashboard/reports': 'nav.items.reportsAnalytics',

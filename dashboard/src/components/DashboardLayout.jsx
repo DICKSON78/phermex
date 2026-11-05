@@ -136,6 +136,7 @@ import AddPharmacyPage from '../pages/owner/AddPharmacyPage'
 
 import AdminDashboard from '../pages/admin/AdminDashboard'
 import AdminPharmaciesPage from '../pages/admin/AdminPharmaciesPage'
+import AdminWholesalersPage from '../pages/admin/AdminWholesalersPage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminAuditLogsPage from '../pages/admin/AdminAuditLogsPage'
 import AdminSettingsPage from '../pages/admin/AdminSettingsPage'
@@ -308,6 +309,7 @@ const adminNavGroups = [
     label: 'MANAGEMENT',
     items: [
       { path: '/dashboard/pharmacies', icon: Building2, label: 'Pharmacies' },
+      { path: '/dashboard/wholesalers', icon: Truck, label: 'Wholesalers' },
       { path: '/dashboard/users', icon: Users, label: 'Users' },
       { path: '/dashboard/drug-database', icon: Pill, label: 'Drug Database' },
     ],
@@ -1148,6 +1150,7 @@ export default function DashboardLayout({ role }) {
               <Route index element={<AdminDashboard />} />
               <Route path="pending-approvals" element={<AdminPendingApprovalsPage />} />
               <Route path="pharmacies" element={<AdminPharmaciesPage />} />
+              <Route path="wholesalers" element={<AdminWholesalersPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="drug-database" element={<AdminDrugDatabasePage />} />
               <Route path="revenue" element={<AdminRevenuePage />} />

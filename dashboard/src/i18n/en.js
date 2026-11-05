@@ -153,6 +153,7 @@ export const en = {
       messages: 'Messages',
       reviews: 'Reviews',
       pharmacies: 'Pharmacies',
+      wholesalers: 'Wholesalers',
       users: 'Users',
       drugDatabase: 'Drug Database',
       subscriptions: 'Subscriptions',

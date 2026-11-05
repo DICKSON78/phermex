@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AdminSettingController;
 use App\Http\Controllers\Api\AdminSubscriptionController;
 use App\Http\Controllers\Api\AdminSupportController;
 use App\Http\Controllers\Api\AdminUserController;
+use App\Http\Controllers\Api\AdminWholesalerController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BankController;
@@ -539,6 +540,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/pharmacies/{id}/confirm-payment', [AdminController::class, 'confirmPayment']);
         Route::get('/pending-pharmacies', [AdminController::class, 'listPendingPharmacies']);
         Route::get('/reviews', [AdminController::class, 'reviews']);
+
+        // Admin wholesaler management
+        Route::get('/wholesalers', [AdminWholesalerController::class, 'index']);
+        Route::post('/wholesalers', [AdminWholesalerController::class, 'store']);
+        Route::get('/wholesalers/{id}', [AdminWholesalerController::class, 'show']);
+        Route::put('/wholesalers/{id}', [AdminWholesalerController::class, 'update']);
+        Route::patch('/wholesalers/{id}/status', [AdminWholesalerController::class, 'updateStatus']);
+        Route::delete('/wholesalers/{id}', [AdminWholesalerController::class, 'destroy']);
 
         // Admin per-pharmacy drill-down
         Route::get('/pharmacies/{id}/orders', [AdminController::class, 'pharmacyOrders']);

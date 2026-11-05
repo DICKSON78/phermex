@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
 
 const POLL_MS = 15000
+const HEADER_GRADIENT = 'linear-gradient(180deg, #0a1f14 0%, #0d2b1c 50%, #071a0f 100%)'
 const ENDED_STATUSES = ['resolved', 'closed']
 
 function buildMessages(ticket, userId) {
@@ -116,7 +117,7 @@ export default function SupportChatWidget() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex h-[560px] max-h-[calc(100vh-2rem)] w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
-      <div className="flex items-center justify-between bg-[#000F14] px-5 py-4 text-white">
+      <div className="flex items-center justify-between px-5 py-4 text-white" style={{ background: HEADER_GRADIENT }}>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0FD452]/20">
             <MessageCircle className="h-5 w-5 text-[#0FD452]" />
@@ -175,13 +176,13 @@ export default function SupportChatWidget() {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={t('support.chat.placeholder', 'Type your message...')}
+          placeholder={t('support.chat.placeholder', 'Message...')}
           className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
         />
         <button
           type="submit"
           disabled={!text.trim() || sending}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0FD452] text-[#000F14] transition-all hover:bg-[#0cb843] disabled:opacity-50"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0FD452] text-[#000F14] transition-all hover:bg-[#0cb843] disabled:opacity-50"
           aria-label={t('support.chat.send', 'Send')}
         >
           {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

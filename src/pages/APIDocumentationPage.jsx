@@ -637,7 +637,7 @@ export default function APIDocumentationPage() {
             <SectionHeading
               eyebrow="Billing"
               title="Subscriptions"
-              description="Read the plan catalogue and monthly pricing. Plans are billed annually, include a 30-day free trial, and keep a 3-day grace period before suspension."
+              description="Read the plan catalogue and monthly pricing. Plans are billed monthly, include a 30-day free trial, and keep a 3-day grace period before suspension."
             />
 
             <div className="mt-8 space-y-6">
@@ -650,7 +650,7 @@ export default function APIDocumentationPage() {
                   </span>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-gray-500">
-                  Returns every active plan with its annual price and the derived monthly price.
+                  Returns every active plan with its exact monthly price.
                 </p>
               </div>
 
@@ -660,7 +660,7 @@ export default function APIDocumentationPage() {
                     <p className="text-[10px] font-bold uppercase tracking-[2px] text-gray-400">{plan.name}</p>
                     <p className="mt-2 text-2xl font-extrabold text-gray-900">
                       ${plan.price}
-                      <span className="ml-1 text-xs font-medium text-gray-400">/mo</span>
+                      <span className="text-xs font-medium text-gray-400">/mo</span>
                     </p>
                     <p className="mt-1 text-xs text-gray-500">{plan.note}</p>
                   </div>
@@ -678,7 +678,7 @@ export default function APIDocumentationPage() {
                 </div>
                 <div className="flex items-start gap-2.5 rounded-lg border border-gray-200 p-3">
                   <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-[#0a8f3c]" />
-                  <p className="text-xs leading-5 text-gray-600">Annual billing via card or mobile money.</p>
+                  <p className="text-xs leading-5 text-gray-600">Monthly billing via card or mobile money.</p>
                 </div>
               </div>
 

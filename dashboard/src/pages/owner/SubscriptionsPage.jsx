@@ -267,8 +267,8 @@ export default function SubscriptionsPage() {
               </div>
               <h3 className="text-lg font-extrabold text-gray-900">{plan.name}</h3>
               <p className="text-2xl font-black text-gray-900 mt-2">
-                {plan.currency === 'USD' ? '$' : plan.currency || ''}{Number(plan.price).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                <span className="text-sm text-gray-400 font-medium">{t('reports.subscriptions.perYear')}</span>
+                {plan.currency === 'USD' ? '$' : plan.currency || ''}{Number(plan.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <span className="text-sm text-gray-400 font-medium">{t('reports.subscriptions.perMonth')}</span>
               </p>
               {tzsAmount && (
                 <>

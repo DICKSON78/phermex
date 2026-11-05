@@ -451,7 +451,7 @@ export default {
         'Una salio ambalo halijalipwa kwa usajili wako. Kamilisha malipo kupitia ukurasa wa Jisajili, au wasiliana na msaada ikiwa tayari umelipa.',
       completePayment: 'Kamilisha Malipo',
       availablePlans: 'Mipango Inayopatikana',
-      perYear: '/mwaka',
+      perMonth: '/mwezi',
       renewUpgrade: 'Sasisha / Pandisha',
       activePackage: 'Mpango Unaotumika',
       fullAccess: 'Ufikiaji Kamili',

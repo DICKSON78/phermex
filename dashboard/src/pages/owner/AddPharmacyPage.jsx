@@ -578,7 +578,7 @@ export default function AddPharmacyPage() {
                         <p className="text-xs text-gray-500">{plan.description}</p>
                       </div>
                       <div className="text-right ml-3 shrink-0">
-                        <p className="text-sm font-black text-[#000F14]">${Number(plan.price).toLocaleString()}</p>
+                        <p className="text-sm font-black text-[#000F14]">${Number(plan.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         {planTzs != null && <p className="text-[10px] font-medium text-gray-400">≈ TZS {planTzs.toLocaleString()}</p>}
                       </div>
                     </div>

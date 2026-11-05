@@ -55,15 +55,16 @@ export default function LoginPage() {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: plan.currency || 'USD',
-        maximumFractionDigits: 0,
-      }).format(Number(plan.price ?? 0))
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Number(plan.price_monthly ?? plan.price ?? 0))
     } catch {
-      return `${plan.currency || 'USD'} ${Number(plan.price ?? 0).toLocaleString()}`
+      return `${plan.currency || 'USD'} ${Number(plan.price_monthly ?? plan.price ?? 0).toFixed(2)}`
     }
   }
 
   const billingSuffix = (plan) =>
-    Number(plan.duration_months ?? 12) === 1 ? t('auth.perMonth') : t('auth.perYear')
+    Number(plan.duration_months ?? 1) === 1 ? t('auth.perMonth') : t('auth.perYear')
 
   const [googleLoading, setGoogleLoading] = useState(false)
 

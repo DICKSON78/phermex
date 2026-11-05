@@ -51,7 +51,7 @@ export default function AdminPendingApprovalsPage() {
     const value = Number(usd)
     if (!Number.isFinite(value)) return '—'
     const tzs = tzsFromUsd(value, rates)
-    return `$${value.toLocaleString()}${tzs != null ? ` · ≈ TZS ${tzs.toLocaleString()}` : ''}`
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${tzs != null ? ` · ≈ TZS ${tzs.toLocaleString()}` : ''}`
   }
   const [pharmacies, setPharmacies] = useState([])
   const [loading, setLoading] = useState(true)

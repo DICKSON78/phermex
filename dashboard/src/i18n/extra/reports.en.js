@@ -451,7 +451,7 @@ export default {
         'You have an outstanding balance for your subscription. Complete payment from the Subscribe page, or contact support if you have paid.',
       completePayment: 'Complete Payment',
       availablePlans: 'Available Plans',
-      perYear: '/year',
+      perMonth: '/month',
       renewUpgrade: 'Renew / Upgrade',
       activePackage: 'Active Package',
       fullAccess: 'Full Access',

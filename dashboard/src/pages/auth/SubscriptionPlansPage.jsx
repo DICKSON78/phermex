@@ -28,9 +28,9 @@ const PLAN_META = [
 ]
 
 const COLUMNS = [
-  { key: 's', name: 'STARTER', price: '$150' },
-  { key: 'p', name: 'PROFESSIONAL', price: '$200' },
-  { key: 'e', name: 'ENTERPRISE', price: '$250' },
+  { key: 's', name: 'STARTER', price: '$14.99' },
+  { key: 'p', name: 'PROFESSIONAL', price: '$19.99' },
+  { key: 'e', name: 'ENTERPRISE', price: '$29.99' },
 ]
 
 const CHECK_COLOR = 'text-[#0FD452]'

@@ -105,10 +105,11 @@ export default function SupportChatWidget() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-[#0FD452] px-5 py-3 text-sm font-semibold text-[#000F14] shadow-lg transition-all hover:bg-[#0cb843] hover:shadow-xl active:scale-[0.98]"
+        aria-label={t('support.chat.button', 'Chat support')}
+        title={t('support.chat.button', 'Chat support')}
+        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#0FD452] text-[#000F14] shadow-lg transition-all hover:bg-[#0cb843] hover:shadow-xl active:scale-[0.98]"
       >
-        <MessageCircle className="h-5 w-5" />
-        {t('support.chat.button', 'Chat support')}
+        <MessageCircle className="h-6 w-6" />
       </button>
     )
   }

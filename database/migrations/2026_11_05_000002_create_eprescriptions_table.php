@@ -61,7 +61,6 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->string('rate_limit')->default('1000/hour');
             $table->text('allowed_endpoints')->nullable();
-            $table->dateTime('created_at');
             $table->dateTime('last_used_at')->nullable();
             $table->timestamps();
 

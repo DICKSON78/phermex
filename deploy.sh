@@ -1,56 +1,55 @@
 #!/bin/bash
+#
+# Deploy the committed website build to the live web root.
+# Run on the server after: git pull origin main
+#
+# The production server has no Node/npm, so dist/ is built locally, committed
+# to git, and copied here into public/website/ (the actual web root).
 
-# Deployment script for Helix API Page
-# Run this on SERVER after: git pull origin main
+set -euo pipefail
 
-cd /home/sikacgkz/helix.co.tz
+ROOT="${HELIX_ROOT:-/home/sikacgkz/helix.co.tz}"
+cd "$ROOT"
 
-echo "🚀 Starting Helix API deployment..."
+echo "🚀 Starting Helix website deployment..."
 
-# 1. Check if dist folder exists (from git pull)
-if [ ! -d "dist" ]; then
-    echo "❌ dist folder not found!"
-    echo "Make sure you ran: git pull origin main"
+if [ ! -f "dist/index.html" ] || [ ! -d "dist/assets" ]; then
+    echo "❌ dist/index.html or dist/assets missing."
+    echo "   Run: git pull origin main"
     exit 1
 fi
 
-echo "✅ dist folder found"
+echo "📁 Copying website build..."
+mkdir -p public/website/assets
+cp -a dist/assets/. public/website/assets/
+cp -a dist/index.html public/website/index.html
+echo "✅ Website build copied"
 
-# 2. Copy assets to public/website/assets
-echo "📁 Copying assets..."
-cp -r dist/assets/* public/website/assets/ 2>/dev/null || echo "⚠️ Some assets may not have copied"
-echo "✅ Assets copied"
+# The dashboard is a separate build. Deploy it only when present.
+if [ -d "dist/dashboard/assets" ]; then
+    echo "📁 Copying dashboard build..."
+    mkdir -p public/website/dashboard/assets
+    cp -a dist/dashboard/assets/. public/website/dashboard/assets/
+    [ -f "dist/dashboard/index.html" ] && cp -a dist/dashboard/index.html public/website/dashboard/index.html
+    echo "✅ Dashboard build copied"
+fi
 
-# 3. Copy dashboard to public/website/dashboard
-echo "📁 Copying dashboard..."
-cp -r dist/dashboard/assets/* public/website/dashboard/assets/ 2>/dev/null || echo "⚠️ Dashboard assets may not have copied"
-echo "✅ Dashboard copied"
-
-# 4. Copy index.html
-echo "📁 Copying index.html..."
-cp dist/index.html public/website/ 2>/dev/null || echo "⚠️ index.html not copied"
-echo "✅ index.html copied"
-
-# 5. Clear Laravel cache
-echo "🔄 Clearing cache..."
+echo "🔄 Clearing Laravel cache..."
 php artisan cache:clear
-echo "✅ Cache cleared"
 
-# 6. Verify deployment
-echo "🔍 Verifying deployment..."
-if [ -f "public/website/assets/index-B5GqlR6W.js" ]; then
-    echo "✅ NEW BUILD FOUND: index-B5GqlR6W.js"
+# Verify the exact bundle referenced by index.html landed in the web root.
+BUNDLE="$(grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' dist/index.html | head -1)"
+if [ -n "$BUNDLE" ] && [ -f "public/website/$BUNDLE" ]; then
     echo ""
     echo "🎉 =============================================="
     echo "🎉   DEPLOYMENT SUCCESSFUL!"
-    echo "🎉   API Page is LIVE!"
+    echo "🎉   Live bundle: $BUNDLE"
     echo "🎉 =============================================="
     echo ""
     echo "Visit: https://helix.co.tz"
-    echo "Look for 'API' in navigation (between FAQ and CONTACT)"
-    echo "Click it → https://helix.co.tz/api"
+    echo "API docs: https://helix.co.tz/api"
 else
-    echo "❌ NEW BUILD NOT FOUND"
-    echo "Check if git pull copied dist folder correctly"
-    ls -lh public/website/assets/index-*
+    echo "❌ Deployment verification failed (bundle: ${BUNDLE:-not found})"
+    ls -lh public/website/assets/index-* 2>/dev/null || true
+    exit 1
 fi

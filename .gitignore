@@ -10,9 +10,11 @@ lerna-debug.log*
 node_modules
 node_modules/
 vendor/
-dist
+# dist/ is committed on purpose: the production server has no Node/npm and
+# deploys by pulling this folder, then copying it into public/website/.
 dist-ssr
-dist/
+dist.zip
+dist.tar.gz
 *.local
 
 # Environment files

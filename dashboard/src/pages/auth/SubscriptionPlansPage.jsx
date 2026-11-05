@@ -419,7 +419,7 @@ export default function SubscriptionPlansPage() {
               <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4 mb-6">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-4xl font-black text-gray-900">${Number(selectedPlan.price).toLocaleString()}</p>
+                    <p className="text-4xl font-black text-gray-900">${Number(selectedPlan.price).toFixed(2)}</p>
                     <p className="text-xs text-gray-400 font-bold mt-0.5">/{selectedPlan.duration_months} {selectedPlan.duration_months > 1 ? t('authPages.shared.months') : t('authPages.shared.month')}</p>
                     {hasRate && (
                       <p className="text-xs font-extrabold text-emerald-600 mt-1">
@@ -435,7 +435,7 @@ export default function SubscriptionPlansPage() {
                 <div className="flex items-center justify-between border-t border-gray-200 mt-4 pt-4">
                   <span className="text-sm font-bold text-gray-600">{t('authPages.plans.totalDue')}</span>
                   <span className="text-right">
-                    <span className="block text-lg font-black text-gray-900">${Number(selectedPlan.price).toLocaleString()}</span>
+                    <span className="block text-lg font-black text-gray-900">${Number(selectedPlan.price).toFixed(2)}</span>
                     {hasRate && (
                       <span className="block text-sm font-extrabold text-emerald-600">
                         {formatTzs(selectedPlan.price)}
@@ -581,7 +581,7 @@ export default function SubscriptionPlansPage() {
                     $
                   </span>
                   <span className="rp-plan-price text-4xl font-black tabular-nums tracking-tight">
-                    {Number(plan.price).toLocaleString()}
+                    {Number(plan.price).toFixed(2)}
                   </span>
                 </div>
                 <p className={`mt-1 text-sm ${popular ? 'text-white/55' : 'text-gray-400'}`}>
@@ -648,7 +648,7 @@ export default function SubscriptionPlansPage() {
                       {plans.map((plan) => (
                         <th key={plan.id} className="px-3 py-4 text-center">
                           <span className="text-xs font-black text-gray-900 block">{plan.name}</span>
-                          <span className="text-xs text-[#0FD452] font-extrabold block mt-1">${Number(plan.price).toLocaleString()}/{t('authPages.shared.month')}</span>
+                          <span className="text-xs text-[#0FD452] font-extrabold block mt-1">${Number(plan.price).toFixed(2)}/{t('authPages.shared.month')}</span>
                         </th>
                       ))}
                     </tr>

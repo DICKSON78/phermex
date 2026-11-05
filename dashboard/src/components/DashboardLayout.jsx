@@ -82,6 +82,7 @@ import PharmacyReviewsPage from '../pages/owner/PharmacyReviewsPage'
 import TelemedicinePage from '../pages/owner/TelemedicinePage'
 import LoyaltyPage from '../pages/owner/LoyaltyPage'
 import ReelPage from '../pages/owner/ReelPage'
+import SupportChatWidget from './SupportChatWidget'
 import InsuranceProvidersPage from '../pages/owner/InsuranceProvidersPage'
 import PatientInsurancesPage from '../pages/owner/PatientInsurancesPage'
 import InsuranceClaimsPage from '../pages/owner/InsuranceClaimsPage'
@@ -410,6 +411,7 @@ const ACTIVE_GRADIENT = 'linear-gradient(135deg, #0FD452, #05b843)'
 
 export default function DashboardLayout({ role }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
   const [collapsedGroups, setCollapsedGroups] = useState({})
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -762,6 +764,18 @@ export default function DashboardLayout({ role }) {
         </div>
       </nav>
 
+      {role === 'owner' && (
+        <div className="px-3 pb-3">
+          <button
+            onClick={() => setChatOpen(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#0FD452] px-4 py-2.5 text-sm font-semibold text-[#000F14] shadow-sm transition-all hover:bg-[#0cb843] active:scale-[0.98]"
+          >
+            <MessageCircle className="h-4 w-4" />
+            {t('support.chat.button', 'Chat support')}
+          </button>
+        </div>
+      )}
+
       {/* Settings + User */}
       <div className="px-3 pb-4 space-y-1 border-t border-white/10 pt-3">
         {role !== 'seller' && (
@@ -822,6 +836,10 @@ export default function DashboardLayout({ role }) {
       >
         {sidebarContent}
       </aside>
+
+      {role === 'owner' && (
+        <SupportChatWidget open={chatOpen} onClose={() => setChatOpen(false)} />
+      )}
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden">

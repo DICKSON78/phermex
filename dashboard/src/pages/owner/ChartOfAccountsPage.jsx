@@ -10,6 +10,7 @@ import { formatMoney } from '../../utils/currency'
 import PageHeader from '../../components/PageHeader'
 import Tabs from '../../components/Tabs'
 import { useLanguage } from '../../contexts/LanguageContext'
+import useConfirm from '../../hooks/useConfirm'
 
 const ACCOUNT_TYPES = [
   { id: 'asset', label: 'Assets', color: 'blue' },
@@ -98,6 +99,7 @@ function AccountTreeItem({ account, depth = 0, onEdit, onDelete }) {
 export default function ChartOfAccountsPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const [askConfirm, confirmDialog] = useConfirm()
   const [tree, setTree] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeType, setActiveType] = useState('all')
@@ -165,7 +167,7 @@ export default function ChartOfAccountsPage() {
   }
 
   const handleDelete = async (account) => {
-    if (!window.confirm(`${t('accounting.coa.deleteConfirm')} "${account.account_name}"?`)) return
+    if (!(await askConfirm({ message: `${t('accounting.coa.deleteConfirm')} "${account.account_name}"?` }))) return
     try {
       await api.delete(`/accounts/${account.id}`)
       toast.success(t('accounting.coa.deleted'))
@@ -179,6 +181,8 @@ export default function ChartOfAccountsPage() {
   ACCOUNT_TYPES.forEach((at) => { typeLabels[at.id] = t(TYPE_KEYS[at.id], at.label) })
 
   return (
+    <>
+      {confirmDialog}
     <div className="p-6 space-y-6">
       <PageHeader
         icon={BookOpen}
@@ -271,5 +275,6 @@ export default function ChartOfAccountsPage() {
 
 
     </div>
+    </>
   )
 }

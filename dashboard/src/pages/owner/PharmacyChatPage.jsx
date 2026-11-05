@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toArray } from '../../utils/safeData';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, Phone, AlertTriangle, Pill, FileText } from 'lucide-react';
+import { ArrowLeft, Send, Phone, AlertTriangle, Pill, FileText, CheckCheck } from 'lucide-react';
 import { currentBase } from '../../utils/roles'
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -107,7 +107,7 @@ export default function PharmacyChatPage() {
                   </div>
                   <p className={`text-[10px] text-gray-400 mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
                     {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                    {isMe && msg.is_read && <span className="ml-1 text-[#0FD452]">✓✓</span>}
+                    {isMe && msg.is_read && <CheckCheck className="ml-1 inline w-3.5 h-3.5 text-[#0FD452]" />}
                   </p>
                 </div>
               </div>

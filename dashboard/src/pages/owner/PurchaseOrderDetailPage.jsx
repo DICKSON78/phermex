@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle, XCircle, Package, Truck, Printer, Pill, Hash, DollarSign, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, Check, CheckCircle, XCircle, Package, Truck, Printer, Pill, Hash, DollarSign, ShoppingCart } from 'lucide-react'
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
 import toast from 'react-hot-toast'
@@ -120,7 +120,7 @@ export default function PurchaseOrderDetailPage() {
               const isActive = stepIdx <= currentIdx
               return (
                 <div key={step} className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'bg-primary text-dark' : 'bg-gray-200 text-gray-400'}`}>{isActive ? '✓' : i + 1}</div>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'bg-primary text-dark' : 'bg-gray-200 text-gray-400'}`}>{isActive ? <Check className="w-3.5 h-3.5" /> : i + 1}</div>
                   <span className={`text-sm ${isActive ? 'text-dark font-medium' : 'text-gray-400'}`}>{t(`supply.purchaseOrders.statuses.${step}`, step)}</span>
                 </div>
               )

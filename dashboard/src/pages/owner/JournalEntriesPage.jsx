@@ -11,6 +11,7 @@ import { formatMoney } from '../../utils/currency'
 import PageHeader from '../../components/PageHeader'
 import Tabs from '../../components/Tabs'
 import { useLanguage } from '../../contexts/LanguageContext'
+import useConfirm from '../../hooks/useConfirm'
 
 const STATUS_COLORS = {
   draft: 'bg-yellow-100 text-yellow-700',
@@ -26,6 +27,7 @@ function formatCurrency(amount) {
 export default function JournalEntriesPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const [askConfirm, confirmDialog] = useConfirm()
   const [entries, setEntries] = useState([])
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -110,7 +112,7 @@ export default function JournalEntriesPage() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t('accounting.journal.deleteConfirm'))) return
+    if (!(await askConfirm({ message: t('accounting.journal.deleteConfirm') }))) return
     setProcessing(id)
     try {
       await api.delete(`/journal/${id}`)
@@ -147,6 +149,8 @@ export default function JournalEntriesPage() {
   }
 
   return (
+    <>
+      {confirmDialog}
     <div className="p-6 space-y-6">
       <PageHeader
         icon={BookOpen}
@@ -333,5 +337,6 @@ export default function JournalEntriesPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

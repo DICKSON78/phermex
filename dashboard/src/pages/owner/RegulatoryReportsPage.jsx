@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toArray } from '../../utils/safeData';
-import { Plus, FileCheck, Send, Eye, Clock, CheckCircle, FileText, Hash, Calendar, ShieldCheck, MapPin, Zap } from 'lucide-react'
+import { Plus, FileCheck, Send, Eye, Clock, CheckCircle, FileText, Hash, Calendar, ShieldCheck, MapPin, Zap, BarChart3, Package, Pill, Truck } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
@@ -10,11 +10,11 @@ import { useLanguage } from '../../contexts/LanguageContext'
 const STATUS_STYLES = { draft: 'bg-gray-100 text-gray-600', submitted: 'bg-blue-100 text-blue-700', approved: 'bg-green-100 text-green-700' }
 
 const TEMPLATE_INFO = {
-  monthly_sales: { icon: '📊', label: 'reports.regulatory.templates.monthly_sales.label', description: 'reports.regulatory.templates.monthly_sales.description' },
-  inventory_status: { icon: '📦', label: 'reports.regulatory.templates.inventory_status.label', description: 'reports.regulatory.templates.inventory_status.description' },
-  controlled_substances: { icon: '💊', label: 'reports.regulatory.templates.controlled_substances.label', description: 'reports.regulatory.templates.controlled_substances.description' },
-  drug_expiry: { icon: '⏰', label: 'reports.regulatory.templates.drug_expiry.label', description: 'reports.regulatory.templates.drug_expiry.description' },
-  supplier_activity: { icon: '🚚', label: 'reports.regulatory.templates.supplier_activity.label', description: 'reports.regulatory.templates.supplier_activity.description' },
+  monthly_sales: { icon: BarChart3, label: 'reports.regulatory.templates.monthly_sales.label', description: 'reports.regulatory.templates.monthly_sales.description' },
+  inventory_status: { icon: Package, label: 'reports.regulatory.templates.inventory_status.label', description: 'reports.regulatory.templates.inventory_status.description' },
+  controlled_substances: { icon: Pill, label: 'reports.regulatory.templates.controlled_substances.label', description: 'reports.regulatory.templates.controlled_substances.description' },
+  drug_expiry: { icon: Clock, label: 'reports.regulatory.templates.drug_expiry.label', description: 'reports.regulatory.templates.drug_expiry.description' },
+  supplier_activity: { icon: Truck, label: 'reports.regulatory.templates.supplier_activity.label', description: 'reports.regulatory.templates.supplier_activity.description' },
 }
 
 export default function RegulatoryReportsPage() {
@@ -88,7 +88,7 @@ export default function RegulatoryReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         {Object.entries(TEMPLATE_INFO).map(([type, info]) => (
           <div key={type} className="bg-white rounded-xl p-4 border border-gray-200 hover:border-primary/50 transition-colors cursor-pointer" onClick={() => { setForm({...form, report_type: type}); setShowGenerate(true) }}>
-            <div className="text-2xl mb-2">{info.icon}</div>
+            <div className="mb-2"><info.icon className="w-6 h-6 text-[#0FD452]" /></div>
             <h4 className="text-sm font-semibold text-dark">{t(info.label)}</h4>
             <p className="text-xs text-gray-500 mt-1">{t(info.description)}</p>
           </div>

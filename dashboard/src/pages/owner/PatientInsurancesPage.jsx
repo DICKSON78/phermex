@@ -4,6 +4,7 @@ import { Loader2, Plus, X, Pencil, Trash2, Search, ShieldCheck, UserPlus } from 
 import PageHeader from '../../components/PageHeader'
 import { insurance } from '../../services/api'
 import { useLanguage } from '../../contexts/LanguageContext'
+import useConfirm from '../../hooks/useConfirm'
 
 const emptyForm = {
   id: null,
@@ -22,6 +23,7 @@ const emptyForm = {
 
 export default function PatientInsurancesPage() {
   const { t } = useLanguage()
+  const [askConfirm, confirmDialog] = useConfirm()
   const [patients, setPatients] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -136,7 +138,7 @@ export default function PatientInsurancesPage() {
   }
 
   const remove = async (record) => {
-    if (!window.confirm(`${t('sales.insurance.removeConfirm')} ${record.customer_user?.name || t('sales.prescriptions.patientLower')}?`)) return
+    if (!(await askConfirm({ message: `${t('sales.insurance.removeConfirm')} ${record.customer_user?.name || t('sales.prescriptions.patientLower')}?` }))) return
     try {
       const res = await insurance.deletePatient(record.id)
       showToast(res.data?.message || t('sales.insurance.recordRemoved'))
@@ -151,6 +153,8 @@ export default function PatientInsurancesPage() {
   }
 
   return (
+    <>
+      {confirmDialog}
     <div className="p-6">
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>{toast.msg}</div>
@@ -340,5 +344,6 @@ export default function PatientInsurancesPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

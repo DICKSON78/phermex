@@ -6,6 +6,7 @@ import PageHeader from '../../components/PageHeader'
 import Tabs from '../../components/Tabs'
 import { formatMoney as sharedMoney } from '../../utils/currency'
 import { useLanguage } from '../../contexts/LanguageContext'
+import useConfirm from '../../hooks/useConfirm'
 
 const STATUS_COLORS = {
   draft: 'bg-gray-100 text-gray-600',
@@ -35,6 +36,7 @@ const emptyForm = {
 
 export default function InsuranceClaimsPage() {
   const { t } = useLanguage()
+  const [askConfirm, confirmDialog] = useConfirm()
   const [claims, setClaims] = useState([])
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -106,10 +108,10 @@ export default function InsuranceClaimsPage() {
   }
 
   const changeStatus = async (claim, nextStatus) => {
-    const confirm = nextStatus === 'rejected'
-      ? window.confirm(`${t('sales.insurance.rejectConfirm')} ${claim.claim_number}?`)
+    const ok = nextStatus === 'rejected'
+      ? await askConfirm({ message: `${t('sales.insurance.rejectConfirm')} ${claim.claim_number}?` })
       : true
-    if (!confirm) return
+    if (!ok) return
     try {
       const res = await insurance.updateClaim(claim.id, { status: nextStatus })
       showToast(res.data?.message || `${t('sales.insurance.claim')} ${t(STATUS_TAB_KEYS[nextStatus] || 'common.status')}`)
@@ -147,6 +149,8 @@ export default function InsuranceClaimsPage() {
   }
 
   return (
+    <>
+      {confirmDialog}
     <div className="p-6">
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>{toast.msg}</div>
@@ -404,5 +408,6 @@ export default function InsuranceClaimsPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

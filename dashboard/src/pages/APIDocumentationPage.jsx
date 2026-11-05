@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, ExternalLink, Code, BookOpen } from 'lucide-react';
+import { Copy, Check, ExternalLink, Code, BookOpen, CreditCard, Pill, Factory, Rocket, Lock, Building2, ClipboardList, FileText, KeyRound, ShieldCheck, Mail, Globe, CircleCheck } from 'lucide-react';
 
 const APIDocumentationPage = () => {
   const [copied, setCopied] = useState(null);
@@ -22,7 +22,7 @@ const APIDocumentationPage = () => {
             </div>
             <div className="text-right">
               <div className="inline-block px-4 py-2 bg-emerald-500/20 border border-emerald-500/50 rounded-lg">
-                <p className="text-emerald-400 text-sm font-bold">🟢 Live & Ready</p>
+                <p className="flex items-center gap-2 text-emerald-400 text-sm font-bold"><span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />Live & Ready</p>
               </div>
             </div>
           </div>
@@ -61,23 +61,23 @@ const APIDocumentationPage = () => {
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             {[
               {
-                icon: '💳',
+                icon: CreditCard,
                 title: 'Subscriptions API',
                 desc: '3 subscription plans with 30-day free trial, annual billing, and grace period management'
               },
               {
-                icon: '💊',
+                icon: Pill,
                 title: 'e-Prescription API',
                 desc: 'MoH health system integration for prescription submission, tracking, and delivery'
               },
               {
-                icon: '🏭',
+                icon: Factory,
                 title: 'Wholesale API',
                 desc: 'Wholesaler management, inventory, pricing, orders, returns, and analytics'
               }
             ].map((item, i) => (
               <div key={i} className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:border-emerald-500/50 transition">
-                <div className="text-4xl mb-3">{item.icon}</div>
+                <div className="mb-3"><item.icon className="w-10 h-10 text-emerald-400" /></div>
                 <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
                 <p className="text-slate-400 text-sm">{item.desc}</p>
               </div>
@@ -85,7 +85,7 @@ const APIDocumentationPage = () => {
           </div>
 
           <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-6">
-            <h3 className="text-lg font-bold text-emerald-400 mb-3">🚀 Base URL</h3>
+            <h3 className="text-lg font-bold text-emerald-400 mb-3">{<Rocket className="inline w-5 h-5 mr-2 align-text-bottom" />}Base URL</h3>
             <code className="text-slate-200 text-sm bg-black/50 p-3 rounded block">
               https://helix.co.tz/api
             </code>
@@ -152,7 +152,7 @@ const APIDocumentationPage = () => {
           <h2 className="text-3xl font-black text-white mb-6">e-Prescription API</h2>
           
           <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-6 mb-6">
-            <h3 className="text-emerald-400 font-bold mb-3">🔐 Authentication Required</h3>
+            <h3 className="text-emerald-400 font-bold mb-3">{<Lock className="inline w-5 h-5 mr-2 align-text-bottom" />}Authentication Required</h3>
             <p className="text-slate-300 mb-3">All e-Prescription endpoints require Bearer token authentication:</p>
             <code className="text-slate-200 bg-black/50 p-3 rounded block text-sm">
               Authorization: Bearer {'{'} your_api_key {'}'}
@@ -217,22 +217,22 @@ const APIDocumentationPage = () => {
           
           <div className="grid md:grid-cols-2 gap-6 mb-6">
             <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
-              <h3 className="text-emerald-400 font-bold mb-3">🏢 Wholesaler Management</h3>
+              <h3 className="text-emerald-400 font-bold mb-3">{<Building2 className="inline w-5 h-5 mr-2 align-text-bottom" />}Wholesaler Management</h3>
               <ul className="space-y-2 text-slate-400 text-sm">
-                <li>✓ Register wholesalers</li>
-                <li>✓ Manage inventory & stock</li>
-                <li>✓ Set dynamic pricing</li>
-                <li>✓ View analytics</li>
+                <li className="flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-400 shrink-0" />Register wholesalers</li>
+                <li className="flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-400 shrink-0" />Manage inventory & stock</li>
+                <li className="flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-400 shrink-0" />Set dynamic pricing</li>
+                <li className="flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-400 shrink-0" />View analytics</li>
               </ul>
             </div>
             
             <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
-              <h3 className="text-emerald-400 font-bold mb-3">📋 Order Management</h3>
+              <h3 className="text-emerald-400 font-bold mb-3">{<ClipboardList className="inline w-5 h-5 mr-2 align-text-bottom" />}Order Management</h3>
               <ul className="space-y-2 text-slate-400 text-sm">
-                <li>✓ Create orders</li>
-                <li>✓ Track fulfillment</li>
-                <li>✓ Process returns</li>
-                <li>✓ Manage payments</li>
+                <li className="flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-400 shrink-0" />Create orders</li>
+                <li className="flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-400 shrink-0" />Track fulfillment</li>
+                <li className="flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-400 shrink-0" />Process returns</li>
+                <li className="flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-400 shrink-0" />Manage payments</li>
               </ul>
             </div>
           </div>
@@ -253,12 +253,12 @@ const APIDocumentationPage = () => {
           
           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 space-y-4">
             <div>
-              <h3 className="text-emerald-400 font-bold mb-2">📝 API Key Setup</h3>
+              <h3 className="text-emerald-400 font-bold mb-2">{<FileText className="inline w-5 h-5 mr-2 align-text-bottom" />}API Key Setup</h3>
               <p className="text-slate-400">Contact api@helix.co.tz to register your system and receive an API key.</p>
             </div>
 
             <div>
-              <h3 className="text-emerald-400 font-bold mb-2">🔑 Using Your API Key</h3>
+              <h3 className="text-emerald-400 font-bold mb-2">{<KeyRound className="inline w-5 h-5 mr-2 align-text-bottom" />}Using Your API Key</h3>
               <code className="text-slate-200 bg-black/50 p-3 rounded block text-sm">
                 curl -X GET https://helix.co.tz/api/subscriptions/plans \
   -H "Authorization: Bearer your_api_key_here" \
@@ -267,7 +267,7 @@ const APIDocumentationPage = () => {
             </div>
 
             <div>
-              <h3 className="text-emerald-400 font-bold mb-2">✅ Rate Limiting</h3>
+              <h3 className="text-emerald-400 font-bold mb-2">{<ShieldCheck className="inline w-5 h-5 mr-2 align-text-bottom" />}Rate Limiting</h3>
               <p className="text-slate-400">1000 requests per hour per API key</p>
             </div>
           </div>
@@ -278,18 +278,18 @@ const APIDocumentationPage = () => {
           <h2 className="text-2xl font-bold text-white mb-4">Need Help?</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div>
-              <h3 className="text-emerald-400 font-bold mb-2">📧 Email</h3>
+              <h3 className="text-emerald-400 font-bold mb-2">{<Mail className="inline w-5 h-5 mr-2 align-text-bottom" />}Email</h3>
               <a href="mailto:api@helix.co.tz" className="text-slate-300 hover:text-emerald-400 transition">
                 api@helix.co.tz
               </a>
             </div>
             <div>
-              <h3 className="text-emerald-400 font-bold mb-2">📚 Documentation</h3>
+              <h3 className="text-emerald-400 font-bold mb-2">{<BookOpen className="inline w-5 h-5 mr-2 align-text-bottom" />}Documentation</h3>
               <p className="text-slate-400 text-sm">Complete guides available in docs folder</p>
             </div>
             <div>
-              <h3 className="text-emerald-400 font-bold mb-2">🌐 Status</h3>
-              <p className="text-emerald-400 text-sm">🟢 All systems operational</p>
+              <h3 className="text-emerald-400 font-bold mb-2">{<Globe className="inline w-5 h-5 mr-2 align-text-bottom" />}Status</h3>
+              <p className="flex items-center gap-2 text-emerald-400 text-sm"><span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />All systems operational</p>
             </div>
           </div>
         </section>

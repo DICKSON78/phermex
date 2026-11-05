@@ -4,11 +4,13 @@ import { Loader2, Plus, X, Pencil, Trash2, ShieldCheck, Phone, Mail, Globe } fro
 import PageHeader from '../../components/PageHeader'
 import { insurance } from '../../services/api'
 import { useLanguage } from '../../contexts/LanguageContext'
+import useConfirm from '../../hooks/useConfirm'
 
 const emptyForm = { id: null, name: '', code: '', contact_phone: '', contact_email: '', website: '', is_active: true }
 
 export default function InsuranceProvidersPage() {
   const { t } = useLanguage()
+  const [askConfirm, confirmDialog] = useConfirm()
   const [providers, setProviders] = useState([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
@@ -70,7 +72,7 @@ export default function InsuranceProvidersPage() {
   }
 
   const remove = async (provider) => {
-    if (!window.confirm(`${t('common.delete')} ${provider.name}? ${t('sales.insurance.deleteProviderNote')}`)) return
+    if (!(await askConfirm({ message: `${t('common.delete')} ${provider.name}? ${t('sales.insurance.deleteProviderNote')}` }))) return
     setDeleting(provider.id)
     try {
       const res = await insurance.deleteProvider(provider.id)
@@ -88,6 +90,8 @@ export default function InsuranceProvidersPage() {
   }
 
   return (
+    <>
+      {confirmDialog}
     <div className="p-6">
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>{toast.msg}</div>
@@ -194,5 +198,6 @@ export default function InsuranceProvidersPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

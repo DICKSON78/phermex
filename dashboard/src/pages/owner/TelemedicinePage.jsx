@@ -9,6 +9,7 @@ import api from '../../services/api'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { toast as notify } from 'react-hot-toast'
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -621,7 +622,7 @@ function SlotFormModal({ item, onClose, onSave }) {
   const [saving, setSaving] = useState(false)
 
   const submit = async () => {
-    if (!form.slot_date) { alert(t('reports.telemedicine.chooseDate')); return }
+    if (!form.slot_date) { notify.error(t('reports.telemedicine.chooseDate')); return }
     setSaving(true)
     try {
       await onSave({ ...form, is_available: !!form.is_available })

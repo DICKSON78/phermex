@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle, XCircle, Save, ClipboardCheck, BarChart3, Hash,
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useLanguage } from '../../contexts/LanguageContext'
+import useConfirm from '../../hooks/useConfirm'
 
 const STATUS_COLORS = { draft: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100 text-blue-700', completed: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600' }
 
@@ -11,6 +12,7 @@ export default function StockTakeDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const [askConfirm, confirmDialog] = useConfirm()
   const [take, setTake] = useState(null)
   const [loading, setLoading] = useState(true)
   const [counts, setCounts] = useState({})
@@ -63,7 +65,7 @@ export default function StockTakeDetailPage() {
   }
 
   const handleApprove = async () => {
-    if (!window.confirm(t('inventory.stockTakeDetail.confirmApprove'))) return
+    if (!(await askConfirm({ message: t('inventory.stockTakeDetail.confirmApprove') }))) return
     setSaving(true)
     try {
       await api.post(`/stock-takes/${id}/approve`)
@@ -74,7 +76,7 @@ export default function StockTakeDetailPage() {
   }
 
   const handleCancel = async () => {
-    if (!window.confirm(t('inventory.stockTakeDetail.confirmCancel'))) return
+    if (!(await askConfirm({ message: t('inventory.stockTakeDetail.confirmCancel') }))) return
     try {
       await api.post(`/stock-takes/${id}/cancel`)
       toast.success(t('inventory.stockTakeDetail.toastCancelled'))
@@ -85,6 +87,8 @@ export default function StockTakeDetailPage() {
   const editable = ['draft', 'in_progress'].includes(take.status)
 
   return (
+    <>
+      {confirmDialog}
     <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate('/dashboard/stock-takes')} className="btn-ghost"><ArrowLeft className="w-5 h-5 text-gray-600" /></button>
@@ -175,5 +179,6 @@ export default function StockTakeDetailPage() {
         {items.length === 0 && <div className="text-center py-12 text-gray-400"><ClipboardCheck className="w-12 h-12 mx-auto mb-3 opacity-50" /><p>{t('inventory.stockTakeDetail.noItems')}</p></div>}
       </div>
     </div>
+    </>
   )
 }

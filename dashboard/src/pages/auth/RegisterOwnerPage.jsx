@@ -950,7 +950,7 @@ export default function RegisterOwnerPage() {
               Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
                 <React.Fragment key={s}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${step >= s ? 'bg-[#0FD452] text-[#000F14]' : 'bg-gray-200 text-gray-400'}`}>
-                    {step > s ? '✓' : s}
+                    {step > s ? <Check className="w-4 h-4" /> : s}
                   </div>
                   {s < totalSteps && <div className={`w-4 h-0.5 ${step > s ? 'bg-[#0FD452]' : 'bg-gray-200'}`}></div>}
                 </React.Fragment>

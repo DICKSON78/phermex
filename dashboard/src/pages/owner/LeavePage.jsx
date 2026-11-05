@@ -7,6 +7,7 @@ import {
 import toast from 'react-hot-toast'
 import { leaves, employees } from '../../services/api'
 import { useLanguage } from '../../contexts/LanguageContext'
+import useConfirm from '../../hooks/useConfirm'
 
 const TYPE_LABELS = { annual: 'Annual Leave', sick: 'Sick Leave', maternity: 'Maternity', paternity: 'Paternity', bereavement: 'Bereavement', unpaid: 'Unpaid Leave', study: 'Study Leave' }
 const TYPE_KEYS = { annual: 'people.leaveTypes.annual', sick: 'people.leaveTypes.sick', maternity: 'people.leaveTypes.maternity', paternity: 'people.leaveTypes.paternity', bereavement: 'people.leaveTypes.bereavement', unpaid: 'people.leaveTypes.unpaid', study: 'people.leaveTypes.study' }
@@ -18,6 +19,7 @@ const TYPE_BADGE_COLORS = { annual: 'bg-blue-100 text-blue-700', sick: 'bg-red-1
 
 export default function LeavePage() {
   const { t } = useLanguage()
+  const [askConfirm, confirmDialog] = useConfirm()
   const [leaveList, setLeaveList] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -84,7 +86,7 @@ export default function LeavePage() {
   }
 
   const handleCancel = async (id) => {
-    if (!window.confirm(t('people.leave.cancelConfirm'))) return
+    if (!(await askConfirm({ message: t('people.leave.cancelConfirm') }))) return
     try {
       await leaves.cancel(id)
       toast.success(t('people.leave.cancelled'))
@@ -101,6 +103,8 @@ export default function LeavePage() {
   const pendingCount = leaveList.filter(l => l.status === 'pending').length
 
   return (
+    <>
+      {confirmDialog}
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="space-y-6">
         <div className="flex items-center justify-between mb-6">
@@ -245,5 +249,6 @@ export default function LeavePage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

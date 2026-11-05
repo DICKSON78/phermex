@@ -38,9 +38,10 @@ function formatTime(value) {
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
 
-export default function SupportChatWidget({ open, onClose }) {
+export default function SupportChatWidget() {
   const { user, pharmacyId } = useAuth()
   const { t } = useLanguage()
+  const [open, setOpen] = useState(false)
   const [ticket, setTicket] = useState(null)
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
@@ -100,7 +101,17 @@ export default function SupportChatWidget({ open, onClose }) {
     }
   }
 
-  if (!open) return null
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-[#0FD452] px-5 py-3 text-sm font-semibold text-[#000F14] shadow-lg transition-all hover:bg-[#0cb843] hover:shadow-xl active:scale-[0.98]"
+      >
+        <MessageCircle className="h-5 w-5" />
+        {t('support.chat.button', 'Chat support')}
+      </button>
+    )
+  }
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex h-[560px] max-h-[calc(100vh-2rem)] w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
@@ -117,7 +128,7 @@ export default function SupportChatWidget({ open, onClose }) {
           </div>
         </div>
         <button
-          onClick={onClose}
+          onClick={() => setOpen(false)}
           className="rounded-lg p-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
           aria-label={t('common.close', 'Close')}
         >

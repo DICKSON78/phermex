@@ -31,6 +31,7 @@ import {
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useLanguage } from '../../contexts/LanguageContext'
+import useConfirm from '../../hooks/useConfirm'
 
 const ROLE_STYLES = {
   admin: 'bg-red-100 text-red-700',
@@ -63,6 +64,7 @@ const truncateEmail = (email, maxLength = 24) => {
 export default function AdminUsersPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const [confirm, confirmDialog] = useConfirm()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -367,13 +369,13 @@ export default function AdminUsersPage() {
                                   {user.status === 'active' ? t('adminUsers.users.deactivate') : t('adminUsers.users.activate')}
                                 </button>
                                 <button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     setActiveMenu(null)
-                                    if (window.confirm(t('adminUsers.users.deleteConfirm'))) {
-                                      api.delete(`/admin/users/${user.id}`)
-                                        .then(() => { toast.success(t('adminUsers.users.deleted')); fetchUsers() })
-                                        .catch(() => toast.error(t('adminUsers.users.deleteFailed')))
-                                    }
+                                    const ok = await confirm({ message: t('adminUsers.users.deleteConfirm') })
+                                    if (!ok) return
+                                    api.delete(`/admin/users/${user.id}`)
+                                      .then(() => { toast.success(t('adminUsers.users.deleted')); fetchUsers() })
+                                      .catch(() => toast.error(t('adminUsers.users.deleteFailed')))
                                   }}
                                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                                 >
@@ -439,6 +441,7 @@ export default function AdminUsersPage() {
           )}
         </div>
       )}
+      {confirmDialog}
     </div>
   )
 }

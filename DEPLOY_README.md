@@ -1,163 +1,79 @@
-# 🚀 Helix API Page - Deployment Guide
+# 🚀 Helix Website Deployment
 
-## Overview
-This guide shows how to deploy the new API Documentation page to your production server.
+## How it works
 
-## What's Included
-✅ API Documentation page (professional dark theme)
-✅ Navigation link added between FAQ and CONTACT
-✅ Multilingual support (English & Swahili)
-✅ Complete frontend build
+The production server has **no Node/npm**, so the site is built locally and the
+build output (`dist/`) is committed to git. Deploying is then just:
 
-## Deployment Steps (On Your Server)
+1. Build locally (`npm run build`)
+2. Commit + push `dist/` together with any source changes
+3. On the server: `git pull origin main && bash deploy.sh`
 
-### Step 1: SSH to Server
+`deploy.sh` copies `dist/` into the web roots (`public/` and `public/website/`),
+clears the Laravel cache, and verifies the live bundle.
+
+## Deploy commands
+
+Local:
+
 ```bash
-ssh -p 21098 -i ~/das123 sikacgkz@184.94.213.218
+npm run build
+git add -A
+git commit -m "Build website"
+git push origin main
 ```
 
-### Step 2: Navigate to Project
+Server:
+
 ```bash
 cd /home/sikacgkz/helix.co.tz
-```
-
-### Step 3: Pull Latest Code
-```bash
 git pull origin main
-```
-
-This will download:
-- ✅ API page source code
-- ✅ Updated routes and navigation
-- ✅ Translations (English & Swahili)
-- ✅ Built dist/ folder with all assets
-- ✅ Deployment script
-
-### Step 4: Run Deployment Script
-```bash
 bash deploy.sh
 ```
 
-This script will:
-1. ✅ Copy assets to public/website/assets/
-2. ✅ Copy dashboard files
-3. ✅ Copy index.html
-4. ✅ Clear Laravel cache
-5. ✅ Verify deployment
+Expected server output ends with:
 
-### Step 5: Verify Deployment
-```bash
-curl -s https://helix.co.tz/ | grep -o "HELIX"
+```
+🎉   DEPLOYMENT SUCCESSFUL!
+🎉   Live bundle: assets/index-<hash>.js
 ```
 
-Expected output: `HELIX`
-
-If you see this → ✅ **Deployment Successful!**
-
-## Test the API Page
-
-### In Browser:
-1. Visit: https://helix.co.tz
-2. Look for "API" link in navigation (between FAQ and CONTACT)
-3. Click it → https://helix.co.tz/api
-4. You should see the API documentation page with dark theme
-
-### Features to Test:
-- ✅ "API" link appears in navigation menu
-- ✅ Sticky header with "Helix API" title
-- ✅ Status badge: 🟢 Live & Ready
-- ✅ Navigation tabs work (Overview, Subscriptions, e-Prescriptions, Wholesale, Auth)
-- ✅ Copy cURL buttons work
-- ✅ Links to documentation work
-- ✅ Works on mobile (hamburger menu)
-- ✅ Language switcher works
-
-## Quick One-Liner Deployment
-
-After SSH, run this single command:
+## Verify
 
 ```bash
-cd /home/sikacgkz/helix.co.tz && git pull origin main && bash deploy.sh
+# index.html must reference the new bundle
+curl -s https://helix.co.tz/ | grep -oE '/assets/index-[A-Za-z0-9_-]+\.js'
+
+# API docs page
+curl -s -o /dev/null -w '%{http_code}\n' https://helix.co.tz/api
 ```
 
-Done! 🎉
+Then hard-refresh the browser: **Ctrl+Shift+R**.
 
-## Troubleshooting
+## Important notes
 
-### Issue: Deploy script not found
-```bash
-git pull origin main
-ls -l deploy.sh
-```
+- `dist/` is committed on purpose — do **not** re-add it to `.gitignore`.
+- The repo also contains `public/index.html` (the vhost serves the root page
+  from it), so `deploy.sh` updates both `public/` and `public/website/`.
+- Never run `npm run build` on the server; it has no npm.
+- If the site shows `site.*` translation keys, check that
+  `src/main.jsx` wraps `<App />` in `<LanguageProvider>` and that the deployed
+  bundle contains the string `helix_lang`.
 
-### Issue: Assets not copying
-```bash
-ls -l dist/assets/
-ls -l public/website/assets/
-```
-
-### Issue: Old build still showing
-```bash
-php artisan cache:clear
-# Hard refresh browser: Ctrl+Shift+R
-```
-
-### Issue: Translations showing as "site.nav.api"
-- Means old build is cached
-- Run: `php artisan cache:clear`
-- Hard refresh browser
-- Check that `public/website/assets/index-B5GqlR6W.js` exists (new build)
-
-## File Structure
-
-```
-public/website/
-├── assets/
-│   ├── index-B5GqlR6W.js      ← NEW BUILD (with API page)
-│   ├── index-Ct5QChyx.css     ← NEW STYLES
-│   └── ...other assets
-├── dashboard/
-│   └── assets/
-│       └── ...dashboard files
-└── index.html
-```
-
-## Git Commits
-
-Latest commits:
-- `f1e6727` - Add deployment script for API page
-- `369a4bd` - Add API documentation page to website navigation
-
-## Support
-
-If you encounter issues:
-1. Check GitHub for latest commits
-2. Run: `git pull origin main` again
-3. Run: `bash deploy.sh` again
-4. Check file permissions: `ls -l public/website/assets/`
-
-## API Endpoints
-
-Once deployed, these endpoints are available:
+## API endpoints
 
 ### Subscriptions
-- GET `/api/subscriptions/plans` - Get subscription plans
+- `GET /api/subscriptions/plans`
 
 ### e-Prescriptions (requires API key)
-- POST `/api/eprescriptions/submit`
-- GET `/api/eprescriptions/{id}`
-- POST `/api/eprescriptions/{id}/fulfill`
-- GET `/api/eprescriptions/{id}/delivery-status`
+- `POST /api/eprescriptions/submit`
+- `GET /api/eprescriptions/{id}`
+- `POST /api/eprescriptions/{id}/fulfill`
+- `GET /api/eprescriptions/{id}/delivery-status`
 
 ### Wholesale (requires API key)
-- GET `/api/wholesale/list`
-- POST `/api/wholesale/register`
-- And 13+ more wholesale endpoints
+- `GET /api/wholesale/list`
+- `POST /api/wholesale/register`
+- …and more
 
-Full documentation: https://helix.co.tz/api
-
----
-
-**Version**: 1.0
-**Last Updated**: Nov 5, 2026
-**Status**: Ready for Production ✅
+Full docs: https://helix.co.tz/api

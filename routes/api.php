@@ -50,6 +50,7 @@ use App\Http\Controllers\Api\DamagedGoodsController;
 use App\Http\Controllers\Api\ControlledSubstanceController;
 use App\Http\Controllers\Api\LicenseController;
 use App\Http\Controllers\Api\EPrescriptionController;
+use App\Http\Controllers\Api\WholesaleManagementController;
 use App\Http\Controllers\Api\WholesaleOrderController;
 use App\Http\Controllers\Api\RegulatoryReportController;
 use App\Http\Controllers\Api\DrugRecallController;

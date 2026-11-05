@@ -12,22 +12,25 @@ return new class extends Migration
         // PROFESSIONAL: 19.99/month
         // ENTERPRISE: 29.99/month
         
+        // EXACTLY $14.99/month - NOT $15
         DB::table('subscription_plans')->where('slug', 'starter')->update([
             'price' => 14.99,
             'name' => 'STARTER',
-            'duration_months' => 1, // Changed to monthly
+            'duration_months' => 1,
         ]);
 
+        // EXACTLY $19.99/month - NOT $20
         DB::table('subscription_plans')->where('slug', 'professional')->update([
             'price' => 19.99,
             'name' => 'PROFESSIONAL',
-            'duration_months' => 1, // Changed to monthly
+            'duration_months' => 1,
         ]);
 
+        // EXACTLY $29.99/month - NOT $30
         DB::table('subscription_plans')->where('slug', 'enterprise')->update([
             'price' => 29.99,
             'name' => 'ENTERPRISE',
-            'duration_months' => 1, // Changed to monthly
+            'duration_months' => 1,
         ]);
     }
 

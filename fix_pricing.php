@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 echo "=== Updating Subscription Pricing ===\n\n";
 
-// Update each plan
+// Update each plan - EXACTLY with .99
 $updates = [
     'starter' => ['price' => 14.99, 'duration_months' => 1],
     'professional' => ['price' => 19.99, 'duration_months' => 1],

@@ -108,6 +108,24 @@ class PasswordResetController extends Controller
 
         DB::table('password_reset_tokens')->where('email', $user->email)->delete();
 
+        try {
+            Mail::send(
+                [
+                    'html' => 'emails.password-changed',
+                    'text' => 'emails.password-changed-text',
+                ],
+                [
+                    'name' => $user->name,
+                    'changedAt' => now()->format('j M Y, H:i T'),
+                ],
+                function ($message) use ($user) {
+                    $message->to($user->email)->subject('Your Helix password was changed');
+                }
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return response()->json([
             'message' => 'Password reset successfully. You can now log in with your new password.',
         ]);

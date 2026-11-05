@@ -1102,6 +1102,7 @@ export default function DashboardLayout({ role }) {
               <Route path="chats/:customerId" element={<PlanGate requiredPlan="professional"><PharmacyChatPage /></PlanGate>} />
               <Route path="telemedicine" element={<PlanGate requiredPlan="professional"><TelemedicinePage /></PlanGate>} />
               <Route path="loyalty" element={<PlanGate requiredPlan="professional"><LoyaltyPage /></PlanGate>} />
+              <Route path="reel" element={<ReelPage />} />
               <Route path="insurance/providers" element={<PlanGate requiredPlan="professional"><InsuranceProvidersPage /></PlanGate>} />
               <Route path="insurance/patients" element={<PlanGate requiredPlan="professional"><PatientInsurancesPage /></PlanGate>} />
               <Route path="insurance/claims" element={<PlanGate requiredPlan="professional"><InsuranceClaimsPage /></PlanGate>} />

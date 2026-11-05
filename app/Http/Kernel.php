@@ -10,5 +10,7 @@ class Kernel extends HttpKernel
 
     protected $middlewareGroups = [];
 
-    protected $middlewareAliases = [];
+    protected $middlewareAliases = [
+        'api.key' => \App\Http\Middleware\ApiKeyMiddleware::class,
+    ];
 }

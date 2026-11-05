@@ -49,6 +49,7 @@ use App\Http\Controllers\Api\DamagedGoodsController;
 use App\Http\Controllers\Api\ControlledSubstanceController;
 use App\Http\Controllers\Api\LicenseController;
 use App\Http\Controllers\Api\EPrescriptionController;
+use App\Http\Controllers\Api\WholesaleOrderController;
 use App\Http\Controllers\Api\RegulatoryReportController;
 use App\Http\Controllers\Api\DrugRecallController;
 use App\Http\Controllers\Api\DemoRequestController;
@@ -677,3 +678,62 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/drugs/batch', [AIController::class, 'drugsBatch']);
     });
 });\n\n// ============================================================\n// e-Prescription API Routes for MoH Health Systems\n// ============================================================\n// Authentication: Bearer token via Authorization header\n// All requests must include: Authorization: Bearer {api_key}\nRoute::prefix('eprescriptions')->middleware('api.key:eprescription')->group(function () {\n    // Validate API key and get integration info\n    Route::post('/validate-key', [EPrescriptionController::class, 'validateApiKey']);\n\n    // Submit e-prescription from MoH/Healthcare system\n    Route::post('/submit', [EPrescriptionController::class, 'submitPrescription']);\n\n    // Get prescription details (by prescription ID)\n    Route::get('/{prescriptionId}', [EPrescriptionController::class, 'getPrescription']);\n\n    // Pharmacy fulfills prescription (dispense drugs)\n    Route::post('/{prescriptionId}/fulfill', [EPrescriptionController::class, 'fulfillPrescription']);\n\n    // Create wholesale order from retail pharmacy (via e-prescription)\n    Route::post('/{prescriptionId}/wholesale-order', [EPrescriptionController::class, 'createWholesaleOrder']);\n\n    // Get delivery tracking status\n    Route::get('/{prescriptionId}/delivery-status', [EPrescriptionController::class, 'getDeliveryStatus']);\n});\n\n// Public e-Prescription QR code access (no auth required)\nRoute::get('/prescription/{prescriptionId}', function ($prescriptionId) {\n    $prescription = \\App\\Models\\EPrescription::where('prescription_id', $prescriptionId)->first();\n    if (!$prescription) {\n        return response()->json(['error' => 'Prescription not found'], 404);\n    }\n    return response()->json([\n        'prescription_id' => $prescription->prescription_id,\n        'patient' => ['name' => $prescription->patient_name, 'phone' => $prescription->patient_phone],\n        'items' => $prescription->items,\n        'status' => $prescription->status,\n        'valid_until' => $prescription->valid_until,\n    ]);\n})->name('prescription.view');"}}
+
+// ============================================================
+// Wholesale Ordering API Routes
+// ============================================================
+// For retail pharmacies to order from wholesalers
+// Supports direct orders and orders from prescriptions
+// Authentication: Bearer token via Authorization header
+Route::prefix('wholesale-orders')->middleware('api.key:wholesale')->group(function () {
+    // Create new wholesale order (from prescription or direct)
+    Route::post('/create', [WholesaleOrderController::class, 'createOrder']);
+
+    // Get order details
+    Route::get('/{orderId}', [WholesaleOrderController::class, 'getOrder']);
+
+    // Update order status (confirmed, packed, dispatched, delivered)
+    Route::post('/{orderId}/status', [WholesaleOrderController::class, 'updateStatus']);
+
+    // Get wholesale pricing for drugs
+    Route::get('/pricing/list', [WholesaleOrderController::class, 'getPricing']);
+
+    // Make payment for order
+    Route::post('/{orderId}/payment', [WholesaleOrderController::class, 'makePayment']);
+
+    // List orders for pharmacy or wholesaler
+    Route::get('', [WholesaleOrderController::class, 'listOrders']);
+});
+
+// ============================================================
+// Wholesale Management API Routes (Complete Module)
+// ============================================================
+// Wholesaler registration, inventory, pricing, orders, returns, credit
+Route::prefix('wholesale')->middleware('api.key:wholesale')->group(function () {
+    
+    // Wholesaler Registration & Management
+    Route::post('/register', [WholesaleManagementController::class, 'registerWholesaler']);
+    Route::get('/list', [WholesaleManagementController::class, 'listWholesalers']);
+    
+    // Inventory Management
+    Route::post('/{wholesalerId}/inventory/update', [WholesaleManagementController::class, 'updateInventory']);
+    Route::get('/{wholesalerId}/inventory', [WholesaleManagementController::class, 'getInventory']);
+    
+    // Pricing Management
+    Route::post('/{wholesalerId}/pricing', [WholesaleManagementController::class, 'setPricing']);
+    
+    // Order Fulfillment
+    Route::post('/{wholesalerId}/orders/{orderId}/fulfill', [WholesaleManagementController::class, 'fulfillOrder']);
+    
+    // Returns Management
+    Route::post('/{wholesalerId}/returns/create', [WholesaleManagementController::class, 'requestReturn']);
+    Route::post('/{wholesalerId}/returns/{returnId}/approve', [WholesaleManagementController::class, 'approveReturn']);
+    
+    // Credit Terms
+    Route::post('/{wholesalerId}/credit-terms', [WholesaleManagementController::class, 'setCreditTerms']);
+    
+    // Analytics
+    Route::get('/{wholesalerId}/analytics', [WholesaleManagementController::class, 'getAnalytics']);
+});
+
+use App\Http\Controllers\Api\WholesaleManagementController;

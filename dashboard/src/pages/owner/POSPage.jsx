@@ -477,109 +477,96 @@ export default function POSPage() {
                 <p className="text-sm">{t('products.noDrugs')}</p>
               </div>
             ) : (
-              {/* Retail/Wholesale Tabs */}
-              <div className="flex items-center gap-4 mb-4">
-                <button
-                  onClick={() => setActiveTab('retail')}
-                  className={activeTab === 'retail' ? 'bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg' : 'text-gray-500 hover:bg-primary hover:text-white px-4 py-2 rounded-lg'}
-                >
-                  {t('sales.pos.retail')}
-                </button>
-                <button
-                  onClick={() => setActiveTab('wholesale')}
-                  className={activeTab === 'wholesale' ? 'bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg' : 'text-gray-500 hover:bg-primary hover:text-white px-4 py-2 rounded-lg'}
-                >
-                  {t('sales.pos.wholesale')}
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                {filteredDrugs.map((drug) => (
-                  {activeTab === 'retail' ? (
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold text-primary">
-                          {formatCurrency(drug.selling_price)} {t('sales.pos.retail')}
-                        </span>
-                        {drug.wholesale_price > 0 && (
-                          <span className="text-xs text-gray-500">
-                            | {formatCurrency(drug.wholesale_price)} Wholesale
-                        </span>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold text-primary">
-                          {formatCurrency(drug.wholesale_price)} Wholesale
-                        </span>
-                        {drug.wholesale_price > 0 ? (
-                          <span className="text-xs text-gray-500">
-                            | {formatCurrency(drug.selling_price)} Retail
+              <>
+                {/* Retail/Wholesale Tabs */}
+                <div className="flex items-center gap-4 mb-4">
+                  <button
+                    onClick={() => setActiveTab('retail')}
+                    className={activeTab === 'retail' ? 'bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg' : 'text-gray-500 hover:bg-primary hover:text-white px-4 py-2 rounded-lg'}
+                  >
+                    {t('sales.pos.retail')}
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('wholesale')}
+                    className={activeTab === 'wholesale' ? 'bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg' : 'text-gray-500 hover:bg-primary hover:text-white px-4 py-2 rounded-lg'}
+                  >
+                    {t('sales.pos.wholesale')}
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredDrugs.map((drug) => (
+                    <div
+                      key={drug.id}
+                      className={`text-left bg-white rounded-xl p-3 lg:p-4 border border-gray-100 transition-all ${
+                        drug.stock <= 0
+                          ? 'opacity-40 cursor-not-allowed'
+                          : 'hover:border-primary hover:shadow-md cursor-pointer'
+                      }`}
+                    >
+                      <p className="text-sm font-semibold text-dark truncate">{drug.name}</p>
+                      <p className="text-xs text-gray-400 truncate mt-0.5">{drug.genericName}</p>
+                      {activeTab === 'retail' ? (
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-bold text-primary">
+                            {formatCurrency(drug.selling_price)} {t('sales.pos.retail')}
                           </span>
-                        ) : (
-                          <span className="text-gray-400">No retail price</span>
-                        )}
+                          {drug.wholesale_price > 0 && (
+                            <span className="text-xs text-gray-500">
+                              | {formatCurrency(drug.wholesale_price)} Wholesale
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-bold text-primary">
+                            {formatCurrency(drug.wholesale_price)} Wholesale
+                          </span>
+                          {drug.wholesale_price > 0 ? (
+                            <span className="text-xs text-gray-500">
+                              | {formatCurrency(drug.selling_price)} Retail
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">No retail price</span>
+                          )}
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-400">
+                          {drug.stock <= 0 ? t('dashboard.outOfStock') : `${drug.stock} ${t('sales.pos.inStock')}`}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            max={drug.stock}
+                            value={
+                              quickSelectQty[drug.id] !== undefined
+                                ? quickSelectQty[drug.id]
+                                : 1
+                            }
+                            onChange={(e) => {
+                              setQuickSelectQty({
+                                ...quickSelectQty,
+                                [drug.id]: Number(e.target.value),
+                              })
+                            }}
+                            className="w-16 bg-gray-100 rounded border text-center text-sm"
+                          />
+                          <button
+                            onClick={() => addToCart(drug, quickSelectQty[drug.id] || 1)}
+                            className="px-3 py-1 bg-primary text-white rounded text-xs"
+                            disabled={drug.stock <= 0}
+                          >
+                            {quickSelectQty[drug.id] || 1}
+                          </button>
+                        </div>
                       </div>
-                    )}
                     </div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-400">
-                        {drug.stock <= 0 ? t('dashboard.outOfStock') : `${drug.stock} ${t('sales.pos.inStock')}`}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min="1"
-                          max={drug.stock}
-                          value={
-                            quickSelectQty[drug.id] !== undefined
-                              ? quickSelectQty[drug.id]
-                              : 1
-                          }
-                          onChange={(e) => {
-                            setQuickSelectQty({
-                              ...quickSelectQty,
-                              [drug.id]: Number(e.target.value),
-                            })
-                          }}
-                          className="w-16 bg-gray-100 rounded border text-center text-sm"
-                        />
-                        <button
-                          onClick={() => addToCart(drug, quickSelectQty[drug.id] || 1)}
-                          className="px-3 py-1 bg-primary text-white rounded text-xs"
-                          disabled={drug.stock <= 0}
-                        >
-                          {quickSelectQty[drug.id] || 1}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
-            <div className="hidden lg:block px-3 lg:px-4 py-2 bg-white border-b border-gray-100 flex-shrink-0">
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span>{t('sales.pos.retail')}</span>
-                <span className="mx-2 text-primary">|</span>
-                <span>{drug.wholesale_price > 0 ? formatCurrency(drug.wholesale_price) + ' Wholesale' : ''}</span>
-              </div>
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  type="number"
-                  min="1"
-                  max={drug.quantity}
-                  value={1}
-                  onChange={(e) => setQuickSelect(Number(e.target.value))}
-                  className="w-16 bg-gray-100 rounded border text-center text-sm"
-                />
-                <button
-                  onClick={() => addToCart(drug, quickSelect || 1)}
-                  className="px-3 py-1 bg-primary text-white rounded text-xs"
-                  disabled={drug.stock <= 0}
-                >
-                  {quickSelect || 1}
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 

@@ -350,19 +350,16 @@ export default function APIDocumentationPage() {
     <div className="bg-white">
       {/* Hero */}
       <section className="relative overflow-hidden bg-[#000F14]">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage:
-              'linear-gradient(#0FD452 1px, transparent 1px), linear-gradient(90deg, #0FD452 1px, transparent 1px)',
-            backgroundSize: '48px 48px',
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full bg-[#0FD452]/20 blur-3xl"
-        />
+        <div aria-hidden="true" className="absolute inset-0 z-0">
+          <img
+            src="https://images.pexels.com/photos/30689114/pexels-photo-30689114.jpeg?auto=compress&cs=tinysrgb&w=1920"
+            alt=""
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-[#000F14]/85" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#000F14] via-[#000F14]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#000F14] via-transparent to-transparent" />
+        </div>
 
         <div className="relative mx-auto max-w-7xl px-6 py-16 lg:py-24">
           <div className="max-w-3xl">

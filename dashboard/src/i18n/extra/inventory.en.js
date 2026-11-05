@@ -9,6 +9,7 @@ export default {
       buyingPrice: 'Buying Price',
       sellingPrice: 'Selling Price',
       wholesalePrice: 'Wholesale Price',
+      'wholesalePricePlaceholder': 'Wholesale Price',
       profitMargin: 'Profit Margin',
       unitCost: 'Unit Cost',
     },

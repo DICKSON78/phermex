@@ -20,7 +20,7 @@ export default function StockTakesPage() {
   const [showForm, setShowForm] = useState(false)
   const [categories, setCategories] = useState([])
   const [drugs, setDrugs] = useState([])
-  const [form, setForm] = useState({ title: '', count_type: 'full', category_id: '', drug_ids: [], notes: '' })
+  const [form, setForm] = useState({ title: '', count_type: 'full', category_id: '', drug_ids: [], notes: '', wholesale_price: '' })
   const [saving, setSaving] = useState(false)
 
   const fetchTakes = useCallback(async () => {
@@ -127,6 +127,7 @@ export default function StockTakesPage() {
                     <td className="px-6 py-4"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[tk.status]}`}>{tk.status === 'draft' ? t('inventory.stockTakes.statusDraft') : tk.status === 'in_progress' ? t('inventory.stockTakes.statusInProgress') : tk.status === 'completed' ? t('common.completed') : tk.status === 'cancelled' ? t('inventory.stockTakes.statusCancelled') : tk.status?.replace(/_/g, ' ')}</span></td>
                     <td className="px-6 py-4 text-sm text-[#000F14] text-right">{tk.total_items}</td>
                     <td className="px-6 py-4 text-sm text-right"><span className={tk.variance_total > 0 ? 'text-green-600 font-medium' : tk.variance_total < 0 ? 'text-red-600 font-medium' : 'text-gray-500'}>{tk.variance_total > 0 ? '+' : ''}{tk.variance_total}</span></td>
+                <td className="px-6 py-4 text-sm text-right"><span className="text-gray-500 text-sm">{tk.wholesale_price || '—'}</span></td>
                     <td className="px-6 py-4 text-sm text-gray-600">{tk.created_at ? new Date(tk.created_at).toLocaleDateString() : '—'}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -167,6 +168,7 @@ export default function StockTakesPage() {
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.labels.notes')}</label><input type="text" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" placeholder={t('common.optional')} /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.stockTakes.wholesalePrice')}</label><input type="number" value={form.wholesale_price} onChange={(e) => setForm({ ...form, wholesale_price: e.target.value })} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none" placeholder={t('inventory.stockTakes.wholesalePricePlaceholder')} /></div>
               </div>
               {form.count_type === 'full' && (
                 <div>

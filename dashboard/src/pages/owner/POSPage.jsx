@@ -76,6 +76,7 @@ export default function POSPage() {
   const [tax, setTax] = useState(TAX_RATE * 100)
   const [quickSelect, setQuickSelect] = useState(1)
   const [quickSelectQty, setQuickSelectQty] = useState({})
+  const [activeTab, setActiveTab] = useState('retail')
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [amountTendered, setAmountTendered] = useState('')
   const [customer, setCustomer] = useState({ name: t('pos.walkIn'), id: null })
@@ -476,27 +477,49 @@ export default function POSPage() {
                 <p className="text-sm">{t('products.noDrugs')}</p>
               </div>
             ) : (
+              {/* Retail/Wholesale Tabs */}
+              <div className="flex items-center gap-4 mb-4">
+                <button
+                  onClick={() => setActiveTab('retail')}
+                  className={activeTab === 'retail' ? 'bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg' : 'text-gray-500 hover:bg-primary hover:text-white px-4 py-2 rounded-lg'}
+                >
+                  {t('sales.pos.retail')}
+                </button>
+                <button
+                  onClick={() => setActiveTab('wholesale')}
+                  className={activeTab === 'wholesale' ? 'bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg' : 'text-gray-500 hover:bg-primary hover:text-white px-4 py-2 rounded-lg'}
+                >
+                  {t('sales.pos.wholesale')}
+                </button>
+              </div>
+              
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                 {filteredDrugs.map((drug) => (
-                  <div
-                    key={drug.id}
-                    className={`text-left bg-white rounded-xl p-3 lg:p-4 border border-gray-100 transition-all ${
-                      drug.stock <= 0
-                        ? 'opacity-40 cursor-not-allowed'
-                        : 'hover:border-primary hover:shadow-md cursor-pointer'}
-                    }`}
-                  >
-                    <p className="text-sm font-semibold text-dark truncate">{drug.name}</p>
-                    <p className="text-xs text-gray-400 truncate mt-0.5">{drug.genericName}</p>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-bold text-primary">
-                        {formatCurrency(drug.selling_price)} {t('sales.pos.retail')}
-                      </span>
-                      {drug.wholesale_price > 0 && (
-                        <span className="text-xs text-gray-500">
-                          | {formatCurrency(drug.wholesale_price)} Wholesale
+                  {activeTab === 'retail' ? (
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold text-primary">
+                          {formatCurrency(drug.selling_price)} {t('sales.pos.retail')}
                         </span>
-                      )}
+                        {drug.wholesale_price > 0 && (
+                          <span className="text-xs text-gray-500">
+                            | {formatCurrency(drug.wholesale_price)} Wholesale
+                        </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold text-primary">
+                          {formatCurrency(drug.wholesale_price)} Wholesale
+                        </span>
+                        {drug.wholesale_price > 0 ? (
+                          <span className="text-xs text-gray-500">
+                            | {formatCurrency(drug.selling_price)} Retail
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">No retail price</span>
+                        )}
+                      </div>
+                    )}
                     </div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-gray-400">

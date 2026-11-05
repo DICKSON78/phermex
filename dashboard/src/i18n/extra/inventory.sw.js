@@ -9,6 +9,7 @@ export default {
       buyingPrice: 'Bei ya Kununua',
       sellingPrice: 'Bei ya Kuuza',
       wholesalePrice: 'Bei ya Jumla',
+      'wholesalePricePlaceholder': 'Bei ya Jumla',
       profitMargin: 'Faida',
       unitCost: 'Gharama ya Kipande',
     },

@@ -39,10 +39,16 @@ class PasswordResetController extends Controller
         );
 
         try {
-            Mail::raw(
-                "Hello {$user->name},\n\nYour Helix password reset code is: {$code}\n\nThis code expires in "
-                . self::CODE_TTL_MINUTES
-                . " minutes. If you did not request a password reset, you can safely ignore this email.\n\n— The Helix Team",
+            Mail::send(
+                [
+                    'html' => 'emails.password-reset-code',
+                    'text' => 'emails.password-reset-code-text',
+                ],
+                [
+                    'name' => $user->name,
+                    'code' => $code,
+                    'minutes' => self::CODE_TTL_MINUTES,
+                ],
                 function ($message) use ($user) {
                     $message->to($user->email)->subject('Your Helix Password Reset Code');
                 }

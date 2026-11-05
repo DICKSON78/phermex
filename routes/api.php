@@ -677,7 +677,47 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/top-selling', [AIController::class, 'topSelling']);
         Route::post('/drugs/batch', [AIController::class, 'drugsBatch']);
     });
-});\n\n// ============================================================\n// e-Prescription API Routes for MoH Health Systems\n// ============================================================\n// Authentication: Bearer token via Authorization header\n// All requests must include: Authorization: Bearer {api_key}\nRoute::prefix('eprescriptions')->middleware('api.key:eprescription')->group(function () {\n    // Validate API key and get integration info\n    Route::post('/validate-key', [EPrescriptionController::class, 'validateApiKey']);\n\n    // Submit e-prescription from MoH/Healthcare system\n    Route::post('/submit', [EPrescriptionController::class, 'submitPrescription']);\n\n    // Get prescription details (by prescription ID)\n    Route::get('/{prescriptionId}', [EPrescriptionController::class, 'getPrescription']);\n\n    // Pharmacy fulfills prescription (dispense drugs)\n    Route::post('/{prescriptionId}/fulfill', [EPrescriptionController::class, 'fulfillPrescription']);\n\n    // Create wholesale order from retail pharmacy (via e-prescription)\n    Route::post('/{prescriptionId}/wholesale-order', [EPrescriptionController::class, 'createWholesaleOrder']);\n\n    // Get delivery tracking status\n    Route::get('/{prescriptionId}/delivery-status', [EPrescriptionController::class, 'getDeliveryStatus']);\n});\n\n// Public e-Prescription QR code access (no auth required)\nRoute::get('/prescription/{prescriptionId}', function ($prescriptionId) {\n    $prescription = \\App\\Models\\EPrescription::where('prescription_id', $prescriptionId)->first();\n    if (!$prescription) {\n        return response()->json(['error' => 'Prescription not found'], 404);\n    }\n    return response()->json([\n        'prescription_id' => $prescription->prescription_id,\n        'patient' => ['name' => $prescription->patient_name, 'phone' => $prescription->patient_phone],\n        'items' => $prescription->items,\n        'status' => $prescription->status,\n        'valid_until' => $prescription->valid_until,\n    ]);\n})->name('prescription.view');"}}
+});
+
+// ============================================================
+// e-Prescription API Routes for MoH Health Systems
+// ============================================================
+// Authentication: Bearer token via Authorization header
+// All requests must include: Authorization: Bearer {api_key}
+Route::prefix('eprescriptions')->middleware('api.key:eprescription')->group(function () {
+    // Validate API key and get integration info
+    Route::post('/validate-key', [EPrescriptionController::class, 'validateApiKey']);
+
+    // Submit e-prescription from MoH/Healthcare system
+    Route::post('/submit', [EPrescriptionController::class, 'submitPrescription']);
+
+    // Get prescription details (by prescription ID)
+    Route::get('/{prescriptionId}', [EPrescriptionController::class, 'getPrescription']);
+
+    // Pharmacy fulfills prescription (dispense drugs)
+    Route::post('/{prescriptionId}/fulfill', [EPrescriptionController::class, 'fulfillPrescription']);
+
+    // Create wholesale order from retail pharmacy (via e-prescription)
+    Route::post('/{prescriptionId}/wholesale-order', [EPrescriptionController::class, 'createWholesaleOrder']);
+
+    // Get delivery tracking status
+    Route::get('/{prescriptionId}/delivery-status', [EPrescriptionController::class, 'getDeliveryStatus']);
+});
+
+// Public e-Prescription QR code access (no auth required)
+Route::get('/prescription/{prescriptionId}', function ($prescriptionId) {
+    $prescription = \App\Models\EPrescription::where('prescription_id', $prescriptionId)->first();
+    if (!$prescription) {
+        return response()->json(['error' => 'Prescription not found'], 404);
+    }
+    return response()->json([
+        'prescription_id' => $prescription->prescription_id,
+        'patient' => ['name' => $prescription->patient_name, 'phone' => $prescription->patient_phone],
+        'items' => $prescription->items,
+        'status' => $prescription->status,
+        'valid_until' => $prescription->valid_until,
+    ]);
+})->name('prescription.view');
 
 // ============================================================
 // Wholesale Ordering API Routes
@@ -735,5 +775,3 @@ Route::prefix('wholesale')->middleware('api.key:wholesale')->group(function () {
     // Analytics
     Route::get('/{wholesalerId}/analytics', [WholesaleManagementController::class, 'getAnalytics']);
 });
-
-use App\Http\Controllers\Api\WholesaleManagementController;

@@ -74,6 +74,8 @@ export default function POSPage() {
   const [cart, setCart] = useState([])
   const [discount, setDiscount] = useState(0)
   const [tax, setTax] = useState(TAX_RATE * 100)
+  const [quickSelect, setQuickSelect] = useState(1)
+  const [quickSelectQty, setQuickSelectQty] = useState({})
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [amountTendered, setAmountTendered] = useState('')
   const [customer, setCustomer] = useState({ name: t('pos.walkIn'), id: null })
@@ -143,17 +145,18 @@ export default function POSPage() {
     return matchesSearch && matchesCategory
   })
 
-  const addToCart = (drug) => {
+  const addToCart = (drug, quantity = 1) => {
     if (drug.stock <= 0) return
+    if (quantity > drug.stock) return
     setCart((prev) => {
       const existing = prev.find((item) => item.id === drug.id)
       if (existing) {
-        if (existing.quantity >= drug.stock) return prev
+        if (existing.quantity + quantity > drug.stock) return prev
         return prev.map((item) =>
-          item.id === drug.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === drug.id ? { ...item, quantity: existing.quantity + quantity } : item
         )
       }
-      return [...prev, { ...drug, quantity: 1 }]
+      return [...prev, { ...drug, quantity }]
     })
   }
 
@@ -475,32 +478,85 @@ export default function POSPage() {
             ) : (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                 {filteredDrugs.map((drug) => (
-                  <button
+                  <div
                     key={drug.id}
-                    onClick={() => addToCart(drug)}
-                    disabled={drug.stock <= 0}
                     className={`text-left bg-white rounded-xl p-3 lg:p-4 border border-gray-100 transition-all ${
                       drug.stock <= 0
                         ? 'opacity-40 cursor-not-allowed'
-                        : 'hover:border-primary hover:shadow-md cursor-pointer active:scale-[0.98]'
+                        : 'hover:border-primary hover:shadow-md cursor-pointer'}
                     }`}
                   >
                     <p className="text-sm font-semibold text-dark truncate">{drug.name}</p>
                     <p className="text-xs text-gray-400 truncate mt-0.5">{drug.genericName}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-sm font-bold text-primary">{formatCurrency(drug.price)}</span>
-                      <span
-                        className={`text-xs font-medium ${
-                          drug.stock <= 0 ? 'text-red-500' : drug.stock < 10 ? 'text-yellow-600' : 'text-gray-400'
-                        }`}
-                      >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-bold text-primary">
+                        {formatCurrency(drug.selling_price)} {t('sales.pos.retail')}
+                      </span>
+                      {drug.wholesale_price > 0 && (
+                        <span className="text-xs text-gray-500">
+                          | {formatCurrency(drug.wholesale_price)} Wholesale
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-400">
                         {drug.stock <= 0 ? t('dashboard.outOfStock') : `${drug.stock} ${t('sales.pos.inStock')}`}
                       </span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          max={drug.stock}
+                          value={
+                            quickSelectQty[drug.id] !== undefined
+                              ? quickSelectQty[drug.id]
+                              : 1
+                          }
+                          onChange={(e) => {
+                            setQuickSelectQty({
+                              ...quickSelectQty,
+                              [drug.id]: Number(e.target.value),
+                            })
+                          }}
+                          className="w-16 bg-gray-100 rounded border text-center text-sm"
+                        />
+                        <button
+                          onClick={() => addToCart(drug, quickSelectQty[drug.id] || 1)}
+                          className="px-3 py-1 bg-primary text-white rounded text-xs"
+                          disabled={drug.stock <= 0}
+                        >
+                          {quickSelectQty[drug.id] || 1}
+                        </button>
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
+            <div className="hidden lg:block px-3 lg:px-4 py-2 bg-white border-b border-gray-100 flex-shrink-0">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span>{t('sales.pos.retail')}</span>
+                <span className="mx-2 text-primary">|</span>
+                <span>{drug.wholesale_price > 0 ? formatCurrency(drug.wholesale_price) + ' Wholesale' : ''}</span>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="number"
+                  min="1"
+                  max={drug.quantity}
+                  value={1}
+                  onChange={(e) => setQuickSelect(Number(e.target.value))}
+                  className="w-16 bg-gray-100 rounded border text-center text-sm"
+                />
+                <button
+                  onClick={() => addToCart(drug, quickSelect || 1)}
+                  className="px-3 py-1 bg-primary text-white rounded text-xs"
+                  disabled={drug.stock <= 0}
+                >
+                  {quickSelect || 1}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

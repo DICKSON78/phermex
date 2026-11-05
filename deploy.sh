@@ -4,7 +4,8 @@
 # Run on the server after: git pull origin main
 #
 # The production server has no Node/npm, so dist/ is built locally, committed
-# to git, and copied here into public/website/ (the actual web root).
+# to git, and copied here. Historically the vhost has served index.html from
+# public/ while assets resolve from public/website/, so deploy to both roots.
 
 set -euo pipefail
 
@@ -19,11 +20,18 @@ if [ ! -f "dist/index.html" ] || [ ! -d "dist/assets" ]; then
     exit 1
 fi
 
-echo "📁 Copying website build..."
-mkdir -p public/website/assets
-cp -a dist/assets/. public/website/assets/
-cp -a dist/index.html public/website/index.html
-echo "✅ Website build copied"
+deploy_webroot() {
+    local target="$1"
+    echo "📁 Copying build into $target ..."
+    mkdir -p "$target/assets"
+    cp -a dist/assets/. "$target/assets/"
+    cp -a dist/index.html "$target/index.html"
+    echo "✅ $target updated"
+}
+
+# Deploy to both roots so whichever one the vhost prefers is current.
+deploy_webroot "public/website"
+deploy_webroot "public"
 
 # The dashboard is a separate build. Deploy it only when present.
 if [ -d "dist/dashboard/assets" ]; then
@@ -37,9 +45,9 @@ fi
 echo "🔄 Clearing Laravel cache..."
 php artisan cache:clear
 
-# Verify the exact bundle referenced by index.html landed in the web root.
+# Verify the exact bundle referenced by index.html landed in the web roots.
 BUNDLE="$(grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' dist/index.html | head -1)"
-if [ -n "$BUNDLE" ] && [ -f "public/website/$BUNDLE" ]; then
+if [ -n "$BUNDLE" ] && [ -f "public/website/$BUNDLE" ] && [ -f "public/$BUNDLE" ]; then
     echo ""
     echo "🎉 =============================================="
     echo "🎉   DEPLOYMENT SUCCESSFUL!"
@@ -50,6 +58,6 @@ if [ -n "$BUNDLE" ] && [ -f "public/website/$BUNDLE" ]; then
     echo "API docs: https://helix.co.tz/api"
 else
     echo "❌ Deployment verification failed (bundle: ${BUNDLE:-not found})"
-    ls -lh public/website/assets/index-* 2>/dev/null || true
+    ls -lh public/website/assets/index-* public/assets/index-* 2>/dev/null || true
     exit 1
 fi

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toArray } from '../../utils/safeData';
-import { Plus, ClipboardCheck, CheckCircle, XCircle, Hash, CalendarDays, Package, BarChart3, Eye, ListChecks } from 'lucide-react'
+import { Plus, ClipboardCheck, CheckCircle, XCircle, Hash, CalendarDays, Package, BarChart3, Eye, ListChecks, DollarSign } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
@@ -58,7 +58,7 @@ export default function StockTakesPage() {
       })
       toast.success(t('inventory.stockTakes.toastStarted'))
       setShowForm(false)
-      setForm({ title: '', count_type: 'full', category_id: '', drug_ids: [], notes: '' })
+      setForm({ title: '', count_type: 'full', category_id: '', drug_ids: [], notes: '', wholesale_price: '' })
       fetchTakes()
     } catch { toast.error(t('inventory.stockTakes.toastCreateFailed')); setShowForm(false) } finally { setSaving(false) }
   }
@@ -110,6 +110,7 @@ export default function StockTakesPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('common.status')}</span></div></th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><Package className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.stockTakes.items')}</span></div></th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><BarChart3 className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.stockTakes.variance')}</span></div></th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><DollarSign className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('inventory.stockTakes.wholesalePrice')}</span></div></th>
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('common.date')}</span></div></th>
                 <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"><div className="flex items-center gap-1.5 justify-end"><CheckCircle className="w-3.5 h-3.5 text-[#0FD452]" /><span>{t('common.actions')}</span></div></th>
               </tr></thead>
@@ -127,7 +128,7 @@ export default function StockTakesPage() {
                     <td className="px-6 py-4"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[tk.status]}`}>{tk.status === 'draft' ? t('inventory.stockTakes.statusDraft') : tk.status === 'in_progress' ? t('inventory.stockTakes.statusInProgress') : tk.status === 'completed' ? t('common.completed') : tk.status === 'cancelled' ? t('inventory.stockTakes.statusCancelled') : tk.status?.replace(/_/g, ' ')}</span></td>
                     <td className="px-6 py-4 text-sm text-[#000F14] text-right">{tk.total_items}</td>
                     <td className="px-6 py-4 text-sm text-right"><span className={tk.variance_total > 0 ? 'text-green-600 font-medium' : tk.variance_total < 0 ? 'text-red-600 font-medium' : 'text-gray-500'}>{tk.variance_total > 0 ? '+' : ''}{tk.variance_total}</span></td>
-                <td className="px-6 py-4 text-sm text-right"><span className="text-gray-500 text-sm">{tk.wholesale_price || '—'}</span></td>
+                    <td className="px-6 py-4 text-sm text-right"><span className="text-gray-500 text-sm">{tk.wholesale_price || '—'}</span></td>
                     <td className="px-6 py-4 text-sm text-gray-600">{tk.created_at ? new Date(tk.created_at).toLocaleDateString() : '—'}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">

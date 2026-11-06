@@ -401,6 +401,8 @@ export default {
       allCategories: 'Makundi yote',
       selectDrugs: 'Chagua dawa (si lazima — chaguomsingi = dawa zote zinazohesabika)',
       selectAll: 'Chagua zote',
+      wholesalePrice: 'Bei ya Jumla',
+      wholesalePricePlaceholder: 'k.m. 2.25',
       creating: 'Inatengeneza...',
       startCount: 'Anza Hesabu',
       statusDraft: 'Rasimu',

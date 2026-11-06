@@ -417,6 +417,8 @@ export default {
       allCategories: 'All categories',
       selectDrugs: 'Select drugs (optional — default = all countable drugs)',
       selectAll: 'Select all',
+      wholesalePrice: 'Wholesale Price',
+      wholesalePricePlaceholder: 'e.g. 2.25',
       creating: 'Creating...',
       startCount: 'Start Count',
       statusDraft: 'Draft',

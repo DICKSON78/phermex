@@ -63,6 +63,7 @@ class StockTakeController extends Controller
                 'drug_ids' => 'nullable|array|min:1',
                 'drug_ids.*' => 'integer',
                 'notes' => 'nullable|string',
+                'wholesale_price' => 'nullable|numeric|min:0',
             ]);
 
             DB::beginTransaction();
@@ -75,6 +76,7 @@ class StockTakeController extends Controller
                 'category_id' => $validated['category_id'] ?? null,
                 'status' => 'draft',
                 'notes' => $validated['notes'] ?? null,
+                'wholesale_price' => $validated['wholesale_price'] ?? null,
                 'created_by' => Auth::id(),
             ]);
 

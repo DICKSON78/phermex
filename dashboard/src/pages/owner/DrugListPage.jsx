@@ -724,6 +724,18 @@ export default function DrugListPage() {
 
                     <div className="flex items-center gap-1.5">
 
+                      <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
+
+                      <span>{t('inventory.drug.wholesalePrice')}</span>
+
+                    </div>
+
+                  </th>
+
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+
+                    <div className="flex items-center gap-1.5">
+
                       <Package className="w-3.5 h-3.5 text-[#0FD452]" />
 
                       <span>{t('products.stock')}</span>
@@ -811,7 +823,7 @@ export default function DrugListPage() {
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">TZS {Number(drug.buying_price).toFixed(2)}</td>
 
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">TZS {Number(drug.selling_price).toFixed(2)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">Wholesale: {drug.wholesale_price || 0}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 font-medium">TZS {Number(drug.wholesale_price || 0).toFixed(2)}</td>
 
                     <td className="px-6 py-4">{getStockBadge(drug.quantity, drug.reorder_level)}</td>
 
@@ -1042,17 +1054,3 @@ export default function DrugListPage() {
   )
 
 }
-
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-
-                  <div className="flex items-center gap-1.5">
-
-                    <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-
-                    <span>{t("inventory.drug.wholesalePrice")}</span>
-
-                  </div>
-
-                </th>
-
-

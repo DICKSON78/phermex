@@ -104,6 +104,9 @@ export default {
       },
     },
     pos: {
+      retail: 'Rejareja',
+      wholesale: 'Jumla',
+      noWholesalePrice: 'Hakuna bei ya jumla',
       currentSale: 'Uuzaji wa Sasa',
       clearAll: 'Futa zote',
       discountShort: 'Punguzo',

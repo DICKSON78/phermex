@@ -101,6 +101,8 @@ export default function POSPage() {
           name: d.name,
           genericName: d.generic_name || '',
           price: Number(d.selling_price) || 0,
+          selling_price: Number(d.selling_price) || 0,
+          wholesale_price: Number(d.wholesale_price) || 0,
           buyingPrice: Number(d.buying_price) || 0,
           stock: Number(d.quantity) || 0,
           category: typeof d.category === 'object' ? d.category?.name : (d.category || 'Uncategorized'),
@@ -134,7 +136,7 @@ export default function POSPage() {
         setSearchQuery('')
       }
     }
-  }, [drugs, searchQuery])
+  }, [drugs, searchQuery, activeTab])
 
   const filteredDrugs = drugs.filter((d) => {
     const matchesSearch =
@@ -149,15 +151,22 @@ export default function POSPage() {
   const addToCart = (drug, quantity = 1) => {
     if (drug.stock <= 0) return
     if (quantity > drug.stock) return
+    // Wholesale purchases use the wholesale price when the drug has one. The
+    // chosen price is stored on the cart line so switching tabs afterwards does
+    // not silently reprice items that are already in the basket.
+    const priceType = activeTab === 'wholesale' && drug.wholesale_price > 0 ? 'wholesale' : 'retail'
+    const unitPrice = priceType === 'wholesale' ? drug.wholesale_price : (drug.selling_price || drug.price)
     setCart((prev) => {
       const existing = prev.find((item) => item.id === drug.id)
       if (existing) {
         if (existing.quantity + quantity > drug.stock) return prev
         return prev.map((item) =>
-          item.id === drug.id ? { ...item, quantity: existing.quantity + quantity } : item
+          item.id === drug.id
+            ? { ...item, quantity: existing.quantity + quantity, price: unitPrice, priceType }
+            : item
         )
       }
-      return [...prev, { ...drug, quantity }]
+      return [...prev, { ...drug, quantity, price: unitPrice, priceType }]
     })
   }
 
@@ -243,6 +252,9 @@ export default function POSPage() {
         })),
         customer_id: customer.id,
         order_type: 'counter',
+        // The server recomputes line prices, so it must know which price list
+        // this sale used or a wholesale basket would be billed at retail.
+        price_type: cart.some((item) => item.priceType === 'wholesale') ? 'wholesale' : 'retail',
         payment_method: paymentMethod,
         discount: discountAmount,
         tax: taxAmount,
@@ -513,22 +525,27 @@ export default function POSPage() {
                           </span>
                           {drug.wholesale_price > 0 && (
                             <span className="text-xs text-gray-500">
-                              | {formatCurrency(drug.wholesale_price)} Wholesale
+                              | {formatCurrency(drug.wholesale_price)} {t('sales.pos.wholesale')}
                             </span>
                           )}
+                        </div>
+                      ) : drug.wholesale_price > 0 ? (
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-bold text-primary">
+                            {formatCurrency(drug.wholesale_price)} {t('sales.pos.wholesale')}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            | {formatCurrency(drug.selling_price)} {t('sales.pos.retail')}
+                          </span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-bold text-primary">
-                            {formatCurrency(drug.wholesale_price)} Wholesale
+                            {formatCurrency(drug.selling_price)} {t('sales.pos.retail')}
                           </span>
-                          {drug.wholesale_price > 0 ? (
-                            <span className="text-xs text-gray-500">
-                              | {formatCurrency(drug.selling_price)} Retail
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">No retail price</span>
-                          )}
+                          <span className="text-xs text-gray-400">
+                            {t('sales.pos.noWholesalePrice')}
+                          </span>
                         </div>
                       )}
                       <div className="flex items-center justify-between mb-1">

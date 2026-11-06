@@ -104,6 +104,9 @@ export default {
       },
     },
     pos: {
+      retail: 'Retail',
+      wholesale: 'Wholesale',
+      noWholesalePrice: 'No wholesale price',
       currentSale: 'Current Sale',
       clearAll: 'Clear all',
       discountShort: 'Discount',

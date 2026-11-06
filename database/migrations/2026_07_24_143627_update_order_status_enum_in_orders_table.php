@@ -12,11 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE orders MODIFY COLUMN order_status enum('pending','confirmed','preparing','ready','out_for_delivery','dispensed','delivered','cancelled') NOT NULL DEFAULT 'pending'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE orders MODIFY COLUMN order_status enum('pending','confirmed','preparing','ready','out_for_delivery','dispensed','delivered','cancelled') NOT NULL DEFAULT 'pending'");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE orders MODIFY COLUMN order_status enum('pending','confirmed','dispensed','delivered','cancelled') NOT NULL DEFAULT 'pending'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE orders MODIFY COLUMN order_status enum('pending','confirmed','dispensed','delivered','cancelled') NOT NULL DEFAULT 'pending'");
+        }
     }
 };

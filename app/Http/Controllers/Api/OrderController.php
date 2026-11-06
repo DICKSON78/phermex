@@ -73,6 +73,9 @@ class OrderController extends Controller
                 'pharmacy_id' => 'required|exists:pharmacies,id',
                 'customer_id' => 'nullable|exists:customers,id',
                 'order_type' => 'sometimes|in:counter,online,phone',
+                // Which price list the sale used. Wholesale baskets are billed
+                // at wholesale_price when the drug defines one.
+                'price_type' => 'sometimes|in:retail,wholesale',
                 'items' => 'required|array|min:1',
                 'items.*.drug_id' => 'required|exists:drugs,id',
                 'items.*.quantity' => 'required|integer|min:1',
@@ -106,7 +109,9 @@ class OrderController extends Controller
                     ], 422);
                 }
 
-                $unitPrice = $drug->selling_price;
+                $unitPrice = ($validated['price_type'] ?? 'retail') === 'wholesale' && $drug->wholesale_price > 0
+                    ? $drug->wholesale_price
+                    : $drug->selling_price;
                 $totalPrice = $unitPrice * $item['quantity'];
                 $subtotal += $totalPrice;
 

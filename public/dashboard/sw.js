@@ -3,10 +3,10 @@
 // a visitor's cache even after a correct one had been deployed. Every deploy
 // that changes the bundle bumps this number, because the caches are named
 // after it and the old ones are deleted on activate.
-const CACHE_NAME = 'helix-cache-v6';
-const SHELL_CACHE = 'helix-shell-v6';
-const API_CACHE = 'helix-api-v6';
-const STATIC_CACHE = 'helix-static-v6';
+const CACHE_NAME = 'helix-cache-v7';
+const SHELL_CACHE = 'helix-shell-v7';
+const API_CACHE = 'helix-api-v7';
+const STATIC_CACHE = 'helix-static-v7';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

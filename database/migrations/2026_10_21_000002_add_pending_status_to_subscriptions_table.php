@@ -13,7 +13,7 @@ return new class extends Migration
         // made unpaid packages look like paying customers on the books. The
         // "pending" state says what is true: the plan has been chosen and the
         // money has not arrived yet.
-        if (Schema::hasTable('subscriptions')) {
+        if (Schema::hasTable('subscriptions') && DB::getDriverName() !== 'sqlite') {
             DB::statement(
                 "ALTER TABLE subscriptions MODIFY status ENUM('trial','pending','active','expired','suspended','cancelled') NOT NULL DEFAULT 'pending'"
             );
@@ -27,10 +27,12 @@ return new class extends Migration
         }
 
         // The old enum has no room for a package that is chosen but unpaid.
-        DB::table('subscriptions')->where('status', 'pending')->update(['status' => 'cancelled']);
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::table('subscriptions')->where('status', 'pending')->update(['status' => 'cancelled']);
 
-        DB::statement(
-            "ALTER TABLE subscriptions MODIFY status ENUM('active','expired','suspended','cancelled') NOT NULL DEFAULT 'active'"
-        );
+            DB::statement(
+                "ALTER TABLE subscriptions MODIFY status ENUM('active','expired','suspended','cancelled') NOT NULL DEFAULT 'active'"
+            );
+        }
     }
 };

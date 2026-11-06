@@ -110,6 +110,10 @@ return new class extends Migration
 
     private function addFullText(Blueprint $table, string $name, array $columns): void
     {
+        // SQLite doesn't support fulltext indexes
+        if (\Illuminate\Support\Facades\DB::getDriverName() === 'sqlite') {
+            return;
+        }
         try {
             $table->fullText($columns, $name);
         } catch (Throwable $e) {
@@ -119,6 +123,10 @@ return new class extends Migration
 
     private function dropFullText(Blueprint $table, string $name): void
     {
+        // SQLite doesn't support fulltext indexes
+        if (\Illuminate\Support\Facades\DB::getDriverName() === 'sqlite') {
+            return;
+        }
         try {
             $table->dropIndex($name);
         } catch (Throwable $e) {

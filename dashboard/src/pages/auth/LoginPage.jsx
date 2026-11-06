@@ -63,8 +63,12 @@ export default function LoginPage() {
     }
   }
 
+  // The API marks every current plan as monthly; trust that flag before
+  // falling back to duration_months, which legacy rows reported as 12.
   const billingSuffix = (plan) =>
-    Number(plan.duration_months ?? 1) === 1 ? t('auth.perMonth') : t('auth.perYear')
+    plan.display_as_monthly || Number(plan.duration_months ?? 1) === 1
+      ? t('auth.perMonth')
+      : t('auth.perYear')
 
   const [googleLoading, setGoogleLoading] = useState(false)
 

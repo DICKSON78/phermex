@@ -76,6 +76,7 @@ export default function RegisterManufacturerPage() {
     const saved = readDraft()
     return Math.max(1, Number(saved?.step) || 1)
   })
+  const [stepDir, setStepDir] = useState('left')
   const [animKey, setAnimKey] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

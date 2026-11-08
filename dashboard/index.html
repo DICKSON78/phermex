@@ -25,38 +25,6 @@
   <body class="font-poppins">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        // On localhost the Vite dev server serves source modules directly, but
-        // the service worker caches every *.js response cache-first. That kept
-        // resurrecting an old api.js that pointed at an absolute API URL, so
-        // edits looked unapplied no matter how many times the server restarted.
-        // Keep the worker for real deployments, but remove it (and its caches)
-        // in local development.
-        const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
-        // If an old worker is controlling this page it may be serving cached
-        // modules right now. Clean up, then reload once so the fresh sources
-        // are used immediately instead of asking for a second manual refresh.
-        const wasControlled = !!navigator.serviceWorker.controller;
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.getRegistrations().then(async (regs) => {
-            for (const reg of regs) {
-              await reg.unregister();
-            }
-            if (isLocal) {
-              if (window.caches) {
-                const keys = await caches.keys();
-                await Promise.all(keys.map((key) => caches.delete(key)));
-              }
-              if (wasControlled) {
-                window.location.reload();
-              }
-              return;
-            }
-            navigator.serviceWorker.register('/dashboard/sw.js').catch(() => {});
-          });
-        });
-      }
-    </script>
+    
   </body>
 </html>

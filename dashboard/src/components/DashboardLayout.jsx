@@ -56,6 +56,7 @@ import {
   Store,
   Crosshair,
   Plug,
+  Boxes,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'

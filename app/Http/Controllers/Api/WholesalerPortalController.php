@@ -511,8 +511,22 @@ class WholesalerPortalController extends Controller
             return response()->json(['message' => 'Only dispatched orders can be received.'], 422);
         }
 
-        app(\App\Http\Controllers\Api\ManufacturerOrderController::class)
-            ->updateStatus($request->merge(['status' => 'delivered']), $id);
+        DB::transaction(function () use ($order, $request) {
+            $order->update([
+                'status' => 'delivered',
+                'delivered_at' => now(),
+                'payment_status' => $order->payment_method === 'cash' ? 'paid' : $order->payment_status,
+            ]);
+            $this->supplyChain->receiveManufacturerOrder($order);
+            \App\Models\ManufacturerOrderEvent::create([
+                'manufacturer_order_id' => $order->id,
+                'status' => 'delivered',
+                'title' => 'Order delivered',
+                'description' => 'Received by wholesaler.',
+                'actor_id' => $request->user()->id,
+                'actor_name' => $request->user()->name,
+            ]);
+        });
 
         return response()->json(['message' => 'Order received.', 'order' => $this->mfgOrderPayload($order->fresh()->load(['lineItems', 'manufacturer', 'events']))]);
     }

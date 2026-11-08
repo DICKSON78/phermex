@@ -31,7 +31,7 @@ class SupplyChainService
 
     public function receiveWholesaleOrder(WholesaleOrder $order): void
     {
-        $order->loadMissing('lineItems', 'lineItems.inventory');
+        $order->loadMissing('lineItems');
 
         foreach ($order->lineItems as $item) {
             if ($item->quantity_received >= $item->quantity) {
@@ -102,7 +102,7 @@ class SupplyChainService
             return;
         }
 
-        $inventory = $item->relationLoaded('inventory') ? $item->inventory : null;
+        $inventory = $item->inventory_id ? \App\Models\WholesaleInventory::find($item->inventory_id) : null;
         $batch = $inventory?->batch_number;
 
         $query = Drug::withoutGlobalScopes()

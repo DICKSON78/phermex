@@ -57,16 +57,21 @@ export default function ManufacturerRegionMap({ regions = [] }) {
   const maxUnits = Math.max(1, ...regions.map((region) => Number(region.units || 0)))
 
   return (
-    <div className="h-[280px] w-full overflow-hidden rounded-xl border border-[#e3e9e4] bg-[#eef7f1]">
+    <div className="helix-region-map h-[280px] w-full overflow-hidden rounded-xl border border-[#e3e9e4] bg-[#eef7f1]">
       <MapContainer
         center={[-6.3, 34.8]}
         zoom={6}
         scrollWheelZoom={false}
         style={{ height: '100%', width: '100%', zIndex: 0 }}
       >
+        {/* CARTO's public basemaps now answer with an "API key required"
+            watermark, so use OpenStreetMap's keyless tiles instead. The
+            `helix-region-map` wrapper mutes their colours in index.css so the
+            basemap still reads as background behind the demand bubbles. */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
         />
         {regions.slice(0, 14).map((region, index) => {
           const units = Number(region.units || 0)

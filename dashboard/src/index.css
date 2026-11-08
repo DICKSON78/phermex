@@ -436,3 +436,9 @@ body {
 .content-area::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 15, 20, 0.25);
 }
+
+/* Manufacturer demand map: keep OpenStreetMap tiles muted so the green
+   demand bubbles stay the focus instead of the basemap colours. */
+.helix-region-map .leaflet-tile {
+  filter: saturate(0.6) brightness(1.03) contrast(0.96);
+}

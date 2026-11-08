@@ -1,4 +1,4 @@
-// Bumped to v18 to drop the stale v18 caches. Static assets are served
+// Bumped to v19 to drop the stale v19 caches. Static assets are served
 // cache-first, so the old bundle that carried the React crash stayed pinned in
 // a visitor's cache even after a correct one had been deployed. Every deploy
 // that changes the bundle bumps this number, because the caches are named
@@ -13,10 +13,10 @@ if (self.location.hostname === "localhost" || self.location.hostname === "127.0.
   });
 }
 
-const CACHE_NAME = 'helix-cache-v18';
-const SHELL_CACHE = 'helix-shell-v18';
-const API_CACHE = 'helix-api-v18';
-const STATIC_CACHE = 'helix-static-v18';
+const CACHE_NAME = 'helix-cache-v19';
+const SHELL_CACHE = 'helix-shell-v19';
+const API_CACHE = 'helix-api-v19';
+const STATIC_CACHE = 'helix-static-v19';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

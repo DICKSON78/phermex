@@ -79,6 +79,7 @@ function clearDraft() {
 
 export default function RegisterManufacturerPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [step, setStep] = useState(() => {
     const saved = readDraft()
     return Math.max(1, Number(saved?.step) || 1)

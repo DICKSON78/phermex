@@ -32,6 +32,8 @@ use App\Http\Controllers\Api\PharmacistController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LeaveController;
 use App\Http\Controllers\Api\ManufacturerPortalController;
+use App\Http\Controllers\Api\ManufacturerOrderController;
+use App\Http\Controllers\Api\WholesalerPortalController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayrollController;
 use App\Http\Controllers\Api\PerformanceController;
@@ -526,12 +528,45 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Wholesale market: browse suppliers, order by unit, track fulfilment.
         Route::get('/wholesale-marketplace/wholesalers', [WholesaleMarketplaceController::class, 'wholesalers']);
+        Route::get('/wholesale-marketplace/wholesalers/{id}/catalog', [WholesaleMarketplaceController::class, 'catalog']);
+        Route::get('/wholesale-marketplace/orders', [WholesaleMarketplaceController::class, 'orders']);
         Route::get('/wholesale-marketplace/orders/{id}', [WholesaleMarketplaceController::class, 'showOrder']);
         Route::middleware('role:owner,pharmacist')->group(function () {
             Route::post('/wholesale-marketplace/orders', [WholesaleMarketplaceController::class, 'storeOrder']);
             Route::post('/wholesale-marketplace/orders/{id}/cancel', [WholesaleMarketplaceController::class, 'cancelOrder']);
             Route::post('/wholesale-marketplace/orders/{id}/receive', [WholesaleMarketplaceController::class, 'receiveOrder']);
         });
+    });
+
+    // Wholesaler self-service portal. Role isolation is enforced in the
+    // controller through the authenticated user's linked wholesaler record.
+    Route::prefix('wholesaler-portal')->middleware('role:wholesaler')->group(function () {
+        Route::get('/overview', [WholesalerPortalController::class, 'overview']);
+        Route::get('/profile', [WholesalerPortalController::class, 'profile']);
+        Route::put('/profile', [WholesalerPortalController::class, 'updateProfile']);
+        Route::get('/inventory', [WholesalerPortalController::class, 'inventory']);
+        Route::post('/inventory', [WholesalerPortalController::class, 'storeInventory']);
+        Route::put('/inventory/{id}', [WholesalerPortalController::class, 'updateInventory']);
+        Route::delete('/inventory/{id}', [WholesalerPortalController::class, 'destroyInventory']);
+        Route::get('/orders', [WholesalerPortalController::class, 'orders']);
+        Route::get('/orders/{id}', [WholesalerPortalController::class, 'showOrder']);
+        Route::post('/orders/{id}/status', [WholesalerPortalController::class, 'updateOrderStatus']);
+        Route::get('/manufacturers', [WholesalerPortalController::class, 'manufacturers']);
+        Route::get('/manufacturers/{id}/catalog', [WholesalerPortalController::class, 'manufacturerCatalog']);
+        Route::get('/manufacturer-orders', [WholesalerPortalController::class, 'manufacturerOrders']);
+        Route::get('/manufacturer-orders/{id}', [WholesalerPortalController::class, 'showManufacturerOrder']);
+        Route::post('/manufacturer-orders', [WholesalerPortalController::class, 'storeManufacturerOrder']);
+        Route::post('/manufacturer-orders/{id}/cancel', [WholesalerPortalController::class, 'cancelManufacturerOrder']);
+        Route::post('/manufacturer-orders/{id}/receive', [WholesalerPortalController::class, 'receiveManufacturerOrder']);
+    });
+
+    // Manufacturer incoming wholesale orders
+    Route::prefix('manufacturer-orders')->middleware('role:manufacturer,wholesaler,admin')->group(function () {
+        Route::get('/', [ManufacturerOrderController::class, 'index']);
+        Route::get('/{id}', [ManufacturerOrderController::class, 'show']);
+        Route::post('/{id}/status', [ManufacturerOrderController::class, 'updateStatus']);
+        Route::post('/{id}/cancel', [ManufacturerOrderController::class, 'cancel']);
+        Route::post('/{id}/receive', [ManufacturerOrderController::class, 'receive']);
     });
 
     Route::middleware('subscription.active')->group(function () {
@@ -569,6 +604,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/wholesalers/{id}', [AdminWholesalerController::class, 'update']);
         Route::patch('/wholesalers/{id}/status', [AdminWholesalerController::class, 'updateStatus']);
         Route::delete('/wholesalers/{id}', [AdminWholesalerController::class, 'destroy']);
+
+        // Admin wholesale order oversight
+        Route::get('/wholesale-orders', [WholesaleMarketplaceController::class, 'adminOrders']);
+        Route::get('/wholesale-orders/{id}', [WholesaleMarketplaceController::class, 'adminShowOrder']);
+        Route::post('/wholesale-orders/{id}/status', [WholesaleMarketplaceController::class, 'adminUpdateStatus']);
+        Route::post('/wholesale-orders/{id}/mark-paid', [WholesaleMarketplaceController::class, 'adminMarkPaid']);
+        Route::get('/wholesalers/{id}/inventory', [WholesaleMarketplaceController::class, 'adminInventory']);
+        Route::post('/wholesalers/{id}/inventory', [WholesaleMarketplaceController::class, 'adminStoreInventory']);
+        Route::put('/wholesale-inventory/{id}', [WholesaleMarketplaceController::class, 'adminUpdateInventory']);
+        Route::delete('/wholesale-inventory/{id}', [WholesaleMarketplaceController::class, 'adminDestroyInventory']);
+
+        // Admin manufacturer order oversight
+        Route::get('/manufacturer-orders', [ManufacturerOrderController::class, 'index']);
+        Route::get('/manufacturer-orders/{id}', [ManufacturerOrderController::class, 'show']);
+        Route::post('/manufacturer-orders/{id}/status', [ManufacturerOrderController::class, 'updateStatus']);
 
         // Wholesale fulfilment and supplier catalogue management
         // Admin per-pharmacy drill-down

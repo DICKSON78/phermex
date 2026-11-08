@@ -51,7 +51,7 @@ const ROLE_ICONS = {
   customer: User,
 }
 
-const ROLES = ['admin', 'owner', 'pharmacist', 'cashier', 'delivery', 'customer']
+const ROLES = ['admin', 'owner', 'pharmacist', 'cashier', 'delivery', 'customer', 'manufacturer', 'wholesaler']
 
 const truncateEmail = (email, maxLength = 24) => {
   if (!email || email.length <= maxLength) return email || '—'

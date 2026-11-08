@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Pharmacy;
+use App\Models\Wholesaler;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class AdminUserController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = User::with('pharmacy');
+            $query = User::with(['pharmacy', 'wholesaler']);
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
@@ -55,7 +56,9 @@ class AdminUserController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
                 'phone' => 'nullable|string|max:20',
-                'role' => 'required|in:admin,owner,pharmacist,cashier,delivery,customer',
+                'role' => 'required|in:admin,owner,pharmacist,cashier,delivery,customer,manufacturer,wholesaler',
+                'wholesaler_id' => 'nullable|exists:wholesalers,id',
+                'manufacturer_name' => 'nullable|string|max:255',
                 'is_active' => 'boolean',
                 'password' => 'required|string|min:8',
                 'pharmacy_id' => 'nullable|exists:pharmacies,id',
@@ -78,6 +81,17 @@ class AdminUserController extends Controller
                         $pharmacy->update(['owner_id' => $user->id]);
                     }
                 }
+            }
+
+            if ($user->role === 'wholesaler' && !empty($validated['wholesaler_id'])) {
+                $wholesaler = Wholesaler::find($validated['wholesaler_id']);
+                if ($wholesaler && ! $wholesaler->user_id) {
+                    $wholesaler->update(['user_id' => $user->id]);
+                }
+            }
+
+            if ($user->role === 'manufacturer' && !empty($validated['manufacturer_name'])) {
+                $user->update(['manufacturer_name' => $validated['manufacturer_name']]);
             }
 
             DB::commit();
@@ -111,11 +125,19 @@ class AdminUserController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
         try {
-            $user = User::with('pharmacy')->findOrFail($id);
+            $user = User::with(['pharmacy', 'wholesaler'])->findOrFail($id);
 
             $data = $user->toArray();
             $data['orders_count'] = $user->customerAppOrders()->count();
             $data['prescriptions_count'] = \App\Models\Prescription::where('user_id', $user->id)->count();
+            if ($user->isManufacturer()) {
+                $data['products_count'] = \App\Models\ManufacturerProduct::where('user_id', $user->id)->count();
+                $data['orders_received'] = \App\Models\ManufacturerOrder::where('manufacturer_user_id', $user->id)->count();
+            }
+            if ($user->isWholesaler() && $user->wholesaler) {
+                $data['wholesale_orders'] = \App\Models\WholesaleOrder::where('wholesaler_id', $user->wholesaler->wholesaler_id)->count();
+                $data['manufacturer_orders'] = \App\Models\ManufacturerOrder::where('wholesaler_id', $user->wholesaler->wholesaler_id)->count();
+            }
 
             return response()->json(['data' => $data]);
         } catch (\Illuminate\Database\ModelNotFoundException) {
@@ -137,7 +159,8 @@ class AdminUserController extends Controller
                 'name' => 'sometimes|string|max:255',
                 'email' => 'sometimes|email|unique:users,email,' . $user->id,
                 'phone' => 'nullable|string|max:20',
-                'role' => 'sometimes|in:admin,owner,pharmacist,cashier,delivery,customer',
+                'role' => 'sometimes|in:admin,owner,pharmacist,cashier,delivery,customer,manufacturer,wholesaler',
+                'wholesaler_id' => 'nullable|exists:wholesalers,id',
                 'is_active' => 'boolean',
                 'password' => 'nullable|string|min:8',
                 'pharmacy_id' => 'nullable|exists:pharmacies,id',
@@ -163,6 +186,15 @@ class AdminUserController extends Controller
                         if ($user->role === 'owner') {
                             $pharmacy->update(['owner_id' => $user->id]);
                         }
+                    }
+                }
+            }
+
+            if (array_key_exists('wholesaler_id', $validated) && $user->role === 'wholesaler') {
+                if (!empty($validated['wholesaler_id'])) {
+                    $wholesaler = Wholesaler::find($validated['wholesaler_id']);
+                    if ($wholesaler) {
+                        $wholesaler->update(['user_id' => $user->id]);
                     }
                 }
             }

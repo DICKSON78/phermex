@@ -38,6 +38,7 @@ function GuestRoute({ children }) {
   if (user) {
     if (user.role === 'customer') return <Navigate to="/app" replace />
     if (user.role === 'manufacturer') return <Navigate to="/dashboard/manufacturer" replace />
+    if (user.role === 'wholesaler') return <Navigate to="/dashboard/wholesaler" replace />
     return <Navigate to="/dashboard" replace />
   }
   return children
@@ -56,9 +57,11 @@ function DashboardApp() {
     ? 'admin'
     : user?.role === 'manufacturer'
       ? 'manufacturer'
-      : SELLER_ROLES.includes(user?.role)
-        ? 'seller'
-        : 'owner'
+      : user?.role === 'wholesaler'
+        ? 'wholesaler'
+        : SELLER_ROLES.includes(user?.role)
+          ? 'seller'
+          : 'owner'
   return <DashboardLayout role={role} />
 }
 
@@ -87,8 +90,8 @@ export default function App() {
       <Route path="/app" element={<ProtectedRoute allowedRoles={['customer']}><UseAppPage /></ProtectedRoute>} />
 
       {/* Unified dashboard for all roles (owner / admin / seller) */}
-      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery', 'manufacturer']}><DashboardApp /></ProtectedRoute>} />
-      <Route path="/dashboard/*" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery', 'manufacturer']}><DashboardApp /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery', 'manufacturer', 'wholesaler']}><DashboardApp /></ProtectedRoute>} />
+      <Route path="/dashboard/*" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery', 'manufacturer', 'wholesaler']}><DashboardApp /></ProtectedRoute>} />
 
       {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />

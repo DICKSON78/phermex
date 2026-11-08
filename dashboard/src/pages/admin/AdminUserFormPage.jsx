@@ -14,6 +14,8 @@ const ROLES = [
   { value: 'cashier', label: 'Cashier' },
   { value: 'delivery', label: 'Delivery' },
   { value: 'customer', label: 'Customer' },
+  { value: 'manufacturer', label: 'Manufacturer' },
+  { value: 'wholesaler', label: 'Wholesaler' },
 ]
 
 export default function AdminUserFormPage() {

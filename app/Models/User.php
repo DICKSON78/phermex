@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -73,6 +74,21 @@ class User extends Authenticatable
         return $this->belongsTo(Pharmacy::class, 'current_pharmacy_id');
     }
 
+    /**
+     * A wholesaler login owns exactly one trading record. Keeping the link on
+     * the business row (rather than a role check alone) is what stops one
+     * wholesaler from reading another's orders or catalogue.
+     */
+    public function wholesaler(): HasOne
+    {
+        return $this->hasOne(Wholesaler::class);
+    }
+
+    public function manufacturerProducts(): HasMany
+    {
+        return $this->hasMany(ManufacturerProduct::class);
+    }
+
     public function accessiblePharmacies()
     {
         $isOwner = $this->isOwner();
@@ -132,6 +148,11 @@ class User extends Authenticatable
     public function isManufacturer(): bool
     {
         return $this->role === 'manufacturer';
+    }
+
+    public function isWholesaler(): bool
+    {
+        return $this->role === 'wholesaler';
     }
 
     public function isPharmacist(): bool

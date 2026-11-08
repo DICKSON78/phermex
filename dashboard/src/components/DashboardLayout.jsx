@@ -115,6 +115,13 @@ import WholesaleOrdersPage from '../pages/owner/WholesaleOrdersPage'
 import WholesaleOrderDetailPage from '../pages/owner/WholesaleOrderDetailPage'
 import WholesaleMarketplacePage from '../pages/owner/WholesaleMarketplacePage'
 import WholesaleCatalogPage from '../pages/owner/WholesaleCatalogPage'
+import WholesalerDashboardPage from '../pages/wholesaler/WholesalerDashboardPage'
+import WholesalerOrdersPage from '../pages/wholesaler/WholesalerOrdersPage'
+import WholesalerInventoryPage from '../pages/wholesaler/WholesalerInventoryPage'
+import WholesalerInventoryFormPage from '../pages/wholesaler/WholesalerInventoryFormPage'
+import WholesalerManufacturersPage from '../pages/wholesaler/WholesalerManufacturersPage'
+import WholesalerPurchaseOrdersPage from '../pages/wholesaler/WholesalerPurchaseOrdersPage'
+import WholesalerProfilePage from '../pages/wholesaler/WholesalerProfilePage'
 import DamagedGoodsPage from '../pages/owner/DamagedGoodsPage'
 import ControlledSubstancePage from '../pages/owner/ControlledSubstancePage'
 import LicenseManagementPage from '../pages/owner/LicenseManagementPage'
@@ -148,6 +155,8 @@ import AddPharmacyPage from '../pages/owner/AddPharmacyPage'
 import AdminDashboard from '../pages/admin/AdminDashboard'
 import AdminPharmaciesPage from '../pages/admin/AdminPharmaciesPage'
 import AdminWholesalersPage from '../pages/admin/AdminWholesalersPage'
+import AdminWholesaleOrdersPage from '../pages/admin/AdminWholesaleOrdersPage'
+import AdminManufacturerOrdersPage from '../pages/admin/AdminManufacturerOrdersPage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminAuditLogsPage from '../pages/admin/AdminAuditLogsPage'
 import AdminSettingsPage from '../pages/admin/AdminSettingsPage'
@@ -210,6 +219,7 @@ import ManufacturerDataExportsPage from '../pages/manufacturer/ManufacturerDataE
 import ManufacturerHelpSupportPage from '../pages/manufacturer/ManufacturerHelpSupportPage'
 import ManufacturerDrugFormPage from '../pages/manufacturer/ManufacturerDrugFormPage'
 import ManufacturerInventoryFormPage from '../pages/manufacturer/ManufacturerInventoryFormPage'
+import ManufacturerWholesaleOrdersPage from '../pages/manufacturer/ManufacturerWholesaleOrdersPage'
 import ManufacturerRecallFormPage from '../pages/manufacturer/ManufacturerRecallFormPage'
 import ManufacturerCampaignFormPage from '../pages/manufacturer/ManufacturerCampaignFormPage'
 import ManufacturerIntegrationFormPage from '../pages/manufacturer/ManufacturerIntegrationFormPage'
@@ -297,6 +307,8 @@ const ownerNavGroups = [
     label: 'WHOLESALE MARKET',
     items: [
       { path: '/dashboard/wholesale-marketplace', icon: Store, label: 'Wholesale marketplace' },
+      { path: '/dashboard/wholesale-orders-admin', icon: Package, label: 'Wholesale orders' },
+      { path: '/dashboard/manufacturer-orders-admin', icon: Truck, label: 'Manufacturer orders' },
       { path: '/dashboard/wholesale-orders', icon: Package, label: 'My orders' },
     ],
   },
@@ -358,6 +370,7 @@ const manufacturerNavGroups = [
       { path: '/dashboard/manufacturer/drugs', icon: Pill, label: 'My drugs & products' },
       { path: '/dashboard/manufacturer/inventory', icon: Package, label: 'Inventory' },
       { path: '/dashboard/manufacturer/recalls', icon: AlertTriangle, label: 'Drug recalls' },
+      { path: '/dashboard/manufacturer/wholesale-orders', icon: ShoppingCart, label: 'Wholesale orders' },
     ],
   },
   {
@@ -397,6 +410,36 @@ const manufacturerNavGroups = [
   },
 ]
 
+const wholesalerNavGroups = [
+  {
+    label: 'MAIN',
+    items: [
+      { path: '/dashboard/wholesaler', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+    ],
+  },
+  {
+    label: 'ORDERS',
+    items: [
+      { path: '/dashboard/wholesaler/orders', icon: Package, label: 'Pharmacy orders' },
+      { path: '/dashboard/wholesaler/purchase-orders', icon: ShoppingCart, label: 'Purchase orders' },
+    ],
+  },
+  {
+    label: 'CATALOGUE',
+    items: [
+      { path: '/dashboard/wholesaler/inventory', icon: Boxes, label: 'Inventory' },
+      { path: '/dashboard/wholesaler/manufacturers', icon: Store, label: 'Manufacturers' },
+    ],
+  },
+  {
+    label: 'SETTINGS',
+    items: [
+      { path: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
+      { path: '/dashboard/wholesaler/profile', icon: User, label: 'Profile' },
+    ],
+  },
+]
+
 const adminNavGroups = [
   {
     label: 'MAIN',
@@ -413,6 +456,8 @@ const adminNavGroups = [
       { path: '/dashboard/users', icon: Users, label: 'Users' },
       { path: '/dashboard/drug-database', icon: Pill, label: 'Drug Database' },
       { path: '/dashboard/wholesale-marketplace', icon: Store, label: 'Wholesale marketplace' },
+      { path: '/dashboard/wholesale-orders-admin', icon: Package, label: 'Wholesale orders' },
+      { path: '/dashboard/manufacturer-orders-admin', icon: Truck, label: 'Manufacturer orders' },
     ],
   },
   {
@@ -550,7 +595,9 @@ export default function DashboardLayout({ role }) {
     null
   const showPharmacySwitcher = role === 'owner'
 
-  const navGroups = role === 'manufacturer'
+  const navGroups = role === 'wholesaler'
+    ? wholesalerNavGroups
+    : role === 'manufacturer'
     ? manufacturerNavGroups
     : role === 'owner'
       ? ownerNavGroups
@@ -671,7 +718,7 @@ export default function DashboardLayout({ role }) {
   }
 
   const userInitials = (user?.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-  const roleLabel = { admin: t('common.roleAdmin'), owner: t('common.roleOwner'), pharmacist: t('common.rolePharmacist'), cashier: t('common.roleCashier'), delivery: t('common.roleDelivery'), customer: t('common.roleCustomer'), manufacturer: 'Manufacturer' }[user?.role || role] || role
+  const roleLabel = { admin: t('common.roleAdmin'), owner: t('common.roleOwner'), pharmacist: t('common.rolePharmacist'), cashier: t('common.roleCashier'), delivery: t('common.roleDelivery'), customer: t('common.roleCustomer'), manufacturer: 'Manufacturer', wholesaler: 'Wholesaler' }[user?.role || role] || role
 
   const sidebarContent = (
     <>
@@ -1149,6 +1196,7 @@ export default function DashboardLayout({ role }) {
               <Route path="manufacturer/recalls" element={<ManufacturerRecallsPage />} />
               <Route path="manufacturer/recalls/new" element={<ManufacturerRecallFormPage />} />
               <Route path="manufacturer/recalls/:id/edit" element={<ManufacturerRecallFormPage />} />
+              <Route path="manufacturer/wholesale-orders" element={<ManufacturerWholesaleOrdersPage />} />
               <Route path="manufacturer/intelligence/product" element={<ManufacturerProductIntelligencePage />} />
               <Route path="manufacturer/intelligence/market-demand" element={<ManufacturerMarketDemandPage />} />
               <Route path="manufacturer/intelligence/forecast" element={<ManufacturerDemandForecastPage />} />
@@ -1317,6 +1365,8 @@ export default function DashboardLayout({ role }) {
               <Route path="pending-approvals" element={<AdminPendingApprovalsPage />} />
               <Route path="pharmacies" element={<AdminPharmaciesPage />} />
               <Route path="wholesalers" element={<AdminWholesalersPage />} />
+              <Route path="wholesale-orders-admin" element={<AdminWholesaleOrdersPage />} />
+              <Route path="manufacturer-orders-admin" element={<AdminManufacturerOrdersPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="drug-database" element={<AdminDrugDatabasePage />} />
               <Route path="revenue" element={<AdminRevenuePage />} />

@@ -10,6 +10,7 @@ use App\Models\WholesaleOrderEvent;
 use App\Models\WholesaleOrderItem;
 use App\Models\WholesalePayment;
 use App\Models\Wholesaler;
+use App\Services\SupplyChainService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,7 @@ use Illuminate\Validation\ValidationException;
  */
 class WholesaleMarketplaceController extends Controller
 {
+    public function __construct(private SupplyChainService $supplyChain) {}
     private const FLOW = ['pending', 'confirmed', 'packed', 'dispatched', 'delivered'];
 
     public function wholesalers(Request $request): JsonResponse
@@ -604,6 +606,8 @@ class WholesaleMarketplaceController extends Controller
         }
 
         $order->update($updates);
+
+        $this->supplyChain->receiveWholesaleOrder($order);
 
         if ($payment) {
             $payment->update([

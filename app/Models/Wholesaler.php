@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Wholesaler extends Model
@@ -10,6 +11,7 @@ class Wholesaler extends Model
     protected $table = 'wholesalers';
 
     protected $fillable = [
+        'user_id',
         'wholesaler_id',
         'name',
         'business_type',
@@ -48,9 +50,19 @@ class Wholesaler extends Model
         'accepts_credit' => 'boolean',
     ];
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function orders(): HasMany
     {
         return $this->hasMany(WholesaleOrder::class, 'wholesaler_id', 'wholesaler_id');
+    }
+
+    public function manufacturerOrders(): HasMany
+    {
+        return $this->hasMany(ManufacturerOrder::class, 'wholesaler_id', 'wholesaler_id');
     }
 
     public function pricing(): HasMany

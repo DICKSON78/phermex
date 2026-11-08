@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { Pill, User, Mail, Phone, Lock, Eye, EyeOff, ArrowLeft, Loader2, Check, Building2, MapPin, Clock, ChevronRight, Plus, Trash2, Info, Flag } from 'lucide-react'
 import api from '../../services/api'
 

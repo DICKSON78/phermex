@@ -297,7 +297,7 @@ export default function RegisterManufacturerPage() {
                     </div>
                     <input type="email" value={form.email} onChange={(e) => updateForm('email', e.target.value)} className={`${inputClass} ${form.email ? 'border-green-400' : ''}`} placeholder="you@example.com" />
                   </div>
-                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                  {error.email && <p className="text-red-500 text-xs mt-1">{error.email}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 mb-1.5">Phone number<Required /></label>
@@ -360,7 +360,7 @@ export default function RegisterManufacturerPage() {
                       {t('authPages.validation.passwordHasNumber')}
                     </PasswordRequirement>
                   </div>
-                  {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+                  {error.password && <p className="text-red-500 text-xs mt-1">{error.password}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 mb-1.5">Confirm password<Required /></label>
@@ -372,7 +372,7 @@ export default function RegisterManufacturerPage() {
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={form.password_confirmation}
                       onChange={(e) => updateForm('password_confirmation', e.target.value)}
-                      className={`${inputClass} ${errors.password_confirmation ? 'border-red-400' : ''}`}
+                      className={`${inputClass} ${error.password_confirmation ? 'border-red-400' : ''}`}
                       placeholder="Re-enter password"
                     />
                     {form.password_confirmation && (
@@ -380,7 +380,7 @@ export default function RegisterManufacturerPage() {
                         {t('authPages.validation.passwordMatches')}
                       </PasswordRequirement>
                     )}
-                    {errors.password_confirmation && <p className="text-red-500 text-xs mt-1">{errors.password_confirmation}</p>}
+                    {error.password_confirmation && <p className="text-red-500 text-xs mt-1">{error.password_confirmation}</p>}
                   </div>
                 </div>
               </div>

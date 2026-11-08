@@ -1,4 +1,4 @@
-// Bumped to v15 to drop the stale v15 caches. Static assets are served
+// Bumped to v17 to drop the stale v17 caches. Static assets are served
 // cache-first, so the old bundle that carried the React crash stayed pinned in
 // a visitor's cache even after a correct one had been deployed. Every deploy
 // that changes the bundle bumps this number, because the caches are named
@@ -13,10 +13,10 @@ if (self.location.hostname === "localhost" || self.location.hostname === "127.0.
   });
 }
 
-const CACHE_NAME = 'helix-cache-v15';
-const SHELL_CACHE = 'helix-shell-v15';
-const API_CACHE = 'helix-api-v15';
-const STATIC_CACHE = 'helix-static-v15';
+const CACHE_NAME = 'helix-cache-v17';
+const SHELL_CACHE = 'helix-shell-v17';
+const API_CACHE = 'helix-api-v17';
+const STATIC_CACHE = 'helix-static-v17';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

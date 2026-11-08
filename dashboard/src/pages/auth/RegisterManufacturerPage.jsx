@@ -315,7 +315,7 @@ export default function RegisterManufacturerPage() {
                       maxLength={PHONE_MAX}
                       value={form.phone?.replace(/[^0-9]/g, '') || ''}
                       onChange={(e) => {
-                        const digits = e.target.value.replace(/[^0-9]/g, '')
+                        let digits = e.target.value.replace(/[^0-9]/g, '')
                         const dial = form.phone?.replace(/[^0-9]/g, '').replace(/^\+/, '') || ''
                         if (dial && digits.startsWith(dial) && digits.length > PHONE_MAX) {
                           digits = digits.slice(dial.length)

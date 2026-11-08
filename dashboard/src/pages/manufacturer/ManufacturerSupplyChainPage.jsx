@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Truck, Boxes, AlertTriangle, Clock, CheckCircle2, Eye } from 'lucide-react'
 import {
   PageHeader,
@@ -15,13 +15,23 @@ import {
   formatNumber,
 } from './ManufacturerUI'
 import { defaultRange, usePortalData } from './usePortalData'
+import api from '../../services/api'
 
 const riskTone = { expired: 'red', expiring: 'amber', low_stock: 'blue' }
 
 export default function ManufacturerSupplyChainPage() {
   const [range, setRange] = useState(defaultRange)
   const [selected, setSelected] = useState(null)
+  const [wholesale, setWholesale] = useState(null)
   const { data, loading, error } = usePortalData('/manufacturer-portal/analytics/supply-chain', range)
+
+  useEffect(() => {
+    let active = true
+    api.get('/manufacturer-orders').then(({ data: payload }) => {
+      if (active) setWholesale(payload.stats || {})
+    }).catch(() => {})
+    return () => { active = false }
+  }, [])
 
   const summary = data?.summary || {}
   const byPharmacy = data?.by_pharmacy || []
@@ -35,6 +45,14 @@ export default function ManufacturerSupplyChainPage() {
         subtitle="Monitor stock health, expiry risk and order fulfilment across your pharmacy network."
       />
 
+      {wholesale && (
+        <div className="mb-4 grid gap-3 sm:grid-cols-4">
+          <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-xs text-gray-500">Wholesale orders</p><p className="text-xl font-bold">{wholesale.total ?? 0}</p></div>
+          <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-xs text-gray-500">Active</p><p className="text-xl font-bold">{wholesale.active ?? 0}</p></div>
+          <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-xs text-gray-500">Delivered</p><p className="text-xl font-bold">{wholesale.delivered ?? 0}</p></div>
+          <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-xs text-gray-500">Value</p><p className="text-xl font-bold">{formatMoney(wholesale.total_value ?? 0)}</p></div>
+        </div>
+      )}
       <DateRangeFilter from={range.from} to={range.to} onChange={setRange} />
 
       {loading ? (

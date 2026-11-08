@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Pill, Building2, ArrowRight } from 'lucide-react'
+import { Pill, Building2, Factory, ArrowRight } from 'lucide-react'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function RegisterPage() {
@@ -46,6 +46,25 @@ export default function RegisterPage() {
             <p className="text-gray-500 text-sm mb-6">{t('authPages.registerChooser.multiDesc')}</p>
             <div className="flex items-center gap-2 text-[#0FD452] font-semibold text-sm">
               <span>{t('authPages.registerChooser.getStarted')}</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+        </div>
+
+        <div className="mt-6">
+          <Link
+            to="/register/manufacturer"
+            className="group relative bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#0FD452] hover:shadow-lg hover:shadow-[#0FD452]/10 transition-all duration-500 flex items-center gap-6"
+          >
+            <div className="w-16 h-16 bg-[#0FD452]/10 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0FD452]/20 transition-all duration-300">
+              <Factory className="w-8 h-8 text-[#0FD452]" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-gray-600 mb-2">Manufacturer</h3>
+              <p className="text-gray-500 text-sm">Register as a drug manufacturer to list products and receive wholesale orders.</p>
+            </div>
+            <div className="flex items-center gap-2 text-[#0FD452] font-semibold text-sm">
+              <span>Get started</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>

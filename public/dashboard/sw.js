@@ -1,8 +1,8 @@
-// Bumped to v19 - disabled caching on localhost to serve fresh bundles
-const CACHE_NAME = 'helix-cache-v19';
-const SHELL_CACHE = 'helix-shell-v19';
-const API_CACHE = 'helix-api-v19';
-const STATIC_CACHE = 'helix-static-v19';
+// Bumped to v20 - disabled caching on localhost to serve fresh bundles
+const CACHE_NAME = 'helix-cache-v20';
+const SHELL_CACHE = 'helix-shell-v20';
+const API_CACHE = 'helix-api-v20';
+const STATIC_CACHE = 'helix-static-v20';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

@@ -12,6 +12,9 @@ class WholesaleInventory extends Model
         'wholesaler_id',
         'drug_id',
         'drug_name',
+        'unit',
+        'pack_size',
+        'category',
         'batch_number',
         'quantity_in_stock',
         'minimum_stock_level',
@@ -25,6 +28,7 @@ class WholesaleInventory extends Model
 
     protected $casts = [
         'quantity_in_stock' => 'integer',
+        'pack_size' => 'integer',
         'minimum_stock_level' => 'integer',
         'reorder_quantity' => 'integer',
         'unit_price' => 'decimal:2',

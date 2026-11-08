@@ -50,6 +50,12 @@ import {
   ShieldCheck,
   Lock,
   Clapperboard,
+  TrendingUp,
+  LineChart,
+  MapPin,
+  Store,
+  Crosshair,
+  Plug,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -105,6 +111,10 @@ import StockTakesPage from '../pages/owner/StockTakesPage'
 import StockTakeDetailPage from '../pages/owner/StockTakeDetailPage'
 import SupplierOrdersPage from '../pages/owner/SupplierOrdersPage'
 import SupplierOrderDetailPage from '../pages/owner/SupplierOrderDetailPage'
+import WholesaleOrdersPage from '../pages/owner/WholesaleOrdersPage'
+import WholesaleOrderDetailPage from '../pages/owner/WholesaleOrderDetailPage'
+import WholesaleMarketplacePage from '../pages/owner/WholesaleMarketplacePage'
+import WholesaleCatalogPage from '../pages/owner/WholesaleCatalogPage'
 import DamagedGoodsPage from '../pages/owner/DamagedGoodsPage'
 import ControlledSubstancePage from '../pages/owner/ControlledSubstancePage'
 import LicenseManagementPage from '../pages/owner/LicenseManagementPage'
@@ -168,6 +178,8 @@ import AdminRevenueShowPage from '../pages/admin/AdminRevenueShowPage'
 import AdminDrugFormPage from '../pages/admin/AdminDrugFormPage'
 import AdminDrugShowPage from '../pages/admin/AdminDrugShowPage'
 import AdminPendingApprovalsPage from '../pages/admin/AdminPendingApprovalsPage'
+import AdminWholesalerFormPage from '../pages/admin/AdminWholesalerFormPage'
+import AdminWholesalerCatalogPage from '../pages/admin/AdminWholesalerCatalogPage'
 import AdminJobsPage from '../pages/admin/AdminJobsPage'
 import AdminJobFormPage from '../pages/admin/AdminJobFormPage'
 import AdminJobShowPage from '../pages/admin/AdminJobShowPage'
@@ -177,6 +189,34 @@ import AdminReviewsPage from '../pages/admin/AdminReviewsPage'
 import SellerDashboard from '../pages/seller/SellerDashboard'
 
 import SubscriptionsPage from '../pages/owner/SubscriptionsPage'
+
+import ManufacturerDashboardPage from '../pages/manufacturer/ManufacturerDashboardPage'
+import ManufacturerDrugsPage from '../pages/manufacturer/ManufacturerDrugsPage'
+import ManufacturerInventoryPage from '../pages/manufacturer/ManufacturerInventoryPage'
+import ManufacturerRecallsPage from '../pages/manufacturer/ManufacturerRecallsPage'
+import ManufacturerProfilePage from '../pages/manufacturer/ManufacturerProfilePage'
+import ManufacturerProductIntelligencePage from '../pages/manufacturer/ManufacturerProductIntelligencePage'
+import ManufacturerMarketDemandPage from '../pages/manufacturer/ManufacturerMarketDemandPage'
+import ManufacturerDemandForecastPage from '../pages/manufacturer/ManufacturerDemandForecastPage'
+import ManufacturerGeographicConsumptionPage from '../pages/manufacturer/ManufacturerGeographicConsumptionPage'
+import ManufacturerPharmacyPenetrationPage from '../pages/manufacturer/ManufacturerPharmacyPenetrationPage'
+import ManufacturerProductPerformancePage from '../pages/manufacturer/ManufacturerProductPerformancePage'
+import ManufacturerCompetitorAnalysisPage from '../pages/manufacturer/ManufacturerCompetitorAnalysisPage'
+import ManufacturerCampaignsPage from '../pages/manufacturer/ManufacturerCampaignsPage'
+import ManufacturerSupplyChainPage from '../pages/manufacturer/ManufacturerSupplyChainPage'
+import ManufacturerReportsPage from '../pages/manufacturer/ManufacturerReportsPage'
+import ManufacturerIntegrationsPage from '../pages/manufacturer/ManufacturerIntegrationsPage'
+import ManufacturerDataExportsPage from '../pages/manufacturer/ManufacturerDataExportsPage'
+import ManufacturerHelpSupportPage from '../pages/manufacturer/ManufacturerHelpSupportPage'
+import ManufacturerDrugFormPage from '../pages/manufacturer/ManufacturerDrugFormPage'
+import ManufacturerInventoryFormPage from '../pages/manufacturer/ManufacturerInventoryFormPage'
+import ManufacturerRecallFormPage from '../pages/manufacturer/ManufacturerRecallFormPage'
+import ManufacturerCampaignFormPage from '../pages/manufacturer/ManufacturerCampaignFormPage'
+import ManufacturerIntegrationFormPage from '../pages/manufacturer/ManufacturerIntegrationFormPage'
+import ManufacturerSupportFormPage from '../pages/manufacturer/ManufacturerSupportFormPage'
+import ManufacturerSupportDetailPage from '../pages/manufacturer/ManufacturerSupportDetailPage'
+import ManufacturerProfileFormPage from '../pages/manufacturer/ManufacturerProfileFormPage'
+import ManufacturerPasswordFormPage from '../pages/manufacturer/ManufacturerPasswordFormPage'
 
 const ownerNavGroups = [
   {
@@ -254,6 +294,13 @@ const ownerNavGroups = [
     ],
   },
   {
+    label: 'WHOLESALE MARKET',
+    items: [
+      { path: '/dashboard/wholesale-marketplace', icon: Store, label: 'Wholesale marketplace' },
+      { path: '/dashboard/wholesale-orders', icon: Package, label: 'My orders' },
+    ],
+  },
+  {
     label: 'SUPPLY CHAIN',
     items: [
       { path: '/dashboard/suppliers', icon: Users, label: 'Suppliers' },
@@ -298,6 +345,58 @@ const ownerNavGroups = [
   },
 ]
 
+const manufacturerNavGroups = [
+  {
+    label: 'MAIN',
+    items: [
+      { path: '/dashboard/manufacturer', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+    ],
+  },
+  {
+    label: 'CATALOGUE',
+    items: [
+      { path: '/dashboard/manufacturer/drugs', icon: Pill, label: 'My drugs & products' },
+      { path: '/dashboard/manufacturer/inventory', icon: Package, label: 'Inventory' },
+      { path: '/dashboard/manufacturer/recalls', icon: AlertTriangle, label: 'Drug recalls' },
+    ],
+  },
+  {
+    label: 'INTELLIGENCE',
+    items: [
+      { path: '/dashboard/manufacturer/intelligence/product', icon: BarChart3, label: 'Product Intelligence' },
+      { path: '/dashboard/manufacturer/intelligence/market-demand', icon: TrendingUp, label: 'Market Demand' },
+      { path: '/dashboard/manufacturer/intelligence/forecast', icon: LineChart, label: 'Demand Forecast' },
+      { path: '/dashboard/manufacturer/intelligence/geography', icon: MapPin, label: 'Geographic Consumption' },
+      { path: '/dashboard/manufacturer/intelligence/penetration', icon: Store, label: 'Pharmacy Penetration' },
+    ],
+  },
+  {
+    label: 'ANALYTICS',
+    items: [
+      { path: '/dashboard/manufacturer/analytics/performance', icon: BarChart3, label: 'Product Performance' },
+      { path: '/dashboard/manufacturer/analytics/competitors', icon: Crosshair, label: 'Competitor Analysis' },
+      { path: '/dashboard/manufacturer/analytics/campaigns', icon: Megaphone, label: 'Promotions & Campaigns' },
+      { path: '/dashboard/manufacturer/analytics/supply-chain', icon: Truck, label: 'Supply Chain Intelligence' },
+      { path: '/dashboard/manufacturer/analytics/reports', icon: FileText, label: 'Reports' },
+    ],
+  },
+  {
+    label: 'INTEGRATIONS',
+    items: [
+      { path: '/dashboard/manufacturer/integrations', icon: Plug, label: 'API / Integrations' },
+      { path: '/dashboard/manufacturer/exports', icon: Download, label: 'Data Exports' },
+    ],
+  },
+  {
+    label: 'SETTINGS',
+    items: [
+      { path: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
+      { path: '/dashboard/manufacturer/profile', icon: User, label: 'Profile' },
+      { path: '/dashboard/manufacturer/help', icon: LifeBuoy, label: 'Help & Support' },
+    ],
+  },
+]
+
 const adminNavGroups = [
   {
     label: 'MAIN',
@@ -313,6 +412,7 @@ const adminNavGroups = [
       { path: '/dashboard/wholesalers', icon: Truck, label: 'Wholesalers' },
       { path: '/dashboard/users', icon: Users, label: 'Users' },
       { path: '/dashboard/drug-database', icon: Pill, label: 'Drug Database' },
+      { path: '/dashboard/wholesale-marketplace', icon: Store, label: 'Wholesale marketplace' },
     ],
   },
   {
@@ -450,8 +550,17 @@ export default function DashboardLayout({ role }) {
     null
   const showPharmacySwitcher = role === 'owner'
 
-  const navGroups = role === 'owner' ? ownerNavGroups : role === 'admin' ? adminNavGroups : sellerNavGroups
+  const navGroups = role === 'manufacturer'
+    ? manufacturerNavGroups
+    : role === 'owner'
+      ? ownerNavGroups
+      : role === 'admin'
+        ? adminNavGroups
+        : sellerNavGroups
   const basePath = '/dashboard'
+  const isManufacturer = role === 'manufacturer'
+  const profilePath = isManufacturer ? `${basePath}/manufacturer/profile` : `${basePath}/profile`
+  const settingsPath = isManufacturer ? `${basePath}/manufacturer/profile` : `${basePath}/settings`
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
@@ -562,7 +671,7 @@ export default function DashboardLayout({ role }) {
   }
 
   const userInitials = (user?.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-  const roleLabel = { admin: t('common.roleAdmin'), owner: t('common.roleOwner'), pharmacist: t('common.rolePharmacist'), cashier: t('common.roleCashier'), delivery: t('common.roleDelivery'), customer: t('common.roleCustomer') }[user?.role || role] || role
+  const roleLabel = { admin: t('common.roleAdmin'), owner: t('common.roleOwner'), pharmacist: t('common.rolePharmacist'), cashier: t('common.roleCashier'), delivery: t('common.roleDelivery'), customer: t('common.roleCustomer'), manufacturer: 'Manufacturer' }[user?.role || role] || role
 
   const sidebarContent = (
     <>
@@ -576,7 +685,11 @@ export default function DashboardLayout({ role }) {
           <div>
             <h1 className="text-white font-bold text-[15px] leading-tight">HELIX</h1>
             <p className="text-green-200/60 text-[11px]">
-              {role === 'admin' ? t('common.adminPanel') : t('common.pharmacySystem')}
+              {role === 'admin'
+                ? t('common.adminPanel')
+                : role === 'manufacturer'
+                  ? 'Manufacturer Portal'
+                  : t('common.pharmacySystem')}
             </p>
           </div>
         </Link>
@@ -702,10 +815,17 @@ export default function DashboardLayout({ role }) {
                   {group.items.map((item) => {
                     const Icon = item.icon
                     const active = isActive(item.path, item.exact)
-                    const required = item.requiredPlan || requiredPlanForPath(item.path)
-                    const locked = ownerExpired
-                      ? item.path !== `${basePath}/settings`
-                      : !!required && !hasPlanAccess(currentPlan, required)
+                    // Manufacturer accounts have their own portal and are not
+                    // sold through pharmacy subscription plans, so path-based
+                    // pharmacy feature gates must not lock their nav items.
+                    const required = role === 'manufacturer'
+                      ? null
+                      : (item.requiredPlan || requiredPlanForPath(item.path))
+                    const locked = role === 'manufacturer'
+                      ? false
+                      : ownerExpired
+                        ? item.path !== `${basePath}/settings`
+                        : !!required && !hasPlanAccess(currentPlan, required)
                     if (locked) {
                       const label = ownerExpired ? t('subscription.upgrade') : (PLAN_LABELS[required] || required)
                       return (
@@ -765,9 +885,9 @@ export default function DashboardLayout({ role }) {
 
       {/* Settings + User */}
       <div className="px-3 pb-4 space-y-1 border-t border-white/10 pt-3">
-        {role !== 'seller' && (
+        {role !== 'seller' && role !== 'manufacturer' && (
           <NavLink
-            to={`${basePath}/settings`}
+            to={settingsPath}
             onClick={() => setSidebarOpen(false)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 transition-all duration-200"
           >
@@ -982,16 +1102,16 @@ export default function DashboardLayout({ role }) {
                     </div>
                     <div className="py-1">
                       <NavLink
-                        to={`${basePath}/profile`}
+                        to={profilePath}
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         <User className="w-4 h-4" />
                         {t('profile.title')}
                       </NavLink>
-                      {role !== 'seller' && (
+                      {role !== 'seller' && role !== 'manufacturer' && (
                         <NavLink
-                          to={`${basePath}/settings`}
+                          to={settingsPath}
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         >
@@ -1017,7 +1137,44 @@ export default function DashboardLayout({ role }) {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-surface p-4 md:p-6 content-area">
-          {role === 'owner' ? (
+          {role === 'manufacturer' ? (
+            <Routes>
+              <Route index element={<Navigate to="/dashboard/manufacturer" replace />} />
+              <Route path="manufacturer" element={<ManufacturerDashboardPage />} />
+              <Route path="manufacturer/drugs" element={<ManufacturerDrugsPage />} />
+              <Route path="manufacturer/drugs/new" element={<ManufacturerDrugFormPage />} />
+              <Route path="manufacturer/drugs/:id/edit" element={<ManufacturerDrugFormPage />} />
+              <Route path="manufacturer/inventory" element={<ManufacturerInventoryPage />} />
+              <Route path="manufacturer/inventory/:id/edit" element={<ManufacturerInventoryFormPage />} />
+              <Route path="manufacturer/recalls" element={<ManufacturerRecallsPage />} />
+              <Route path="manufacturer/recalls/new" element={<ManufacturerRecallFormPage />} />
+              <Route path="manufacturer/recalls/:id/edit" element={<ManufacturerRecallFormPage />} />
+              <Route path="manufacturer/intelligence/product" element={<ManufacturerProductIntelligencePage />} />
+              <Route path="manufacturer/intelligence/market-demand" element={<ManufacturerMarketDemandPage />} />
+              <Route path="manufacturer/intelligence/forecast" element={<ManufacturerDemandForecastPage />} />
+              <Route path="manufacturer/intelligence/geography" element={<ManufacturerGeographicConsumptionPage />} />
+              <Route path="manufacturer/intelligence/penetration" element={<ManufacturerPharmacyPenetrationPage />} />
+              <Route path="manufacturer/analytics/performance" element={<ManufacturerProductPerformancePage />} />
+              <Route path="manufacturer/analytics/competitors" element={<ManufacturerCompetitorAnalysisPage />} />
+              <Route path="manufacturer/analytics/campaigns" element={<ManufacturerCampaignsPage />} />
+              <Route path="manufacturer/analytics/campaigns/new" element={<ManufacturerCampaignFormPage />} />
+              <Route path="manufacturer/analytics/campaigns/:id/edit" element={<ManufacturerCampaignFormPage />} />
+              <Route path="manufacturer/analytics/supply-chain" element={<ManufacturerSupplyChainPage />} />
+              <Route path="manufacturer/analytics/reports" element={<ManufacturerReportsPage />} />
+              <Route path="manufacturer/integrations" element={<ManufacturerIntegrationsPage />} />
+              <Route path="manufacturer/integrations/new" element={<ManufacturerIntegrationFormPage />} />
+              <Route path="manufacturer/integrations/:id/edit" element={<ManufacturerIntegrationFormPage />} />
+              <Route path="manufacturer/exports" element={<ManufacturerDataExportsPage />} />
+              <Route path="manufacturer/help" element={<ManufacturerHelpSupportPage />} />
+              <Route path="manufacturer/help/new" element={<ManufacturerSupportFormPage />} />
+              <Route path="manufacturer/help/:id" element={<ManufacturerSupportDetailPage />} />
+              <Route path="manufacturer/profile" element={<ManufacturerProfilePage />} />
+              <Route path="manufacturer/profile/edit" element={<ManufacturerProfileFormPage />} />
+              <Route path="manufacturer/profile/password" element={<ManufacturerPasswordFormPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="*" element={<Navigate to="/dashboard/manufacturer" replace />} />
+            </Routes>
+          ) : role === 'owner' ? (
             ownerExpired ? (
               location.pathname === `${basePath}/settings` ? (
                 <SettingsPage />
@@ -1106,9 +1263,12 @@ export default function DashboardLayout({ role }) {
               <Route path="chats" element={<PlanGate requiredPlan="professional"><PharmacyChatListPage /></PlanGate>} />
               <Route path="chats/:customerId" element={<PlanGate requiredPlan="professional"><PharmacyChatPage /></PlanGate>} />
               <Route path="telemedicine" element={<PlanGate requiredPlan="professional"><TelemedicinePage /></PlanGate>} />
-              <Route path="loyalty" element={<PlanGate requiredPlan="professional"><LoyaltyPage /></PlanGate>} />
-              <Route path="reel" element={<ReelPage />} />
-              <Route path="insurance/providers" element={<PlanGate requiredPlan="professional"><InsuranceProvidersPage /></PlanGate>} />
+              <Route path="wholesale-orders" element={<WholesaleOrdersPage />} />
+              <Route path="wholesale-orders/:id" element={<WholesaleOrderDetailPage />} />
+              <Route path="wholesale-marketplace" element={<WholesaleMarketplacePage />} />
+              <Route path="wholesale-marketplace/:id" element={<WholesaleCatalogPage />} />
+              <Route path="wholesale-marketplace/:wholesalerId/catalog" element={<WholesaleCatalogPage />} />
+              <Route path="profile" element={<ProfilePage />} />
               <Route path="insurance/patients" element={<PlanGate requiredPlan="professional"><PatientInsurancesPage /></PlanGate>} />
               <Route path="insurance/claims" element={<PlanGate requiredPlan="professional"><InsuranceClaimsPage /></PlanGate>} />
               <Route path="support" element={<OwnerSupportPage />} />

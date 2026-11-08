@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Ban,
+  Boxes,
   Building2,
   CheckCircle2,
   ChevronLeft,
@@ -23,7 +25,6 @@ import {
   Truck,
   User,
   Warehouse,
-  X,
   Zap,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -46,24 +47,6 @@ const STATUS_FALLBACK = {
   pending: 'Pending',
   inactive: 'Inactive',
   suspended: 'Suspended',
-}
-
-const EMPTY_FORM = {
-  name: '',
-  email: '',
-  phone: '',
-  address: '',
-  city: '',
-  region: '',
-  country: 'Tanzania',
-  license_number: '',
-  registration_number: '',
-  tax_id: '',
-  bank_name: '',
-  bank_account: '',
-  contact_person: '',
-  contact_phone: '',
-  status: 'pending',
 }
 
 const selectClass =
@@ -130,6 +113,7 @@ function formatDate(value) {
 
 export default function AdminWholesalersPage() {
   const { t } = useLanguage()
+  const navigate = useNavigate()
   const [confirm, confirmDialog] = useConfirm()
 
   const [wholesalers, setWholesalers] = useState([])
@@ -141,11 +125,6 @@ export default function AdminWholesalersPage() {
   const [currentPage, setCurrentPage] = useState(1)
 
   const [selected, setSelected] = useState(null)
-  const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [saving, setSaving] = useState(false)
-  const [formError, setFormError] = useState('')
 
   const statusLabel = (status) => t(`wholesalers.status.${status}`, STATUS_FALLBACK[status] || status)
 
@@ -192,69 +171,9 @@ export default function AdminWholesalersPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
-  const openCreate = () => {
-    setEditing(null)
-    setForm({ ...EMPTY_FORM })
-    setFormError('')
-    setShowForm(true)
-  }
-
-  const openEdit = (wholesaler) => {
-    setSelected(null)
-    setEditing(wholesaler)
-    setForm({
-      name: wholesaler.name || '',
-      email: wholesaler.email || '',
-      phone: wholesaler.phone || '',
-      address: wholesaler.address || '',
-      city: wholesaler.city || '',
-      region: wholesaler.region || '',
-      country: wholesaler.country || 'Tanzania',
-      license_number: wholesaler.license_number || '',
-      registration_number: wholesaler.registration_number || '',
-      tax_id: wholesaler.tax_id || '',
-      bank_name: wholesaler.bank_name || '',
-      bank_account: wholesaler.bank_account || '',
-      contact_person: wholesaler.contact_person || '',
-      contact_phone: wholesaler.contact_phone || '',
-      status: wholesaler.status || 'pending',
-    })
-    setFormError('')
-    setShowForm(true)
-  }
-
-  const closeForm = () => {
-    if (saving) return
-    setShowForm(false)
-    setEditing(null)
-    setFormError('')
-  }
-
-  const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }))
-
-  const submitForm = async (event) => {
-    event.preventDefault()
-    setSaving(true)
-    setFormError('')
-    try {
-      if (editing) {
-        await api.put(`/admin/wholesalers/${editing.id}`, form)
-        toast.success(t('wholesalers.updated', 'Wholesaler updated'))
-      } else {
-        await api.post('/admin/wholesalers', form)
-        toast.success(t('wholesalers.created', 'Wholesaler created'))
-      }
-      setShowForm(false)
-      setEditing(null)
-      await fetchWholesalers()
-    } catch (error) {
-      const errors = error.response?.data?.errors
-      const firstError = errors ? Object.values(errors)[0]?.[0] : null
-      setFormError(firstError || error.response?.data?.message || t('wholesalers.saveError', 'Could not save wholesaler.'))
-    } finally {
-      setSaving(false)
-    }
-  }
+  const openCreate = () => navigate('/dashboard/wholesalers/new')
+  const openEdit = (wholesaler) => navigate(`/dashboard/wholesalers/${wholesaler.id}/edit`)
+  const openCatalog = (wholesaler) => navigate(`/dashboard/wholesalers/${wholesaler.id}/catalog`)
 
   const changeStatus = async (wholesaler, status) => {
     const suspending = status === 'suspended'
@@ -483,6 +402,9 @@ export default function AdminWholesalersPage() {
                         <button onClick={() => setSelected(w)} className="btn-icon-primary" title={t('wholesalers.viewDetails', 'View')}>
                           <Eye className="h-4 w-4" />
                         </button>
+                        <button onClick={() => openCatalog(w)} className="btn-ghost" title="Catalog">
+                          <Boxes className="h-4 w-4" />
+                        </button>
                         <button onClick={() => openEdit(w)} className="btn-icon-blue" title={t('common.edit', 'Edit')}>
                           <Edit className="h-4 w-4" />
                         </button>
@@ -580,12 +502,21 @@ export default function AdminWholesalersPage() {
               <InfoRow icon={Receipt} label={t('wholesalers.regNumber', 'Registration number')} value={selected.registration_number} mono />
               <InfoRow icon={Receipt} label={t('wholesalers.taxId', 'Tax ID')} value={selected.tax_id} mono />
               <InfoRow icon={Landmark} label={t('wholesalers.bank', 'Bank')} value={[selected.bank_name, selected.bank_account].filter(Boolean).join(' · ')} />
+              <InfoRow icon={Truck} label="Supplier type" value={selected.business_type || 'wholesaler'} />
+              <InfoRow icon={Truck} label="Delivery fee" value={Number(selected.delivery_fee || 0).toFixed(2)} />
+              <InfoRow icon={Truck} label="Express delivery fee" value={Number(selected.express_delivery_fee || 0).toFixed(2)} />
+              <InfoRow icon={Receipt} label="Minimum order" value={Number(selected.minimum_order_amount || 0).toFixed(2)} />
+              <InfoRow icon={Clock} label="Credit terms" value={selected.accepts_credit === false ? 'Credit not accepted' : `${Number(selected.payment_terms_days || 0)} days`} />
             </div>
 
             <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-4">
               <button onClick={() => openEdit(selected)} className="btn-primary">
                 <Edit className="h-4 w-4" />
                 {t('common.edit', 'Edit')}
+              </button>
+              <button onClick={() => openCatalog(selected)} className="btn-secondary">
+                <Boxes className="h-4 w-4 text-[#0FD452]" />
+                Manage catalog
               </button>
               {selected.status === 'active' ? (
                 <button onClick={() => changeStatus(selected, 'suspended')} className="btn-secondary">
@@ -605,110 +536,6 @@ export default function AdminWholesalersPage() {
             </div>
           </div>
         )}
-      </Modal>
-
-      <Modal
-        isOpen={showForm}
-        onClose={closeForm}
-        title={editing ? t('wholesalers.editTitle', 'Edit Wholesaler') : t('wholesalers.newTitle', 'New Wholesaler')}
-        subtitle={
-          editing
-            ? `${t('wholesalers.updateFor', 'Update the details for')} ${editing.name}`
-            : t('wholesalers.newSubtitle', 'Register a wholesaler and set its initial status.')
-        }
-        maxWidth="max-w-3xl"
-      >
-        <form onSubmit={submitForm} className="space-y-6">
-          {formError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{formError}</div>
-          )}
-
-          <div>
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-400">{t('wholesalers.sections.business', 'Business')}</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label={t('wholesalers.name', 'Business name')} required>
-                <input required value={form.name} onChange={(e) => updateField('name', e.target.value)} className={inputClass} placeholder="e.g. Tanzania Wholesale Pharmacy Ltd" />
-              </Field>
-              <Field label={t('wholesalers.email', 'Email')} required>
-                <input required type="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} className={inputClass} placeholder="supply@example.co.tz" />
-              </Field>
-              <Field label={t('wholesalers.businessPhone', 'Business phone')} required>
-                <input required value={form.phone} onChange={(e) => updateField('phone', e.target.value)} className={inputClass} placeholder="+255 700 000 000" />
-              </Field>
-              <Field label={t('wholesalers.status', 'Status')}>
-                <select value={form.status} onChange={(e) => updateField('status', e.target.value)} className={selectClass}>
-                  {Object.keys(STATUS_STYLES).map((s) => (
-                    <option key={s} value={s}>
-                      {statusLabel(s)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-400">{t('wholesalers.sections.location', 'Location')}</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label={t('wholesalers.address', 'Address')} required className="sm:col-span-2">
-                <input required value={form.address} onChange={(e) => updateField('address', e.target.value)} className={inputClass} placeholder="Street, plot, building" />
-              </Field>
-              <Field label={t('wholesalers.city', 'City')} required>
-                <input required value={form.city} onChange={(e) => updateField('city', e.target.value)} className={inputClass} placeholder="Dar es Salaam" />
-              </Field>
-              <Field label={t('wholesalers.region', 'Region')} required>
-                <input required value={form.region} onChange={(e) => updateField('region', e.target.value)} className={inputClass} placeholder="Dar es Salaam" />
-              </Field>
-              <Field label={t('wholesalers.country', 'Country')}>
-                <input value={form.country} onChange={(e) => updateField('country', e.target.value)} className={inputClass} placeholder="Tanzania" />
-              </Field>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-400">{t('wholesalers.sections.licensing', 'Licensing')}</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label={t('wholesalers.licence', 'Licence number')} required>
-                <input required value={form.license_number} onChange={(e) => updateField('license_number', e.target.value)} className={inputClass} placeholder="e.g. TZ-WHL-00123" />
-              </Field>
-              <Field label={t('wholesalers.regNumber', 'Registration number')} required>
-                <input required value={form.registration_number} onChange={(e) => updateField('registration_number', e.target.value)} className={inputClass} placeholder="e.g. BRELA-123456" />
-              </Field>
-              <Field label={t('wholesalers.taxId', 'Tax ID')}>
-                <input value={form.tax_id} onChange={(e) => updateField('tax_id', e.target.value)} className={inputClass} placeholder="TIN" />
-              </Field>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-400">{t('wholesalers.sections.contactBank', 'Contact & Bank')}</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label={t('wholesalers.contactPerson', 'Contact person')}>
-                <input value={form.contact_person} onChange={(e) => updateField('contact_person', e.target.value)} className={inputClass} placeholder="Full name" />
-              </Field>
-              <Field label={t('wholesalers.contactPhone', 'Contact phone')}>
-                <input value={form.contact_phone} onChange={(e) => updateField('contact_phone', e.target.value)} className={inputClass} placeholder="+255 700 000 000" />
-              </Field>
-              <Field label={t('wholesalers.bankName', 'Bank name')}>
-                <input value={form.bank_name} onChange={(e) => updateField('bank_name', e.target.value)} className={inputClass} placeholder="e.g. CRDB Bank" />
-              </Field>
-              <Field label={t('wholesalers.bankAccount', 'Bank account')}>
-                <input value={form.bank_account} onChange={(e) => updateField('bank_account', e.target.value)} className={inputClass} placeholder="Account number" />
-              </Field>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
-            <button type="button" onClick={closeForm} disabled={saving} className="btn-secondary">
-              <X className="h-4 w-4" />
-              {t('common.cancel', 'Cancel')}
-            </button>
-            <button type="submit" disabled={saving} className="btn-primary">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              {editing ? t('wholesalers.saveChanges', 'Save changes') : t('wholesalers.create', 'Create wholesaler')}
-            </button>
-          </div>
-        </form>
       </Modal>
 
       {confirmDialog}

@@ -35,8 +35,18 @@ class AuthController extends Controller
                 // those three rules, so a password the checklist accepts is
                 // never rejected here with a different reason.
                 'password' => ['required', 'string', 'confirmed', 'min:8', 'regex:/[A-Z]/', 'regex:/[0-9]/'],
-                'role' => 'sometimes|in:owner,pharmacist,cashier,delivery,customer',
+                'role' => 'sometimes|in:owner,pharmacist,cashier,delivery,customer,manufacturer',
             ];
+
+            if ($request->input('role') === 'manufacturer') {
+                $rules['manufacturer_name'] = 'required|string|max:255';
+                $rules['manufacturer_license'] = 'sometimes|nullable|string|max:100';
+                $rules['manufacturer_address'] = 'sometimes|nullable|string|max:255';
+                $rules['manufacturer_phone'] = 'sometimes|nullable|string|max:50';
+                $rules['manufacturer_email'] = 'sometimes|nullable|email|max:254';
+                $rules['manufacturer_website'] = 'sometimes|nullable|string|max:255';
+                $rules['manufacturer_description'] = 'sometimes|nullable|string|max:2000';
+            }
 
             if ($request->role === 'owner' || $request->input('role', 'owner') === 'owner') {
                 // The dashboard sends a nested pharmacies[] array with one entry
@@ -116,6 +126,13 @@ class AuthController extends Controller
                 'user_code' => $userCode,
                 'password' => Hash::make($validated['password']),
                 'is_active' => true,
+                'manufacturer_name' => $validated['manufacturer_name'] ?? null,
+                'manufacturer_license' => $validated['manufacturer_license'] ?? null,
+                'manufacturer_address' => $validated['manufacturer_address'] ?? null,
+                'manufacturer_phone' => $validated['manufacturer_phone'] ?? null,
+                'manufacturer_email' => $validated['manufacturer_email'] ?? null,
+                'manufacturer_website' => $validated['manufacturer_website'] ?? null,
+                'manufacturer_description' => $validated['manufacturer_description'] ?? null,
             ]);
 
             $pharmacy = null;

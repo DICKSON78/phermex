@@ -37,6 +37,7 @@ function GuestRoute({ children }) {
   if (loading) return <LoadingSpinner />
   if (user) {
     if (user.role === 'customer') return <Navigate to="/app" replace />
+    if (user.role === 'manufacturer') return <Navigate to="/dashboard/manufacturer" replace />
     return <Navigate to="/dashboard" replace />
   }
   return children
@@ -45,12 +46,19 @@ function GuestRoute({ children }) {
 function RoleRedirect() {
   const { user } = useAuth()
   if (user?.role === 'customer') return <Navigate to="/app" replace />
+  if (user?.role === 'manufacturer') return <Navigate to="/dashboard/manufacturer" replace />
   return <Navigate to="/dashboard" replace />
 }
 
 function DashboardApp() {
   const { user } = useAuth()
-  const role = user?.role === 'admin' ? 'admin' : SELLER_ROLES.includes(user?.role) ? 'seller' : 'owner'
+  const role = user?.role === 'admin'
+    ? 'admin'
+    : user?.role === 'manufacturer'
+      ? 'manufacturer'
+      : SELLER_ROLES.includes(user?.role)
+        ? 'seller'
+        : 'owner'
   return <DashboardLayout role={role} />
 }
 
@@ -79,8 +87,8 @@ export default function App() {
       <Route path="/app" element={<ProtectedRoute allowedRoles={['customer']}><UseAppPage /></ProtectedRoute>} />
 
       {/* Unified dashboard for all roles (owner / admin / seller) */}
-      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery']}><DashboardApp /></ProtectedRoute>} />
-      <Route path="/dashboard/*" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery']}><DashboardApp /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery', 'manufacturer']}><DashboardApp /></ProtectedRoute>} />
+      <Route path="/dashboard/*" element={<ProtectedRoute allowedRoles={['owner', 'admin', 'pharmacist', 'cashier', 'delivery', 'manufacturer']}><DashboardApp /></ProtectedRoute>} />
 
       {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />

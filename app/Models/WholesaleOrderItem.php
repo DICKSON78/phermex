@@ -11,8 +11,11 @@ class WholesaleOrderItem extends Model
 
     protected $fillable = [
         'wholesale_order_id',
+        'inventory_id',
         'drug_id',
         'drug_name',
+        'unit',
+        'pack_size',
         'quantity',
         'unit_price',
         'total_price',

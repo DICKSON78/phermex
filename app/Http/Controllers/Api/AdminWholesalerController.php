@@ -88,6 +88,7 @@ class AdminWholesalerController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'business_type' => 'nullable|in:wholesaler,distributor',
                 'email' => 'required|email|max:255|unique:wholesalers,email',
                 'phone' => 'required|string|max:30',
                 'address' => 'required|string',
@@ -101,6 +102,11 @@ class AdminWholesalerController extends Controller
                 'bank_name' => 'nullable|string|max:120',
                 'contact_person' => 'nullable|string|max:255',
                 'contact_phone' => 'nullable|string|max:30',
+                'delivery_fee' => 'nullable|numeric|min:0',
+                'express_delivery_fee' => 'nullable|numeric|min:0',
+                'minimum_order_amount' => 'nullable|numeric|min:0',
+                'payment_terms_days' => 'nullable|integer|min:0|max:365',
+                'accepts_credit' => 'nullable|boolean',
                 'status' => 'nullable|in:' . implode(',', self::STATUSES),
             ]);
 
@@ -109,6 +115,7 @@ class AdminWholesalerController extends Controller
             $wholesaler = Wholesaler::create([
                 'wholesaler_id' => $this->generateWholesalerId(),
                 'name' => $validated['name'],
+                'business_type' => $validated['business_type'] ?? 'wholesaler',
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'address' => $validated['address'],
@@ -122,6 +129,11 @@ class AdminWholesalerController extends Controller
                 'bank_name' => $validated['bank_name'] ?? '',
                 'contact_person' => $validated['contact_person'] ?? $validated['name'],
                 'contact_phone' => $validated['contact_phone'] ?? $validated['phone'],
+                'delivery_fee' => $validated['delivery_fee'] ?? 0,
+                'express_delivery_fee' => $validated['express_delivery_fee'] ?? 0,
+                'minimum_order_amount' => $validated['minimum_order_amount'] ?? 0,
+                'payment_terms_days' => $validated['payment_terms_days'] ?? 30,
+                'accepts_credit' => $validated['accepts_credit'] ?? true,
                 'status' => $validated['status'] ?? 'pending',
             ]);
 
@@ -154,6 +166,7 @@ class AdminWholesalerController extends Controller
 
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'business_type' => 'nullable|in:wholesaler,distributor',
                 'email' => 'required|email|max:255|unique:wholesalers,email,' . $wholesaler->id,
                 'phone' => 'required|string|max:30',
                 'address' => 'required|string',
@@ -167,10 +180,21 @@ class AdminWholesalerController extends Controller
                 'bank_name' => 'nullable|string|max:120',
                 'contact_person' => 'nullable|string|max:255',
                 'contact_phone' => 'nullable|string|max:30',
+                'delivery_fee' => 'nullable|numeric|min:0',
+                'express_delivery_fee' => 'nullable|numeric|min:0',
+                'minimum_order_amount' => 'nullable|numeric|min:0',
+                'payment_terms_days' => 'nullable|integer|min:0|max:365',
+                'accepts_credit' => 'nullable|boolean',
                 'status' => 'nullable|in:' . implode(',', self::STATUSES),
             ]);
 
             $validated['country'] = $validated['country'] ?? 'Tanzania';
+            $validated['business_type'] = $validated['business_type'] ?? 'wholesaler';
+            $validated['delivery_fee'] = $validated['delivery_fee'] ?? 0;
+            $validated['express_delivery_fee'] = $validated['express_delivery_fee'] ?? 0;
+            $validated['minimum_order_amount'] = $validated['minimum_order_amount'] ?? 0;
+            $validated['payment_terms_days'] = $validated['payment_terms_days'] ?? 30;
+            $validated['accepts_credit'] = $validated['accepts_credit'] ?? true;
             $validated['bank_account'] = $validated['bank_account'] ?? '';
             $validated['bank_name'] = $validated['bank_name'] ?? '';
             $validated['contact_person'] = $validated['contact_person'] ?? $validated['name'];
@@ -280,6 +304,7 @@ class AdminWholesalerController extends Controller
             'id' => $wholesaler->id,
             'wholesaler_id' => $wholesaler->wholesaler_id,
             'name' => $wholesaler->name,
+            'business_type' => $wholesaler->business_type ?: 'wholesaler',
             'email' => $wholesaler->email,
             'phone' => $wholesaler->phone,
             'address' => $wholesaler->address,
@@ -291,6 +316,11 @@ class AdminWholesalerController extends Controller
             'tax_id' => $wholesaler->tax_id,
             'bank_account' => $wholesaler->bank_account,
             'bank_name' => $wholesaler->bank_name,
+            'delivery_fee' => (float) $wholesaler->delivery_fee,
+            'express_delivery_fee' => (float) $wholesaler->express_delivery_fee,
+            'minimum_order_amount' => (float) $wholesaler->minimum_order_amount,
+            'payment_terms_days' => (int) $wholesaler->payment_terms_days,
+            'accepts_credit' => (bool) $wholesaler->accepts_credit,
             'status' => $wholesaler->status,
             'rating' => (float) $wholesaler->rating,
             'total_orders' => (int) $wholesaler->total_orders,

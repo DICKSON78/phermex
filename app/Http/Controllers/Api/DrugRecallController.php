@@ -111,4 +111,20 @@ class DrugRecallController extends Controller
             return response()->json(['message' => 'Failed to fetch active recalls.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
         }
     }
+
+    public function recentRecalls(Request $request): JsonResponse
+    {
+        try {
+            $recalls = DrugRecall::latest()
+                ->take(10)
+                ->get();
+
+            return response()->json(['recalls' => $recalls]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch recent recalls.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
 }

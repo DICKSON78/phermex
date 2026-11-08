@@ -88,9 +88,12 @@ const GROUP_KEYS = {
 export function navKeyForPath(path) {
   if (!path) return null
   if (PATH_KEYS[path]) return PATH_KEYS[path]
-  // longest-prefix match so detail routes fall back to their list key
+  // Longest-prefix match so detail routes fall back to their list key. The
+  // bare /dashboard entry must be excluded here: every role-specific route
+  // starts with /dashboard/, so leaving it in would translate all of them to
+  // "Dashboard" (the manufacturer sidebar bug).
   const match = Object.keys(PATH_KEYS)
-    .filter((p) => path.startsWith(`${p}/`))
+    .filter((p) => p !== '/dashboard' && path.startsWith(`${p}/`))
     .sort((a, b) => b.length - a.length)[0]
   return match ? PATH_KEYS[match] : null
 }

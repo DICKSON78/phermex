@@ -22,6 +22,14 @@ class User extends Authenticatable
         'phone',
         'photo',
         'role',
+        'manufacturer_name',
+        'manufacturer_license',
+        'manufacturer_address',
+        'manufacturer_phone',
+        'manufacturer_email',
+        'manufacturer_website',
+        'manufacturer_logo',
+        'manufacturer_description',
         'location',
         'street',
         'road',
@@ -119,6 +127,11 @@ class User extends Authenticatable
     public function isOwner(): bool
     {
         return $this->role === 'owner';
+    }
+
+    public function isManufacturer(): bool
+    {
+        return $this->role === 'manufacturer';
     }
 
     public function isPharmacist(): bool

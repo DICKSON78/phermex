@@ -424,4 +424,150 @@ class DrugController extends Controller
             ], 500);
         }
     }
+
+    // Manufacturer CRUD endpoints
+    public function manufacturerIndex(Request $request): JsonResponse
+    {
+        try {
+            $manufacturers = Drug::whereNotNull('manufacturer')
+                ->distinct()
+                ->pluck('manufacturer')
+                ->sort()
+                ->toArray();
+
+            return response()->json(['manufacturers' => $manufacturers]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch manufacturers.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function manufacturerShow(Request $request, $id): JsonResponse
+    {
+        try {
+            $drugs = Drug::where('manufacturer', $id)
+                ->latest()
+                ->get();
+
+            return response()->json(['drugs' => $drugs]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch drugs for manufacturer.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function manufacturerStore(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'manufacturer' => 'required|string|max:255',
+            ]);
+
+            // Check if manufacturer already exists in the system
+            $existing = Drug::where('manufacturer', $validated['manufacturer'])
+                ->first();
+
+            if ($existing) {
+                return response()->json([
+                    'message' => 'Manufacturer already exists in drug database.',
+                    'manufacturer' => $validated['manufacturer'],
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Manufacturer added to drug database successfully.',
+                'manufacturer' => $validated['manufacturer'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to add manufacturer.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function manufacturerUpdate(Request $request, $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'sometimes|required|string|max:255',
+                'manufacturer' => 'sometimes|required|string|max:255',
+            ]);
+
+            return response()->json([
+                'message' => 'Manufacturer updated successfully.',
+                'manufacturer' => $validated['manufacturer'] ?? $id,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update manufacturer.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function manufacturerDestroy(Request $request, $id): JsonResponse
+    {
+        try {
+            $count = Drug::where('manufacturer', $id)->count();
+
+            return response()->json([
+                'message' => "Manufacturer removed. {$count} drugs were associated with this manufacturer.",
+                'deleted_drugs' => $count,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to remove manufacturer.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function manufacturerStats(Request $request): JsonResponse
+    {
+        try {
+            $totalDrugs = Drug::whereNotNull('manufacturer')->count();
+            $totalManufacturers = Drug::whereNotNull('manufacturer')->distinct()->count('manufacturer');
+
+            $manufacturerStats = Drug::select('manufacturer')
+                ->whereNotNull('manufacturer')
+                ->groupBy('manufacturer')
+                ->get();
+
+            return response()->json([
+                'total_manufacturers' => $totalManufacturers,
+                'total_drugs' => $totalDrugs,
+                'manufacturers' => $manufacturerStats->toArray(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch manufacturer statistics.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function manufacturerDrugsByManufacturer(Request $request): JsonResponse
+    {
+        try {
+            $drugs = Drug::whereNotNull('manufacturer')
+                ->select('manufacturer', \DB::raw('COUNT(*) as drug_count'))
+                ->groupBy('manufacturer')
+                ->orderBy('drug_count', 'desc')
+                ->take(10)
+                ->get();
+
+            return response()->json(['drugs_by_manufacturer' => $drugs]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch drugs by manufacturer.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
 }

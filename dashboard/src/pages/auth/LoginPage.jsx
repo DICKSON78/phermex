@@ -86,7 +86,13 @@ export default function LoginPage() {
       navigate('/verify-email')
       return
     }
-    navigate(userData.role === 'customer' ? '/app' : '/dashboard')
+    navigate(
+      userData.role === 'customer'
+        ? '/app'
+        : userData.role === 'manufacturer'
+          ? '/dashboard/manufacturer'
+          : '/dashboard'
+    )
   }
 
   // A Google sign-in that fell back to a redirect comes back to this same page

@@ -12,6 +12,7 @@ class Wholesaler extends Model
     protected $fillable = [
         'wholesaler_id',
         'name',
+        'business_type',
         'email',
         'phone',
         'address',
@@ -23,6 +24,11 @@ class Wholesaler extends Model
         'tax_id',
         'bank_account',
         'bank_name',
+        'delivery_fee',
+        'express_delivery_fee',
+        'minimum_order_amount',
+        'payment_terms_days',
+        'accepts_credit',
         'status',
         'rating',
         'total_orders',
@@ -35,6 +41,11 @@ class Wholesaler extends Model
         'rating' => 'decimal:2',
         'on_time_delivery_rate' => 'decimal:2',
         'total_orders' => 'integer',
+        'delivery_fee' => 'decimal:2',
+        'express_delivery_fee' => 'decimal:2',
+        'minimum_order_amount' => 'decimal:2',
+        'payment_terms_days' => 'integer',
+        'accepts_credit' => 'boolean',
     ];
 
     public function orders(): HasMany

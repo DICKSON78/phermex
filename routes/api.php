@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\PharmacistController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LeaveController;
+use App\Http\Controllers\Api\ManufacturerPortalController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayrollController;
 use App\Http\Controllers\Api\PerformanceController;
@@ -51,6 +52,7 @@ use App\Http\Controllers\Api\ControlledSubstanceController;
 use App\Http\Controllers\Api\LicenseController;
 use App\Http\Controllers\Api\EPrescriptionController;
 use App\Http\Controllers\Api\WholesaleManagementController;
+use App\Http\Controllers\Api\WholesaleMarketplaceController;
 use App\Http\Controllers\Api\WholesaleOrderController;
 use App\Http\Controllers\Api\RegulatoryReportController;
 use App\Http\Controllers\Api\DrugRecallController;
@@ -75,7 +77,7 @@ use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/login', [AuthController::class, 'login'])->name('login')->middleware('throttle:10,1');
 // Sign in with Google for existing pharmacy accounts (owner/pharmacist/etc).
 Route::post('/auth/google', [GoogleAuthController::class, 'staffLogin'])->middleware('throttle:10,1');
 Route::post('/forgot-password', [PasswordResetController::class, 'sendCode'])->middleware('throttle:5,1');
@@ -462,6 +464,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/drug-recalls/{id}', [DrugRecallController::class, 'show']);
         Route::post('/drug-recalls/{id}/acknowledge', [DrugRecallController::class, 'acknowledge']);
         Route::post('/drug-recalls/{id}/process', [DrugRecallController::class, 'process']);
+        // Manufacturer routes
+        Route::get('/manufacturer/stats', [DrugController::class, 'manufacturerStats']);
+        Route::get('/manufacturer/drugs-by-manufacturer', [DrugController::class, 'manufacturerDrugsByManufacturer']);
+        Route::get('/manufacturer/recalls', [DrugRecallController::class, 'recentRecalls']);
+        Route::get('/manufacturer', [DrugController::class, 'manufacturerIndex']);
+        Route::post('/manufacturer', [DrugController::class, 'manufacturerStore']);
+        Route::get('/manufacturer/{id}', [DrugController::class, 'manufacturerShow']);
+        Route::put('/manufacturer/{id}', [DrugController::class, 'manufacturerUpdate']);
+        Route::delete('/manufacturer/{id}', [DrugController::class, 'manufacturerDestroy']);;
 
         Route::get('/expenses/monthly-summary', [ExpenseController::class, 'monthlySummary']);
         Route::get('/expenses/categories', [ExpenseController::class, 'categories']);
@@ -512,6 +523,15 @@ Route::middleware('auth:sanctum')->group(function () {
             ->middleware(RoleMiddleware::class . ':owner');
         Route::post('/support/tickets/{id}/reply', [AdminSupportController::class, 'ownerReply'])
             ->middleware(RoleMiddleware::class . ':owner');
+
+        // Wholesale market: browse suppliers, order by unit, track fulfilment.
+        Route::get('/wholesale-marketplace/wholesalers', [WholesaleMarketplaceController::class, 'wholesalers']);
+        Route::get('/wholesale-marketplace/orders/{id}', [WholesaleMarketplaceController::class, 'showOrder']);
+        Route::middleware('role:owner,pharmacist')->group(function () {
+            Route::post('/wholesale-marketplace/orders', [WholesaleMarketplaceController::class, 'storeOrder']);
+            Route::post('/wholesale-marketplace/orders/{id}/cancel', [WholesaleMarketplaceController::class, 'cancelOrder']);
+            Route::post('/wholesale-marketplace/orders/{id}/receive', [WholesaleMarketplaceController::class, 'receiveOrder']);
+        });
     });
 
     Route::middleware('subscription.active')->group(function () {
@@ -550,6 +570,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/wholesalers/{id}/status', [AdminWholesalerController::class, 'updateStatus']);
         Route::delete('/wholesalers/{id}', [AdminWholesalerController::class, 'destroy']);
 
+        // Wholesale fulfilment and supplier catalogue management
         // Admin per-pharmacy drill-down
         Route::get('/pharmacies/{id}/orders', [AdminController::class, 'pharmacyOrders']);
         Route::get('/pharmacies/{id}/drugs', [AdminController::class, 'pharmacyDrugs']);
@@ -642,6 +663,66 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/jobs/{id}/applications', [AdminJobController::class, 'applications']);
         Route::patch('/job-applications/{id}', [AdminJobController::class, 'updateApplication']);
         Route::get('/job-applications', [AdminJobController::class, 'allApplications']);
+    });
+
+    // Manufacturer portal — a manufacturer is its own role, with its own
+    // catalogue, stock register and recalls. None of these routes touch a
+    // pharmacy's inventory.
+    Route::middleware('role:manufacturer')->prefix('manufacturer-portal')->group(function () {
+        Route::get('/overview', [ManufacturerPortalController::class, 'overview']);
+
+        Route::get('/drugs', [ManufacturerPortalController::class, 'drugsIndex']);
+        Route::post('/drugs', [ManufacturerPortalController::class, 'drugsStore']);
+        Route::get('/drugs/{id}', [ManufacturerPortalController::class, 'drugsShow']);
+        Route::put('/drugs/{id}', [ManufacturerPortalController::class, 'drugsUpdate']);
+        Route::delete('/drugs/{id}', [ManufacturerPortalController::class, 'drugsDestroy']);
+
+        Route::get('/inventory', [ManufacturerPortalController::class, 'inventoryIndex']);
+        Route::patch('/inventory/{id}', [ManufacturerPortalController::class, 'inventoryUpdate']);
+
+        Route::get('/recalls', [ManufacturerPortalController::class, 'recallsIndex']);
+        Route::post('/recalls', [ManufacturerPortalController::class, 'recallsStore']);
+        Route::put('/recalls/{id}', [ManufacturerPortalController::class, 'recallsUpdate']);
+        Route::delete('/recalls/{id}', [ManufacturerPortalController::class, 'recallsDestroy']);
+
+        Route::get('/profile', [ManufacturerPortalController::class, 'profileShow']);
+        Route::put('/profile', [ManufacturerPortalController::class, 'profileUpdate']);
+
+        // Intelligence
+        Route::get('/intelligence/product', [ManufacturerPortalController::class, 'productIntelligence']);
+        Route::get('/intelligence/market-demand', [ManufacturerPortalController::class, 'marketDemand']);
+        Route::get('/intelligence/demand-forecast', [ManufacturerPortalController::class, 'demandForecast']);
+        Route::get('/intelligence/geography', [ManufacturerPortalController::class, 'geographicConsumption']);
+        Route::get('/intelligence/penetration', [ManufacturerPortalController::class, 'pharmacyPenetration']);
+
+        // Analytics
+        Route::get('/analytics/product-performance', [ManufacturerPortalController::class, 'productPerformance']);
+        Route::get('/analytics/competitors', [ManufacturerPortalController::class, 'competitorAnalysis']);
+        Route::get('/analytics/supply-chain', [ManufacturerPortalController::class, 'supplyChain']);
+        Route::get('/analytics/reports', [ManufacturerPortalController::class, 'reports']);
+
+        // Promotions & campaigns
+        Route::get('/campaigns', [ManufacturerPortalController::class, 'campaignsIndex']);
+        Route::post('/campaigns', [ManufacturerPortalController::class, 'campaignsStore']);
+        Route::put('/campaigns/{id}', [ManufacturerPortalController::class, 'campaignsUpdate']);
+        Route::delete('/campaigns/{id}', [ManufacturerPortalController::class, 'campaignsDestroy']);
+
+        // Integrations
+        Route::get('/integrations', [ManufacturerPortalController::class, 'integrationsIndex']);
+        Route::post('/integrations', [ManufacturerPortalController::class, 'integrationsStore']);
+        Route::put('/integrations/{id}', [ManufacturerPortalController::class, 'integrationsUpdate']);
+        Route::delete('/integrations/{id}', [ManufacturerPortalController::class, 'integrationsDestroy']);
+        Route::post('/integrations/{id}/test', [ManufacturerPortalController::class, 'integrationsTest']);
+
+        // Data exports
+        Route::get('/exports', [ManufacturerPortalController::class, 'exportsIndex']);
+        Route::get('/exports/{type}', [ManufacturerPortalController::class, 'exportCsv'])
+            ->whereIn('type', ['products', 'inventory', 'sales', 'performance', 'geography', 'competitors', 'campaigns', 'recalls']);
+
+        // Help & support
+        Route::get('/support', [ManufacturerPortalController::class, 'supportIndex']);
+        Route::post('/support', [ManufacturerPortalController::class, 'supportStore']);
+        Route::post('/support/{id}/reply', [ManufacturerPortalController::class, 'supportReply']);
     });
 
     Route::prefix('notifications')->group(function () {
@@ -737,6 +818,9 @@ Route::get('/prescription/{prescriptionId}', function ($prescriptionId) {
 // Authentication: Bearer token via Authorization header
 Route::prefix('wholesale-orders')->middleware('api.key:wholesale')->group(function () {
     // Create new wholesale order (from prescription or direct)
+        Route::get('/wholesale-marketplace/wholesalers/{id}/catalog', [WholesaleMarketplaceController::class, 'catalog']);
+
+        Route::get('/wholesale-marketplace/orders', [WholesaleMarketplaceController::class, 'orders']);
     Route::post('/create', [WholesaleOrderController::class, 'createOrder']);
 
     // Get order details

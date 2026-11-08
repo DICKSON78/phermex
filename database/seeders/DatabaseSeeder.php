@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
             NearbyPharmaciesSeeder::class,
             HRSeeder::class,
             SupplyChainSeeder::class,
+            WholesaleMarketplaceSeeder::class,
             AccountingSeeder::class,
             RegulatorySeeder::class,
             DeliveriesSeeder::class,
@@ -49,6 +50,7 @@ class DatabaseSeeder extends Seeder
             AdminModuleSeeder::class,
             DemoRequestsSeeder::class,
             JobListingsSeeder::class,
+            ManufacturerSeeder::class,
         ]);
     }
 
@@ -710,64 +712,6 @@ class DatabaseSeeder extends Seeder
                 'quantity' => 300,
                 'unit' => 'tablets',
                 'reorder_level' => 50,
-
-    // Owner: augustinodickson78@gmail.com (id=66)
-    $owner66 = User::find(66);
-    if ($owner66) {
-        $pharmacy = Pharmacy::create([
-            'owner_id' => 66,
-            'pharmacy_name' => "Steven's Pharmacy",
-            'pharmacy_code' => 'PHX-001',
-            'license_number' => 'TZ-LIC-001',
-            'status' => 'active',
-        ]);
-        $drugs = [
-            [
-                'name' => 'Amoxicillin 500mg',
-                'generic_name' => 'Amoxicillin',
-                'category_id' => 1,
-                'description' => 'Broad-spectrum antibiotic for bacterial infections',
-                'manufacturer' => 'Generic Pharma Ltd',
-                'barcode' => 'PHX-001-AMX500',
-                'buying_price' => 5.00,
-                'selling_price' => 8.50,
-                'wholesale_price' => 7.00,
-                'quantity' => 150,
-                'unit' => 'capsules',
-                'reorder_level' => 20,
-                'expiry_date' => '2026-12-15',
-                'batch_number' => 'BATCH-AMX-001',
-                'requires_prescription' => true,
-            ],
-            [
-                'name' => 'Paracetamol 500mg',
-                'generic_name' => 'Acetaminophen',
-                'category_id' => 2,
-                'description' => 'Pain relief and fever reducer',
-                'manufacturer' => 'HealthCare Pharma',
-                'barcode' => 'PHX-002-PAR500',
-                'buying_price' => 1.50,
-                'selling_price' => 3.00,
-                'wholesale_price' => 2.25,
-                'quantity' => 300,
-                'unit' => 'tablets',
-                'reorder_level' => 50,
-                'expiry_date' => '2026-11-30',
-                'batch_number' => 'BATCH-PAR-001',
-                'requires_prescription' => false,
-            ],
-        ];
-        foreach ($drugs as $drug) {
-            Drug::create([
-                'pharmacy_id' => $pharmacy->id,
-                'slug' => Str::slug($drug['name']),
-                'is_generic' => true,
-                'is_published' => true,
-                ...$drug,
-            ]);
-        }
-    }
-
                 'expiry_date' => '2027-06-20',
                 'batch_number' => 'BATCH-PAR-002',
                 'requires_prescription' => false,

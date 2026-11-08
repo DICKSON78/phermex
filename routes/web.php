@@ -30,6 +30,7 @@ $dashboardIndex = function () {
 Route::get('/login', $dashboardIndex);
 Route::get('/register', $dashboardIndex);
 Route::get('/register/owner', $dashboardIndex);
+Route::get('/register/manufacturer', $dashboardIndex);
 Route::get('/forgot-password', $dashboardIndex);
 Route::get('/pending-approval', $dashboardIndex);
 Route::get('/subscribe', $dashboardIndex);

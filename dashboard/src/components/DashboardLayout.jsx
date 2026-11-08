@@ -118,6 +118,7 @@ import WholesaleMarketplacePage from '../pages/owner/WholesaleMarketplacePage'
 import WholesaleCatalogPage from '../pages/owner/WholesaleCatalogPage'
 import WholesalerDashboardPage from '../pages/wholesaler/WholesalerDashboardPage'
 import WholesalerOrdersPage from '../pages/wholesaler/WholesalerOrdersPage'
+import WholesalerOrderDetailPage from '../pages/wholesaler/WholesalerOrderDetailPage'
 import WholesalerInventoryPage from '../pages/wholesaler/WholesalerInventoryPage'
 import WholesalerInventoryFormPage from '../pages/wholesaler/WholesalerInventoryFormPage'
 import WholesalerManufacturersPage from '../pages/wholesaler/WholesalerManufacturersPage'
@@ -221,6 +222,7 @@ import ManufacturerHelpSupportPage from '../pages/manufacturer/ManufacturerHelpS
 import ManufacturerDrugFormPage from '../pages/manufacturer/ManufacturerDrugFormPage'
 import ManufacturerInventoryFormPage from '../pages/manufacturer/ManufacturerInventoryFormPage'
 import ManufacturerWholesaleOrdersPage from '../pages/manufacturer/ManufacturerWholesaleOrdersPage'
+import ManufacturerWholesaleOrderDetailPage from '../pages/manufacturer/ManufacturerWholesaleOrderDetailPage'
 import ManufacturerRecallFormPage from '../pages/manufacturer/ManufacturerRecallFormPage'
 import ManufacturerCampaignFormPage from '../pages/manufacturer/ManufacturerCampaignFormPage'
 import ManufacturerIntegrationFormPage from '../pages/manufacturer/ManufacturerIntegrationFormPage'
@@ -1198,6 +1200,7 @@ export default function DashboardLayout({ role }) {
               <Route path="manufacturer/recalls/new" element={<ManufacturerRecallFormPage />} />
               <Route path="manufacturer/recalls/:id/edit" element={<ManufacturerRecallFormPage />} />
               <Route path="manufacturer/wholesale-orders" element={<ManufacturerWholesaleOrdersPage />} />
+              <Route path="manufacturer/wholesale-orders/:id" element={<ManufacturerWholesaleOrderDetailPage />} />
               <Route path="manufacturer/intelligence/product" element={<ManufacturerProductIntelligencePage />} />
               <Route path="manufacturer/intelligence/market-demand" element={<ManufacturerMarketDemandPage />} />
               <Route path="manufacturer/intelligence/forecast" element={<ManufacturerDemandForecastPage />} />

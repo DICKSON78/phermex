@@ -5,7 +5,7 @@ import api from '../../services/api'
 import Modal from '../../components/Modal'
 import { useLanguage } from '../../contexts/LanguageContext'
 
-const INITIAL_FORM = { name: '', email: '', phone: '', role: 'pharmacist', pharmacy_id: '', password: '' }
+const INITIAL_FORM = { name: '', email: '', phone: '', role: 'pharmacist', pharmacy_id: '', wholesaler_id: '', manufacturer_name: '', password: '' }
 
 const ROLES = [
   { value: 'admin', label: 'Admin' },
@@ -30,6 +30,7 @@ export default function AdminUserFormPage() {
   const [loading, setLoading] = useState(isEdit)
   const [successModal, setSuccessModal] = useState(false)
   const [pharmacies, setPharmacies] = useState([])
+  const [wholesalers, setWholesalers] = useState([])
 
   useEffect(() => {
     fetchPharmacies()
@@ -41,6 +42,12 @@ export default function AdminUserFormPage() {
       setPharmacies(res.data.data || [])
     } catch {
       // Leave pharmacy list empty — field hidden
+    }
+    try {
+      const res = await api.get('/admin/wholesalers')
+      setWholesalers(res.data.data || [])
+    } catch {
+      // Leave wholesaler list empty
     }
   }
 
@@ -58,6 +65,8 @@ export default function AdminUserFormPage() {
         phone: user.phone || '',
         role: user.role || 'pharmacist',
         pharmacy_id: user.pharmacy_id || '',
+        wholesaler_id: user.wholesaler?.id || user.wholesaler_id || '',
+        manufacturer_name: user.manufacturer_name || '',
         password: '',
       })
     } catch {
@@ -238,6 +247,21 @@ export default function AdminUserFormPage() {
                 </div>
                 {errors.role && <p className="text-xs text-red-500 mt-1">{errors.role}</p>}
               </div>
+              {form.role === 'wholesaler' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Wholesaler record</label>
+                  <select value={form.wholesaler_id} onChange={(e) => handleChange('wholesaler_id', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm">
+                    <option value="">Select wholesaler</option>
+                    {wholesalers.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+                  </select>
+                </div>
+              )}
+              {form.role === 'manufacturer' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Manufacturer name</label>
+                  <input value={form.manufacturer_name} onChange={(e) => handleChange('manufacturer_name', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm" />
+                </div>
+              )}
               {['owner', 'pharmacist', 'cashier', 'delivery'].includes(form.role) && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">

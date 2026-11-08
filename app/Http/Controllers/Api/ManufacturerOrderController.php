@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ManufacturerOrder;
 use App\Models\ManufacturerOrderEvent;
 use App\Models\ManufacturerOrderItem;
+use App\Models\AuditLog;
 use App\Models\ManufacturerProduct;
 use App\Models\User;
 use App\Services\SupplyChainService;
@@ -277,6 +278,15 @@ class ManufacturerOrderController extends Controller
                 $user
             );
         });
+
+        \App\Models\AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'manufacturer_order_status_updated',
+            'model_type' => \App\Models\ManufacturerOrder::class,
+            'model_id' => $order->id,
+            'new_values' => ['status' => $target],
+            'ip_address' => $request->ip(),
+        ]);
 
         return response()->json([
             'message' => 'Order updated.',

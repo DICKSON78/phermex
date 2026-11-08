@@ -826,6 +826,7 @@ export default function DrugListPage() {
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">TZS {Number(drug.wholesale_price || 0).toFixed(2)}</td>
 
                     <td className="px-6 py-4">{getStockBadge(drug.quantity, drug.reorder_level)}</td>
+                    <td className="px-6 py-4"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${drug.stock_source === 'wholesale' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{drug.stock_source || 'manual'}</span></td>
 
                     <td className="px-6 py-4">{getExpiryBadge(drug.expiry_date)}</td>
 

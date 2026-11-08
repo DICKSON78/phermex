@@ -48,6 +48,7 @@ function RoleRedirect() {
   const { user } = useAuth()
   if (user?.role === 'customer') return <Navigate to="/app" replace />
   if (user?.role === 'manufacturer') return <Navigate to="/dashboard/manufacturer" replace />
+  if (user?.role === 'wholesaler') return <Navigate to="/dashboard/wholesaler" replace />
   return <Navigate to="/dashboard" replace />
 }
 

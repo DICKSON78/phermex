@@ -27,6 +27,8 @@ class Drug extends Model
         'selling_price',
         'wholesale_price',
         'quantity',
+        'stock_source',
+        'last_received_at',
         'unit',
         'reorder_level',
         'expiry_date',
@@ -46,6 +48,7 @@ class Drug extends Model
         'is_generic' => 'boolean',
         'is_published' => 'boolean',
         'quantity' => 'integer',
+        'last_received_at' => 'datetime',
         'reorder_level' => 'integer',
     ];
 

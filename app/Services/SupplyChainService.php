@@ -122,9 +122,11 @@ class SupplyChainService
 
         if ($drug) {
             $drug->increment('quantity', $quantity);
-            if ((float) $item->unit_price > 0) {
-                $drug->update(['buying_price' => $item->unit_price]);
-            }
+            $drug->update([
+                'buying_price' => (float) $item->unit_price > 0 ? $item->unit_price : $drug->buying_price,
+                'stock_source' => 'wholesale',
+                'last_received_at' => now(),
+            ]);
             return;
         }
 
@@ -138,6 +140,8 @@ class SupplyChainService
             'selling_price' => $item->unit_price,
             'wholesale_price' => $item->unit_price,
             'quantity' => $quantity,
+            'stock_source' => 'wholesale',
+            'last_received_at' => now(),
             'unit' => $unit,
             'reorder_level' => 10,
             'expiry_date' => $inventory?->expiry_date ?? now()->addYear()->toDateString(),

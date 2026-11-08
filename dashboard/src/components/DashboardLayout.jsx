@@ -1187,7 +1187,23 @@ export default function DashboardLayout({ role }) {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-surface p-4 md:p-6 content-area">
-          {role === 'manufacturer' ? (
+          {role === 'wholesaler' ? (
+             <Routes>
+               <Route index element={<Navigate to="/dashboard/wholesaler" replace />} />
+               <Route path="wholesaler" element={<WholesalerDashboardPage />} />
+               <Route path="wholesaler/orders" element={<WholesalerOrdersPage />} />
+               <Route path="wholesaler/orders/:id" element={<WholesalerOrderDetailPage />} />
+               <Route path="wholesaler/inventory" element={<WholesalerInventoryPage />} />
+               <Route path="wholesaler/inventory/new" element={<WholesalerInventoryFormPage />} />
+               <Route path="wholesaler/inventory/:id/edit" element={<WholesalerInventoryFormPage />} />
+               <Route path="wholesaler/manufacturers" element={<WholesalerManufacturersPage />} />
+               <Route path="wholesaler/manufacturers/:id/catalog" element={<WholesalerManufacturerCatalogPage />} />
+               <Route path="wholesaler/purchase-orders" element={<WholesalerPurchaseOrdersPage />} />
+               <Route path="wholesaler/profile" element={<WholesalerProfilePage />} />
+               <Route path="notifications" element={<NotificationsPage />} />
+               <Route path="*" element={<Navigate to="/dashboard/wholesaler" replace />} />
+             </Routes>
+          ) : role === 'manufacturer' ? (
             <Routes>
               <Route index element={<Navigate to="/dashboard/manufacturer" replace />} />
               <Route path="manufacturer" element={<ManufacturerDashboardPage />} />

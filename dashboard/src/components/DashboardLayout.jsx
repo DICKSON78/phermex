@@ -122,6 +122,7 @@ import WholesalerOrderDetailPage from '../pages/wholesaler/WholesalerOrderDetail
 import WholesalerInventoryPage from '../pages/wholesaler/WholesalerInventoryPage'
 import WholesalerInventoryFormPage from '../pages/wholesaler/WholesalerInventoryFormPage'
 import WholesalerManufacturersPage from '../pages/wholesaler/WholesalerManufacturersPage'
+import WholesalerManufacturerCatalogPage from '../pages/wholesaler/WholesalerManufacturerCatalogPage'
 import WholesalerPurchaseOrdersPage from '../pages/wholesaler/WholesalerPurchaseOrdersPage'
 import WholesalerProfilePage from '../pages/wholesaler/WholesalerProfilePage'
 import DamagedGoodsPage from '../pages/owner/DamagedGoodsPage'

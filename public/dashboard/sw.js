@@ -1,12 +1,22 @@
-// Bumped to v6 to drop the stale v5 caches. Static assets are served
+// Bumped to v15 to drop the stale v15 caches. Static assets are served
 // cache-first, so the old bundle that carried the React crash stayed pinned in
 // a visitor's cache even after a correct one had been deployed. Every deploy
 // that changes the bundle bumps this number, because the caches are named
 // after it and the old ones are deleted on activate.
-const CACHE_NAME = 'helix-cache-v13';
-const SHELL_CACHE = 'helix-shell-v13';
-const API_CACHE = 'helix-api-v13';
-const STATIC_CACHE = 'helix-static-v13';
+// Auto-unregister on localhost to prevent stale caches during development
+if (self.location.hostname === "localhost" || self.location.hostname === "127.0.0.1") {
+  self.addEventListener("install", () => self.skipWaiting());
+  self.addEventListener("activate", (event) => {
+    event.waitUntil(
+      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).then(() => self.registration.unregister())
+    );
+  });
+}
+
+const CACHE_NAME = 'helix-cache-v15';
+const SHELL_CACHE = 'helix-shell-v15';
+const API_CACHE = 'helix-api-v15';
+const STATIC_CACHE = 'helix-static-v15';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

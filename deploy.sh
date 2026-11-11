@@ -41,12 +41,13 @@ deploy_webroot() {
 deploy_webroot "public/website"
 deploy_webroot "public"
 
-# The dashboard is a separate build. Deploy it only when present.
-if [ -d "dist/dashboard/assets" ]; then
+# The dashboard is a separate build. Deploy it from public/dashboard/ (committed to git).
+if [ -d "public/dashboard/assets" ]; then
     echo "📁 Copying dashboard build..."
     mkdir -p public/website/dashboard/assets
-    cp -a dist/dashboard/assets/. public/website/dashboard/assets/
-    [ -f "dist/dashboard/index.html" ] && cp -a dist/dashboard/index.html public/website/dashboard/index.html
+    cp -a public/dashboard/assets/. public/website/dashboard/assets/
+    [ -f "public/dashboard/index.html" ] && cp -a public/dashboard/index.html public/website/dashboard/index.html
+    [ -f "public/dashboard/sw.js" ] && cp -a public/dashboard/sw.js public/website/dashboard/sw.js
     echo "✅ Dashboard build copied"
 fi
 

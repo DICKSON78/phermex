@@ -1388,6 +1388,9 @@ export default function DashboardLayout({ role }) {
               <Route path="wholesalers" element={<AdminWholesalersPage />} />
               <Route path="wholesale-orders-admin" element={<AdminWholesaleOrdersPage />} />
               <Route path="manufacturer-orders-admin" element={<AdminManufacturerOrdersPage />} />
+              <Route path="wholesale-marketplace" element={<WholesaleMarketplacePage />} />
+              <Route path="wholesale-marketplace/:id" element={<WholesaleCatalogPage />} />
+              <Route path="wholesale-marketplace/:wholesalerId/catalog" element={<WholesaleCatalogPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="drug-database" element={<AdminDrugDatabasePage />} />
               <Route path="revenue" element={<AdminRevenuePage />} />

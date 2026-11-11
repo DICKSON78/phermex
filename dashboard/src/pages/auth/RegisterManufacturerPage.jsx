@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useLanguage } from '../../contexts/LanguageContext'
-import { Pill, User, Mail, Phone, Lock, Eye, EyeOff, ArrowLeft, Loader2, Check, Building2, MapPin, Clock, ChevronRight, Plus, Trash2, Info, Flag } from 'lucide-react'
+import { Pill, User, Mail, Phone, Lock, Eye, EyeOff, ArrowLeft, Loader2, Check, Building2, MapPin, Clock, ChevronRight, Plus, Trash2, Info } from 'lucide-react'
 import api from '../../services/api'
 
 const Required = () => <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
@@ -21,23 +20,17 @@ function PasswordRequirement({ met, children }) {
   )
 }
 
-const COUNTRIES = [
-  { code: 'TZ', name: 'Tanzania', dial: '+255', flag: '🇹🇿' },
-  { code: 'KE', name: 'Kenya', dial: '+254', flag: '🇰🇪' },
-  { code: 'UG', name: 'Uganda', dial: '+256', flag: '🇺🇬' },
-  { code: 'RW', name: 'Rwanda', dial: '+250', flag: '🇷🇼' },
-]
-
-const PHONE_MIN = 9
-const PHONE_MAX = 13
-
-function phoneDigits(value) {
-  return String(value ?? '').replace(/[\s()\-.]/g, '')
+function isValidPhone(value) {
+  const digits = String(value ?? '').replace(/[\s()\-.]/g, '')
+  return /^[0-9]{9,13}$/.test(digits)
 }
 
-function isValidPhone(value) {
-  const digits = phoneDigits(value)
-  return new RegExp(`^[0-9]{${PHONE_MIN},${PHONE_MAX}}$`).test(digits)
+function isValidEmail(value) {
+  const email = String(value ?? '').trim()
+  if (!email.includes('@')) return false
+  const domain = email.split('@')[1]
+  if (domain.includes('..') || email.includes('..')) return false
+  return true
 }
 
 function blankManufacturer() {
@@ -79,12 +72,10 @@ function clearDraft() {
 
 export default function RegisterManufacturerPage() {
   const navigate = useNavigate()
-  const { t } = useLanguage()
   const [step, setStep] = useState(() => {
     const saved = readDraft()
     return Math.max(1, Number(saved?.step) || 1)
   })
-  const [stepDir, setStepDir] = useState('left')
   const [animKey, setAnimKey] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -151,11 +142,7 @@ export default function RegisterManufacturerPage() {
 
     if (!isValidEmail(form.email)) errs.email = 'Enter a valid email address'
 
-    const digits = phoneDigits(form.phone)
-    if (!digits) errs.phone = 'Enter a valid phone number'
-    else if (digits.length < PHONE_MIN) errs.phone = `${PHONE_MIN} digits minimum`
-    else if (digits.length > PHONE_MAX) errs.phone = `${PHONE_MAX} digits maximum`
-    else if (!/^[0-9]+$/.test(digits)) errs.phone = 'Phone must contain only numbers'
+    if (!isValidPhone(form.phone)) errs.phone = 'Enter a valid phone number'
 
     if (!form.password) errs.password = 'Password is required'
     else if (form.password.length < 8) errs.password = 'Password must be at least 8 characters'
@@ -174,12 +161,12 @@ export default function RegisterManufacturerPage() {
     if (!form.manufacturer_name?.trim()) errs.manufacturer_name = 'Manufacturer name is required'
     else if (form.manufacturer_name.trim().length < 2) errs.manufacturer_name = 'Name too short'
 
-    if (form.manufacturer_license && form.manufacturer_license.length > 100) errs.manufacturer_license = 'License too long'
-    if (form.manufacturer_address && form.manufacturer_address.length > 255) errs.manufacturer_address = 'Address too long'
-    if (form.manufacturer_phone && form.manufacturer_phone.length > 50) errs.manufacturer_phone = 'Phone too long'
+    if (form.manufacturer_license && form.manufacturer_license.length > 100) errs.manufacturer_license = 'License too long (max 100 chars)'
+    if (form.manufacturer_address && form.manufacturer_address.length > 255) errs.manufacturer_address = 'Address too long (max 255 chars)'
+    if (form.manufacturer_phone && form.manufacturer_phone.length > 50) errs.manufacturer_phone = 'Phone too long (max 50 chars)'
     if (form.manufacturer_email && !isValidEmail(form.manufacturer_email)) errs.manufacturer_email = 'Invalid email'
-    if (form.manufacturer_website && form.manufacturer_website.length > 255) errs.manufacturer_website = 'Website too long'
-    if (form.manufacturer_description && form.manufacturer_description.length > 2000) errs.manufacturer_description = 'Description too long'
+    if (form.manufacturer_website && form.manufacturer_website.length > 255) errs.manufacturer_website = 'Website too long (max 255 chars)'
+    if (form.manufacturer_description && form.manufacturer_description.length > 2000) errs.manufacturer_description = 'Description too long (max 2000 chars)'
     setError('')
     return Object.keys(errs).length === 0
   }
@@ -276,10 +263,10 @@ export default function RegisterManufacturerPage() {
           </div>
         )}
 
-        <form onSubmit={step === 2 ? submit : () => {}} >
+        <form onSubmit={submit}>
           {/* STEP 1 - Personal Information */}
           {step === 1 && (
-            <div key={`s1-${animKey}`} className={`space-y-5 ${step === 1 ? 'step-enter-left' : ''}`}>
+            <div key={`s1-${animKey}`} className={`space-y-5 ${step === 1 && typeof step !== 'number' ? '' : ''}`}>
               <div>
                 <label className="block text-sm font-semibold text-gray-600 mb-1.5">Contact name<Required /></label>
                 <div className="relative">
@@ -299,37 +286,23 @@ export default function RegisterManufacturerPage() {
                     </div>
                     <input type="email" value={form.email} onChange={(e) => updateForm('email', e.target.value)} className={`${inputClass} ${form.email ? 'border-green-400' : ''}`} placeholder="you@example.com" />
                   </div>
-                  {error.email && <p className="text-red-500 text-xs mt-1">{error.email}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 mb-1.5">Phone number<Required /></label>
-                  <div className="flex gap-2">
-                    <select value={form.phone} onChange={(e) => updateForm('phone', e.target.value)} className="w-32 px-3 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white">
-                      {COUNTRIES.map((c) => (
-                        <option key={c.code} value={c.dial}>{c.flag} {c.dial}</option>
-                      ))}
-                    </select>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <Phone className="w-5 h-5 text-gray-400" />
+                    </div>
                     <input
                       type="tel"
                       inputMode="numeric"
-                      maxLength={PHONE_MAX}
-                      value={form.phone?.replace(/[^0-9]/g, '') || ''}
-                      onChange={(e) => {
-                        let digits = e.target.value.replace(/[^0-9]/g, '')
-                        const dial = form.phone?.replace(/[^0-9]/g, '').replace(/^\+/, '') || ''
-                        if (dial && digits.startsWith(dial) && digits.length > PHONE_MAX) {
-                          digits = digits.slice(dial.length)
-                        }
-                        if (digits.length > 1 && digits.startsWith('0')) {
-                          digits = digits.slice(1)
-                        }
-                        updateForm('phone', '+' + dial + digits.slice(0, PHONE_MAX - dial.length))
-                      }}
-                      className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452]"
-                      placeholder="712 345 678"
+                      value={form.phone}
+                      onChange={(e) => updateForm('phone', e.target.value.replace(/[^0-9]/g, ''))}
+                      className={`${inputClass} ${form.phone ? 'border-green-400' : ''}`}
+                      placeholder="+255 712 345 678"
                     />
                   </div>
-                  {form.phone && digits.length < PHONE_MIN && <p className="text-red-500 text-xs mt-1">Enter a valid phone number</p>}
+                  {!isValidPhone(form.phone) && !form.phone && <p className="text-red-500 text-xs mt-1">Enter a valid phone number</p>}
                 </div>
               </div>
 
@@ -353,16 +326,15 @@ export default function RegisterManufacturerPage() {
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                     <PasswordRequirement met={form.password.length >= 8}>
-                      {t('authPages.validation.passwordHasMin8')}
+                      ≥ 8 characters
                     </PasswordRequirement>
                     <PasswordRequirement met={/[A-Z]/.test(form.password)}>
-                      {t('authPages.validation.passwordHasUppercase')}
+                      1 uppercase letter
                     </PasswordRequirement>
                     <PasswordRequirement met={/[0-9]/.test(form.password)}>
-                      {t('authPages.validation.passwordHasNumber')}
+                      1 number
                     </PasswordRequirement>
                   </div>
-                  {error.password && <p className="text-red-500 text-xs mt-1">{error.password}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 mb-1.5">Confirm password<Required /></label>
@@ -374,22 +346,24 @@ export default function RegisterManufacturerPage() {
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={form.password_confirmation}
                       onChange={(e) => updateForm('password_confirmation', e.target.value)}
-                      className={`${inputClass} ${error.password_confirmation ? 'border-red-400' : ''}`}
+                      className={`${inputClass} ${form.password_confirmation ? 'border-green-400' : ''}`}
                       placeholder="Re-enter password"
                     />
-                    {form.password_confirmation && (
-                      <PasswordRequirement met={form.password_confirmation === form.password}>
-                        {t('authPages.validation.passwordMatches')}
-                      </PasswordRequirement>
-                    )}
-                    {error.password_confirmation && <p className="text-red-500 text-xs mt-1">{error.password_confirmation}</p>}
+                    <button type="button" onClick={toggleConfPwd} className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors">
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
+                  {form.password_confirmation && (
+                    <PasswordRequirement met={form.password_confirmation === form.password}>
+                      Passwords match
+                    </PasswordRequirement>
+                  )}
                 </div>
               </div>
 
               <div className="flex justify-end">
                 <button type="submit" className="w-full md:w-auto md:min-w-[220px] py-3 bg-[#0FD452] hover:bg-[#0cb843] text-[#000F14] rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg">
-                  {t('authPages.shared.continueBtn')} →
+                  Continue →
                 </button>
               </div>
             </div>
@@ -455,11 +429,6 @@ export default function RegisterManufacturerPage() {
             </div>
           )}
         </form>
-        <div className="mt-6 text-center">
-          <p className="text-gray-500 text-sm">
-            Already have an account? <Link to="/login" className="text-[#0FD452] font-semibold hover:text-[#0cb843] transition-colors">Sign In</Link>
-          </p>
-        </div>
       </div>
     </div>
   )

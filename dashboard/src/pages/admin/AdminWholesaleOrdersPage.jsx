@@ -315,7 +315,7 @@ export default function AdminWholesaleOrdersPage() {
 
       {supplierFilter && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-[#0FD452]/30 bg-[#0FD452]/5 px-4 py-3 text-sm text-[#0a8f3c]">
-          <span>Showing orders for supplier #{supplierFilter}.</span>
+          <span>Showing orders for supplier {supplierFilter}.</span>
           <Link to="/dashboard/wholesale-orders-admin" className="font-semibold underline">
             Clear filter
           </Link>

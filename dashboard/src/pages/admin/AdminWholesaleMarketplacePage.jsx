@@ -555,7 +555,7 @@ export default function AdminWholesaleMarketplacePage() {
                 Close
               </button>
               <Link
-                to={`/dashboard/wholesale-orders-admin?wholesaler=${selected.id}`}
+                to={`/dashboard/wholesale-orders-admin?wholesaler=${selected.wholesaler_id}`}
                 onClick={() => setSelected(null)}
                 className="btn-secondary"
               >

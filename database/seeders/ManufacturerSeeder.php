@@ -7,31 +7,16 @@ use App\Models\ManufacturerProduct;
 use App\Models\ManufacturerRecall;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class ManufacturerSeeder extends Seeder
 {
     public function run(): void
     {
-        $user = User::updateOrCreate(
-            ['email' => 'manufacturer@pharmex.com'],
-            [
-                'name' => 'HealthCare Pharma',
-                'phone' => '+255700000050',
-                'role' => 'manufacturer',
-                'user_code' => 'PHX-MFG0001',
-                'is_active' => true,
-                'is_verified' => true,
-                'password' => Hash::make('password'),
-                'manufacturer_name' => 'HealthCare Pharma',
-                'manufacturer_license' => 'TZ-MFG-2026-0042',
-                'manufacturer_address' => 'Plot 45, Nyerere Road, Dar es Salaam',
-                'manufacturer_phone' => '+255700000050',
-                'manufacturer_email' => 'info@healthcarepharma.co.tz',
-                'manufacturer_website' => 'https://healthcarepharma.co.tz',
-                'manufacturer_description' => 'Manufacturer of essential medicines, oral rehydration salts and antibiotics.',
-            ]
-        );
+        // The account lives in its own seeder so it can be created on a server
+        // without also seeding demo products, recalls and campaigns.
+        $this->call(ManufacturerAccountSeeder::class);
+
+        $user = User::where('email', ManufacturerAccountSeeder::EMAIL)->firstOrFail();
 
         $products = [
             [

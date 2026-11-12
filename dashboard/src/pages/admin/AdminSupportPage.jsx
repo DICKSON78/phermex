@@ -21,6 +21,7 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../../services/api'
+import { textValue } from '../../utils/text'
 
 const PRIORITY_STYLES = {
   Low: 'badge badge-gray',
@@ -126,9 +127,9 @@ export default function AdminSupportPage() {
     if (search) {
       const q = search.toLowerCase()
       if (
-        !t.subject.toLowerCase().includes(q) &&
-        !t.pharmacy.toLowerCase().includes(q) &&
-        !t.id.toLowerCase().includes(q)
+        !String(t.subject || '').toLowerCase().includes(q) &&
+        !textValue(t.pharmacy, '').toLowerCase().includes(q) &&
+        !String(t.id || '').toLowerCase().includes(q)
       ) return false
     }
     if (priorityFilter && t.priority !== priorityFilter) return false
@@ -295,7 +296,7 @@ export default function AdminSupportPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 font-medium text-sm text-[#000F14] max-w-xs truncate">{ticket.subject}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{ticket.pharmacy}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{textValue(ticket.pharmacy)}</td>
                     <td className="px-6 py-4">
                       <span className={PRIORITY_STYLES[ticket.priority]}>{ticket.priority}</span>
                     </td>

@@ -33,6 +33,7 @@ import {
 } from 'recharts'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import { textValue } from '../../utils/text'
 
 const STATUS_STYLES = {
   Paid: 'badge badge-green',
@@ -137,7 +138,7 @@ export default function AdminRevenuePage() {
   const filtered = (data?.invoices || []).filter((inv) => {
     if (search) {
       const q = search.toLowerCase()
-      if (!inv.pharmacy.toLowerCase().includes(q) && !inv.invoiceNumber.toLowerCase().includes(q)) return false
+      if (!textValue(inv.pharmacy, '').toLowerCase().includes(q) && !String(inv.invoiceNumber || '').toLowerCase().includes(q)) return false
     }
     if (statusFilter && inv.status !== statusFilter) return false
     return true
@@ -326,7 +327,7 @@ export default function AdminRevenuePage() {
                         <span className="font-mono text-sm font-medium text-[#000F14]">{invoice.invoiceNumber}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-[#000F14]">{invoice.pharmacy}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-[#000F14]">{textValue(invoice.pharmacy)}</td>
                     <td className="px-6 py-4 text-sm font-medium text-[#000F14]">{formatCurrency(invoice.amount)}</td>
                     <td className="px-6 py-4">
                       <span className={STATUS_STYLES[invoice.status] || 'badge badge-gray'}>{invoice.status}</span>

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import { textValue } from '../../utils/text'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 const PLAN_STYLES = {
@@ -111,7 +112,7 @@ export default function AdminSubscriptionsPage() {
   const filtered = (data?.subscriptions || []).filter((s) => {
     if (search) {
       const q = search.toLowerCase()
-      if (!s.pharmacy.toLowerCase().includes(q)) return false
+      if (!textValue(s.pharmacy, '').toLowerCase().includes(q)) return false
     }
     if (planFilter && s.plan !== planFilter) return false
     if (statusFilter && s.status !== statusFilter) return false
@@ -273,7 +274,7 @@ export default function AdminSubscriptionsPage() {
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0FD452]/10">
                           <Building2 className="h-4 w-4 text-[#0FD452]" />
                         </div>
-                        <span className="text-sm font-medium text-[#000F14]">{sub.pharmacy}</span>
+                        <span className="text-sm font-medium text-[#000F14]">{textValue(sub.pharmacy)}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">

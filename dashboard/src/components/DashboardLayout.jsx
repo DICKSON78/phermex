@@ -159,7 +159,10 @@ import AdminDashboard from '../pages/admin/AdminDashboard'
 import AdminPharmaciesPage from '../pages/admin/AdminPharmaciesPage'
 import AdminWholesalersPage from '../pages/admin/AdminWholesalersPage'
 import AdminWholesaleOrdersPage from '../pages/admin/AdminWholesaleOrdersPage'
+import AdminWholesaleOrderDetailPage from '../pages/admin/AdminWholesaleOrderDetailPage'
 import AdminManufacturerOrdersPage from '../pages/admin/AdminManufacturerOrdersPage'
+import AdminManufacturerOrderDetailPage from '../pages/admin/AdminManufacturerOrderDetailPage'
+import AdminWholesaleMarketplacePage from '../pages/admin/AdminWholesaleMarketplacePage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminAuditLogsPage from '../pages/admin/AdminAuditLogsPage'
 import AdminSettingsPage from '../pages/admin/AdminSettingsPage'
@@ -1386,9 +1389,15 @@ export default function DashboardLayout({ role }) {
               <Route path="pending-approvals" element={<AdminPendingApprovalsPage />} />
               <Route path="pharmacies" element={<AdminPharmaciesPage />} />
               <Route path="wholesalers" element={<AdminWholesalersPage />} />
+              <Route path="wholesalers/new" element={<AdminWholesalerFormPage />} />
+              <Route path="wholesalers/:id" element={<AdminWholesalerFormPage />} />
+              <Route path="wholesalers/:id/edit" element={<AdminWholesalerFormPage />} />
+              <Route path="wholesalers/:id/catalog" element={<AdminWholesalerCatalogPage />} />
               <Route path="wholesale-orders-admin" element={<AdminWholesaleOrdersPage />} />
+              <Route path="wholesale-orders-admin/:id" element={<AdminWholesaleOrderDetailPage />} />
               <Route path="manufacturer-orders-admin" element={<AdminManufacturerOrdersPage />} />
-              <Route path="wholesale-marketplace" element={<WholesaleMarketplacePage />} />
+              <Route path="manufacturer-orders-admin/:id" element={<AdminManufacturerOrderDetailPage />} />
+              <Route path="wholesale-marketplace" element={<AdminWholesaleMarketplacePage />} />
               <Route path="wholesale-marketplace/:id" element={<WholesaleCatalogPage />} />
               <Route path="wholesale-marketplace/:wholesalerId/catalog" element={<WholesaleCatalogPage />} />
               <Route path="users" element={<AdminUsersPage />} />

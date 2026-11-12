@@ -29,6 +29,7 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../../services/api'
+import { textValue } from '../../utils/text'
 import toast from 'react-hot-toast'
 import { useLanguage } from '../../contexts/LanguageContext'
 import useConfirm from '../../hooks/useConfirm'
@@ -321,7 +322,7 @@ export default function AdminUsersPage() {
                       </span>
                       
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{Array.isArray(user.pharmacy) ? user.pharmacy.map(p => p.pharmacy_name || p.name).join(', ') : (typeof user.pharmacy === 'object' ? user.pharmacy?.pharmacy_name || user.pharmacy?.name : user.pharmacy)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{textValue(user.pharmacy)}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
                         user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'

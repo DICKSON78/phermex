@@ -16,6 +16,7 @@ import {
 } from './ManufacturerUI'
 import { defaultRange, usePortalData } from './usePortalData'
 import api from '../../services/api'
+import { textValue } from '../../utils/text'
 
 const riskTone = { expired: 'red', expiring: 'amber', low_stock: 'blue' }
 
@@ -112,7 +113,7 @@ export default function ManufacturerSupplyChainPage() {
                     {riskItems.map((item, index) => (
                       <tr key={`${item.name}-${item.batch}-${index}`} className="hover:bg-gray-50/60">
                         <td className="px-2 py-3 font-semibold text-[#000F14]">{item.name}</td>
-                        <td className="px-2 py-3 text-gray-600">{item.pharmacy || '—'}</td>
+                        <td className="px-2 py-3 text-gray-600">{textValue(item.pharmacy)}</td>
                         <td className="px-2 py-3 text-gray-600">{item.batch || '—'}</td>
                         <td className="px-2 py-3 text-gray-700">{formatNumber(item.quantity)} / {formatNumber(item.reorder_level)}</td>
                         <td className="px-2 py-3 text-gray-600">{formatDate(item.expiry_date)}</td>
@@ -155,7 +156,7 @@ export default function ManufacturerSupplyChainPage() {
                   <tbody className="divide-y divide-gray-50">
                     {byPharmacy.map((row) => (
                       <tr key={row.pharmacy_id} className="hover:bg-gray-50/60">
-                        <td className="px-2 py-3 font-semibold text-[#000F14]">{row.pharmacy}</td>
+                        <td className="px-2 py-3 font-semibold text-[#000F14]">{textValue(row.pharmacy)}</td>
                         <td className="px-2 py-3 text-gray-600">{row.region || '—'}</td>
                         <td className="px-2 py-3 text-gray-700">{formatNumber(row.stock)}</td>
                         <td className="px-2 py-3">{row.low_stock > 0 ? <Badge tone="amber">{row.low_stock}</Badge> : '—'}</td>
@@ -187,7 +188,7 @@ export default function ManufacturerSupplyChainPage() {
               {selected.batch && <Badge tone="gray">Batch {selected.batch}</Badge>}
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <Detail label="Pharmacy" value={selected.pharmacy || '—'} />
+              <Detail label="Pharmacy" value={textValue(selected.pharmacy)} />
               <Detail label="Quantity" value={formatNumber(selected.quantity)} />
               <Detail label="Reorder level" value={formatNumber(selected.reorder_level)} />
               <Detail label="Expiry date" value={formatDate(selected.expiry_date)} />

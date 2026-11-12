@@ -26,6 +26,7 @@ import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import api from '../../services/api'
 import { formatMoney } from '../../utils/currency'
+import { textValue } from '../../utils/text'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 const PLAN_STYLES = {
@@ -166,8 +167,8 @@ export default function AdminSubscriptionShowPage() {
             <CreditCard className="w-5 h-5 text-[#0FD452]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{subscription.pharmacy}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-2">{t('adminUsers.shared.plans.' + subscription.plan, subscription.plan)} {t('adminUsers.subscriptions.planWord', 'plan')} — {subscription.pharmacy} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[subscription.status] || 'bg-gray-100 text-gray-600'}`}>{t('adminUsers.subscriptions.statuses.' + subscription.status, subscription.status?.charAt(0).toUpperCase() + subscription.status?.slice(1))}</span></p>
+            <h1 className="text-2xl font-bold text-gray-900">{textValue(subscription.pharmacy)}</h1>
+            <p className="text-sm text-gray-500 flex items-center gap-2">{t('adminUsers.shared.plans.' + subscription.plan, subscription.plan)} {t('adminUsers.subscriptions.planWord', 'plan')} — {textValue(subscription.pharmacy)} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[subscription.status] || 'bg-gray-100 text-gray-600'}`}>{t('adminUsers.subscriptions.statuses.' + subscription.status, subscription.status?.charAt(0).toUpperCase() + subscription.status?.slice(1))}</span></p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -264,7 +265,7 @@ export default function AdminSubscriptionShowPage() {
                     <CreditCard className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-xs text-gray-500">{t('adminUsers.shared.pharmacy', 'Pharmacy')}</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14]">{subscription.pharmacy}</p>
+                  <p className="text-sm font-medium text-[#000F14]">{textValue(subscription.pharmacy)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
@@ -495,7 +496,7 @@ export default function AdminSubscriptionShowPage() {
       <ConfirmDialog
         isOpen={showDelete}
         title="Delete Subscription"
-        message={`Are you sure you want to delete the subscription for "${subscription.pharmacy}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete the subscription for "${textValue(subscription.pharmacy)}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         variant="danger"

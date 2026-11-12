@@ -25,6 +25,7 @@ import toast from 'react-hot-toast'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import api from '../../services/api'
+import { textValue } from '../../utils/text'
 
 const PRIORITY_STYLES = {
   Low: 'badge badge-gray',
@@ -197,7 +198,7 @@ export default function AdminSupportShowPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{ticket.subject}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-2">Ticket {ticket.id} — {ticket.pharmacy} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[ticket.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_LABELS[ticket.status] || ticket.status}</span></p>
+            <p className="text-sm text-gray-500 flex items-center gap-2">Ticket {ticket.id} — {textValue(ticket.pharmacy)} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[ticket.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_LABELS[ticket.status] || ticket.status}</span></p>
           </div>
         </div>
       </div>
@@ -367,7 +368,7 @@ export default function AdminSupportShowPage() {
                         </div>
                         <div className="flex-1 bg-gray-50 rounded-lg p-3">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-[#000F14]">{msg.sender || 'User'}</span>
+                            <span className="text-sm font-medium text-[#000F14]">{textValue(msg.sender, 'User')}</span>
                             <span className="text-xs text-gray-400">{formatDate(msg.created || msg.date)}</span>
                           </div>
                           <p className="text-sm text-gray-600">{msg.message || msg.content || msg.text}</p>
@@ -405,7 +406,7 @@ export default function AdminSupportShowPage() {
                     <Building2 className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-500">Pharmacy</span>
                   </div>
-                  <span className="text-sm font-medium text-[#000F14] truncate max-w-[120px]">{ticket.pharmacy || '—'}</span>
+                  <span className="text-sm font-medium text-[#000F14] truncate max-w-[120px]">{textValue(ticket.pharmacy)}</span>
                 </div>
                 <div className="border-t border-gray-100" />
                 <div className="flex items-center justify-between">
@@ -413,7 +414,7 @@ export default function AdminSupportShowPage() {
                     <User className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-500">Submitter</span>
                   </div>
-                  <span className="text-sm font-medium text-[#000F14]">{ticket.submitter || ticket.user || '—'}</span>
+                  <span className="text-sm font-medium text-[#000F14]">{textValue(ticket.submitter || ticket.user)}</span>
                 </div>
                 <div className="border-t border-gray-100" />
                 <div className="flex items-center justify-between">
@@ -549,7 +550,7 @@ export default function AdminSupportShowPage() {
         <div className="space-y-4">
           <div className="rounded-lg bg-gray-50 p-3">
             <p className="text-sm font-medium text-gray-900">{ticket.subject}</p>
-            <p className="text-xs text-gray-500 mt-1">{ticket.pharmacy}</p>
+            <p className="text-xs text-gray-500 mt-1">{textValue(ticket.pharmacy)}</p>
           </div>
           <div>
             <label className="form-label">Your Response</label>

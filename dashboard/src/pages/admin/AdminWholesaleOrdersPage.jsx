@@ -1,155 +1,632 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Search, Package, Loader2, Clock, Truck, CheckCircle2, Store } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  Ban,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  CreditCard,
+  Eye,
+  Hash,
+  Loader2,
+  Package,
+  RefreshCw,
+  Search,
+  Store,
+  Truck,
+  Zap,
+} from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
-import PageHeader from '../../components/PageHeader'
+import Modal from '../../components/Modal'
+import useConfirm from '../../hooks/useConfirm'
+import { formatMoney } from '../../utils/currency'
+import { textValue } from '../../utils/text'
 
-const TABS = ['all', 'pending', 'confirmed', 'packed', 'dispatched', 'delivered', 'cancelled']
+const PAGE_SIZE = 10
+
+const STATUS_STYLES = {
+  pending: 'bg-yellow-100 text-yellow-700',
+  confirmed: 'bg-blue-100 text-blue-700',
+  packed: 'bg-indigo-100 text-indigo-700',
+  dispatched: 'bg-purple-100 text-purple-700',
+  delivered: 'bg-green-100 text-green-700',
+  cancelled: 'bg-red-100 text-red-600',
+}
+
+const STATUS_LABELS = {
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  packed: 'Packed',
+  dispatched: 'Dispatched',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
+}
+
+const PAYMENT_STYLES = {
+  paid: 'bg-green-100 text-green-700',
+  pending: 'bg-yellow-100 text-yellow-700',
+  failed: 'bg-red-100 text-red-600',
+  unpaid: 'bg-gray-100 text-gray-600',
+}
+
+const NEXT_STATUS = {
+  pending: 'confirmed',
+  confirmed: 'packed',
+  packed: 'dispatched',
+  dispatched: 'delivered',
+}
+
+const NEXT_LABELS = {
+  confirmed: 'Confirm order',
+  packed: 'Mark packed',
+  dispatched: 'Mark dispatched',
+  delivered: 'Mark delivered',
+}
+
+const selectClass =
+  'w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20'
+
+const inputClass =
+  'w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20'
+
+const thClass = 'px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500'
+
+function ColumnHead({ icon: Icon, label, className = '' }) {
+  return (
+    <th className={`${thClass} ${className}`}>
+      <div className={`flex items-center gap-1.5 ${className.includes('text-right') ? 'justify-end' : ''}`}>
+        <Icon className="h-3.5 w-3.5 text-[#0FD452]" />
+        <span>{label}</span>
+      </div>
+    </th>
+  )
+}
+
+function StatusBadge({ status }) {
+  return (
+    <span
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+        STATUS_STYLES[status] || 'bg-gray-100 text-gray-600'
+      }`}
+    >
+      {STATUS_LABELS[status] || status || 'Unknown'}
+    </span>
+  )
+}
+
+function PaymentBadge({ status }) {
+  return (
+    <span
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+        PAYMENT_STYLES[status] || PAYMENT_STYLES.unpaid
+      }`}
+    >
+      {status || 'unpaid'}
+    </span>
+  )
+}
+
+function StatCard({ icon: Icon, label, value, hint, tone = 'text-[#000F14]' }) {
+  return (
+    <div className="rounded-xl bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm text-gray-500">{label}</p>
+          <p className={`mt-1 text-2xl font-bold ${tone}`}>{value}</p>
+          {hint && <p className="mt-1 text-xs text-gray-400">{hint}</p>}
+        </div>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0FD452]/10 text-[#0FD452]">
+          <Icon className="h-5 w-5" />
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function formatDate(value) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
 
 export default function AdminWholesaleOrdersPage() {
   const navigate = useNavigate()
-  const [orders, setOrders] = useState([])
-  const [allOrders, setAllOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [status, setStatus] = useState('all')
-  const [search, setSearch] = useState('')
-  const [busy, setBusy] = useState(null)
+  const [searchParams] = useSearchParams()
+  const supplierFilter = searchParams.get('wholesaler') || searchParams.get('wholesaler_id') || ''
+  const [confirm, confirmDialog] = useConfirm()
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const [orders, setOrders] = useState([])
+  const [stats, setStats] = useState({ total: 0, active: 0, delivered: 0, total_value: 0 })
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [paymentFilter, setPaymentFilter] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [busyId, setBusyId] = useState(null)
+
+  const [advanceOrder, setAdvanceOrder] = useState(null)
+  const [advanceForm, setAdvanceForm] = useState({ tracking_number: '', delivery_partner: '', notes: '' })
+  const [advanceSaving, setAdvanceSaving] = useState(false)
+
+  const [paidOrder, setPaidOrder] = useState(null)
+  const [paymentForm, setPaymentForm] = useState({ payment_reference: '', notes: '' })
+  const [paymentSaving, setPaymentSaving] = useState(false)
+
+  const load = useCallback(async (silent = false) => {
+    silent ? setRefreshing(true) : setLoading(true)
     try {
-      const { data } = await api.get('/admin/wholesale-orders', { params: { status: status !== 'all' ? status : undefined } })
-      setAllOrders(data.data || data || [])
-    } catch (e) {
-      toast.error(e?.response?.data?.message || 'Could not load orders.')
+      const { data } = await api.get('/admin/wholesale-orders', {
+        params: { status: statusFilter || undefined, per_page: 200 },
+      })
+      const list = data?.data
+      setOrders(Array.isArray(list) ? list : [])
+      setStats(data?.stats || { total: 0, active: 0, delivered: 0, total_value: 0 })
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not load wholesale orders')
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
-  }, [status])
+  }, [statusFilter])
 
-  useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t) }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
-  const advance = async (order) => {
-    const NEXT = { pending: 'confirmed', confirmed: 'packed', packed: 'dispatched', dispatched: 'delivered' }
-    const target = NEXT[order.status]
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, statusFilter, paymentFilter, supplierFilter])
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return orders.filter((order) => {
+      if (supplierFilter && String(order.wholesaler_id) !== String(supplierFilter)) return false
+      if (paymentFilter && (order.payment_status || 'unpaid') !== paymentFilter) return false
+      if (!q) return true
+      return [order.order_id, order.pharmacy_name, order.wholesaler_name, order.tracking_number]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(q)
+    })
+  }, [orders, search, paymentFilter, supplierFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  const openAdvance = (order) => {
+    setAdvanceOrder(order)
+    setAdvanceForm({ tracking_number: order.tracking_number || '', delivery_partner: order.delivery_partner || '', notes: '' })
+  }
+
+  const saveAdvance = async (event) => {
+    event.preventDefault()
+    if (!advanceOrder) return
+    const target = NEXT_STATUS[advanceOrder.status]
     if (!target) return
-    setBusy(order.id)
+    setAdvanceSaving(true)
     try {
-      await api.post(`/admin/wholesale-orders/${order.id}/status`, { status: target })
-      toast.success('Order updated.')
-      load()
-    } catch (e) {
-      toast.error(e?.response?.data?.message || 'Could not update order.')
+      await api.post(`/admin/wholesale-orders/${advanceOrder.id}/status`, {
+        status: target,
+        tracking_number: advanceForm.tracking_number || undefined,
+        delivery_partner: advanceForm.delivery_partner || undefined,
+        notes: advanceForm.notes || undefined,
+      })
+      toast.success(`Order marked ${STATUS_LABELS[target].toLowerCase()}`)
+      setAdvanceOrder(null)
+      await load(true)
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not update order')
     } finally {
-      setBusy(null)
+      setAdvanceSaving(false)
     }
   }
 
-  const markPaid = async (order) => {
-    setBusy(order.id)
+  const cancelOrder = async (order) => {
+    const ok = await confirm({
+      title: 'Cancel order?',
+      message: `Order ${order.order_id} will be cancelled and reserved stock will be returned to the supplier.`,
+      confirmText: 'Cancel order',
+      variant: 'danger',
+    })
+    if (!ok) return
+    setBusyId(order.id)
     try {
-      await api.post(`/admin/wholesale-orders/${order.id}/mark-paid`)
-      toast.success('Marked as paid.')
-      load()
-    } catch (e) {
-      toast.error(e?.response?.data?.message || 'Could not mark paid.')
+      await api.post(`/admin/wholesale-orders/${order.id}/status`, {
+        status: 'cancelled',
+        cancellation_reason: 'Cancelled by administrator',
+      })
+      toast.success('Order cancelled and stock restored')
+      await load(true)
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not cancel order')
     } finally {
-      setBusy(null)
+      setBusyId(null)
     }
   }
 
-  const filtered = allOrders.filter((o) => !search || (o.order_id || '').toLowerCase().includes(search.toLowerCase()) || (o.pharmacy_name || '').toLowerCase().includes(search.toLowerCase()) || (o.wholesaler_name || '').toLowerCase().includes(search.toLowerCase()))
+  const openPayment = (order) => {
+    setPaidOrder(order)
+    setPaymentForm({ payment_reference: order.payment_reference || '', notes: '' })
+  }
 
-  if (loading) return <div className="p-6"><div className="animate-spin h-8 w-8 border-4 border-[#0FD452] border-t-transparent rounded-full mx-auto mt-10" /></div>
+  const savePayment = async (event) => {
+    event.preventDefault()
+    if (!paidOrder) return
+    setPaymentSaving(true)
+    try {
+      await api.post(`/admin/wholesale-orders/${paidOrder.id}/mark-paid`, {
+        payment_reference: paymentForm.payment_reference || undefined,
+        notes: paymentForm.notes || undefined,
+      })
+      toast.success('Payment recorded')
+      setPaidOrder(null)
+      await load(true)
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not record payment')
+    } finally {
+      setPaymentSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-12 w-64 animate-pulse rounded-xl bg-white" />
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 animate-pulse rounded-xl bg-white" />
+          ))}
+        </div>
+        <div className="h-96 animate-pulse rounded-xl bg-white" />
+      </div>
+    )
+  }
 
   return (
-    <div className="p-6 space-y-4">
-      <PageHeader title="Wholesale orders (admin)" subtitle="Oversight of all pharmacy ↔ wholesaler orders." icon={Store} />
-
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[#0FD452]/10 flex items-center justify-center"><Package className="w-5 h-5 text-[#0FD452]" /></div>
-          <div><p className="text-2xl font-bold text-gray-900">{allOrders.length}</p><p className="text-xs text-gray-500">Total orders</p></div>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0FD452]/10">
+            <Store className="h-5 w-5 text-[#0FD452]" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Wholesale orders</h1>
+            <p className="text-sm text-gray-500">
+              Oversight of every pharmacy order, from confirmation through delivery.
+            </p>
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center"><Clock className="w-5 h-5 text-amber-600" /></div>
-          <div><p className="text-2xl font-bold text-gray-900">{allOrders.filter((o) => o.status === 'pending').length}</p><p className="text-xs text-gray-500">Pending</p></div>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center"><Truck className="w-5 h-5 text-blue-600" /></div>
-          <div><p className="text-2xl font-bold text-gray-900">{allOrders.filter((o) => ['confirmed','packed','dispatched'].includes(o.status)).length}</p><p className="text-xs text-gray-500">In progress</p></div>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center"><CheckCircle2 className="w-5 h-5 text-green-600" /></div>
-          <div><p className="text-2xl font-bold text-gray-900">{allOrders.filter((o) => o.status === 'delivered').length}</p><p className="text-xs text-gray-500">Delivered</p></div>
-        </div>
-      </div>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        {TABS.map((t) => (
-          <button key={t} onClick={() => setStatus(t)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${status === t ? 'bg-[#0FD452] text-[#000F14]' : 'bg-white text-gray-600 border border-gray-200'}`}>
-            {t}
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => load(true)} className="btn-secondary" disabled={refreshing}>
+            {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
           </button>
-        ))}
+          <Link to="/dashboard/wholesale-marketplace" className="btn-primary">
+            <Store className="h-4 w-4" />
+            Wholesale marketplace
+          </Link>
+        </div>
       </div>
 
-      <div className="mb-4 relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search order, pharmacy or wholesaler…" className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm" />
+      {supplierFilter && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-[#0FD452]/30 bg-[#0FD452]/5 px-4 py-3 text-sm text-[#0a8f3c]">
+          <span>Showing orders for supplier #{supplierFilter}.</span>
+          <Link to="/dashboard/wholesale-orders-admin" className="font-semibold underline">
+            Clear filter
+          </Link>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <StatCard icon={Package} label="Total orders" value={stats.total ?? orders.length} />
+        <StatCard
+          icon={Clock}
+          label="In progress"
+          value={stats.active ?? 0}
+          hint="Pending, confirmed, packed or dispatched"
+          tone="text-amber-600"
+        />
+        <StatCard icon={Truck} label="Delivered" value={stats.delivered ?? 0} tone="text-green-600" />
+        <StatCard icon={CreditCard} label="Order value" value={formatMoney(stats.total_value || 0)} />
+      </div>
+
+      <div className="rounded-xl bg-white p-4 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search order, pharmacy, supplier or tracking..."
+              className={`${inputClass} pl-10`}
+            />
+          </div>
+          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className={selectClass}>
+            <option value="">All statuses</option>
+            {Object.keys(STATUS_LABELS).map((status) => (
+              <option key={status} value={status}>
+                {STATUS_LABELS[status]}
+              </option>
+            ))}
+          </select>
+          <select value={paymentFilter} onChange={(event) => setPaymentFilter(event.target.value)} className={selectClass}>
+            <option value="">All payments</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+            <option value="unpaid">Unpaid</option>
+          </select>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500">No orders found.</div>
+        <div className="flex flex-col items-center justify-center rounded-xl bg-white py-16 shadow-sm">
+          <ShoppingBagIcon className="mb-4 h-12 w-12 text-gray-300" />
+          <h3 className="text-lg font-semibold text-[#000F14]">
+            {orders.length === 0 ? 'No wholesale orders yet' : 'No orders match your filters'}
+          </h3>
+          <p className="text-sm text-gray-500">
+            {orders.length === 0
+              ? 'Orders placed by pharmacies through the marketplace will appear here.'
+              : 'Try a different search, status or payment filter.'}
+          </p>
+          {orders.length === 0 && (
+            <Link to="/dashboard/wholesale-marketplace" className="btn-primary mt-5">
+              <Store className="h-4 w-4" />
+              Open marketplace
+            </Link>
+          )}
+        </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-          <table className="w-full min-w-[900px] text-left text-sm">
-            <thead className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-500">
-              <tr>
-                <th className="px-3 py-2.5">Order</th>
-                <th className="px-3 py-2.5">Pharmacy</th>
-                <th className="px-3 py-2.5">Wholesaler</th>
-                <th className="px-3 py-2.5">Status</th>
-                <th className="px-3 py-2.5">Payment</th>
-                <th className="px-3 py-2.5">Total</th>
-                <th className="px-3 py-2.5">Expected delivery</th>
-                <th className="px-3 py-2.5">Tracking</th>
-                <th className="px-3 py-2.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map((o) => (
-                <tr key={o.id} className="cursor-pointer hover:bg-gray-50" onClick={() => navigate(`/dashboard/wholesale-orders-admin/${o.id}`)}>
-                  <td className="px-3 py-3 font-semibold">{o.order_id}</td>
-                  <td className="px-3 py-3">{o.pharmacy_name}</td>
-                  <td className="px-3 py-3">{o.wholesaler_name}</td>
-                  <td className="px-3 py-3">{o.status}</td>
-                  <td className="px-3 py-3">{o.payment_status || '—'}</td>
-                  <td className="px-3 py-3 font-semibold">{o.total_amount}</td>
-                  <td className="px-3 py-3 text-gray-600">{o.expected_delivery_date || '—'}</td>
-                  <td className="px-3 py-3 text-gray-600">{o.tracking_number || '—'}</td>
-                  <td className="px-3 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => navigate(`/dashboard/wholesale-orders-admin/${o.id}`)} className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50">View</button>
-                      {o.status !== 'delivered' && o.status !== 'cancelled' && (
-                        <button onClick={() => advance(o)} disabled={busy === o.id} className="rounded-lg bg-[#0FD452] px-2.5 py-1.5 text-xs font-semibold text-[#000F14] hover:bg-[#0cb843] disabled:opacity-60">
-                          {busy === o.id ? '…' : 'Advance'}
-                        </button>
-                      )}
-                      {o.payment_status !== 'paid' && (
-                        <button onClick={() => markPaid(o)} disabled={busy === o.id} className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
-                          Mark paid
-                        </button>
-                      )}
-                    </div>
-                  </td>
+        <div className="overflow-hidden rounded-xl bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1150px]">
+              <thead>
+                <tr className="bg-gray-50">
+                  <ColumnHead icon={Hash} label="Order" />
+                  <ColumnHead icon={Package} label="Pharmacy" />
+                  <ColumnHead icon={Truck} label="Supplier" />
+                  <ColumnHead icon={Zap} label="Status" />
+                  <ColumnHead icon={CreditCard} label="Payment" />
+                  <ColumnHead icon={Package} label="Total" />
+                  <ColumnHead icon={Clock} label="Expected" />
+                  <ColumnHead icon={Truck} label="Tracking" />
+                  <ColumnHead icon={Eye} label="Actions" className="text-right" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {paginated.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="cursor-pointer transition-colors hover:bg-[#0FD452]/5"
+                    onClick={() => navigate(`/dashboard/wholesale-orders-admin/${order.id}`)}
+                  >
+                    <td className="px-6 py-4">
+                      <p className="font-mono text-sm font-semibold text-[#000F14]">{order.order_id}</p>
+                      <p className="mt-0.5 text-[11px] text-gray-400">Placed {formatDate(order.ordered_at || order.created_at)}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-800">{textValue(order.pharmacy_name)}</p>
+                      <p className="mt-0.5 text-[11px] text-gray-400">{order.delivery_address || 'No address'}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-800">{textValue(order.wholesaler_name)}</p>
+                      <p className="mt-0.5 text-[11px] text-gray-400">{order.shipment_method || 'standard'}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={order.status} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <PaymentBadge status={order.payment_status} />
+                      <p className="mt-0.5 text-[11px] capitalize text-gray-400">{order.payment_method || 'cash'}</p>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-semibold text-[#000F14]">
+                      {formatMoney(order.total_amount || 0)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{formatDate(order.expected_delivery_date)}</td>
+                    <td className="px-6 py-4">
+                      <p className="font-mono text-xs text-gray-600">{order.tracking_number || '—'}</p>
+                      <p className="mt-0.5 text-[11px] text-gray-400">{order.delivery_partner || '—'}</p>
+                    </td>
+                    <td className="px-6 py-4 text-right" onClick={(event) => event.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => navigate(`/dashboard/wholesale-orders-admin/${order.id}`)}
+                          className="btn-icon-primary"
+                          title="View order"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        {NEXT_STATUS[order.status] && (
+                          <button
+                            onClick={() => openAdvance(order)}
+                            disabled={busyId === order.id}
+                            className="btn-icon-green"
+                            title={NEXT_LABELS[NEXT_STATUS[order.status]]}
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </button>
+                        )}
+                        {order.payment_status !== 'paid' && order.status !== 'cancelled' && (
+                          <button
+                            onClick={() => openPayment(order)}
+                            disabled={busyId === order.id}
+                            className="btn-ghost"
+                            title="Record payment"
+                          >
+                            <CreditCard className="h-4 w-4" />
+                          </button>
+                        )}
+                        {!['delivered', 'cancelled'].includes(order.status) && (
+                          <button
+                            onClick={() => cancelOrder(order)}
+                            disabled={busyId === order.id}
+                            className="btn-ghost hover:!text-red-600"
+                            title="Cancel order"
+                          >
+                            {busyId === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
+              <p className="text-sm text-gray-500">
+                {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of{' '}
+                {filtered.length}
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  className="btn-ghost"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="px-2 text-sm text-gray-500">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                  className="btn-ghost"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
+
+      <Modal
+        isOpen={Boolean(advanceOrder)}
+        onClose={() => setAdvanceOrder(null)}
+        title={advanceOrder ? NEXT_LABELS[NEXT_STATUS[advanceOrder.status]] : 'Update order'}
+        subtitle={advanceOrder ? `${advanceOrder.order_id} · ${textValue(advanceOrder.pharmacy_name)}` : ''}
+      >
+        {advanceOrder && (
+          <form onSubmit={saveAdvance} className="space-y-4">
+            <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+              Moving from <span className="font-semibold capitalize">{advanceOrder.status}</span> to{' '}
+              <span className="font-semibold capitalize">{NEXT_STATUS[advanceOrder.status]}</span>.
+            </div>
+            {NEXT_STATUS[advanceOrder.status] === 'dispatched' && (
+              <>
+                <label className="block">
+                  <span className="mb-1.5 block text-xs font-semibold text-gray-600">Tracking number</span>
+                  <input
+                    value={advanceForm.tracking_number}
+                    onChange={(event) => setAdvanceForm((prev) => ({ ...prev, tracking_number: event.target.value }))}
+                    placeholder="e.g. TZ-4587-0021"
+                    className={inputClass}
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-xs font-semibold text-gray-600">Delivery partner</span>
+                  <input
+                    value={advanceForm.delivery_partner}
+                    onChange={(event) => setAdvanceForm((prev) => ({ ...prev, delivery_partner: event.target.value }))}
+                    placeholder="e.g. Supplier delivery"
+                    className={inputClass}
+                  />
+                </label>
+              </>
+            )}
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-semibold text-gray-600">Internal note (optional)</span>
+              <textarea
+                value={advanceForm.notes}
+                onChange={(event) => setAdvanceForm((prev) => ({ ...prev, notes: event.target.value }))}
+                rows={3}
+                className={inputClass}
+                placeholder="Add a note for the audit timeline"
+              />
+            </label>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setAdvanceOrder(null)} className="btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" disabled={advanceSaving} className="btn-primary">
+                {advanceSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                {NEXT_LABELS[NEXT_STATUS[advanceOrder.status]]}
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(paidOrder)}
+        onClose={() => setPaidOrder(null)}
+        title="Record payment"
+        subtitle={paidOrder ? `${paidOrder.order_id} · ${formatMoney(paidOrder.total_amount || 0)}` : ''}
+      >
+        {paidOrder && (
+          <form onSubmit={savePayment} className="space-y-4">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-semibold text-gray-600">Payment reference</span>
+              <input
+                value={paymentForm.payment_reference}
+                onChange={(event) => setPaymentForm((prev) => ({ ...prev, payment_reference: event.target.value }))}
+                placeholder="Bank slip, mobile money or receipt number"
+                className={inputClass}
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-semibold text-gray-600">Note (optional)</span>
+              <textarea
+                value={paymentForm.notes}
+                onChange={(event) => setPaymentForm((prev) => ({ ...prev, notes: event.target.value }))}
+                rows={3}
+                className={inputClass}
+                placeholder="Anything the finance team should know"
+              />
+            </label>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setPaidOrder(null)} className="btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" disabled={paymentSaving} className="btn-primary">
+                {paymentSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                Mark as paid
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      {confirmDialog}
     </div>
+  )
+}
+
+function ShoppingBagIcon(props) {
+  return (
+    <svg
+      {...props}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+      <path d="M3 6h18" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
   )
 }

@@ -9,6 +9,7 @@ import {
 import api from '../../services/api'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { formatMoney } from '../../utils/currency'
+import { textValue } from '../../utils/text'
 
 const STATUS_STYLES = {
   Paid: 'badge badge-green',
@@ -132,7 +133,7 @@ export default function AdminRevenueShowPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{invoice.invoiceNumber}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-2">{invoice.pharmacy} — Due {invoice.dueDate} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[invoice.status] || 'bg-gray-100 text-gray-600'}`}>{invoice.status}</span></p>
+            <p className="text-sm text-gray-500 flex items-center gap-2">{textValue(invoice.pharmacy)} — Due {invoice.dueDate} <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[invoice.status] || 'bg-gray-100 text-gray-600'}`}>{invoice.status}</span></p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -232,7 +233,7 @@ export default function AdminRevenueShowPage() {
                   <Building2 className="w-3.5 h-3.5" />
                   Pharmacy
                 </div>
-                <p className="text-sm font-semibold text-gray-900">{invoice.pharmacy}</p>
+                <p className="text-sm font-semibold text-gray-900">{textValue(invoice.pharmacy)}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">

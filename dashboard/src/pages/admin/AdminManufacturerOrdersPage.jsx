@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   Ban,
   CheckCircle2,
@@ -274,10 +274,6 @@ export default function AdminManufacturerOrdersPage() {
             {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Refresh
           </button>
-          <Link to="/dashboard/wholesale-orders-admin" className="btn-primary">
-            <Truck className="h-4 w-4" />
-            Wholesale orders
-          </Link>
         </div>
       </div>
 

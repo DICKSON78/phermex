@@ -124,6 +124,7 @@ import WholesalerInventoryFormPage from '../pages/wholesaler/WholesalerInventory
 import WholesalerManufacturersPage from '../pages/wholesaler/WholesalerManufacturersPage'
 import WholesalerManufacturerCatalogPage from '../pages/wholesaler/WholesalerManufacturerCatalogPage'
 import WholesalerPurchaseOrdersPage from '../pages/wholesaler/WholesalerPurchaseOrdersPage'
+import WholesalerPurchaseOrderDetailPage from '../pages/wholesaler/WholesalerPurchaseOrderDetailPage'
 import WholesalerProfilePage from '../pages/wholesaler/WholesalerProfilePage'
 import DamagedGoodsPage from '../pages/owner/DamagedGoodsPage'
 import ControlledSubstancePage from '../pages/owner/ControlledSubstancePage'
@@ -1203,6 +1204,7 @@ export default function DashboardLayout({ role }) {
                <Route path="wholesaler/manufacturers" element={<WholesalerManufacturersPage />} />
                <Route path="wholesaler/manufacturers/:id/catalog" element={<WholesalerManufacturerCatalogPage />} />
                <Route path="wholesaler/purchase-orders" element={<WholesalerPurchaseOrdersPage />} />
+               <Route path="wholesaler/purchase-orders/:id" element={<WholesalerPurchaseOrderDetailPage />} />
                <Route path="wholesaler/profile" element={<WholesalerProfilePage />} />
                <Route path="notifications" element={<NotificationsPage />} />
                <Route path="*" element={<Navigate to="/dashboard/wholesaler" replace />} />

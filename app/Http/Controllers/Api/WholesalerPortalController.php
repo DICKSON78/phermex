@@ -84,6 +84,15 @@ class WholesalerPortalController extends Controller
         $w = $this->wholesaler($request);
         $query = WholesaleOrder::where('wholesaler_id', $w->wholesaler_id);
 
+        // Stats describe the whole book of orders, not the active tab.
+        $statsQuery = clone $query;
+        $stats = [
+            'total' => (clone $statsQuery)->count(),
+            'active' => (clone $statsQuery)->whereIn('status', ['pending', 'confirmed', 'packed', 'dispatched'])->count(),
+            'delivered' => (clone $statsQuery)->where('status', 'delivered')->count(),
+            'total_value' => (float) (clone $statsQuery)->where('status', '!=', 'cancelled')->sum('total_amount'),
+        ];
+
         if ($request->filled('status') && $request->input('status') !== 'all') {
             $query->where('status', $request->input('status'));
         }
@@ -95,14 +104,6 @@ class WholesalerPortalController extends Controller
                     ->orWhereHas('pharmacy', fn ($p) => $p->where('pharmacy_name', 'like', "%{$search}%"));
             });
         }
-
-        $statsQuery = clone $query;
-        $stats = [
-            'total' => (clone $statsQuery)->count(),
-            'active' => (clone $statsQuery)->whereIn('status', ['pending', 'confirmed', 'packed', 'dispatched'])->count(),
-            'delivered' => (clone $statsQuery)->where('status', 'delivered')->count(),
-            'total_value' => (float) (clone $statsQuery)->where('status', '!=', 'cancelled')->sum('total_amount'),
-        ];
 
         $orders = $query->with(['lineItems', 'pharmacy', 'events'])
             ->orderByDesc('ordered_at')

@@ -140,6 +140,14 @@ export default function OrderDetailPage() {
 
   const status = order.order_status || order.status || 'pending'
   const currentStepIndex = STATUS_STEPS.indexOf(status)
+  const stepTimes = {
+    pending: order.created_at,
+    confirmed: order.confirmed_at,
+    preparing: order.preparing_at,
+    ready: order.ready_at,
+    out_for_delivery: order.out_for_delivery_at,
+    delivered: order.delivered_at,
+  }
   const orderCode = order.order_code || order.code || `#${order.id}`
   const customerName = order.user?.name || order.customer?.name || t('dashboard.walkIn')
   const customerPhone = order.user?.phone || order.customer?.phone || null
@@ -193,6 +201,11 @@ export default function OrderDetailPage() {
                   <span className={`text-xs mt-1.5 font-medium capitalize ${i <= currentStepIndex ? 'text-[#000F14]' : 'text-gray-400'}`}>
                     {step === 'out_for_delivery' ? t('sales.orders.onTheWay') : t(ORDER_KEY[step], step)}
                   </span>
+                  {stepTimes[step] && i <= currentStepIndex && (
+                    <span className="mt-0.5 text-[10px] text-gray-400">
+                      {new Date(stepTimes[step]).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
                 </div>
                 {i < STATUS_STEPS.length - 1 && (
                   <div className={`flex-1 h-0.5 mx-2 ${i < currentStepIndex ? 'bg-[#0FD452]' : 'bg-gray-200'}`} />

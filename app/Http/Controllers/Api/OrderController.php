@@ -213,6 +213,19 @@ class OrderController extends Controller
             $oldStatus = $order->order_status;
             $newStatus = $validated['order_status'];
 
+            $timestampField = match ($newStatus) {
+                'confirmed' => 'confirmed_at',
+                'preparing' => 'preparing_at',
+                'ready' => 'ready_at',
+                'out_for_delivery' => 'out_for_delivery_at',
+                'delivered' => 'delivered_at',
+                'cancelled' => 'cancelled_at',
+                default => null,
+            };
+            if ($timestampField && empty($order->{$timestampField})) {
+                $validated[$timestampField] = now();
+            }
+
             $statusLabels = [
                 'pending' => 'Pending',
                 'confirmed' => 'Confirmed',

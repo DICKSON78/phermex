@@ -37,6 +37,16 @@ class ManufacturerOrderController extends Controller
             $query->where('manufacturer_user_id', $request->input('manufacturer_user_id'));
         }
 
+        // Snapshot the unfiltered scope first, so the summary cards never
+        // shrink to the currently selected tab.
+        $statsQuery = clone $query;
+        $stats = [
+            'total' => (clone $statsQuery)->count(),
+            'active' => (clone $statsQuery)->whereIn('status', ['pending', 'confirmed', 'packed', 'dispatched'])->count(),
+            'delivered' => (clone $statsQuery)->where('status', 'delivered')->count(),
+            'total_value' => (float) (clone $statsQuery)->where('status', '!=', 'cancelled')->sum('total_amount'),
+        ];
+
         if ($request->filled('status') && $request->input('status') !== 'all') {
             $query->where('status', $request->input('status'));
         }
@@ -48,14 +58,6 @@ class ManufacturerOrderController extends Controller
                     ->orWhere('tracking_number', 'like', "%{$search}%");
             });
         }
-
-        $statsQuery = clone $query;
-        $stats = [
-            'total' => (clone $statsQuery)->count(),
-            'active' => (clone $statsQuery)->whereIn('status', ['pending', 'confirmed', 'packed', 'dispatched'])->count(),
-            'delivered' => (clone $statsQuery)->where('status', 'delivered')->count(),
-            'total_value' => (float) (clone $statsQuery)->where('status', '!=', 'cancelled')->sum('total_amount'),
-        ];
 
         $orders = $query->orderByDesc('created_at')
             ->paginate((int) $request->input('per_page', 20));

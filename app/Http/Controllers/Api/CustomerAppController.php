@@ -689,7 +689,7 @@ class CustomerAppController extends Controller
                 ]);
             }
 
-            $order->update(['order_status' => 'cancelled']);
+            $order->update(['order_status' => 'cancelled', 'cancelled_at' => now()]);
 
             Notification::create([
                 'pharmacy_id' => $order->pharmacy_id,

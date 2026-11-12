@@ -38,6 +38,12 @@ class Order extends Model
         'payment_reference',
         'payment_details',
         'order_status',
+        'confirmed_at',
+        'preparing_at',
+        'ready_at',
+        'out_for_delivery_at',
+        'delivered_at',
+        'cancelled_at',
         'notes',
         'delivery_address',
         'delivery_phone',
@@ -54,6 +60,12 @@ class Order extends Model
         'total' => 'decimal:2',
         'payment_details' => 'array',
         'loyalty_awarded' => 'boolean',
+        'confirmed_at' => 'datetime',
+        'preparing_at' => 'datetime',
+        'ready_at' => 'datetime',
+        'out_for_delivery_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     public function pharmacy(): BelongsTo

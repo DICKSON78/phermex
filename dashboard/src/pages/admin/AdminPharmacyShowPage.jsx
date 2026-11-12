@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../../services/api'
 import Tabs from '../../components/Tabs'
+import OrderFlowProgress from '../../components/OrderFlowProgress'
 import { MapContainer, TileLayer, Marker, LayersControl } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -131,6 +132,7 @@ export default function AdminPharmacyShowPage() {
   // Per-pharmacy drill-down tabs
   const [activeTab, setActiveTab] = useState('drugs')
   const [tabData, setTabData] = useState({})
+  const operationalRef = useRef(null)
   const [tabLoading, setTabLoading] = useState(false)
   const [tabPage, setTabPage] = useState({})
   const [tabLastPage, setTabLastPage] = useState({})
@@ -552,12 +554,23 @@ export default function AdminPharmacyShowPage() {
           <SectionCard icon={ExternalLink} iconBg="bg-[#0FD452]/10" iconColor="text-[#0FD452]" title="Actions">
             <div className="p-5 space-y-1">
               {[
-                { to: `/admin/pharmacies/${id}/orders`, icon: ShoppingCart, color: 'blue', label: 'View Orders', desc: 'Browse all orders' },
-                { to: `/admin/pharmacies/${id}/stock`, icon: Pill, color: 'purple', label: 'View Stock', desc: 'Manage inventory' },
-                { icon: FileText, color: 'green', label: 'Export Data', desc: 'Download reports' },
+                { tab: 'orders', icon: ShoppingCart, color: 'blue', label: 'View Orders', desc: 'Follow every customer order' },
+                { tab: 'drugs', icon: Pill, color: 'purple', label: 'View Stock', desc: 'Manage inventory' },
+                { to: '/dashboard/reports', icon: FileText, color: 'green', label: 'Export Data', desc: 'Download reports' },
               ].map((a, i) => {
-                const Wrapper = a.to ? Link : 'button'
-                const props = a.to ? { to: a.to } : { className: 'w-full' }
+                const Wrapper = a.tab ? 'button' : a.to ? Link : 'button'
+                const props = a.tab
+                  ? {
+                      type: 'button',
+                      onClick: () => {
+                        setActiveTab(a.tab)
+                        fetchTab(a.tab, 1)
+                        operationalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      },
+                    }
+                  : a.to
+                    ? { to: a.to }
+                    : { className: 'w-full' }
                 return (
                   <Wrapper key={i} {...props} className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors group">
                     <div className={`w-9 h-9 rounded-lg bg-${a.color}-50 flex items-center justify-center group-hover:bg-${a.color}-100 transition-colors`}>
@@ -576,7 +589,7 @@ export default function AdminPharmacyShowPage() {
       </div>
 
       {/* Per-Pharmacy Operational Data */}
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div ref={operationalRef} className="bg-white rounded-xl border border-gray-100 overflow-hidden scroll-mt-24">
         <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2.5 flex-wrap">
           <div className="w-9 h-9 bg-[#0FD452]/10 rounded-lg flex items-center justify-center">
             <TrendingUp className={`w-4 h-4 text-[#0FD452]`} />
@@ -641,7 +654,7 @@ export default function AdminPharmacyShowPage() {
               {activeTab === 'orders' && (
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="bg-gray-50"><Th>Order</Th><Th>Type</Th><Th>Total</Th><Th>Payment</Th><Th>Status</Th><Th>Date</Th></tr>
+                    <tr className="bg-gray-50"><Th>Order</Th><Th>Type</Th><Th>Total</Th><Th>Payment</Th><Th>Status</Th><Th>Progress</Th><Th>Date</Th></tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {tabData.orders.list.map((row) => (
@@ -655,6 +668,11 @@ export default function AdminPharmacyShowPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-gray-600 capitalize">{row.order_status || row.status || '—'}</td>
+                        <td className="px-4 py-3">
+                          <div className="min-w-[300px]">
+                            <OrderFlowProgress type="customer" status={row.order_status || row.status} compact />
+                          </div>
+                        </td>
                         <td className="px-4 py-3 text-gray-500">{formatDate(row.created_at)}</td>
                       </tr>
                     ))}

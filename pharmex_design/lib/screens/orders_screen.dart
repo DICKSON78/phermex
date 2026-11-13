@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_bottom_nav.dart';
+import '../widgets/order_progress_stepper.dart';
 import 'order_detail_sheet.dart';
 
 class OrderItem {
@@ -8,11 +9,14 @@ class OrderItem {
   final String orderId;
   final String total;
   final String status; // Delivered / Out for delivery / etc.
+  final OrderProgress? progress;
+
   const OrderItem({
     required this.pharmacy,
     required this.orderId,
     required this.total,
     required this.status,
+    this.progress,
   });
 }
 
@@ -27,20 +31,53 @@ class _OrdersScreenState extends State<OrdersScreen> {
   int _filter = 0;
   final _filters = const ['All', 'Active', 'Completed', 'Cancelled'];
 
-  final _orders = const [
+  final _orders = [
     OrderItem(
       pharmacy: 'Mwalimu Pharmacy',
       orderId: '#ORD-2026-YTVFW',
       total: 'TZS 14',
       status: 'Delivered',
+      progress: _demoProgress('delivered'),
     ),
     OrderItem(
       pharmacy: 'Mwalimu Pharmacy',
       orderId: '#ORD-2026-KFXWU',
       total: 'TZS 6',
-      status: 'Active',
+      status: 'Preparing',
+      progress: _demoProgress('preparing'),
     ),
   ];
+
+  /// Mirrors `App\Support\OrderProgress` / `progress.stages` from
+  /// `GET /api/customer-app/orders/{id}` so the design kit renders the same
+  /// six-step journey the API returns.
+  static OrderProgress _demoProgress(String current) {
+    const stages = [
+      ['pending', 'Order placed', 'Placed'],
+      ['confirmed', 'Confirmed', 'Confirmed'],
+      ['preparing', 'Preparing', 'Preparing'],
+      ['ready', 'Ready', 'Ready'],
+      ['out_for_delivery', 'Out for delivery', 'On the way'],
+      ['delivered', 'Delivered', 'Delivered'],
+    ];
+    final currentIndex = stages.indexWhere((stage) => stage[0] == current);
+
+    return OrderProgress(
+      status: current,
+      current: current,
+      cancelled: false,
+      stages: [
+        for (var i = 0; i < stages.length; i++)
+          OrderProgressStage(
+            key: stages[i][0],
+            label: stages[i][1],
+            shortLabel: stages[i][2],
+            completed: i < currentIndex,
+            active: i == currentIndex,
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

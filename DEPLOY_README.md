@@ -60,6 +60,31 @@ Then hard-refresh the browser: **Ctrl+Shift+R**.
   `src/main.jsx` wraps `<App />` in `<LanguageProvider>` and that the deployed
   bundle contains the string `helix_lang`.
 
+## Supply-chain demo data
+
+The manufacturer, wholesaler, admin and customer order screens are data-driven.
+On a fresh database they render their empty states until supplier accounts and
+orders exist. Seed the demo accounts when an environment needs usable flows:
+
+```bash
+php artisan db:seed --class=ManufacturerAccountSeeder --force
+php artisan db:seed --class=WholesalerAccountSeeder --force
+```
+
+Both seeders are idempotent. `WholesalerAccountSeeder` also copies up to five
+existing pharmacy drugs into the demo wholesaler catalogue, so the wholesale
+marketplace is browsable immediately. Actual orders are still created through
+the normal owner → wholesaler and wholesaler → manufacturer flows.
+
+Demo logins (password `password`):
+
+| Role | Email |
+| --- | --- |
+| Manufacturer | `manufacturer@pharmex.com` |
+| Wholesaler | `wholesaler@pharmex.com` |
+| Admin | `admin@pharmex.com` |
+| Owner | `owner@pharmex.com` |
+
 ## API endpoints
 
 ### Subscriptions

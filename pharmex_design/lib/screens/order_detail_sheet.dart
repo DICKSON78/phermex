@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../widgets/order_progress_stepper.dart';
 import 'orders_screen.dart';
 
 class OrderDetailSheet extends StatelessWidget {
@@ -47,6 +48,26 @@ class OrderDetailSheet extends StatelessWidget {
           const SizedBox(height: 4),
           Text('${order.orderId} · Sep 2, 2026 · 5:25 PM',
               style: const TextStyle(fontSize: 11.5, color: AppColors.muted)),
+          if (order.progress != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              decoration: BoxDecoration(
+                color: AppColors.sand,
+                border: Border.all(color: AppColors.line),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Order progress',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 12),
+                  OrderProgressStepper(progress: order.progress!, showTimestamps: true),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),

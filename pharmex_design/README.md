@@ -35,6 +35,7 @@ MaterialApp(
 | `theme/app_theme.dart` | Manrope font + Material theme |
 | `widgets/app_bottom_nav.dart` | Bottom nav with the raised green Call button |
 | `widgets/dark_status_header.dart` | Dark gradient bar for status-bar consistency |
+| `widgets/order_progress_stepper.dart` | Placed → delivered stepper driven by the customer-app `progress` payload |
 | `screens/home_screen.dart` | Home — greeting, search, Talk to a Doctor banner, categories, nearby pharmacies |
 | `screens/orders_screen.dart` + `order_detail_sheet.dart` | My Orders list + detail bottom sheet |
 | `screens/telemedicine_screen.dart` | Live Consultation banner + Book/Call cards |
@@ -51,6 +52,18 @@ Every screen takes plain constructor parameters or simple model classes
 assumed, so you can feed them from Provider, Riverpod, Bloc, or whatever
 you're already using. Replace the default sample values in each
 screen's constructor with your API/DB results.
+
+`OrderItem.progress` accepts the `progress` object returned by
+`GET /api/customer-app/orders` and `GET /api/customer-app/orders/{id}`:
+
+```dart
+final progress = OrderProgress.fromJson(json['progress'] as Map<String, dynamic>);
+OrderProgressStepper(progress: progress, showTimestamps: true)
+```
+
+The API returns all six customer stages (`pending`, `confirmed`, `preparing`,
+`ready`, `out_for_delivery`, `delivered`) with `completed`, `active` and `at`
+flags, so the app never has to infer the journey from a status string.
 
 ## Notes
 

@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
             HRSeeder::class,
             SupplyChainSeeder::class,
             WholesaleMarketplaceSeeder::class,
+            WholesalerAccountSeeder::class,
             AccountingSeeder::class,
             RegulatorySeeder::class,
             DeliveriesSeeder::class,

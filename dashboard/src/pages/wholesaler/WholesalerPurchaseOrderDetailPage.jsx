@@ -156,6 +156,10 @@ export default function WholesalerPurchaseOrderDetailPage() {
           </p>
         </div>
 
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-4">
+          <h2 className="text-base font-bold text-[#000F14]">Order progress</h2>
+          <p className="text-xs text-gray-400">Request → delivery</p>
+        </div>
         <OrderFlowProgress type="manufacturer" status={order.status} timestamps={timestamps} showTimestamps />
 
         {order.status === 'cancelled' && (

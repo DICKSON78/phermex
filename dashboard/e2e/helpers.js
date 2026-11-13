@@ -5,10 +5,12 @@ export const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8002'
 
 const ROLES = {
   owner: { login: 'owner@pharmex.com', password: 'password', present: 'Payroll', absent: 'Pending Approvals' },
-  admin: { login: 'admin@pharmex.com', password: 'password', present: 'Pending Approvals', absent: 'Point of Sale' },
+  admin: { login: 'admin@pharmex.com', password: 'password', present: 'Approved Pharmacies', absent: 'Point of Sale' },
   pharmacist: { login: 'amina@pharmex.com', password: 'password', present: 'Point of Sale', absent: 'Payroll' },
   cashier: { login: 'cashier@pharmex.com', password: 'password', present: 'Point of Sale', absent: 'Payroll' },
   delivery: { login: 'delivery@pharmex.com', password: 'password', present: 'Point of Sale', absent: 'Payroll' },
+  manufacturer: { login: 'manufacturer@pharmex.com', password: 'password', present: 'Wholesale orders', absent: 'Pending Approvals' },
+  wholesaler: { login: 'wholesaler@pharmex.com', password: 'password', present: 'Purchase orders', absent: 'Pending Approvals' },
 }
 
 // Allowed index paths mirrored from dashboard/src/components/DashboardLayout.jsx navGroups
@@ -70,7 +72,7 @@ async function login(page, roleKey) {
   await page.getByPlaceholder('example@gmail.com').fill(creds.login)
   await page.getByPlaceholder('••••••••').fill(creds.password)
   await page.getByRole('button', { name: /^SIGN IN$/ }).click()
-  await expect(page).toHaveURL(`${BASE_URL}/dashboard`, { timeout: 30000 })
+  await expect(page).toHaveURL(new RegExp(`^${BASE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/dashboard`), { timeout: 30000 })
   const brand = page.locator('aside').getByText('HELIX')
   await expect(brand).toBeVisible({ timeout: 20000 })
   await expect(page.locator('aside').getByText(creds.present, { exact: false })).toBeVisible({ timeout: 20000 })

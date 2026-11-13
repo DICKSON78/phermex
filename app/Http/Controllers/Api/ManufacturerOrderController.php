@@ -29,7 +29,7 @@ class ManufacturerOrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $query = ManufacturerOrder::with(['lineItems', 'manufacturer', 'events']);
+        $query = ManufacturerOrder::with(['lineItems', 'manufacturer', 'wholesaler', 'events']);
 
         if (! $user->isAdmin()) {
             $query->where('manufacturer_user_id', $user->id);
@@ -76,7 +76,7 @@ class ManufacturerOrderController extends Controller
 
     public function show(Request $request, $id): JsonResponse
     {
-        $order = ManufacturerOrder::with(['lineItems', 'manufacturer', 'events'])->findOrFail($id);
+        $order = ManufacturerOrder::with(['lineItems', 'manufacturer', 'wholesaler', 'events'])->findOrFail($id);
         $this->authorize($request->user(), $order);
         return response()->json(['order' => $this->payload($order)]);
     }
@@ -189,7 +189,7 @@ class ManufacturerOrderController extends Controller
 
         return response()->json([
             'message' => 'Order placed successfully.',
-            'order' => $this->payload($order->fresh()->load(['lineItems', 'manufacturer', 'events'])),
+            'order' => $this->payload($order->fresh()->load(['lineItems', 'manufacturer', 'wholesaler', 'events'])),
         ], 201);
     }
 
@@ -292,7 +292,7 @@ class ManufacturerOrderController extends Controller
 
         return response()->json([
             'message' => 'Order updated.',
-            'order' => $this->payload($order->fresh()->load(['lineItems', 'manufacturer', 'events'])),
+            'order' => $this->payload($order->fresh()->load(['lineItems', 'manufacturer', 'wholesaler', 'events'])),
         ]);
     }
 
@@ -323,7 +323,7 @@ class ManufacturerOrderController extends Controller
             );
         });
 
-        return response()->json(['message' => 'Order cancelled.', 'order' => $this->payload($order->fresh()->load(['lineItems', 'manufacturer', 'events']))]);
+        return response()->json(['message' => 'Order cancelled.', 'order' => $this->payload($order->fresh()->load(['lineItems', 'manufacturer', 'wholesaler', 'events']))]);
     }
 
     public function receive(Request $request, $id): JsonResponse
@@ -338,7 +338,7 @@ class ManufacturerOrderController extends Controller
 
         $this->updateStatus($request->merge(['status' => 'delivered']), $id);
 
-        return response()->json(['message' => 'Order received.', 'order' => $this->payload($order->fresh()->load(['lineItems', 'manufacturer', 'events']))]);
+        return response()->json(['message' => 'Order received.', 'order' => $this->payload($order->fresh()->load(['lineItems', 'manufacturer', 'wholesaler', 'events']))]);
     }
 
     private function authorize($user, ManufacturerOrder $order, bool $strict = false): void
@@ -365,6 +365,7 @@ class ManufacturerOrderController extends Controller
             'manufacturer_user_id' => $order->manufacturer_user_id,
             'manufacturer_name' => $order->manufacturer?->manufacturer_name ?: $order->manufacturer?->name,
             'wholesaler_id' => $order->wholesaler_id,
+            'wholesaler_profile_id' => $order->wholesaler?->id,
             'wholesaler_name' => $order->wholesaler_name,
             'status' => $order->status,
             'next_status' => $this->nextStatus($order->status),

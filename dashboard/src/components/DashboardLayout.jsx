@@ -163,6 +163,8 @@ import AdminWholesaleOrdersPage from '../pages/admin/AdminWholesaleOrdersPage'
 import AdminWholesaleOrderDetailPage from '../pages/admin/AdminWholesaleOrderDetailPage'
 import AdminManufacturerOrdersPage from '../pages/admin/AdminManufacturerOrdersPage'
 import AdminManufacturerOrderDetailPage from '../pages/admin/AdminManufacturerOrderDetailPage'
+import AdminCustomerOrdersPage from '../pages/admin/AdminCustomerOrdersPage'
+import AdminCustomerOrderDetailPage from '../pages/admin/AdminCustomerOrderDetailPage'
 import AdminWholesaleMarketplacePage from '../pages/admin/AdminWholesaleMarketplacePage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminAuditLogsPage from '../pages/admin/AdminAuditLogsPage'
@@ -464,6 +466,7 @@ const adminNavGroups = [
       { path: '/dashboard/users', icon: Users, label: 'Users' },
       { path: '/dashboard/drug-database', icon: Pill, label: 'Drug Database' },
       { path: '/dashboard/wholesale-marketplace', icon: Store, label: 'Wholesale marketplace' },
+      { path: '/dashboard/customer-orders-admin', icon: ShoppingCart, label: 'Customer orders' },
       { path: '/dashboard/wholesale-orders-admin', icon: Package, label: 'Wholesale orders' },
       { path: '/dashboard/manufacturer-orders-admin', icon: Truck, label: 'Manufacturer orders' },
     ],
@@ -1397,6 +1400,8 @@ export default function DashboardLayout({ role }) {
               <Route path="wholesalers/:id/catalog" element={<AdminWholesalerCatalogPage />} />
               <Route path="wholesale-orders-admin" element={<AdminWholesaleOrdersPage />} />
               <Route path="wholesale-orders-admin/:id" element={<AdminWholesaleOrderDetailPage />} />
+              <Route path="customer-orders-admin" element={<AdminCustomerOrdersPage />} />
+              <Route path="customer-orders-admin/:id" element={<AdminCustomerOrderDetailPage />} />
               <Route path="manufacturer-orders-admin" element={<AdminManufacturerOrdersPage />} />
               <Route path="manufacturer-orders-admin/:id" element={<AdminManufacturerOrderDetailPage />} />
               <Route path="wholesale-marketplace" element={<AdminWholesaleMarketplacePage />} />

@@ -16,20 +16,14 @@ import {
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 import Modal from '../../components/Modal'
+import OrderFlowProgress, {
+  PAYMENT_STATUS_STYLES,
+  orderStatusLabel,
+  orderStatusStyle,
+} from '../../components/OrderFlowProgress'
 import useConfirm from '../../hooks/useConfirm'
 import { formatMoney } from '../../utils/currency'
 import { textValue } from '../../utils/text'
-
-const FLOW = ['pending', 'confirmed', 'packed', 'dispatched', 'delivered']
-
-const STATUS_LABELS = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  packed: 'Packed',
-  dispatched: 'Dispatched',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled',
-}
 
 const NEXT_STATUS = {
   pending: 'confirmed',
@@ -43,13 +37,6 @@ const NEXT_LABELS = {
   packed: 'Mark packed',
   dispatched: 'Mark dispatched',
   delivered: 'Mark delivered',
-}
-
-const PAYMENT_STYLES = {
-  paid: 'bg-green-100 text-green-700',
-  pending: 'bg-yellow-100 text-yellow-700',
-  failed: 'bg-red-100 text-red-600',
-  unpaid: 'bg-gray-100 text-gray-600',
 }
 
 const inputClass =
@@ -206,7 +193,13 @@ export default function AdminManufacturerOrderDetailPage() {
   }
 
   const nextStatus = NEXT_STATUS[order.status]
-  const progressIndex = FLOW.indexOf(order.status)
+  const timestamps = {
+    pending: order.created_at,
+    confirmed: order.confirmed_at,
+    packed: order.packed_at,
+    dispatched: order.dispatched_at,
+    delivered: order.delivered_at,
+  }
 
   return (
     <div className="space-y-6">
@@ -243,14 +236,24 @@ export default function AdminManufacturerOrderDetailPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard icon={Package} label="Status" value={STATUS_LABELS[order.status] || order.status} />
+        <StatCard
+          icon={Package}
+          label="Status"
+          value={
+            <span
+              className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${orderStatusStyle(order.status)}`}
+            >
+              {orderStatusLabel('manufacturer', order.status)}
+            </span>
+          }
+        />
         <StatCard
           icon={Clock}
           label="Payment"
           value={
             <span
               className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
-                PAYMENT_STYLES[order.payment_status] || PAYMENT_STYLES.unpaid
+                PAYMENT_STATUS_STYLES[order.payment_status] || PAYMENT_STATUS_STYLES.unpaid
               }`}
             >
               {order.payment_status || 'unpaid'}
@@ -267,33 +270,18 @@ export default function AdminManufacturerOrderDetailPage() {
         />
       </div>
 
-      {order.status !== 'cancelled' && (
-        <div className="rounded-xl bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-2">
-            {FLOW.map((step, index) => {
-              const done = progressIndex >= index
-              return (
-                <div key={step} className="flex flex-1 flex-col items-center gap-1 text-center">
-                  <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                      done ? 'bg-[#0FD452] text-[#000F14]' : 'bg-gray-100 text-gray-400'
-                    }`}
-                  >
-                    {index + 1}
-                  </span>
-                  <span
-                    className={`text-[11px] capitalize ${
-                      done ? 'font-semibold text-[#000F14]' : 'text-gray-400'
-                    }`}
-                  >
-                    {step}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
+      <div className="rounded-xl bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-bold text-[#000F14]">Order progress</h2>
+          <p className="text-xs text-gray-400">Request → delivery</p>
         </div>
-      )}
+        <OrderFlowProgress
+          type="manufacturer"
+          status={order.status}
+          timestamps={timestamps}
+          showTimestamps
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-xl bg-white p-5 shadow-sm lg:col-span-2">
@@ -354,7 +342,18 @@ export default function AdminManufacturerOrderDetailPage() {
 
         <div className="space-y-3 rounded-xl bg-white p-5 shadow-sm">
           <h2 className="text-base font-bold text-[#000F14]">Delivery details</h2>
-          <InfoCard icon={Truck} label="Wholesaler" value={order.wholesaler_name} />
+          <InfoCard icon={Truck} label="Wholesaler">
+            {order.wholesaler_profile_id ? (
+              <Link
+                to={`/dashboard/wholesalers/${order.wholesaler_profile_id}/edit`}
+                className="mt-0.5 block break-words text-sm font-semibold text-[#0a8f3c] hover:underline"
+              >
+                {textValue(order.wholesaler_name, 'View wholesaler')}
+              </Link>
+            ) : (
+              <p className="mt-0.5 break-words text-sm text-gray-800">{textValue(order.wholesaler_name)}</p>
+            )}
+          </InfoCard>
           <InfoCard icon={Factory} label="Manufacturer" value={order.manufacturer_name} />
           <InfoCard icon={MapPin} label="Delivery address" value={order.delivery_address} />
           <InfoCard icon={Truck} label="Delivery partner" value={order.delivery_partner} />

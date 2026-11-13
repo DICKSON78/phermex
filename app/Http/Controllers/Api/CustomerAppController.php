@@ -16,6 +16,7 @@ use App\Models\SupportTicket;
 use App\Models\TicketReply;
 use App\Models\User;
 use App\Support\CacheKey;
+use App\Support\OrderProgress;
 use App\Support\Search;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -644,6 +645,12 @@ class CustomerAppController extends Controller
                 ->orderByDesc('created_at')
                 ->paginate($request->input('per_page', 15));
 
+            // Add the shared six-step progress payload so the mobile client can
+            // render the same preparation → delivery stepper as the dashboard.
+            $orders->getCollection()->each(
+                fn (Order $order) => $order->setAttribute('progress', OrderProgress::for($order))
+            );
+
             return response()->json([
                 'message' => 'Orders retrieved.',
                 'data' => $orders,
@@ -703,9 +710,12 @@ class CustomerAppController extends Controller
 
             DB::commit();
 
+            $order = $order->fresh(['items.drug', 'pharmacy']);
+            $order->setAttribute('progress', OrderProgress::for($order));
+
             return response()->json([
                 'message' => 'Order cancelled successfully.',
-                'data' => $order->fresh(['items.drug', 'pharmacy']),
+                'data' => $order,
             ]);
         } catch (ModelNotFoundException) {
             return response()->json([
@@ -728,6 +738,8 @@ class CustomerAppController extends Controller
                 ->where('user_id', $request->user()->id)
                 ->with('items.drug', 'pharmacy', 'delivery')
                 ->firstOrFail();
+
+            $order->setAttribute('progress', OrderProgress::for($order));
 
             return response()->json([
                 'message' => 'Order details retrieved.',

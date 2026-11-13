@@ -620,6 +620,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/manufacturer-orders/{id}', [ManufacturerOrderController::class, 'show']);
         Route::post('/manufacturer-orders/{id}/status', [ManufacturerOrderController::class, 'updateStatus']);
 
+        // Admin customer order oversight
+        Route::get('/orders', [AdminController::class, 'orders']);
+        Route::get('/orders/{id}', [AdminController::class, 'orderShow']);
+        Route::post('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+
         // Wholesale fulfilment and supplier catalogue management
         // Admin per-pharmacy drill-down
         Route::get('/pharmacies/{id}/orders', [AdminController::class, 'pharmacyOrders']);

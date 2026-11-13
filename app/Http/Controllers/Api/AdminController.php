@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\Pharmacy;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Support\OrderProgress;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -760,6 +761,84 @@ class AdminController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to fetch pharmacies.', 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.'], 500);
+        }
+    }
+
+    public function orders(Request $request): JsonResponse
+    {
+        try {
+            // Counts are computed before the status filter so the stat cards
+            // always show platform totals rather than the current page.
+            $statusCounts = Order::query()
+                ->selectRaw('order_status, count(*) as aggregate')
+                ->groupBy('order_status')
+                ->pluck('aggregate', 'order_status')
+                ->all();
+
+            $query = Order::with(['pharmacy', 'customer', 'user', 'processor']);
+
+            if ($request->filled('status')) {
+                $query->where('order_status', $request->input('status'));
+            }
+
+            if ($request->filled('pharmacy_id')) {
+                $query->where('pharmacy_id', $request->input('pharmacy_id'));
+            }
+
+            if ($request->filled('search')) {
+                $term = trim((string) $request->input('search'));
+                $query->where(function ($q) use ($term) {
+                    $q->where('order_code', 'like', "%{$term}%")
+                        ->orWhereHas('customer', function ($customer) use ($term) {
+                            $customer->where('full_name', 'like', "%{$term}%")
+                                ->orWhere('phone', 'like', "%{$term}%");
+                        })
+                        ->orWhereHas('pharmacy', function ($pharmacy) use ($term) {
+                            $pharmacy->where('pharmacy_name', 'like', "%{$term}%");
+                        });
+                });
+            }
+
+            $orders = $query->latest()->paginate($request->input('per_page', 20));
+
+            $orders->getCollection()->each(
+                fn (Order $order) => $order->setAttribute('progress', OrderProgress::for($order))
+            );
+
+            return response()->json(array_merge($orders->toArray(), [
+                'status_counts' => $statusCounts,
+                'revenue_total' => (float) Order::where('payment_status', 'paid')->sum('total'),
+            ]));
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch orders.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    public function orderShow($id): JsonResponse
+    {
+        try {
+            $order = Order::with([
+                'pharmacy',
+                'customer',
+                'user',
+                'processor',
+                'delivery',
+                'items.drug',
+            ])->findOrFail($id);
+
+            $order->setAttribute('progress', OrderProgress::for($order));
+
+            return response()->json(['order' => $order]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch order.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
         }
     }
 

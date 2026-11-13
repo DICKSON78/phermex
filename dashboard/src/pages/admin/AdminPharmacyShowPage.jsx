@@ -659,7 +659,14 @@ export default function AdminPharmacyShowPage() {
                   <tbody className="divide-y divide-gray-100">
                     {tabData.orders.list.map((row) => (
                       <tr key={row.id} className="hover:bg-[#0FD452]/5">
-                        <td className="px-4 py-3 font-medium text-gray-900 font-mono">{row.order_code || row.id}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 font-mono">
+                          <Link
+                            to={`/dashboard/customer-orders-admin/${row.id}`}
+                            className="text-[#0a8f3c] hover:underline"
+                          >
+                            {row.order_code || row.id}
+                          </Link>
+                        </td>
                         <td className="px-4 py-3 text-gray-600 capitalize">{row.order_type || '—'}</td>
                         <td className="px-4 py-3 text-gray-600">{formatCurrency(row.total)}</td>
                         <td className="px-4 py-3">
@@ -670,7 +677,19 @@ export default function AdminPharmacyShowPage() {
                         <td className="px-4 py-3 text-gray-600 capitalize">{row.order_status || row.status || '—'}</td>
                         <td className="px-4 py-3">
                           <div className="min-w-[300px]">
-                            <OrderFlowProgress type="customer" status={row.order_status || row.status} compact />
+                            <OrderFlowProgress
+                              type="customer"
+                              status={row.order_status || row.status}
+                              compact
+                              timestamps={{
+                                pending: row.created_at,
+                                confirmed: row.confirmed_at,
+                                preparing: row.preparing_at,
+                                ready: row.ready_at,
+                                out_for_delivery: row.out_for_delivery_at,
+                                delivered: row.delivered_at,
+                              }}
+                            />
                           </div>
                         </td>
                         <td className="px-4 py-3 text-gray-500">{formatDate(row.created_at)}</td>

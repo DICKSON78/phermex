@@ -12,6 +12,7 @@ export default defineConfig({
     headless: true,
     viewport: { width: 1440, height: 900 },
     launchOptions: {
+      executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     },
     actionTimeout: 15000,

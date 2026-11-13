@@ -283,6 +283,7 @@ export const sw = {
     clearCart: 'Futa Kikapu',
     saleComplete: 'Uuzaji Umekamilika',
     transactionSuccess: 'Muamala umekamilika kwa mafanikio',
+    saleFailed: 'Mauzo hayakukamilika. Tafadhali jaribu tena.',
     downloadReceipt: 'Pakua Risiti',
     printReceipt: 'Chapisha Risiti',
     newSale: 'Uuzaji Mpya',

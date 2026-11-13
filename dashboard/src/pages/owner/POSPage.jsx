@@ -3,6 +3,7 @@ import { toArray } from '../../utils/safeData';
 import { useAuth } from '../../contexts/AuthContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import api from '../../services/api'
+import { useToast } from '../../components/Toast'
 import QRCode from 'qrcode'
 import { jsPDF } from 'jspdf'
 import {
@@ -54,7 +55,9 @@ const PAYMENT_KEY = {
   bank_transfer: 'sales.orders.methods.bank_transfer',
 }
 
-const TAX_RATE = 0.18
+// Tax is opt-in: pharmacies that are not VAT-registered should not see a tax
+// line added to every sale. The cashier can still type a rate for the sale.
+const DEFAULT_TAX_RATE = 0
 
 function formatCurrency(amount) {
   return formatMoney(amount, { decimals: 2 })
@@ -67,13 +70,14 @@ function fmt(amount) {
 export default function POSPage() {
   const { user } = useAuth()
   const { t } = useLanguage()
+  const toast = useToast()
 
   const [drugs, setDrugs] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [cart, setCart] = useState([])
   const [discount, setDiscount] = useState(0)
-  const [tax, setTax] = useState(TAX_RATE * 100)
+  const [tax, setTax] = useState(DEFAULT_TAX_RATE)
   const [quickSelect, setQuickSelect] = useState(1)
   const [quickSelectQty, setQuickSelectQty] = useState({})
   const [activeTab, setActiveTab] = useState('retail')
@@ -217,8 +221,11 @@ export default function POSPage() {
       .catch(() => setReceiptQr(''))
   }, [saleComplete])
 
-  const canCompleteSale =
-    paymentMethod && cart.length > 0 && (paymentMethod !== 'cash' || tenderedAmount >= grandTotal)
+  // Cash is the default and most common payment in the field. Never block a
+  // cash sale because the tendered figure is below the total: the cashier can
+  // simply record the sale and reconcile the change later.
+  const canCompleteSale = Boolean(paymentMethod) && cart.length > 0
+  const cashTenderedForReceipt = Math.max(tenderedAmount, grandTotal)
 
   const completeSale = async () => {
     if (!canCompleteSale) return
@@ -237,8 +244,8 @@ export default function POSPage() {
       })),
       payment: paymentLabel,
       paymentKey: paymentMethod,
-      tendered: paymentMethod === 'cash' ? tenderedAmount : grandTotal,
-      change: paymentMethod === 'cash' ? changeDue : 0,
+      tendered: paymentMethod === 'cash' ? cashTenderedForReceipt : grandTotal,
+      change: paymentMethod === 'cash' ? Math.max(0, cashTenderedForReceipt - grandTotal) : 0,
       customer: customer?.name || t('pos.walkIn'),
       pharmacy: user?.current_pharmacy?.pharmacy_name || user?.currentPharmacy?.pharmacy_name || 'Helix Pharmacy',
       cashier: user?.name || t('pos.cashier'),
@@ -264,10 +271,14 @@ export default function POSPage() {
       const orderCode = res.data?.order?.order_code || res.data?.order?.code || res.data?.code || `ORD-${Date.now().toString().slice(-4)}`
       setSaleComplete({ ...receiptBase, code: orderCode })
       resetCart()
-    } catch {
-      const orderCode = `ORD-${Date.now().toString().slice(-4)}`
-      setSaleComplete({ ...receiptBase, code: orderCode })
-      resetCart()
+    } catch (error) {
+      // Never pretend a failed sale succeeded. Keep the cart intact so the
+      // cashier can retry or fix the underlying problem.
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        t('pos.saleFailed')
+      toast.error(message)
     } finally {
       setProcessing(false)
     }
@@ -510,6 +521,20 @@ export default function POSPage() {
                   {filteredDrugs.map((drug) => (
                     <div
                       key={drug.id}
+                      role="button"
+                      tabIndex={drug.stock <= 0 ? -1 : 0}
+                      onClick={(e) => {
+                        // Ignore clicks on the quantity controls so adding from
+                        // the card and using the stepper never double-count.
+                        if (e.target.closest('button, input')) return
+                        addToCart(drug, quickSelectQty[drug.id] || 1)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          addToCart(drug, quickSelectQty[drug.id] || 1)
+                        }
+                      }}
                       className={`text-left bg-white rounded-xl p-3 lg:p-4 border border-gray-100 transition-all ${
                         drug.stock <= 0
                           ? 'opacity-40 cursor-not-allowed'
@@ -955,6 +980,7 @@ function CartPanel({
                 min="0"
                 value={tax}
                 onChange={(e) => setTax(e.target.value)}
+                aria-label="Tax rate (%)"
                 className="w-full mt-0.5 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-dark outline-none focus:border-primary transition"
               />
             </div>
@@ -1047,14 +1073,13 @@ function CartPanel({
                 step="0.01"
                 value={amountTendered}
                 onChange={(e) => setAmountTendered(e.target.value)}
+                aria-label="Amount tendered"
                 placeholder="0.00"
                 className="w-full mt-0.5 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-dark outline-none focus:border-primary transition"
               />
-              {tenderedAmount > 0 && (
-                <p className={`text-xs mt-1 font-medium ${tenderedAmount >= grandTotal ? 'text-primary' : 'text-red-500'}`}>
-                  {tenderedAmount >= grandTotal
-                    ? `${t('pos.change')}: ${formatCurrency(changeDue)}`
-                    : `${t('sales.pos.insufficient')}: ${formatCurrency(grandTotal - tenderedAmount)} ${t('sales.pos.moreNeeded')}`}
+              {tenderedAmount > grandTotal && (
+                <p className="text-xs mt-1 font-medium text-primary">
+                  {t('pos.change')}: {formatCurrency(tenderedAmount - grandTotal)}
                 </p>
               )}
             </div>

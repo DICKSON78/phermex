@@ -283,6 +283,7 @@ export const en = {
     clearCart: 'Clear Cart',
     saleComplete: 'Sale Complete',
     transactionSuccess: 'Transaction processed successfully',
+    saleFailed: 'Sale could not be completed. Please try again.',
     downloadReceipt: 'Download Receipt',
     printReceipt: 'Print Receipt',
     newSale: 'New Sale',

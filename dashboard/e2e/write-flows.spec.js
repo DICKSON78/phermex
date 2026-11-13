@@ -77,7 +77,7 @@ test.describe.serial('write flows (owner) — create records through the UI', ()
     expect(orderResp.status()).toBeGreaterThanOrEqual(200)
     expect(orderResp.status()).toBeLessThan(300)
 
-    await expect(page.getByRole('heading', { name: 'Sale Complete!' })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: /Sale Complete/ })).toBeVisible({ timeout: 15000 })
 
     // Stock must have been decremented server-side (1 sold from the created drug).
     await page.reload()

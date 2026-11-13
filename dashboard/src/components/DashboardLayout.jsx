@@ -317,8 +317,6 @@ const ownerNavGroups = [
     label: 'WHOLESALE MARKET',
     items: [
       { path: '/dashboard/wholesale-marketplace', icon: Store, label: 'Wholesale marketplace' },
-      { path: '/dashboard/wholesale-orders-admin', icon: Package, label: 'Wholesale orders' },
-      { path: '/dashboard/manufacturer-orders-admin', icon: Truck, label: 'Manufacturer orders' },
       { path: '/dashboard/wholesale-orders', icon: Package, label: 'My orders' },
     ],
   },
@@ -1340,12 +1338,15 @@ export default function DashboardLayout({ role }) {
               <Route path="chats" element={<PlanGate requiredPlan="professional"><PharmacyChatListPage /></PlanGate>} />
               <Route path="chats/:customerId" element={<PlanGate requiredPlan="professional"><PharmacyChatPage /></PlanGate>} />
               <Route path="telemedicine" element={<PlanGate requiredPlan="professional"><TelemedicinePage /></PlanGate>} />
+              <Route path="loyalty" element={<PlanGate requiredPlan="professional"><LoyaltyPage /></PlanGate>} />
+              <Route path="reel" element={<ReelPage />} />
               <Route path="wholesale-orders" element={<WholesaleOrdersPage />} />
               <Route path="wholesale-orders/:id" element={<WholesaleOrderDetailPage />} />
               <Route path="wholesale-marketplace" element={<WholesaleMarketplacePage />} />
               <Route path="wholesale-marketplace/:id" element={<WholesaleCatalogPage />} />
               <Route path="wholesale-marketplace/:wholesalerId/catalog" element={<WholesaleCatalogPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              <Route path="insurance/providers" element={<PlanGate requiredPlan="professional"><InsuranceProvidersPage /></PlanGate>} />
               <Route path="insurance/patients" element={<PlanGate requiredPlan="professional"><PatientInsurancesPage /></PlanGate>} />
               <Route path="insurance/claims" element={<PlanGate requiredPlan="professional"><InsuranceClaimsPage /></PlanGate>} />
               <Route path="support" element={<OwnerSupportPage />} />

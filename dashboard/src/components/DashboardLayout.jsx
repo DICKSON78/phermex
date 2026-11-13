@@ -63,6 +63,7 @@ import OwnerDashboard from '../pages/owner/OwnerDashboard'
 import POSPage from '../pages/owner/POSPage'
 import DrugListPage from '../pages/owner/DrugListPage'
 import DrugFormPage from '../pages/owner/DrugFormPage'
+import DrugBulkImportPage from '../pages/owner/DrugBulkImportPage'
 import DrugDetailPage from '../pages/owner/DrugDetailPage'
 import CategoryListPage from '../pages/owner/CategoryListPage'
 import StockMovementsPage from '../pages/owner/StockMovementsPage'
@@ -1264,6 +1265,7 @@ export default function DashboardLayout({ role }) {
               <Route path="pos" element={<POSPage />} />
               <Route path="drugs" element={<DrugListPage />} />
               <Route path="drugs/new" element={<DrugFormPage />} />
+              <Route path="drugs/bulk" element={<DrugBulkImportPage />} />
               <Route path="drugs/:id" element={<DrugDetailPage />} />
               <Route path="drugs/:id/edit" element={<DrugFormPage />} />
               <Route path="categories" element={<CategoryListPage />} />
@@ -1360,6 +1362,7 @@ export default function DashboardLayout({ role }) {
               <Route path="pos" element={<POSPage />} />
               <Route path="drugs" element={<DrugListPage />} />
               <Route path="drugs/new" element={<DrugFormPage />} />
+              <Route path="drugs/bulk" element={<DrugBulkImportPage />} />
               <Route path="drugs/:id" element={<DrugDetailPage />} />
               <Route path="drugs/:id/edit" element={<DrugFormPage />} />
               <Route path="categories" element={<CategoryListPage />} />

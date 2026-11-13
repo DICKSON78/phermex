@@ -437,11 +437,14 @@ export default function DrugListPage() {
         </div>
 
         <button
-
+          onClick={() => navigate(`${base}/drugs/bulk`)}
+          className="btn-secondary mr-2"
+        >
+          Bulk Import
+        </button>
+        <button
           onClick={() => navigate(`${base}/drugs/new`)}
-
           className="btn-primary"
-
         >
 
           <Plus className="w-5 h-5" />

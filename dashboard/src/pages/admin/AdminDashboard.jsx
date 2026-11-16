@@ -24,8 +24,11 @@ import {
 import {
   Area,
   CartesianGrid,
+  Cell,
   ComposedChart,
   Line,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
   XAxis,
@@ -103,6 +106,16 @@ export default function AdminDashboard() {
     return rows.map((r) => ({ region: r.region, units: r.count, growth: 0 }))
   }, [d])
 
+  const regionDonut = useMemo(() => {
+    const rows = Array.isArray(data.orderStats?.customer?.by_region) ? data.orderStats.customer.by_region : []
+    const colors = ['#16a34a', '#2563eb', '#7c3aed', '#d97706', '#dc2626', '#0891b2', '#be185d', '#4b5563']
+    return rows.slice(0, 8).map((r, i) => ({
+      name: r.region,
+      value: Number(r.value || r.count || 0),
+      color: colors[i % colors.length],
+    }))
+  }, [data.orderStats])
+
   const totals = useMemo(() => {
     const flows = ['customer', 'wholesale', 'manufacturer']
     let count = 0, value = 0
@@ -156,7 +169,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((kpi) => (
           <div key={kpi.label} className={`${CARD} flex items-start justify-between gap-2 p-4`}>
             <div className="min-w-0">
@@ -173,33 +186,73 @@ export default function AdminDashboard() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-5">
-          <div className={CARD}>
-            <div className="flex items-center gap-2.5 border-b border-[#eef2ee] px-5 py-4">
-              <LineChart className="h-4 w-4 text-[#16c15a]" />
-              <h2 className="text-base font-semibold text-[#0f1f17]">Platform Revenue — Last 30 Days</h2>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div className={CARD}>
+              <div className="flex items-center gap-2.5 border-b border-[#eef2ee] px-5 py-4">
+                <LineChart className="h-4 w-4 text-[#16c15a]" />
+                <h2 className="text-base font-semibold text-[#0f1f17]">Platform Revenue — Last 30 Days</h2>
+              </div>
+              <div className="px-5 pb-5 pt-4">
+                {revenueChart.length > 0 ? (
+                  <div className="h-[240px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={revenueChart} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#eef2ee" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#8a9491' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 11, fill: '#8a9491' }} axisLine={false} tickLine={false} width={60} tickFormatter={(v) => compactNumber(v)} />
+                        <RechartsTooltip contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb', fontSize: 12 }} />
+                        <Area dataKey="revenue" name="Revenue" stroke="#16c15a" strokeWidth={2.5} fill="url(#hq-rev)" />
+                        <defs>
+                          <linearGradient id="hq-rev" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#16c15a" stopOpacity={0.28} />
+                            <stop offset="95%" stopColor="#16c15a" stopOpacity={0.02} />
+                          </linearGradient>
+                        </defs>
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="py-12 text-center text-sm text-[#8a9491]">Revenue will appear once subscriptions are recorded.</p>
+                )}
+              </div>
             </div>
-            <div className="px-5 pb-5 pt-4">
-              {revenueChart.length > 0 ? (
-                <div className="h-[240px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={revenueChart} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#eef2ee" vertical={false} />
-                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#8a9491' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 11, fill: '#8a9491' }} axisLine={false} tickLine={false} width={60} tickFormatter={(v) => compactNumber(v)} />
-                      <RechartsTooltip contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb', fontSize: 12 }} />
-                      <Area dataKey="revenue" name="Revenue" stroke="#16c15a" strokeWidth={2.5} fill="url(#hq-rev)" />
-                      <defs>
-                        <linearGradient id="hq-rev" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#16c15a" stopOpacity={0.28} />
-                          <stop offset="95%" stopColor="#16c15a" stopOpacity={0.02} />
-                        </linearGradient>
-                      </defs>
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <p className="py-12 text-center text-sm text-[#8a9491]">Revenue will appear once subscriptions are recorded.</p>
-              )}
+
+            <div className={CARD}>
+              <div className="flex items-center gap-2.5 border-b border-[#eef2ee] px-5 py-4">
+                <MapPin className="h-4 w-4 text-[#16c15a]" />
+                <h2 className="text-base font-semibold text-[#0f1f17]">Regional Order & Supply Performance</h2>
+              </div>
+              <div className="px-5 pb-5 pt-4">
+                {regionDonut.length > 0 ? (
+                  <>
+                    <div className="h-[200px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={regionDonut} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={2}>
+                            {regionDonut.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb', fontSize: 12 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <ul className="mt-2 space-y-1.5">
+                      {regionDonut.map((r) => (
+                        <li key={r.name} className="flex items-center justify-between text-xs">
+                          <span className="flex items-center gap-2 text-[#5b6b62]">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ background: r.color }} />
+                            {r.name}
+                          </span>
+                          <span className="font-semibold text-[#0f1f17]">{compactNumber(r.value)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="py-12 text-center text-sm text-[#8a9491]">Regional order data will appear once orders are recorded.</p>
+                )}
+              </div>
             </div>
           </div>
 

@@ -354,13 +354,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-gradient-to-br from-[#0b2a1a] to-[#14532d] p-5 text-white">
-            <p className="text-lg font-bold">HELIX</p>
-            <p className="mt-1.5 text-base">Platform intelligence for investors and oversight.</p>
-            <Link to="/dashboard/reports" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#16c15a] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#12a94e]">
-              View reports <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
         </div>
       </div>
     </div>

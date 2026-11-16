@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  Building2,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock,
+  Eye,
   Loader2,
   Package,
   RefreshCw,
@@ -60,17 +62,6 @@ function StatCard({ icon: Icon, label, value, hint, tone = 'text-[#000F14]' }) {
       </div>
     </div>
   )
-}
-
-function timelineFor(order) {
-  return {
-    pending: order.created_at,
-    confirmed: order.confirmed_at,
-    preparing: order.preparing_at,
-    ready: order.ready_at,
-    out_for_delivery: order.out_for_delivery_at,
-    delivered: order.delivered_at,
-  }
 }
 
 export default function AdminCustomerOrdersPage() {
@@ -142,7 +133,7 @@ export default function AdminCustomerOrdersPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Customer orders</h1>
             <p className="text-sm text-gray-500">
-              Read-only view of customer orders flowing through pharmacies. Order handling stays with each pharmacy.
+              Read-only table of customer orders flowing through pharmacies. Order handling stays with each pharmacy.
             </p>
           </div>
         </div>
@@ -203,7 +194,7 @@ export default function AdminCustomerOrdersPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="h-40 animate-pulse rounded-xl bg-white" />
+            <div key={item} className="h-16 animate-pulse rounded-xl bg-white" />
           ))}
         </div>
       ) : orders.length === 0 ? (
@@ -213,86 +204,70 @@ export default function AdminCustomerOrdersPage() {
             {search || status ? 'No orders match this filter' : 'No customer orders yet'}
           </h3>
           <p className="text-sm text-gray-500">
-            {search || status
-              ? 'Try a different search or status tab.'
-              : 'Customer orders will appear here as soon as they are placed.'}
+            {search || status ? 'Try a different search or status tab.' : 'Customer orders will appear here as soon as they are placed.'}
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {orders.map((order) => {
-            const cancelled = order.order_status === 'cancelled'
-            const customer = order.customer?.full_name || order.user?.name || 'Customer'
-            return (
-              <div
-                key={order.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => navigate(`/dashboard/customer-orders-admin/${order.id}`)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    navigate(`/dashboard/customer-orders-admin/${order.id}`)
-                  }
-                }}
-                className="cursor-pointer rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-base font-bold text-[#000F14]">{order.order_code}</h2>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${orderStatusStyle(
-                          order.order_status,
-                        )}`}
-                      >
-                        {orderStatusLabel('customer', order.order_status)}
-                      </span>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          PAYMENT_STATUS_STYLES[order.payment_status] || 'bg-gray-100 text-gray-600'
-                        }`}
-                      >
-                        {order.payment_status || 'unpaid'}
-                      </span>
-                    </div>
-                    <p className="mt-1 truncate text-sm text-gray-500">
-                      {textValue(customer)} · {textValue(order.pharmacy, 'Pharmacy')} · placed{' '}
-                      {formatDate(order.created_at)} · {order.order_type || 'online'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-[#000F14]">{formatMoney(order.total || 0)}</p>
-                    <p className="text-xs text-gray-400">{order.delivery_address || 'No delivery address'}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 rounded-lg bg-gray-50/80 px-3 py-3">
-                  <OrderFlowProgress
-                    type="customer"
-                    status={order.order_status}
-                    compact
-                    timestamps={timelineFor(order)}
-                  />
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-xs font-medium text-gray-400">
-                    {cancelled ? 'Order cancelled' : 'Read-only platform overview'}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2" onClick={(event) => event.stopPropagation()}>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/dashboard/customer-orders-admin/${order.id}`)}
-                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                    >
-                      View details
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+        <>
+          <div className="overflow-hidden rounded-xl bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Order</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Customer</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Pharmacy</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Payment</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Total</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Placed</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">View</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {orders.map((order) => {
+                    const customer = order.customer?.full_name || order.user?.name || 'Customer'
+                    return (
+                      <tr key={order.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <p className="text-sm font-semibold text-[#000F14]">{order.order_code}</p>
+                          <p className="text-xs text-gray-400">{order.order_type || 'online'}</p>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">{textValue(customer)}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          <span className="inline-flex items-center gap-1.5">
+                            <Building2 className="h-3.5 w-3.5 text-gray-400" />
+                            {textValue(order.pharmacy, 'Pharmacy')}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${orderStatusStyle(order.order_status)}`}>
+                            {orderStatusLabel('customer', order.order_status)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${PAYMENT_STATUS_STYLES[order.payment_status] || 'bg-gray-100 text-gray-600'}`}>
+                            {order.payment_status || 'unpaid'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm font-bold text-[#000F14]">{formatMoney(order.total || 0)}</td>
+                        <td className="px-4 py-3 text-xs text-gray-500">{formatDate(order.created_at)}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/dashboard/customer-orders-admin/${order.id}`)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-[#0FD452] hover:text-[#0FD452]"
+                          >
+                            <Eye className="h-3.5 w-3.5" /> View
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             <p className="text-xs text-gray-400">
@@ -320,7 +295,7 @@ export default function AdminCustomerOrdersPage() {
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )

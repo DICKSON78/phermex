@@ -700,6 +700,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/subscriptions/{id}', [AdminSubscriptionController::class, 'destroy']);
         Route::post('/subscriptions/{id}/{action}', [AdminSubscriptionController::class, 'action']);
 
+        // Admin subscription plan catalogue (pricing & activation)
+        Route::get('/subscription-plans', [AdminSubscriptionPlanController::class, 'index']);
+        Route::put('/subscription-plans/{id}', [AdminSubscriptionPlanController::class, 'update']);
+
         // Admin Marketing Campaigns
         Route::get('/marketing', [AdminMarketingController::class, 'index']);
         Route::post('/marketing', [AdminMarketingController::class, 'store']);

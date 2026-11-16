@@ -21,6 +21,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import api from '../../services/api'
+import { BANKS } from '../../constants/banks'
 
 const Required = () => <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
 
@@ -380,10 +381,10 @@ export default function RegisterWholesalerPage() {
             <CheckCircle2 className="h-9 w-9 text-[#0FD452]" />
           </div>
           <p className="mb-3 text-[10px] font-bold uppercase tracking-[3px] text-[#0FD452]">Application received</p>
-          <h1 className="mb-3 text-3xl font-black text-gray-700">Your supplier account is pending review</h1>
+          <h1 className="mb-3 text-3xl font-black text-gray-700">Your supplier account is active</h1>
           <p className="mb-8 text-gray-500">
             We have recorded your business, licensing, delivery and banking details. You can sign in now to
-            prepare your catalogue; your storefront goes live once the platform team approves your licence.
+            manage your catalogue, stock and orders — pharmacies can already find you in the marketplace.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <button
@@ -786,12 +787,12 @@ export default function RegisterWholesalerPage() {
 
           {step === 3 && (
             <div className={`space-y-4 ${stepDir === 'left' ? 'step-enter-left' : 'step-enter-right'}`}>
-              <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-                <p className="text-xs text-amber-800">
-                  Your account starts as <span className="font-semibold">pending review</span>. You can sign in and
-                  prepare your catalogue immediately, but pharmacies will only see you in the marketplace after a
-                  platform admin approves your licence and banking details.
+              <div className="flex items-start gap-3 rounded-2xl border border-[#0FD452]/30 bg-[#0FD452]/5 px-4 py-3">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#0a8f3c]" />
+                <p className="text-xs text-gray-700">
+                  Your account is <span className="font-semibold">activated on submission</span>. You can sign in
+                  right away to manage your catalogue, stock and orders. The platform team can still suspend the
+                  account if any detail needs follow-up.
                 </p>
               </div>
 
@@ -873,13 +874,16 @@ export default function RegisterWholesalerPage() {
               <SectionCard icon={Landmark} title="Banking" subtitle="Where the supplier receives settlement payments">
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <Field label="Bank name" error={errors.bank_name}>
-                    <input
-                      type="text"
+                    <select
                       value={form.bank_name}
                       onChange={(e) => updateForm('bank_name', e.target.value)}
                       className={inputClass('bank_name')}
-                      placeholder="e.g. CRDB Bank"
-                    />
+                    >
+                      <option value="">Select a bank</option>
+                      {BANKS.map((bank) => (
+                        <option key={bank} value={bank}>{bank}</option>
+                      ))}
+                    </select>
                   </Field>
 
                   <Field label="Bank account" error={errors.bank_account}>

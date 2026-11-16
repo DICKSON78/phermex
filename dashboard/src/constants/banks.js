@@ -1,0 +1,43 @@
+// Comprehensive list of banks and financial institutions used across
+// supplier, employee and accounting forms. Keep this list as the single
+// source of truth so every dropdown offers the same choices.
+export const BANKS = [
+  'Akiba Commercial Bank',
+  'Access Bank Tanzania',
+  'Azania Bank',
+  'Bank of Africa Tanzania',
+  'Bank of Baroda Tanzania',
+  'Bank of India Tanzania',
+  'Bank of Tanzania',
+  'Canara Bank Tanzania',
+  'CRDB Bank',
+  'CitiBank Tanzania',
+  'Diamond Trust Bank',
+  'DTB Bank',
+  'Equity Bank Tanzania',
+  'Exim Bank Tanzania',
+  'First National Bank',
+  'Habib African Bank',
+  'I&M Bank Tanzania',
+  'KCB Bank Tanzania',
+  'Kilimanjaro Cooperative Bank',
+  'Letshego Bank Tanzania',
+  'Maendeleo Bank',
+  'Mkombozi Commercial Bank',
+  'Mufindi Community Bank',
+  'Mwanga Community Bank',
+  'National Bank of Commerce',
+  'National Microfinance Bank',
+  'NBC Bank',
+  'NMB Bank',
+  'Peoples Bank of Zanzibar',
+  'Standard Chartered Bank Tanzania',
+  'Stanbic Bank Tanzania',
+  'Tanzania Commercial Bank (TCB)',
+  'TIB Development Bank',
+  'Uchumi Commercial Bank',
+  'United Bank for Africa (UBA)',
+  'Other',
+]
+
+export default BANKS

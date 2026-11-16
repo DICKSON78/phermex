@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../../services/api'
+import { BANKS } from '../../constants/banks'
 import {
   Building2,
   User,
@@ -483,13 +484,16 @@ export default function AdminWholesalerFormPage() {
         <SectionCard icon={Landmark} iconBg="bg-[#0FD452]/10" iconColor="text-[#0FD452]" title="Banking" subtitle="Where the supplier receives settlement payments">
           <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
             <FormField icon={Landmark} label="Bank Name" error={errors.bank_name}>
-              <input
-                type="text"
+              <select
                 value={form.bank_name}
                 onChange={(e) => handleChange('bank_name', e.target.value)}
                 className={inputClass('bank_name')}
-                placeholder="e.g. CRDB Bank"
-              />
+              >
+                <option value="">Select a bank</option>
+                {[...BANKS, ...(form.bank_name && !BANKS.includes(form.bank_name) ? [form.bank_name] : [])].map((bank) => (
+                  <option key={bank} value={bank}>{bank}</option>
+                ))}
+              </select>
             </FormField>
             <FormField icon={CreditCard} label="Bank Account" error={errors.bank_account}>
               <input

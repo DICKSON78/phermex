@@ -175,6 +175,7 @@ import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminAuditLogsPage from '../pages/admin/AdminAuditLogsPage'
 import AdminSettingsPage from '../pages/admin/AdminSettingsPage'
 import AdminSubscriptionsPage from '../pages/admin/AdminSubscriptionsPage'
+import AdminSubscriptionPlansPage from '../pages/admin/AdminSubscriptionPlansPage'
 import AdminSupportPage from '../pages/admin/AdminSupportPage'
 import AdminReportsPage from '../pages/admin/AdminReportsPage'
 import AdminContentPage from '../pages/admin/AdminContentPage'
@@ -487,6 +488,7 @@ const adminNavGroups = [
     items: [
       { path: '/dashboard/revenue', icon: DollarSign, label: 'Revenue & Billing' },
       { path: '/dashboard/subscriptions', icon: CreditCard, label: 'Subscriptions' },
+      { path: '/dashboard/subscription-plans', icon: CreditCard, label: 'Subscription plans' },
     ],
   },
   {
@@ -1430,6 +1432,7 @@ export default function DashboardLayout({ role }) {
               <Route path="drug-database" element={<AdminDrugDatabasePage />} />
               <Route path="revenue" element={<AdminRevenuePage />} />
               <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
+              <Route path="subscription-plans" element={<AdminSubscriptionPlansPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
               <Route path="support" element={<AdminSupportPage />} />
               <Route path="content" element={<AdminContentPage />} />

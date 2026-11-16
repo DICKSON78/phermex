@@ -196,10 +196,10 @@ class AuthController extends Controller
                     'minimum_order_amount' => $validated['minimum_order_amount'] ?? 0,
                     'payment_terms_days' => $validated['payment_terms_days'] ?? 30,
                     'accepts_credit' => $validated['accepts_credit'] ?? true,
-                    // Pending until a platform admin verifies the licence and
-                    // bank details. The supplier can still sign in and prepare
-                    // its catalogue, but it is hidden from the marketplace.
-                    'status' => 'pending',
+                    // Self-registration goes live immediately so the supplier
+                    // can start trading without waiting for manual approval.
+                    // The platform admin can still suspend the account later.
+                    'status' => 'active',
                 ]);
             }
 

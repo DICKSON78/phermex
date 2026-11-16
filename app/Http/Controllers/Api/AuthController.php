@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Pharmacy;
 use App\Models\User;
+use App\Models\Wholesaler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,7 +36,7 @@ class AuthController extends Controller
                 // those three rules, so a password the checklist accepts is
                 // never rejected here with a different reason.
                 'password' => ['required', 'string', 'confirmed', 'min:8', 'regex:/[A-Z]/', 'regex:/[0-9]/'],
-                'role' => 'sometimes|in:owner,pharmacist,cashier,delivery,customer,manufacturer',
+                'role' => 'sometimes|in:owner,pharmacist,cashier,delivery,customer,manufacturer,wholesaler',
             ];
 
             if ($request->input('role') === 'manufacturer') {
@@ -46,6 +47,35 @@ class AuthController extends Controller
                 $rules['manufacturer_email'] = 'sometimes|nullable|email|max:254';
                 $rules['manufacturer_website'] = 'sometimes|nullable|string|max:255';
                 $rules['manufacturer_description'] = 'sometimes|nullable|string|max:2000';
+            }
+
+            if ($request->input('role') === 'wholesaler') {
+                // Self-registration captures the same business, licensing,
+                // delivery and banking details the platform admin records when
+                // creating a supplier, so the two entry points cannot drift.
+                // The public account is always created as pending: the admin
+                // still approves it before the supplier appears in the
+                // marketplace.
+                $rules['business_name'] = 'required|string|min:2|max:255';
+                $rules['business_type'] = 'sometimes|in:wholesaler,distributor';
+                $rules['business_email'] = 'required|email:rfc|max:254|unique:wholesalers,email';
+                $rules['business_phone'] = 'required|string|max:30';
+                $rules['contact_person'] = 'sometimes|nullable|string|max:255';
+                $rules['contact_phone'] = 'sometimes|nullable|string|max:30';
+                $rules['address'] = 'required|string|max:500';
+                $rules['city'] = 'required|string|max:120';
+                $rules['region'] = 'required|string|max:120';
+                $rules['country'] = 'sometimes|nullable|string|max:120';
+                $rules['license_number'] = 'required|string|max:120|unique:wholesalers,license_number';
+                $rules['registration_number'] = 'required|string|max:120';
+                $rules['tax_id'] = 'sometimes|nullable|string|max:120';
+                $rules['bank_name'] = 'sometimes|nullable|string|max:120';
+                $rules['bank_account'] = 'sometimes|nullable|string|max:120';
+                $rules['delivery_fee'] = 'sometimes|nullable|numeric|min:0';
+                $rules['express_delivery_fee'] = 'sometimes|nullable|numeric|min:0';
+                $rules['minimum_order_amount'] = 'sometimes|nullable|numeric|min:0';
+                $rules['payment_terms_days'] = 'sometimes|nullable|integer|min:0|max:365';
+                $rules['accepts_credit'] = 'sometimes|boolean';
             }
 
             if ($request->role === 'owner' || $request->input('role', 'owner') === 'owner') {
@@ -137,6 +167,41 @@ class AuthController extends Controller
 
             $pharmacy = null;
             $pharmacies = [];
+            $wholesaler = null;
+
+            if ($user->isWholesaler()) {
+                $wholesaler = Wholesaler::create([
+                    'user_id' => $user->id,
+                    'wholesaler_id' => $this->generateWholesalerId(),
+                    'name' => $validated['business_name'],
+                    'business_type' => $validated['business_type'] ?? 'wholesaler',
+                    'email' => $validated['business_email'],
+                    'phone' => $validated['business_phone'],
+                    'address' => $validated['address'],
+                    'city' => $validated['city'],
+                    'region' => $validated['region'],
+                    'country' => $validated['country'] ?? 'Tanzania',
+                    'license_number' => $validated['license_number'],
+                    'registration_number' => $validated['registration_number'],
+                    'tax_id' => $validated['tax_id'] ?? null,
+                    // These columns are NOT NULL in the original schema, so a
+                    // registration that leaves them blank still has to send an
+                    // empty value rather than nothing at all.
+                    'bank_account' => $validated['bank_account'] ?? '',
+                    'bank_name' => $validated['bank_name'] ?? '',
+                    'contact_person' => $validated['contact_person'] ?? $validated['name'],
+                    'contact_phone' => $validated['contact_phone'] ?? $validated['phone'],
+                    'delivery_fee' => $validated['delivery_fee'] ?? 0,
+                    'express_delivery_fee' => $validated['express_delivery_fee'] ?? 0,
+                    'minimum_order_amount' => $validated['minimum_order_amount'] ?? 0,
+                    'payment_terms_days' => $validated['payment_terms_days'] ?? 30,
+                    'accepts_credit' => $validated['accepts_credit'] ?? true,
+                    // Pending until a platform admin verifies the licence and
+                    // bank details. The supplier can still sign in and prepare
+                    // its catalogue, but it is hidden from the marketplace.
+                    'status' => 'pending',
+                ]);
+            }
 
             if ($user->isOwner()) {
                 $pharmacyInputs = [];
@@ -238,6 +303,7 @@ class AuthController extends Controller
                 'user' => $user->load('pharmacy'),
                 'pharmacy' => $pharmacy,
                 'pharmacies' => $pharmacies,
+                'wholesaler' => $wholesaler,
                 'token' => $token,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -288,6 +354,20 @@ class AuthController extends Controller
         $value = $request->input($key) ?? $existing;
 
         return is_string($value) && trim($value) !== '' ? $value : null;
+    }
+
+    /**
+     * Public supplier ID shown on orders and invoices. The admin-created
+     * wholesalers use the same WHOLE-XXXXXX shape, so both entry points stay
+     * indistinguishable to the rest of the platform.
+     */
+    private function generateWholesalerId(): string
+    {
+        do {
+            $id = 'WHOLE-' . strtoupper(Str::random(6));
+        } while (Wholesaler::where('wholesaler_id', $id)->exists());
+
+        return $id;
     }
 
     public function login(Request $request): JsonResponse

@@ -25,9 +25,30 @@ export default function WholesalerDashboardPage() {
 
   if (loading) return <Spinner />
   const s = data?.stats || {}
+  const status = data?.wholesaler?.status
+  const statusNotice = {
+    pending: {
+      tone: 'border-amber-200 bg-amber-50 text-amber-800',
+      text: 'Your application is pending review. You can prepare your catalogue now; your storefront goes live once a platform admin approves your licence and banking details.',
+    },
+    inactive: {
+      tone: 'border-gray-200 bg-gray-50 text-gray-700',
+      text: 'Your supplier account is inactive. Contact platform support to reactivate it before receiving pharmacy orders.',
+    },
+    suspended: {
+      tone: 'border-red-200 bg-red-50 text-red-700',
+      text: 'Your supplier account is suspended. Contact platform support to resolve it before receiving pharmacy orders.',
+    },
+  }[status]
   return (
     <div>
       <PageHeader title="Wholesaler dashboard" subtitle="Manage incoming pharmacy orders, stock and manufacturer purchases." />
+      {statusNotice && (
+        <div className={`mb-5 flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${statusNotice.tone}`}>
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{statusNotice.text}</p>
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={Package} label="Pharmacy orders" value={formatNumber(s.pharmacy_orders_total)} hint={`${s.pharmacy_orders_active || 0} active`} />
         <StatCard icon={Truck} label="Delivered" value={formatNumber(s.pharmacy_orders_delivered)} hint={formatMoney(s.pharmacy_order_value)} />

@@ -8,6 +8,7 @@ import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import RegisterOwnerPage from './pages/auth/RegisterOwnerPage'
 import RegisterManufacturerPage from './pages/auth/RegisterManufacturerPage'
+import RegisterWholesalerPage from './pages/auth/RegisterWholesalerPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import PendingApprovalPage from './pages/auth/PendingApprovalPage'
 import SubscriptionPlansPage from './pages/auth/SubscriptionPlansPage'
@@ -79,6 +80,7 @@ export default function App() {
       <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route path="/register/owner" element={<GuestRoute><RegisterOwnerPage /></GuestRoute>} />
       <Route path="/register/manufacturer" element={<GuestRoute><RegisterManufacturerPage /></GuestRoute>} />
+      <Route path="/register/wholesaler" element={<GuestRoute><RegisterWholesalerPage /></GuestRoute>} />
       <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
       <Route path="/verify-email" element={<ProtectedRoute><VerifyEmailPage /></ProtectedRoute>} />
 

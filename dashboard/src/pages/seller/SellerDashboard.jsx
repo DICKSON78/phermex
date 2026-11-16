@@ -114,6 +114,9 @@ export default function SellerDashboard() {
   if (!data) return null
 
   const firstName = (user?.name || '').split(' ')[0]
+  // Only the business owner sees takings. Assigned sellers still see the
+  // order queue and stock alerts but not how much the pharmacy has sold.
+  const canSeeRevenue = user?.role === 'owner'
 
   return (
     <div className="space-y-6">
@@ -138,13 +141,15 @@ export default function SellerDashboard() {
 
       {/* Primary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          label="Today's Sales"
-          value={formatCurrency(data.todaySales)}
-          icon={<DollarSign className="w-5 h-5" />}
-          iconColor="text-primary"
-          bg="bg-primary-light"
-        />
+        {canSeeRevenue && (
+          <StatCard
+            label="Today's Sales"
+            value={formatCurrency(data.todaySales)}
+            icon={<DollarSign className="w-5 h-5" />}
+            iconColor="text-primary"
+            bg="bg-primary-light"
+          />
+        )}
         <StatCard
           label="Orders Today"
           value={data.ordersToday}

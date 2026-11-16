@@ -328,6 +328,7 @@ class DashboardController extends Controller
                 : $user->pharmacy()->pluck('pharmacies.id');
 
             $today = now()->toDateString();
+            $isOwner = $user->isOwner();
 
             $todaySales = Order::whereIn('pharmacy_id', $pharmacyIds)
                 ->whereDate('created_at', $today)
@@ -371,7 +372,9 @@ class DashboardController extends Controller
                 ->get(['name', 'quantity', 'reorder_level']);
 
             return response()->json([
-                'today_sales' => (float) $todaySales,
+                // Revenue is owner-only. Cashiers/pharmacists still get order
+                // counts so they can manage the queue without seeing takings.
+                'today_sales' => $isOwner ? (float) $todaySales : null,
                 'orders_today' => $ordersToday,
                 'active_prescriptions' => $pendingPrescriptions,
                 'low_stock_alerts' => $lowStockAlerts,

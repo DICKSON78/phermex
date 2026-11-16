@@ -31,7 +31,9 @@ class OrderController extends Controller
                 ->pluck('aggregate', 'order_status')
                 ->all();
 
-            $revenueTotal = (float) $scoped()->where('payment_status', 'paid')->sum('total');
+            $revenueTotal = $request->user()?->isOwner()
+                ? (float) $scoped()->where('payment_status', 'paid')->sum('total')
+                : null;
 
             $query = Order::with(['customer', 'items.drug', 'processor', 'user'])
                 ->when($request->filled('pharmacy_id'), fn ($q) => $q->where('pharmacy_id', $request->input('pharmacy_id')));
@@ -101,38 +103,69 @@ class OrderController extends Controller
 
             foreach ($validated['items'] as $item) {
                 $drug = Drug::lockForUpdate()->findOrFail($item['drug_id']);
+                $requested = (int) $item['quantity'];
 
-                if ($drug->quantity < $item['quantity']) {
+                // FEFO (First Expired, First Out): a pharmacy can hold several
+                // drug rows for one product, one per received batch. Always
+                // consume the earliest-expiring batch first, regardless of
+                // which batch card the cashier tapped in the POS.
+                $batches = Drug::withoutGlobalScope('tenant')
+                    ->where('pharmacy_id', $drug->pharmacy_id)
+                    ->whereRaw('LOWER(name) = ?', [mb_strtolower($drug->name)])
+                    ->where('quantity', '>', 0)
+                    ->orderByRaw('expiry_date IS NULL')
+                    ->orderBy('expiry_date')
+                    ->orderBy('batch_number')
+                    ->lockForUpdate()
+                    ->get();
+
+                $available = (int) $batches->sum('quantity');
+
+                if ($available < $requested) {
                     DB::rollBack();
                     return response()->json([
-                        'message' => "Insufficient stock for '{$drug->name}'. Available: {$drug->quantity}.",
+                        'message' => "Insufficient stock for '{$drug->name}'. Available: {$available}.",
                     ], 422);
                 }
 
                 $unitPrice = ($validated['price_type'] ?? 'retail') === 'wholesale' && $drug->wholesale_price > 0
                     ? $drug->wholesale_price
                     : $drug->selling_price;
-                $totalPrice = $unitPrice * $item['quantity'];
-                $subtotal += $totalPrice;
 
-                $orderItems[] = [
-                    'drug_id' => $drug->id,
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $unitPrice,
-                    'total_price' => $totalPrice,
-                ];
+                $remaining = $requested;
+                foreach ($batches as $batch) {
+                    if ($remaining <= 0) {
+                        break;
+                    }
 
-                $drug->decrement('quantity', $item['quantity']);
+                    $take = min($remaining, (int) $batch->quantity);
+                    if ($take <= 0) {
+                        continue;
+                    }
 
-                DrugMovement::create([
-                    'pharmacy_id' => $validated['pharmacy_id'],
-                    'drug_id' => $drug->id,
-                    'movement_type' => 'sale',
-                    'quantity' => -$item['quantity'],
-                    'unit_cost' => $drug->buying_price,
-                    'reference_number' => $orderCode,
-                    'performed_by' => Auth::id(),
-                ]);
+                    $batch->decrement('quantity', $take);
+
+                    DrugMovement::create([
+                        'pharmacy_id' => $validated['pharmacy_id'],
+                        'drug_id' => $batch->id,
+                        'movement_type' => 'sale',
+                        'quantity' => -$take,
+                        'unit_cost' => $batch->buying_price,
+                        'reference_number' => $orderCode,
+                        'performed_by' => Auth::id(),
+                    ]);
+
+                    $orderItems[] = [
+                        'drug_id' => $batch->id,
+                        'quantity' => $take,
+                        'unit_price' => $unitPrice,
+                        'total_price' => $unitPrice * $take,
+                    ];
+
+                    $remaining -= $take;
+                }
+
+                $subtotal += $unitPrice * $requested;
             }
 
             $discount = $validated['discount'] ?? 0;

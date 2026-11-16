@@ -515,6 +515,10 @@ export default function POSPage() {
                   >
                     {t('sales.pos.wholesale')}
                   </button>
+                  <span className="ml-auto flex items-center gap-1 text-[11px] text-gray-400">
+                    <Clock className="w-3 h-3" />
+                    FEFO &mdash; earliest expiry sold first
+                  </span>
                 </div>
                 
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">

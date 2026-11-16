@@ -8,6 +8,7 @@ import {
 import api from '../../services/api'
 import { currentBase } from '../../utils/roles'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useAuth } from '../../contexts/AuthContext'
 
 const PAYMENT_KEY = {
   unpaid: 'orders.unpaid',
@@ -66,6 +67,8 @@ const COMPLETED_STATUSES = ['dispensed', 'delivered']
 
 export default function OrderListPage() {
   const { t } = useLanguage()
+  const { user } = useAuth()
+  const canSeeRevenue = user?.role === 'owner' || user?.role === 'admin'
   const navigate = useNavigate()
   const base = currentBase()
   const [orders, setOrders] = useState([])
@@ -143,7 +146,9 @@ const filtered = statusTab === 'All'
     { label: t('sales.orders.totalOrders'), value: stats.total, icon: ShoppingCart, color: 'bg-[#0FD452]/10 text-[#0FD452]' },
     { label: t('common.pending'), value: stats.pending, icon: Clock, color: 'bg-yellow-100 text-yellow-600' },
     { label: t('sales.orders.completed'), value: stats.completedToday, icon: CheckCircle, color: 'bg-blue-100 text-blue-600' },
-    { label: t('sales.orders.totalRevenue'), value: `TZS ${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-purple-100 text-purple-600' },
+    ...(canSeeRevenue
+      ? [{ label: t('sales.orders.totalRevenue'), value: `TZS ${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-purple-100 text-purple-600' }]
+      : []),
   ]
 
   return (

@@ -2,14 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
-  Ban,
   Building2,
   Calendar,
-  CheckCircle2,
   Clock,
   CreditCard,
   Hash,
-  Loader2,
   MapPin,
   Package,
   Phone,
@@ -28,22 +25,6 @@ import OrderFlowProgress, {
 } from '../../components/OrderFlowProgress'
 import { formatMoney } from '../../utils/currency'
 import { textValue } from '../../utils/text'
-
-const NEXT = {
-  pending: 'confirmed',
-  confirmed: 'preparing',
-  preparing: 'ready',
-  ready: 'out_for_delivery',
-  out_for_delivery: 'delivered',
-}
-
-const NEXT_LABELS = {
-  confirmed: 'Confirm order',
-  preparing: 'Start preparing',
-  ready: 'Mark ready',
-  out_for_delivery: 'Out for delivery',
-  delivered: 'Mark delivered',
-}
 
 function formatDate(value, withTime = false) {
   if (!value) return '—'
@@ -91,7 +72,6 @@ export default function AdminCustomerOrderDetailPage() {
 
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -108,38 +88,6 @@ export default function AdminCustomerOrderDetailPage() {
   useEffect(() => {
     load()
   }, [load])
-
-  const advance = async () => {
-    const target = NEXT[order?.order_status]
-    if (!target) return
-    setBusy(true)
-    try {
-      await api.post(`/admin/orders/${order.id}/status`, { order_status: target })
-      toast.success(`Order moved to ${orderStatusLabel('customer', target).toLowerCase()}.`)
-      await load()
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Could not update order.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const cancel = async () => {
-    if (!order) return
-    if (!window.confirm(`Cancel order ${order.order_code}? Any reserved stock will be returned to the pharmacy.`)) {
-      return
-    }
-    setBusy(true)
-    try {
-      await api.post(`/admin/orders/${order.id}/status`, { order_status: 'cancelled' })
-      toast.success('Order cancelled and stock restored.')
-      await load()
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Could not cancel order.')
-    } finally {
-      setBusy(false)
-    }
-  }
 
   if (loading) {
     return (
@@ -167,7 +115,6 @@ export default function AdminCustomerOrderDetailPage() {
     )
   }
 
-  const next = NEXT[order.order_status]
   const customer = order.customer?.full_name || order.user?.name || 'Customer'
   const progress = order.progress || {}
   const timestamps = progress.timestamps || {
@@ -196,20 +143,6 @@ export default function AdminCustomerOrderDetailPage() {
               {formatDate(order.created_at, true)}
             </p>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {next && (
-            <button onClick={advance} disabled={busy} className="btn-primary">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              {NEXT_LABELS[next]}
-            </button>
-          )}
-          {!['delivered', 'dispensed', 'cancelled'].includes(order.order_status) && (
-            <button onClick={cancel} disabled={busy} className="btn-danger-outline">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
-              Cancel
-            </button>
-          )}
         </div>
       </div>
 

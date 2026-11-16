@@ -9,8 +9,11 @@ use App\Models\Drug;
 use App\Models\Expense;
 use App\Models\Order;
 use App\Models\Pharmacy;
+use App\Models\RevenueRecord;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Models\WholesaleOrder;
+use App\Models\ManufacturerOrder;
 use App\Support\OrderProgress;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -32,21 +35,30 @@ class AdminController extends Controller
                 ->count();
             $totalUsers = User::count();
             $activeSubscriptions = Pharmacy::where('status', 'active')->count();
-            $platformRevenue = (float) Order::where('payment_status', 'paid')->sum('total');
-            $monthlyRevenue = (float) Order::where('payment_status', 'paid')
+            $platformRevenue = (float) RevenueRecord::where('status', 'paid')->sum('amount');
+            $monthlyRevenue = (float) RevenueRecord::where('status', 'paid')
+                ->where('paid_at', '>=', now()->startOfMonth())
+                ->sum('amount');
+            // Patient/pharmacy order flow is platform volume, not company
+            // revenue. Keep it separate so the dashboard reports subscription
+            // and billing income rather than GMV.
+            $orderVolume = (float) Order::where('payment_status', 'paid')->sum('total');
+            $monthlyOrderVolume = (float) Order::where('payment_status', 'paid')
                 ->where('created_at', '>=', now()->startOfMonth())
                 ->sum('total');
+            $orderCount = Order::count();
             $monthlyGrowth = $lastMonthNewPharmacies > 0
                 ? round((($newPharmaciesThisMonth - $lastMonthNewPharmacies) / $lastMonthNewPharmacies) * 100, 1)
                 : 0;
 
             $supportTicketsOpen = \App\Models\SupportTicket::whereIn('status', ['open', 'in_progress'])->count();
 
-            $revenueChart = Order::where('payment_status', 'paid')
-                ->where('created_at', '>=', now()->subDays(30))
+            $revenueChart = RevenueRecord::where('status', 'paid')
+                ->whereNotNull('paid_at')
+                ->where('paid_at', '>=', now()->subDays(30))
                 ->select(
-                    DB::raw('DATE(created_at) as date'),
-                    DB::raw('SUM(total) as revenue')
+                    DB::raw('DATE(paid_at) as date'),
+                    DB::raw('SUM(amount) as revenue')
                 )
                 ->groupBy('date')
                 ->orderBy('date')
@@ -161,6 +173,9 @@ class AdminController extends Controller
                 'new_registrations_this_month' => $newPharmaciesThisMonth,
                 'monthly_revenue' => $monthlyRevenue,
                 'total_revenue' => $platformRevenue,
+                'order_volume' => $orderVolume,
+                'monthly_order_volume' => $monthlyOrderVolume,
+                'order_count' => $orderCount,
                 'monthly_growth' => $monthlyGrowth,
                 'support_tickets_open' => $supportTicketsOpen,
                 'revenue_chart' => $revenueChart,
@@ -921,6 +936,178 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch prescriptions.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Platform-side manufacturer directory. Manufacturers own their own
+     * catalogue and fulfil wholesaler orders themselves; admin only needs
+     * oversight of the account, not the order operations.
+     */
+    public function manufacturers(Request $request): JsonResponse
+    {
+        try {
+            $query = User::where('role', 'manufacturer');
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('manufacturer_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('is_active')) {
+                $query->where('is_active', $request->boolean('is_active'));
+            }
+
+            $manufacturers = $query->latest()->get()->map(function (User $user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->manufacturer_name ?: $user->name,
+                    'contact_name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->manufacturer_phone ?: $user->phone,
+                    'license' => $user->manufacturer_license,
+                    'is_active' => (bool) $user->is_active,
+                    'created_at' => $user->created_at,
+                    'products_count' => \App\Models\ManufacturerProduct::where('user_id', $user->id)->count(),
+                    'orders_count' => ManufacturerOrder::where('manufacturer_user_id', $user->id)->count(),
+                    'order_value' => (float) ManufacturerOrder::where('manufacturer_user_id', $user->id)->sum('total_amount'),
+                ];
+            })->values();
+
+            return response()->json([
+                'data' => $manufacturers,
+                'stats' => [
+                    'total' => User::where('role', 'manufacturer')->count(),
+                    'active' => User::where('role', 'manufacturer')->where('is_active', true)->count(),
+                    'inactive' => User::where('role', 'manufacturer')->where('is_active', false)->count(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch manufacturers.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Platform customer directory (app accounts). Walk-in customers belong to
+     * individual pharmacies and stay inside the pharmacy's own portal.
+     */
+    public function customers(Request $request): JsonResponse
+    {
+        try {
+            $query = User::where('role', 'customer');
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('user_code', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('is_active')) {
+                $query->where('is_active', $request->boolean('is_active'));
+            }
+
+            $customers = $query->latest()->get()->map(function (User $user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'user_code' => $user->user_code,
+                    'is_active' => (bool) $user->is_active,
+                    'created_at' => $user->created_at,
+                    'orders_count' => $user->customerAppOrders()->count(),
+                    'spent' => (float) $user->customerAppOrders()->where('payment_status', 'paid')->sum('total'),
+                ];
+            })->values();
+
+            return response()->json([
+                'data' => $customers,
+                'stats' => [
+                    'total' => User::where('role', 'customer')->count(),
+                    'active' => User::where('role', 'customer')->where('is_active', true)->count(),
+                    'new_this_month' => User::where('role', 'customer')
+                        ->whereMonth('created_at', now()->month)
+                        ->whereYear('created_at', now()->year)
+                        ->count(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch customers.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Read-only order flow statistics for platform oversight. Admin does not
+     * advance or cancel orders here; pharmacies, wholesalers and manufacturers
+     * own their workflows.
+     */
+    public function orderStats(Request $request): JsonResponse
+    {
+        try {
+            $customerCounts = Order::selectRaw('order_status, COUNT(*) as count, COALESCE(SUM(total), 0) as value')
+                ->groupBy('order_status')
+                ->get()
+                ->map(fn ($row) => [
+                    'status' => $row->order_status,
+                    'count' => (int) $row->count,
+                    'value' => (float) $row->value,
+                ])->values();
+
+            $wholesaleCounts = WholesaleOrder::selectRaw('status, COUNT(*) as count, COALESCE(SUM(total_amount), 0) as value')
+                ->groupBy('status')
+                ->get()
+                ->map(fn ($row) => [
+                    'status' => $row->status,
+                    'count' => (int) $row->count,
+                    'value' => (float) $row->value,
+                ])->values();
+
+            $manufacturerCounts = ManufacturerOrder::selectRaw('status, COUNT(*) as count, COALESCE(SUM(total_amount), 0) as value')
+                ->groupBy('status')
+                ->get()
+                ->map(fn ($row) => [
+                    'status' => $row->status,
+                    'count' => (int) $row->count,
+                    'value' => (float) $row->value,
+                ])->values();
+
+            return response()->json([
+                'customer' => [
+                    'total' => Order::count(),
+                    'value' => (float) Order::sum('total'),
+                    'by_status' => $customerCounts,
+                ],
+                'wholesale' => [
+                    'total' => WholesaleOrder::count(),
+                    'value' => (float) WholesaleOrder::sum('total_amount'),
+                    'by_status' => $wholesaleCounts,
+                ],
+                'manufacturer' => [
+                    'total' => ManufacturerOrder::count(),
+                    'value' => (float) ManufacturerOrder::sum('total_amount'),
+                    'by_status' => $manufacturerCounts,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch order statistics.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
         }

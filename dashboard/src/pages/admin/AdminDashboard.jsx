@@ -19,9 +19,9 @@ import {
   Users,
   CreditCard,
   DollarSign,
-  TrendingUp,
   ArrowRight,
   Activity,
+  BarChart3,
   Clock,
   FileText,
   Shield,
@@ -87,6 +87,9 @@ export default function AdminDashboard() {
           newPharmaciesThisMonth: raw.new_registrations_this_month ?? 0,
           platformRevenue: raw.total_revenue ?? raw.platform_revenue ?? 0,
           monthlyRevenue: raw.monthly_revenue ?? 0,
+          orderVolume: raw.order_volume ?? 0,
+          monthlyOrderVolume: raw.monthly_order_volume ?? 0,
+          orderCount: raw.order_count ?? 0,
           monthlyGrowth: raw.monthly_growth ?? 0,
           supportTicketsOpen: raw.support_tickets_open ?? 0,
           revenueChart,
@@ -150,7 +153,7 @@ export default function AdminDashboard() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-sm text-gray-500">Helix Platform — Overview of all pharmacies, users, and subscriptions.</p>
+          <p className="text-sm text-gray-500">Helix Platform — Oversight of pharmacies, manufacturers, customers, subscriptions and company revenue.</p>
         </div>
       </div>
 
@@ -159,9 +162,9 @@ export default function AdminDashboard() {
         <StatCard label="Total Pharmacies" value={data.totalPharmacies} icon={<Building2 className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix={`+${data.newPharmaciesThisMonth} new this month`} />
         <StatCard label="Total Users" value={data.totalUsers} icon={<Users className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix="Across all pharmacies" />
         <StatCard label="Active Subscriptions" value={data.activeSubscriptions} icon={<CreditCard className="w-5 h-5" />} iconColor="text-purple-600" bg="bg-purple-100" suffix={`of ${data.totalPharmacies} pharmacies`} />
-        <StatCard label="Platform Revenue" value={formatCurrency(data.platformRevenue)} icon={<DollarSign className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix="Total to date" />
+        <StatCard label="Platform Revenue" value={formatCurrency(data.platformRevenue)} icon={<DollarSign className="w-5 h-5" />} iconColor="text-primary" bg="bg-primary-light" suffix={`${formatCurrency(data.monthlyRevenue)} this month`} />
+        <StatCard label="Order Volume" value={formatCurrency(data.orderVolume)} icon={<BarChart3 className="w-5 h-5" />} iconColor="text-blue-600" bg="bg-blue-100" suffix={`${data.orderCount} orders in system`} />
         <StatCard label="Support Tickets Open" value={data.supportTicketsOpen} icon={<MessageSquare className="w-5 h-5" />} iconColor="text-amber-600" bg="bg-amber-100" suffix="Awaiting response" />
-        <StatCard label="Monthly Growth" value={`${data.monthlyGrowth}%`} icon={<TrendingUp className="w-5 h-5" />} iconColor="text-emerald-600" bg="bg-emerald-100" suffix="vs last month" />
       </div>
 
       {/* Quick Actions */}
@@ -550,12 +553,12 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Top Pharmacies by Revenue */}
+        {/* Top Pharmacies by Order Value */}
         <div className="card lg:col-span-2 p-0">
           <div className="px-6 py-4 border-b border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Trophy className="w-5 h-5 text-amber-500" />
-              Top Pharmacies by Revenue
+              Top Pharmacies by Order Value
             </h3>
           </div>
           <div className="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -578,7 +581,7 @@ export default function AdminDashboard() {
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <DollarSign className="w-3.5 h-3.5 text-[#0FD452]" />
-                        <span>Revenue</span>
+                        <span>Order value</span>
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">

@@ -605,25 +605,26 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/wholesalers/{id}/status', [AdminWholesalerController::class, 'updateStatus']);
         Route::delete('/wholesalers/{id}', [AdminWholesalerController::class, 'destroy']);
 
-        // Admin wholesale order oversight
+        // Admin wholesale order oversight (read-only)
         Route::get('/wholesale-orders', [WholesaleMarketplaceController::class, 'adminOrders']);
         Route::get('/wholesale-orders/{id}', [WholesaleMarketplaceController::class, 'adminShowOrder']);
-        Route::post('/wholesale-orders/{id}/status', [WholesaleMarketplaceController::class, 'adminUpdateStatus']);
-        Route::post('/wholesale-orders/{id}/mark-paid', [WholesaleMarketplaceController::class, 'adminMarkPaid']);
         Route::get('/wholesalers/{id}/inventory', [WholesaleMarketplaceController::class, 'adminInventory']);
         Route::post('/wholesalers/{id}/inventory', [WholesaleMarketplaceController::class, 'adminStoreInventory']);
         Route::put('/wholesale-inventory/{id}', [WholesaleMarketplaceController::class, 'adminUpdateInventory']);
         Route::delete('/wholesale-inventory/{id}', [WholesaleMarketplaceController::class, 'adminDestroyInventory']);
 
-        // Admin manufacturer order oversight
+        // Admin manufacturer order oversight (read-only)
         Route::get('/manufacturer-orders', [ManufacturerOrderController::class, 'index']);
         Route::get('/manufacturer-orders/{id}', [ManufacturerOrderController::class, 'show']);
-        Route::post('/manufacturer-orders/{id}/status', [ManufacturerOrderController::class, 'updateStatus']);
 
-        // Admin customer order oversight
+        // Admin customer order oversight (read-only)
         Route::get('/orders', [AdminController::class, 'orders']);
         Route::get('/orders/{id}', [AdminController::class, 'orderShow']);
-        Route::post('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+
+        // Platform directories and order-flow statistics
+        Route::get('/manufacturers', [AdminController::class, 'manufacturers']);
+        Route::get('/customers', [AdminController::class, 'customers']);
+        Route::get('/order-stats', [AdminController::class, 'orderStats']);
 
         // Wholesale fulfilment and supplier catalogue management
         // Admin per-pharmacy drill-down

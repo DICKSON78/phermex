@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-  Ban,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -19,8 +17,6 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
-import Modal from '../../components/Modal'
-import useConfirm from '../../hooks/useConfirm'
 import { formatMoney } from '../../utils/currency'
 import { textValue } from '../../utils/text'
 
@@ -49,20 +45,6 @@ const PAYMENT_STYLES = {
   pending: 'bg-yellow-100 text-yellow-700',
   failed: 'bg-red-100 text-red-600',
   unpaid: 'bg-gray-100 text-gray-600',
-}
-
-const NEXT_STATUS = {
-  pending: 'confirmed',
-  confirmed: 'packed',
-  packed: 'dispatched',
-  dispatched: 'delivered',
-}
-
-const NEXT_LABELS = {
-  confirmed: 'Confirm order',
-  packed: 'Mark packed',
-  dispatched: 'Mark dispatched',
-  delivered: 'Mark delivered',
 }
 
 const selectClass =
@@ -136,7 +118,6 @@ export default function AdminWholesaleOrdersPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const supplierFilter = searchParams.get('wholesaler') || searchParams.get('wholesaler_id') || ''
-  const [confirm, confirmDialog] = useConfirm()
 
   const [orders, setOrders] = useState([])
   const [stats, setStats] = useState({ total: 0, active: 0, delivered: 0, total_value: 0 })
@@ -146,15 +127,6 @@ export default function AdminWholesaleOrdersPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [paymentFilter, setPaymentFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [busyId, setBusyId] = useState(null)
-
-  const [advanceOrder, setAdvanceOrder] = useState(null)
-  const [advanceForm, setAdvanceForm] = useState({ tracking_number: '', delivery_partner: '', notes: '' })
-  const [advanceSaving, setAdvanceSaving] = useState(false)
-
-  const [paidOrder, setPaidOrder] = useState(null)
-  const [paymentForm, setPaymentForm] = useState({ payment_reference: '', notes: '' })
-  const [paymentSaving, setPaymentSaving] = useState(false)
 
   const load = useCallback(async (silent = false) => {
     silent ? setRefreshing(true) : setLoading(true)
@@ -198,81 +170,6 @@ export default function AdminWholesaleOrdersPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
-  const openAdvance = (order) => {
-    setAdvanceOrder(order)
-    setAdvanceForm({ tracking_number: order.tracking_number || '', delivery_partner: order.delivery_partner || '', notes: '' })
-  }
-
-  const saveAdvance = async (event) => {
-    event.preventDefault()
-    if (!advanceOrder) return
-    const target = NEXT_STATUS[advanceOrder.status]
-    if (!target) return
-    setAdvanceSaving(true)
-    try {
-      await api.post(`/admin/wholesale-orders/${advanceOrder.id}/status`, {
-        status: target,
-        tracking_number: advanceForm.tracking_number || undefined,
-        delivery_partner: advanceForm.delivery_partner || undefined,
-        notes: advanceForm.notes || undefined,
-      })
-      toast.success(`Order marked ${STATUS_LABELS[target].toLowerCase()}`)
-      setAdvanceOrder(null)
-      await load(true)
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Could not update order')
-    } finally {
-      setAdvanceSaving(false)
-    }
-  }
-
-  const cancelOrder = async (order) => {
-    const ok = await confirm({
-      title: 'Cancel order?',
-      message: `Order ${order.order_id} will be cancelled and reserved stock will be returned to the supplier.`,
-      confirmText: 'Cancel order',
-      variant: 'danger',
-    })
-    if (!ok) return
-    setBusyId(order.id)
-    try {
-      await api.post(`/admin/wholesale-orders/${order.id}/status`, {
-        status: 'cancelled',
-        cancellation_reason: 'Cancelled by administrator',
-      })
-      toast.success('Order cancelled and stock restored')
-      await load(true)
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Could not cancel order')
-    } finally {
-      setBusyId(null)
-    }
-  }
-
-  const openPayment = (order) => {
-    setPaidOrder(order)
-    setPaymentForm({ payment_reference: order.payment_reference || '', notes: '' })
-  }
-
-  const savePayment = async (event) => {
-    event.preventDefault()
-    if (!paidOrder) return
-    setPaymentSaving(true)
-    try {
-      await api.post(`/admin/wholesale-orders/${paidOrder.id}/mark-paid`, {
-        payment_reference: paymentForm.payment_reference || undefined,
-        notes: paymentForm.notes || undefined,
-      })
-      toast.success('Payment recorded')
-      setPaidOrder(null)
-      await load(true)
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Could not record payment')
-    } finally {
-      setPaymentSaving(false)
-    }
-  }
-
   if (loading) {
     return (
       <div className="space-y-6">
@@ -297,7 +194,7 @@ export default function AdminWholesaleOrdersPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Wholesale orders</h1>
             <p className="text-sm text-gray-500">
-              Oversight of every pharmacy order, from confirmation through delivery.
+              Read-only oversight of pharmacy orders from wholesalers. Suppliers handle their own fulfilment.
             </p>
           </div>
         </div>
@@ -442,36 +339,6 @@ export default function AdminWholesaleOrdersPage() {
                         >
                           <Eye className="h-4 w-4" />
                         </button>
-                        {NEXT_STATUS[order.status] && (
-                          <button
-                            onClick={() => openAdvance(order)}
-                            disabled={busyId === order.id}
-                            className="btn-icon-green"
-                            title={NEXT_LABELS[NEXT_STATUS[order.status]]}
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                          </button>
-                        )}
-                        {order.payment_status !== 'paid' && order.status !== 'cancelled' && (
-                          <button
-                            onClick={() => openPayment(order)}
-                            disabled={busyId === order.id}
-                            className="btn-ghost"
-                            title="Record payment"
-                          >
-                            <CreditCard className="h-4 w-4" />
-                          </button>
-                        )}
-                        {!['delivered', 'cancelled'].includes(order.status) && (
-                          <button
-                            onClick={() => cancelOrder(order)}
-                            disabled={busyId === order.id}
-                            className="btn-ghost hover:!text-red-600"
-                            title="Cancel order"
-                          >
-                            {busyId === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -510,104 +377,6 @@ export default function AdminWholesaleOrdersPage() {
         </div>
       )}
 
-      <Modal
-        isOpen={Boolean(advanceOrder)}
-        onClose={() => setAdvanceOrder(null)}
-        title={advanceOrder ? NEXT_LABELS[NEXT_STATUS[advanceOrder.status]] : 'Update order'}
-        subtitle={advanceOrder ? `${advanceOrder.order_id} · ${textValue(advanceOrder.pharmacy_name)}` : ''}
-      >
-        {advanceOrder && (
-          <form onSubmit={saveAdvance} className="space-y-4">
-            <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-              Moving from <span className="font-semibold capitalize">{advanceOrder.status}</span> to{' '}
-              <span className="font-semibold capitalize">{NEXT_STATUS[advanceOrder.status]}</span>.
-            </div>
-            {NEXT_STATUS[advanceOrder.status] === 'dispatched' && (
-              <>
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-gray-600">Tracking number</span>
-                  <input
-                    value={advanceForm.tracking_number}
-                    onChange={(event) => setAdvanceForm((prev) => ({ ...prev, tracking_number: event.target.value }))}
-                    placeholder="e.g. TZ-4587-0021"
-                    className={inputClass}
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-gray-600">Delivery partner</span>
-                  <input
-                    value={advanceForm.delivery_partner}
-                    onChange={(event) => setAdvanceForm((prev) => ({ ...prev, delivery_partner: event.target.value }))}
-                    placeholder="e.g. Supplier delivery"
-                    className={inputClass}
-                  />
-                </label>
-              </>
-            )}
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-semibold text-gray-600">Internal note (optional)</span>
-              <textarea
-                value={advanceForm.notes}
-                onChange={(event) => setAdvanceForm((prev) => ({ ...prev, notes: event.target.value }))}
-                rows={3}
-                className={inputClass}
-                placeholder="Add a note for the audit timeline"
-              />
-            </label>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setAdvanceOrder(null)} className="btn-secondary">
-                Cancel
-              </button>
-              <button type="submit" disabled={advanceSaving} className="btn-primary">
-                {advanceSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                {NEXT_LABELS[NEXT_STATUS[advanceOrder.status]]}
-              </button>
-            </div>
-          </form>
-        )}
-      </Modal>
-
-      <Modal
-        isOpen={Boolean(paidOrder)}
-        onClose={() => setPaidOrder(null)}
-        title="Record payment"
-        subtitle={paidOrder ? `${paidOrder.order_id} · ${formatMoney(paidOrder.total_amount || 0)}` : ''}
-      >
-        {paidOrder && (
-          <form onSubmit={savePayment} className="space-y-4">
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-semibold text-gray-600">Payment reference</span>
-              <input
-                value={paymentForm.payment_reference}
-                onChange={(event) => setPaymentForm((prev) => ({ ...prev, payment_reference: event.target.value }))}
-                placeholder="Bank slip, mobile money or receipt number"
-                className={inputClass}
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-semibold text-gray-600">Note (optional)</span>
-              <textarea
-                value={paymentForm.notes}
-                onChange={(event) => setPaymentForm((prev) => ({ ...prev, notes: event.target.value }))}
-                rows={3}
-                className={inputClass}
-                placeholder="Anything the finance team should know"
-              />
-            </label>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setPaidOrder(null)} className="btn-secondary">
-                Cancel
-              </button>
-              <button type="submit" disabled={paymentSaving} className="btn-primary">
-                {paymentSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                Mark as paid
-              </button>
-            </div>
-          </form>
-        )}
-      </Modal>
-
-      {confirmDialog}
     </div>
   )
 }

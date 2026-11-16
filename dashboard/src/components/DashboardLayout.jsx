@@ -57,6 +57,7 @@ import {
   Crosshair,
   Plug,
   Boxes,
+  Factory,
 } from 'lucide-react'
 
 import OwnerDashboard from '../pages/owner/OwnerDashboard'
@@ -164,6 +165,9 @@ import AdminWholesaleOrdersPage from '../pages/admin/AdminWholesaleOrdersPage'
 import AdminWholesaleOrderDetailPage from '../pages/admin/AdminWholesaleOrderDetailPage'
 import AdminManufacturerOrdersPage from '../pages/admin/AdminManufacturerOrdersPage'
 import AdminManufacturerOrderDetailPage from '../pages/admin/AdminManufacturerOrderDetailPage'
+import AdminManufacturersPage from '../pages/admin/AdminManufacturersPage'
+import AdminCustomersPage from '../pages/admin/AdminCustomersPage'
+import AdminOrderOverviewPage from '../pages/admin/AdminOrderOverviewPage'
 import AdminCustomerOrdersPage from '../pages/admin/AdminCustomerOrdersPage'
 import AdminCustomerOrderDetailPage from '../pages/admin/AdminCustomerOrderDetailPage'
 import AdminWholesaleMarketplacePage from '../pages/admin/AdminWholesaleMarketplacePage'
@@ -461,10 +465,18 @@ const adminNavGroups = [
     label: 'MANAGEMENT',
     items: [
       { path: '/dashboard/pharmacies', icon: Building2, label: 'Pharmacies' },
+      { path: '/dashboard/manufacturers', icon: Factory, label: 'Manufacturers' },
       { path: '/dashboard/wholesalers', icon: Truck, label: 'Wholesalers' },
+      { path: '/dashboard/customers', icon: User, label: 'Customers' },
       { path: '/dashboard/users', icon: Users, label: 'Users' },
       { path: '/dashboard/drug-database', icon: Pill, label: 'Drug Database' },
-      { path: '/dashboard/wholesale-marketplace', icon: Store, label: 'Wholesale marketplace' },
+      { path: '/dashboard/wholesale-marketplace', icon: Store, label: 'Supplier catalog' },
+    ],
+  },
+  {
+    label: 'ORDER OVERSIGHT',
+    items: [
+      { path: '/dashboard/order-statistics', icon: BarChart3, label: 'Order statistics' },
       { path: '/dashboard/customer-orders-admin', icon: ShoppingCart, label: 'Customer orders' },
       { path: '/dashboard/wholesale-orders-admin', icon: Package, label: 'Wholesale orders' },
       { path: '/dashboard/manufacturer-orders-admin', icon: Truck, label: 'Manufacturer orders' },
@@ -1396,6 +1408,9 @@ export default function DashboardLayout({ role }) {
             <Routes>
               <Route index element={<AdminDashboard />} />
               <Route path="pending-approvals" element={<AdminPendingApprovalsPage />} />
+              <Route path="manufacturers" element={<AdminManufacturersPage />} />
+              <Route path="customers" element={<AdminCustomersPage />} />
+              <Route path="order-statistics" element={<AdminOrderOverviewPage />} />
               <Route path="pharmacies" element={<AdminPharmaciesPage />} />
               <Route path="wholesalers" element={<AdminWholesalersPage />} />
               <Route path="wholesalers/new" element={<AdminWholesalerFormPage />} />

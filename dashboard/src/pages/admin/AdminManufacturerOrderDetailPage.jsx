@@ -2,45 +2,23 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
-  Ban,
   Calendar,
-  CheckCircle2,
   Clock,
   Factory,
   Hash,
-  Loader2,
   MapPin,
   Package,
   Truck,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
-import Modal from '../../components/Modal'
 import OrderFlowProgress, {
   PAYMENT_STATUS_STYLES,
   orderStatusLabel,
   orderStatusStyle,
 } from '../../components/OrderFlowProgress'
-import useConfirm from '../../hooks/useConfirm'
 import { formatMoney } from '../../utils/currency'
 import { textValue } from '../../utils/text'
-
-const NEXT_STATUS = {
-  pending: 'confirmed',
-  confirmed: 'packed',
-  packed: 'dispatched',
-  dispatched: 'delivered',
-}
-
-const NEXT_LABELS = {
-  confirmed: 'Confirm order',
-  packed: 'Mark packed',
-  dispatched: 'Mark dispatched',
-  delivered: 'Mark delivered',
-}
-
-const inputClass =
-  'w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] placeholder-gray-400 outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20'
 
 function formatDate(value, withTime = false) {
   if (!value) return '—'
@@ -85,14 +63,9 @@ function InfoCard({ icon: Icon, label, value }) {
 
 export default function AdminManufacturerOrderDetailPage() {
   const { id } = useParams()
-  const [confirm, confirmDialog] = useConfirm()
 
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState(false)
-
-  const [advanceOpen, setAdvanceOpen] = useState(false)
-  const [advanceForm, setAdvanceForm] = useState({ tracking_number: '', delivery_partner: '', notes: '' })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -109,62 +82,6 @@ export default function AdminManufacturerOrderDetailPage() {
   useEffect(() => {
     load()
   }, [load])
-
-  const openAdvance = () => {
-    if (!order) return
-    setAdvanceForm({
-      tracking_number: order.tracking_number || '',
-      delivery_partner: order.delivery_partner || '',
-      notes: '',
-    })
-    setAdvanceOpen(true)
-  }
-
-  const saveAdvance = async (event) => {
-    event.preventDefault()
-    const target = NEXT_STATUS[order?.status]
-    if (!target) return
-    setBusy(true)
-    try {
-      await api.post(`/admin/manufacturer-orders/${order.id}/status`, {
-        status: target,
-        tracking_number: advanceForm.tracking_number || undefined,
-        delivery_partner: advanceForm.delivery_partner || undefined,
-        notes: advanceForm.notes || undefined,
-      })
-      toast.success(`Order marked ${target}`)
-      setAdvanceOpen(false)
-      await load()
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Could not update order')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const cancelOrder = async () => {
-    if (!order) return
-    const ok = await confirm({
-      title: 'Cancel order?',
-      message: `Order ${order.order_id} will be cancelled and reserved stock returned to the manufacturer.`,
-      confirmText: 'Cancel order',
-      variant: 'danger',
-    })
-    if (!ok) return
-    setBusy(true)
-    try {
-      await api.post(`/admin/manufacturer-orders/${order.id}/status`, {
-        status: 'cancelled',
-        cancellation_reason: 'Cancelled by administrator',
-      })
-      toast.success('Order cancelled and stock restored')
-      await load()
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Could not cancel order')
-    } finally {
-      setBusy(false)
-    }
-  }
 
   if (loading) {
     return (
@@ -192,7 +109,6 @@ export default function AdminManufacturerOrderDetailPage() {
     )
   }
 
-  const nextStatus = NEXT_STATUS[order.status]
   const timestamps = {
     pending: order.created_at,
     confirmed: order.confirmed_at,
@@ -218,20 +134,6 @@ export default function AdminManufacturerOrderDetailPage() {
               {formatDate(order.created_at, true)}
             </p>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {nextStatus && (
-            <button onClick={openAdvance} disabled={busy} className="btn-primary">
-              <CheckCircle2 className="h-4 w-4" />
-              {NEXT_LABELS[nextStatus]}
-            </button>
-          )}
-          {!['delivered', 'cancelled'].includes(order.status) && (
-            <button onClick={cancelOrder} disabled={busy} className="btn-danger-outline">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
-              Cancel
-            </button>
-          )}
         </div>
       </div>
 
@@ -399,66 +301,6 @@ export default function AdminManufacturerOrderDetailPage() {
         )}
       </div>
 
-      <Modal
-        isOpen={advanceOpen}
-        onClose={() => setAdvanceOpen(false)}
-        title={nextStatus ? NEXT_LABELS[nextStatus] : 'Update order'}
-        subtitle={`${order.order_id} · ${textValue(order.wholesaler_name)}`}
-      >
-        <form onSubmit={saveAdvance} className="space-y-4">
-          <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-            Moving from <span className="font-semibold capitalize">{order.status}</span> to{' '}
-            <span className="font-semibold capitalize">{nextStatus}</span>.
-          </div>
-          {nextStatus === 'dispatched' && (
-            <>
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold text-gray-600">Tracking number</span>
-                <input
-                  value={advanceForm.tracking_number}
-                  onChange={(event) =>
-                    setAdvanceForm((prev) => ({ ...prev, tracking_number: event.target.value }))
-                  }
-                  className={inputClass}
-                  placeholder="e.g. MFG-4587-0021"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold text-gray-600">Delivery partner</span>
-                <input
-                  value={advanceForm.delivery_partner}
-                  onChange={(event) =>
-                    setAdvanceForm((prev) => ({ ...prev, delivery_partner: event.target.value }))
-                  }
-                  className={inputClass}
-                  placeholder="e.g. Manufacturer delivery"
-                />
-              </label>
-            </>
-          )}
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold text-gray-600">Internal note (optional)</span>
-            <textarea
-              value={advanceForm.notes}
-              onChange={(event) => setAdvanceForm((prev) => ({ ...prev, notes: event.target.value }))}
-              rows={3}
-              className={inputClass}
-              placeholder="Add a note for the audit timeline"
-            />
-          </label>
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={() => setAdvanceOpen(false)} className="btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" disabled={busy} className="btn-primary">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              {nextStatus ? NEXT_LABELS[nextStatus] : 'Save'}
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {confirmDialog}
     </div>
   )
 }

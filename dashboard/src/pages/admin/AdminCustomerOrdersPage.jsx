@@ -11,7 +11,6 @@ import {
   Search,
   ShoppingCart,
   Store,
-  XCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
@@ -36,22 +35,6 @@ const TABS = [
   { value: 'dispensed', label: 'Dispensed' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
-
-const NEXT = {
-  pending: 'confirmed',
-  confirmed: 'preparing',
-  preparing: 'ready',
-  ready: 'out_for_delivery',
-  out_for_delivery: 'delivered',
-}
-
-const NEXT_LABELS = {
-  confirmed: 'Confirm',
-  preparing: 'Start preparing',
-  ready: 'Mark ready',
-  out_for_delivery: 'Out for delivery',
-  delivered: 'Mark delivered',
-}
 
 const ACTIONABLE = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery']
 
@@ -101,7 +84,6 @@ export default function AdminCustomerOrdersPage() {
   const [status, setStatus] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [busy, setBusy] = useState(null)
 
   const load = useCallback(
     async (isRefresh = false) => {
@@ -140,37 +122,6 @@ export default function AdminCustomerOrdersPage() {
     setPage(1)
   }, [status, search])
 
-  const advance = async (order) => {
-    const target = NEXT[order.order_status]
-    if (!target) return
-    setBusy(order.id)
-    try {
-      await api.post(`/admin/orders/${order.id}/status`, { order_status: target })
-      toast.success(`Order ${order.order_code} moved to ${orderStatusLabel('customer', target).toLowerCase()}.`)
-      await load(true)
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Could not update order.')
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  const cancel = async (order) => {
-    if (!window.confirm(`Cancel order ${order.order_code}? Any reserved stock will be returned to the pharmacy.`)) {
-      return
-    }
-    setBusy(order.id)
-    try {
-      await api.post(`/admin/orders/${order.id}/status`, { order_status: 'cancelled' })
-      toast.success('Order cancelled and stock restored.')
-      await load(true)
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Could not cancel order.')
-    } finally {
-      setBusy(null)
-    }
-  }
-
   const actionable = useMemo(
     () => ACTIONABLE.reduce((sum, key) => sum + Number(statusCounts[key] || 0), 0),
     [statusCounts],
@@ -191,7 +142,7 @@ export default function AdminCustomerOrdersPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Customer orders</h1>
             <p className="text-sm text-gray-500">
-              Every customer order across the platform, from preparation through delivery.
+              Read-only view of customer orders flowing through pharmacies. Order handling stays with each pharmacy.
             </p>
           </div>
         </div>
@@ -216,7 +167,7 @@ export default function AdminCustomerOrdersPage() {
           value={Number(statusCounts.delivered || 0) + Number(statusCounts.dispensed || 0)}
           tone="text-green-600"
         />
-        <StatCard icon={Store} label="Paid revenue" value={formatMoney(revenue)} />
+        <StatCard icon={Store} label="Order value" value={formatMoney(revenue)} hint="Total order GMV, not platform income" />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -270,7 +221,6 @@ export default function AdminCustomerOrdersPage() {
       ) : (
         <div className="space-y-3">
           {orders.map((order) => {
-            const next = NEXT[order.order_status]
             const cancelled = order.order_status === 'cancelled'
             const customer = order.customer?.full_name || order.user?.name || 'Customer'
             return (
@@ -328,11 +278,7 @@ export default function AdminCustomerOrdersPage() {
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                   <p className="text-xs font-medium text-gray-400">
-                    {cancelled
-                      ? 'Order cancelled'
-                      : next
-                        ? `Next step: ${orderStatusLabel('customer', next)}`
-                        : 'Order complete'}
+                    {cancelled ? 'Order cancelled' : 'Read-only platform overview'}
                   </p>
                   <div className="flex flex-wrap items-center gap-2" onClick={(event) => event.stopPropagation()}>
                     <button
@@ -342,31 +288,6 @@ export default function AdminCustomerOrdersPage() {
                     >
                       View details
                     </button>
-                    {next && (
-                      <button
-                        type="button"
-                        disabled={busy === order.id}
-                        onClick={() => advance(order)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#0FD452] px-3 py-1.5 text-xs font-semibold text-[#000F14] disabled:opacity-60"
-                      >
-                        {busy === order.id ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          NEXT_LABELS[next]
-                        )}
-                      </button>
-                    )}
-                    {!['delivered', 'dispensed', 'cancelled'].includes(order.order_status) && (
-                      <button
-                        type="button"
-                        disabled={busy === order.id}
-                        onClick={() => cancel(order)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 disabled:opacity-60"
-                      >
-                        {busy === order.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
-                        Cancel
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>

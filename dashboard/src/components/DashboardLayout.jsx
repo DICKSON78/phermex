@@ -668,9 +668,11 @@ export default function DashboardLayout({ role }) {
   useEffect(() => {
     navGroups.forEach((group, gi) => {
       if (group.items.some(item => {
+        const current = location.pathname.replace(/\/+$/, '') || '/'
+        const target = item.path.replace(/\/+$/, '')
         return item.exact
-          ? location.pathname === item.path
-          : location.pathname.startsWith(item.path) && location.pathname !== basePath
+          ? current === target
+          : current.startsWith(target) && current !== basePath
       })) {
         setCollapsedGroups(prev => ({ ...prev, [gi]: false }))
       }
@@ -724,7 +726,9 @@ export default function DashboardLayout({ role }) {
   }
 
   const isActive = (path, exact) => {
-    return exact ? location.pathname === path : (location.pathname.startsWith(path) && location.pathname !== basePath)
+    const current = location.pathname.replace(/\/+$/, '') || '/'
+    const target = path.replace(/\/+$/, '')
+    return exact ? current === target : (current.startsWith(target) && current !== basePath)
   }
 
   const badgeFor = (path) => {

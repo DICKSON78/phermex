@@ -1088,11 +1088,25 @@ class AdminController extends Controller
                     'value' => (float) $row->value,
                 ])->values();
 
+            $customerByRegion = Order::join('pharmacies', 'orders.pharmacy_id', '=', 'pharmacies.id')
+                ->selectRaw('pharmacies.region as region, COUNT(*) as count, COALESCE(SUM(orders.total), 0) as value')
+                ->whereNotNull('pharmacies.region')
+                ->where('pharmacies.region', '!=', '')
+                ->groupBy('pharmacies.region')
+                ->orderByDesc('count')
+                ->get()
+                ->map(fn ($row) => [
+                    'region' => $row->region,
+                    'count' => (int) $row->count,
+                    'value' => (float) $row->value,
+                ])->values();
+
             return response()->json([
                 'customer' => [
                     'total' => Order::count(),
                     'value' => (float) Order::sum('total'),
                     'by_status' => $customerCounts,
+                    'by_region' => $customerByRegion,
                 ],
                 'wholesale' => [
                     'total' => WholesaleOrder::count(),

@@ -28,10 +28,10 @@ import api from '../../services/api'
 import { textValue } from '../../utils/text'
 
 const PRIORITY_STYLES = {
-  Low: 'badge badge-gray',
-  Medium: 'badge badge-yellow',
-  High: 'badge bg-orange-100 text-orange-700',
-  Critical: 'badge badge-red',
+  low: 'badge badge-gray',
+  medium: 'badge badge-yellow',
+  high: 'badge bg-orange-100 text-orange-700',
+  urgent: 'badge badge-red',
 }
 
 const STATUS_STYLES = {
@@ -135,10 +135,12 @@ export default function AdminSupportShowPage() {
     if (!replyText.trim()) return
     setActionLoading(true)
     try {
-      await api.post(`/admin/support/tickets/${id}/reply`, { message: replyText })
+      await api.post(`/admin/support/tickets/${id}/reply`, { message: replyText.trim() })
       toast.success('Reply sent')
       setReplyText('')
       setShowReply(false)
+      // Refresh so the new message and the updated status appear immediately.
+      await fetchTicket()
     } catch {
       toast.error('Failed to send reply')
     } finally {
@@ -214,7 +216,7 @@ export default function AdminSupportShowPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 truncate">Priority</p>
-                <p className="mt-1"><span className={PRIORITY_STYLES[ticket.priority]}>{ticket.priority}</span></p>
+                <p className="mt-1"><span className={PRIORITY_STYLES[ticket.priority]}><span className="capitalize">{ticket.priority}</span></span></p>
               </div>
             </div>
           </div>
@@ -252,7 +254,7 @@ export default function AdminSupportShowPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 truncate">Created</p>
-                <p className="text-sm font-bold text-[#000F14]">{formatDate(ticket.created)}</p>
+                <p className="text-sm font-bold text-[#000F14]">{formatDate(ticket.created_at)}</p>
               </div>
             </div>
           </div>
@@ -263,7 +265,7 @@ export default function AdminSupportShowPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 truncate">Last Updated</p>
-                <p className="text-sm font-bold text-[#000F14]">{formatDate(ticket.updated || ticket.created)}</p>
+                <p className="text-sm font-bold text-[#000F14]">{formatDate(ticket.updated_at || ticket.created_at)}</p>
               </div>
             </div>
           </div>
@@ -311,7 +313,7 @@ export default function AdminSupportShowPage() {
                     <AlertTriangle className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-xs text-gray-500">Priority</span>
                   </div>
-                  <span className={PRIORITY_STYLES[ticket.priority]}>{ticket.priority}</span>
+                  <span className={PRIORITY_STYLES[ticket.priority]}><span className="capitalize">{ticket.priority}</span></span>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
@@ -328,14 +330,14 @@ export default function AdminSupportShowPage() {
                     <Calendar className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-xs text-gray-500">Created</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14]">{formatDate(ticket.created)}</p>
+                  <p className="text-sm font-medium text-[#000F14]">{formatDate(ticket.created_at)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Clock className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-xs text-gray-500">Updated</span>
                   </div>
-                  <p className="text-sm font-medium text-[#000F14]">{formatDate(ticket.updated || ticket.created)}</p>
+                  <p className="text-sm font-medium text-[#000F14]">{formatDate(ticket.updated_at || ticket.created_at)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
                   <div className="flex items-center gap-2 mb-1">
@@ -359,27 +361,32 @@ export default function AdminSupportShowPage() {
                 </div>
               </div>
               <div className="p-6">
-                {ticket.messages && ticket.messages.length > 0 ? (
+                {ticket.replies && ticket.replies.length > 0 ? (
                   <div className="space-y-4">
-                    {ticket.messages.map((msg, idx) => (
-                      <div key={idx} className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#0FD452]/10 flex items-center justify-center flex-shrink-0 mt-1">
-                          <User className="w-4 h-4 text-[#0FD452]" />
-                        </div>
-                        <div className="flex-1 bg-gray-50 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-[#000F14]">{textValue(msg.sender, 'User')}</span>
-                            <span className="text-xs text-gray-400">{formatDate(msg.created || msg.date)}</span>
+                    {ticket.replies.map((reply) => {
+                      const isAdmin = reply.user?.role === 'admin'
+                      return (
+                        <div key={reply.id} className="flex gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 ${isAdmin ? 'bg-blue-50' : 'bg-[#0FD452]/10'}`}>
+                            <User className={`w-4 h-4 ${isAdmin ? 'text-blue-600' : 'text-[#0FD452]'}`} />
                           </div>
-                          <p className="text-sm text-gray-600">{msg.message || msg.content || msg.text}</p>
+                          <div className={`flex-1 rounded-lg p-3 ${isAdmin ? 'bg-blue-50/60' : 'bg-gray-50'}`}>
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <span className="text-sm font-medium text-[#000F14]">
+                                {textValue(reply.user, 'User')}{isAdmin ? ' (Support)' : ''}
+                              </span>
+                              <span className="text-xs text-gray-400 whitespace-nowrap">{formatDate(reply.created_at)}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 whitespace-pre-wrap">{reply.message}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8">
                     <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                    <p className="text-sm text-gray-500">No messages yet</p>
+                    <p className="text-sm text-gray-500">No replies yet</p>
                     <p className="text-xs text-gray-400 mt-1">Click Reply to start a conversation</p>
                   </div>
                 )}
@@ -473,20 +480,20 @@ export default function AdminSupportShowPage() {
                         <p className="text-xs text-gray-500">Mark as closed</p>
                       </div>
                     </button>
-                    <button
-                      onClick={() => setShowReply(true)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full"
-                    >
-                      <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                        <Reply className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-medium text-[#000F14]">Reply</p>
-                        <p className="text-xs text-gray-500">Send a response</p>
-                      </div>
-                    </button>
                   </>
                 )}
+                <button
+                  onClick={() => setShowReply(true)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                    <Reply className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-[#000F14]">Reply</p>
+                    <p className="text-xs text-gray-500">Send a response</p>
+                  </div>
+                </button>
                 <button
                   onClick={() => setShowDelete(true)}
                   className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors group w-full"

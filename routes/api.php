@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AdminSettingController;
 use App\Http\Controllers\Api\AdminSubscriptionController;
 use App\Http\Controllers\Api\AdminSupportController;
 use App\Http\Controllers\Api\AdminUserController;
+use App\Http\Controllers\Api\SupportChatController;
 use App\Http\Controllers\Api\AdminWholesalerController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AuthController;
@@ -136,6 +137,13 @@ Route::post('/payments/webhook/crdb', [\App\Http\Controllers\Api\CardPaymentCont
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload', [UploadController::class, 'store']);
+
+    // Universal support chat - available to every authenticated panel.
+    Route::prefix('support/chat')->group(function () {
+        Route::get('/threads', [SupportChatController::class, 'index']);
+        Route::post('/threads', [SupportChatController::class, 'store']);
+        Route::post('/threads/{id}/reply', [SupportChatController::class, 'reply']);
+    });
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);

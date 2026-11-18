@@ -286,6 +286,7 @@ export const sw = {
     saleFailed: 'Mauzo hayakukamilika. Tafadhali jaribu tena.',
     downloadReceipt: 'Pakua Risiti',
     printReceipt: 'Chapisha Risiti',
+    completeWithoutReceipt: 'Kamilisha bila risiti',
     newSale: 'Uuzaji Mpya',
     items: 'Bidhaa',
     quantity: 'Idadi',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Drug;
 use App\Models\DrugMovement;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,6 +64,7 @@ class DrugMovementController extends Controller
             DB::beginTransaction();
 
             $drug = Drug::lockForUpdate()->findOrFail($validated['drug_id']);
+            $previousQuantity = (int) $drug->quantity;
 
             if ($validated['movement_type'] === 'adjustment' || $validated['movement_type'] === 'return') {
                 if ($validated['quantity'] < 0) {
@@ -84,6 +86,8 @@ class DrugMovementController extends Controller
             $movement = DrugMovement::create($validated);
 
             DB::commit();
+
+            app(NotificationService::class)->notifyLowStock($drug->fresh(), $previousQuantity);
 
             return response()->json([
                 'message' => 'Stock movement recorded successfully.',

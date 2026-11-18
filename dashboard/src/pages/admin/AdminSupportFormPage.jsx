@@ -5,7 +5,12 @@ import toast from 'react-hot-toast'
 import Modal from '../../components/Modal'
 import api from '../../services/api'
 
-const PRIORITIES = ['Low', 'Medium', 'High', 'Critical']
+const PRIORITIES = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
+]
 
 export default function AdminSupportFormPage() {
   const navigate = useNavigate()
@@ -17,7 +22,7 @@ export default function AdminSupportFormPage() {
   const [form, setForm] = useState({
     subject: '',
     pharmacy_id: '',
-    priority: 'Medium',
+    priority: 'medium',
     description: '',
   })
 
@@ -149,7 +154,7 @@ export default function AdminSupportFormPage() {
                     className={`pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0FD452] focus:border-[#0FD452] text-gray-900 text-sm ${errors.priority ? '!border-red-400' : ''}`}
                   >
                     {PRIORITIES.map((p) => (
-                      <option key={p} value={p}>{p}</option>
+                      <option key={p.value} value={p.value}>{p.label}</option>
                     ))}
                   </select>
                 </div>

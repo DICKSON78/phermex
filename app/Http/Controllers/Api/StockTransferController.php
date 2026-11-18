@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -135,14 +136,21 @@ class StockTransferController extends Controller
                 return response()->json(['message' => 'Cannot ship this transfer.'], 422);
             }
 
-            DB::transaction(function () use ($transfer) {
+            $lowStockCandidates = [];
+            DB::transaction(function () use ($transfer, &$lowStockCandidates) {
                 foreach ($transfer->items as $item) {
                     $drug = \App\Models\Drug::find($item->drug_id);
                     if ($drug) {
+                        $previousQuantity = (int) $drug->quantity;
                         $drug->decrement('quantity', $item->quantity_sent);
+                        $lowStockCandidates[] = [$drug, $previousQuantity];
                     }
                 }
             });
+
+            foreach ($lowStockCandidates as [$drug, $previousQuantity]) {
+                app(NotificationService::class)->notifyLowStock($drug->fresh(), $previousQuantity);
+            }
 
             return response()->json(['message' => 'Transfer shipped.', 'transfer' => $transfer->fresh()]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {

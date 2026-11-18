@@ -751,6 +751,18 @@ export default function DrugListPage() {
 
                     <div className="flex items-center gap-1.5">
 
+                      <Package className="w-3.5 h-3.5 text-[#0FD452]" />
+
+                      <span>Source</span>
+
+                    </div>
+
+                  </th>
+
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap">
+
+                    <div className="flex items-center gap-1.5">
+
                       <Calendar className="w-3.5 h-3.5 text-[#0FD452]" />
 
                       <span>{t('products.expiryDate')}</span>
@@ -759,7 +771,7 @@ export default function DrugListPage() {
 
                   </th>
 
-                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap">
 
                     <div className="flex items-center justify-end gap-1.5">
 
@@ -831,9 +843,9 @@ export default function DrugListPage() {
                     <td className="px-6 py-4">{getStockBadge(drug.quantity, drug.reorder_level)}</td>
                     <td className="px-6 py-4"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${drug.stock_source === 'wholesale' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{drug.stock_source || 'manual'}</span></td>
 
-                    <td className="px-6 py-4">{getExpiryBadge(drug.expiry_date)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{getExpiryBadge(drug.expiry_date)}</td>
 
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
 
                       <div className="flex items-center justify-end gap-1">
 

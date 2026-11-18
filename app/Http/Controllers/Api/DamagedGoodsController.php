@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\DamagedGood;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -60,7 +61,9 @@ class DamagedGoodsController extends Controller
 
             $drug = \App\Models\Drug::find($validated['drug_id']);
             if ($drug) {
+                $previousQuantity = (int) $drug->quantity;
                 $drug->decrement('quantity', $validated['quantity']);
+                app(NotificationService::class)->notifyLowStock($drug->fresh(), $previousQuantity);
             }
 
             return response()->json([

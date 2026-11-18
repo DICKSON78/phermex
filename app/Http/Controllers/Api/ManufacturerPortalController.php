@@ -9,6 +9,7 @@ use App\Models\ManufacturerProduct;
 use App\Models\ManufacturerRecall;
 use App\Models\SupportTicket;
 use App\Models\TicketReply;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -1706,6 +1707,13 @@ class ManufacturerPortalController extends Controller
             'status' => 'open',
         ]);
 
+        app(NotificationService::class)->notifyAdmins(
+            'New manufacturer support ticket',
+            $request->user()->name.': '.mb_substr($ticket->subject, 0, 140),
+            'info',
+            '/dashboard/support/'.$ticket->id
+        );
+
         return response()->json([
             'message' => 'Support ticket created. Our team will respond shortly.',
             'ticket' => $ticket->load('replies.user:id,name'),
@@ -1729,6 +1737,14 @@ class ManufacturerPortalController extends Controller
         if (in_array($ticket->status, ['resolved', 'closed'], true)) {
             $ticket->update(['status' => 'open', 'resolved_at' => null, 'closed_at' => null]);
         }
+
+        app(NotificationService::class)->notifyAdmins(
+            'New manufacturer support reply',
+            $request->user()->name.': '.mb_substr($validated['message'], 0, 140),
+            'info',
+            '/dashboard/support/'.$ticket->id,
+            $request->user()->id
+        );
 
         return response()->json([
             'message' => 'Reply sent.',

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Routes, Route, NavLink, Navigate, useLocation, useNavigate, Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { useAuth } from '../contexts/AuthContext'
 import api, { notifications as notificationsApi } from '../services/api'
 
@@ -589,6 +590,7 @@ export default function DashboardLayout({ role }) {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [notifications, setNotifications] = useState(0)
   const [badgeCounts, setBadgeCounts] = useState({})
+  const knownNotifIdsRef = useRef(null)
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout, pharmacyId, switchPharmacy, subscription } = useAuth()
@@ -661,8 +663,38 @@ export default function DashboardLayout({ role }) {
       }
     }
     loadCounts()
-    return () => { active = false }
+    const id = setInterval(loadCounts, 20000)
+    return () => { active = false; clearInterval(id) }
   }, [location.pathname])
+
+  // Poll the newest notifications so messages, low stock and system alerts
+  // appear without waiting for a page refresh.
+  useEffect(() => {
+    let active = true
+    const loadLatest = async (showToasts) => {
+      try {
+        const { data } = await notificationsApi.getAll({ per_page: 8 })
+        const list = data?.notifications || []
+        if (!active) return
+        setNotifList(list)
+        const known = knownNotifIdsRef.current
+        if (known && showToasts) {
+          list
+            .filter((n) => !known.includes(n.id) && !n.is_read)
+            .slice(0, 3)
+            .forEach((n) => {
+              const body = `${n.title}${n.message ? `: ${n.message}` : ''}`
+              if (['danger', 'error', 'warning'].includes(n.type)) toast.error(body, { duration: 6000 })
+              else toast(body, { duration: 6000, icon: '🔔' })
+            })
+        }
+        knownNotifIdsRef.current = list.map((n) => n.id)
+      } catch { /* non-blocking */ }
+    }
+    loadLatest(false)
+    const id = setInterval(() => loadLatest(true), 20000)
+    return () => { active = false; clearInterval(id) }
+  }, [])
 
   // Auto-expand group that contains active item
   useEffect(() => {
@@ -686,11 +718,15 @@ export default function DashboardLayout({ role }) {
   const toggleNotif = async () => {
     const next = !notifOpen
     setNotifOpen(next)
-    if (next && notifList.length === 0) {
+    if (next) {
       setNotifLoading(true)
       try {
         const { data } = await notificationsApi.getAll({ per_page: 8 })
-        setNotifList(data.notifications || [])
+        const list = data.notifications || []
+        setNotifList(list)
+        knownNotifIdsRef.current = list.map((n) => n.id)
+        const countRes = await api.get('/notifications/unread-count')
+        setNotifications(countRes.data?.unread_count || 0)
       } catch {
         setNotifList([])
       } finally {
@@ -706,6 +742,7 @@ export default function DashboardLayout({ role }) {
       if (!n.is_read) {
         await notificationsApi.markAsRead(n.id)
         setNotifications(prev => Math.max(0, prev - 1))
+        setNotifList(prev => prev.map((item) => (item.id === n.id ? { ...item, is_read: true } : item)))
       }
     } catch { /* non-blocking */ }
     setNotifOpen(false)
@@ -1019,9 +1056,7 @@ export default function DashboardLayout({ role }) {
         {sidebarContent}
       </aside>
 
-      {role === 'owner' && (
-        <SupportChatWidget />
-      )}
+      <SupportChatWidget role={role} />
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden">

@@ -95,6 +95,16 @@ export default function POSPage() {
 
   const searchInputRef = useRef(null)
 
+  // Resolve the active price list for one drug. Cart lines keep their own
+  // priceType so a mixed retail/wholesale basket is billed per line.
+  const priceForTab = useCallback((drug, tab) => {
+    const priceType = tab === 'wholesale' && Number(drug.wholesale_price) > 0 ? 'wholesale' : 'retail'
+    const unitPrice = priceType === 'wholesale'
+      ? Number(drug.wholesale_price)
+      : (Number(drug.selling_price) || Number(drug.price) || 0)
+    return { priceType, unitPrice }
+  }, [])
+
   useEffect(() => {
     const fetchDrugs = async () => {
       try {
@@ -128,6 +138,24 @@ export default function POSPage() {
     }
   }, [])
 
+  // Switching the retail/wholesale tab must reprice the basket in place.
+  // Previously the tab only changed the highlight, so tapping the same drug
+  // again to "change the price" incremented its quantity instead — the line
+  // total then looked doubled.
+  useEffect(() => {
+    setCart((prev) => {
+      if (!prev.length) return prev
+      let changed = false
+      const next = prev.map((item) => {
+        const { priceType, unitPrice } = priceForTab(item, activeTab)
+        if (item.priceType === priceType && Number(item.price) === unitPrice) return item
+        changed = true
+        return { ...item, priceType, price: unitPrice }
+      })
+      return changed ? next : prev
+    })
+  }, [activeTab, priceForTab])
+
   const handleSearchKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
       const match = drugs.find(
@@ -155,19 +183,20 @@ export default function POSPage() {
   const addToCart = (drug, quantity = 1) => {
     if (drug.stock <= 0) return
     if (quantity > drug.stock) return
-    // Wholesale purchases use the wholesale price when the drug has one. The
-    // chosen price is stored on the cart line so switching tabs afterwards does
-    // not silently reprice items that are already in the basket.
-    const priceType = activeTab === 'wholesale' && drug.wholesale_price > 0 ? 'wholesale' : 'retail'
-    const unitPrice = priceType === 'wholesale' ? drug.wholesale_price : (drug.selling_price || drug.price)
+    const { priceType, unitPrice } = priceForTab(drug, activeTab)
     setCart((prev) => {
       const existing = prev.find((item) => item.id === drug.id)
       if (existing) {
+        // A different price type means the cashier is switching this line's
+        // price, not adding more units. Reprice only, never change quantity here.
+        if (existing.priceType !== priceType) {
+          return prev.map((item) =>
+            item.id === drug.id ? { ...item, price: unitPrice, priceType } : item
+          )
+        }
         if (existing.quantity + quantity > drug.stock) return prev
         return prev.map((item) =>
-          item.id === drug.id
-            ? { ...item, quantity: existing.quantity + quantity, price: unitPrice, priceType }
-            : item
+          item.id === drug.id ? { ...item, quantity: existing.quantity + quantity } : item
         )
       }
       return [...prev, { ...drug, quantity, price: unitPrice, priceType }]
@@ -253,15 +282,16 @@ export default function POSPage() {
     }
     try {
       const orderData = {
+        // Send the price list per line so mixed baskets are billed exactly as
+        // shown in the cart receipt. The order-level flag is a fallback only.
         items: cart.map((item) => ({
           drug_id: item.id,
           quantity: item.quantity,
+          price_type: item.priceType || 'retail',
         })),
         customer_id: customer.id,
         order_type: 'counter',
-        // The server recomputes line prices, so it must know which price list
-        // this sale used or a wholesale basket would be billed at retail.
-        price_type: cart.some((item) => item.priceType === 'wholesale') ? 'wholesale' : 'retail',
+        price_type: activeTab === 'wholesale' ? 'wholesale' : 'retail',
         payment_method: paymentMethod,
         discount: discountAmount,
         tax: taxAmount,
@@ -534,6 +564,9 @@ export default function POSPage() {
                         addToCart(drug, quickSelectQty[drug.id] || 1)
                       }}
                       onKeyDown={(e) => {
+                        // Let the inner quantity button handle its own Enter/Space
+                        // so one keypress cannot add the drug twice.
+                        if (e.target.closest('button, input')) return
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault()
                           addToCart(drug, quickSelectQty[drug.id] || 1)
@@ -835,7 +868,14 @@ export default function POSPage() {
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Actions — the sale is already recorded; print/download are optional */}
+            <button
+              onClick={() => { setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
+              className="w-full mb-2 py-3 bg-primary text-dark rounded-lg text-sm font-bold hover:bg-[#0bc246] transition flex items-center justify-center gap-2"
+            >
+              <CheckCircle className="w-4 h-4" />
+              {t('pos.completeWithoutReceipt')}
+            </button>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => { downloadPdf(); setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
@@ -846,18 +886,12 @@ export default function POSPage() {
               </button>
               <button
                 onClick={() => { printReceipt(); setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
-                className="py-2.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-[#0bc246] transition flex items-center justify-center gap-1.5"
+                className="py-2.5 border border-gray-200 text-gray-600 rounded-lg text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1.5"
               >
                 <Printer className="w-4 h-4" />
                 {t('pos.printReceipt')}
               </button>
             </div>
-            <button
-              onClick={() => { setSaleComplete(null); if (searchInputRef.current) searchInputRef.current.focus() }}
-              className="w-full mt-2 py-2.5 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-50 transition"
-            >
-              {t('pos.newSale')}
-            </button>
           </div>
         </div>
       )}

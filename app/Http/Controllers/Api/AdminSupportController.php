@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use App\Models\TicketReply;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -71,6 +72,7 @@ class AdminSupportController extends Controller
             $validated['status'] = 'open';
 
             $ticket = SupportTicket::create($validated);
+            $this->notifyNewTicket($ticket);
 
             return response()->json([
                 'message' => 'Support ticket created.',
@@ -175,7 +177,7 @@ class AdminSupportController extends Controller
             $ticket = SupportTicket::findOrFail($id);
 
             $validated = $request->validate([
-                'message' => 'required|string',
+                'message' => 'required|string|max:5000',
             ]);
 
             $reply = TicketReply::create([
@@ -184,9 +186,17 @@ class AdminSupportController extends Controller
                 'message' => $validated['message'],
             ]);
 
-            if ($ticket->status === 'open') {
-                $ticket->update(['status' => 'in_progress']);
+            // Replying reopens a finished ticket so the customer can continue
+            // the conversation, matching the manufacturer/customer portals.
+            if (in_array($ticket->status, ['open', 'resolved', 'closed'], true)) {
+                $ticket->update([
+                    'status' => 'in_progress',
+                    'resolved_at' => null,
+                    'closed_at' => null,
+                ]);
             }
+
+            $this->notifyReply($ticket, $request->user(), $validated['message']);
 
             return response()->json([
                 'message' => 'Reply added.',
@@ -246,6 +256,7 @@ class AdminSupportController extends Controller
             $validated['status'] = 'open';
 
             $ticket = SupportTicket::create($validated);
+            $this->notifyNewTicket($ticket);
 
             return response()->json([
                 'message' => 'Support ticket created. The admin team will respond shortly.',
@@ -287,6 +298,16 @@ class AdminSupportController extends Controller
                 'message' => $validated['message'],
             ]);
 
+            if (in_array($ticket->status, ['resolved', 'closed'], true)) {
+                $ticket->update([
+                    'status' => 'in_progress',
+                    'resolved_at' => null,
+                    'closed_at' => null,
+                ]);
+            }
+
+            $this->notifyReply($ticket, $user, $validated['message']);
+
             return response()->json([
                 'message' => 'Reply added.',
                 'data' => $reply->load('user'),
@@ -303,6 +324,47 @@ class AdminSupportController extends Controller
                 'message' => 'Failed to add reply.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error.',
             ], 500);
+        }
+    }
+
+    private function notifyNewTicket(SupportTicket $ticket): void
+    {
+        $user = $ticket->user;
+        $source = $user?->role === 'manufacturer'
+            ? 'Manufacturer'
+            : ($user?->role === 'wholesaler' ? 'Wholesaler' : 'Pharmacy');
+
+        app(NotificationService::class)->notifyAdmins(
+            'New support ticket',
+            ($user->name ?? 'Someone')." ({$source}): ".mb_substr($ticket->subject, 0, 140),
+            'info',
+            '/dashboard/support/'.$ticket->id,
+            $ticket->user_id
+        );
+    }
+
+    private function notifyReply(SupportTicket $ticket, $actor, string $message): void
+    {
+        $notifications = app(NotificationService::class);
+        $excerpt = mb_substr($message, 0, 140);
+
+        if ($actor->isAdmin()) {
+            $notifications->notifyUser(
+                (int) $ticket->user_id,
+                $ticket->pharmacy_id ? (int) $ticket->pharmacy_id : null,
+                'Support team replied',
+                $excerpt,
+                'info',
+                $ticket->pharmacy_id ? '/dashboard/support' : '/dashboard/notifications'
+            );
+        } else {
+            $notifications->notifyAdmins(
+                'New support reply',
+                ($actor->name ?? 'Someone').': '.$excerpt,
+                'info',
+                '/dashboard/support/'.$ticket->id,
+                $actor->id
+            );
         }
     }
 }

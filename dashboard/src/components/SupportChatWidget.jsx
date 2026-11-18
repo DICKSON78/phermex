@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Loader2, MessageCircle, Send, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronDown, Loader2, MessageCircle, Send, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
 
-const POLL_MS = 15000
+const POLL_MS = 10000
 const HEADER_GRADIENT = 'linear-gradient(180deg, #0a1f14 0%, #0d2b1c 50%, #071a0f 100%)'
 const ENDED_STATUSES = ['resolved', 'closed']
 
@@ -14,7 +14,7 @@ function buildMessages(ticket, userId) {
   const items = [
     {
       id: `ticket-${ticket.id}`,
-      mine: ticket.user_id === userId,
+      mine: Number(ticket.user_id) === Number(userId),
       body: ticket.description,
       at: ticket.created_at,
       name: ticket.user?.name,
@@ -23,7 +23,7 @@ function buildMessages(ticket, userId) {
   ;(ticket.replies || []).forEach((reply) => {
     items.push({
       id: `reply-${reply.id}`,
-      mine: reply.user_id === userId,
+      mine: Number(reply.user_id) === Number(userId),
       body: reply.message,
       at: reply.created_at,
       name: reply.user?.name,
@@ -39,36 +39,55 @@ function formatTime(value) {
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
 
-export default function SupportChatWidget() {
-  const { user, pharmacyId } = useAuth()
+function threadLabel(ticket) {
+  const source = ticket.source || 'Support'
+  const name = ticket.user?.name || 'Conversation'
+  return `#${ticket.id} · ${source} · ${name}`
+}
+
+export default function SupportChatWidget({ role }) {
+  const { user } = useAuth()
   const { t } = useLanguage()
   const [open, setOpen] = useState(false)
-  const [ticket, setTicket] = useState(null)
-  const [messages, setMessages] = useState([])
+  const [tickets, setTickets] = useState([])
+  const [selectedId, setSelectedId] = useState('new')
   const [loading, setLoading] = useState(false)
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const listRef = useRef(null)
 
-  const loadConversation = useCallback(async () => {
+  const activeRole = user?.role || role
+  const isSuperadmin = activeRole === 'admin'
+
+  const loadThreads = useCallback(async () => {
     try {
-      const res = await api.get('/support/tickets')
-      const list = res.data?.data || []
-      const active = list.find((tk) => !ENDED_STATUSES.includes(tk.status)) || null
-      setTicket(active)
-      setMessages(buildMessages(active, user?.id))
+      const res = await api.get('/support/chat/threads')
+      const list = res.data?.tickets || res.data?.data || []
+      setTickets(list)
+      setSelectedId((current) => {
+        if (current === 'new') return 'new'
+        if (list.some((ticket) => String(ticket.id) === String(current))) return current
+        const active = list.find((ticket) => !ENDED_STATUSES.includes(ticket.status))
+        return active ? String(active.id) : 'new'
+      })
     } catch {
       // Keep the last loaded conversation on a failed poll.
     }
-  }, [user?.id])
+  }, [])
 
   useEffect(() => {
     if (!open) return undefined
     setLoading(true)
-    loadConversation().finally(() => setLoading(false))
-    const id = setInterval(loadConversation, POLL_MS)
+    loadThreads().finally(() => setLoading(false))
+    const id = setInterval(loadThreads, POLL_MS)
     return () => clearInterval(id)
-  }, [open, loadConversation])
+  }, [open, loadThreads])
+
+  const currentTicket = useMemo(
+    () => tickets.find((ticket) => String(ticket.id) === String(selectedId)) || null,
+    [tickets, selectedId]
+  )
+  const messages = useMemo(() => buildMessages(currentTicket, user?.id), [currentTicket, user?.id])
 
   useEffect(() => {
     if (listRef.current) {
@@ -82,19 +101,19 @@ export default function SupportChatWidget() {
     if (!body || sending) return
     setSending(true)
     try {
-      if (ticket) {
-        await api.post(`/support/tickets/${ticket.id}/reply`, { message: body })
+      if (currentTicket) {
+        await api.post(`/support/chat/threads/${currentTicket.id}/reply`, { message: body })
       } else {
-        await api.post('/support/tickets', {
-          pharmacy_id: pharmacyId,
-          subject: t('support.chat.subject', 'Live chat support'),
+        const res = await api.post('/support/chat/threads', {
+          subject: body.length > 60 ? `${body.slice(0, 57)}...` : body,
           description: body,
-          category: 'Live Chat',
           priority: 'medium',
         })
+        const created = res.data?.ticket || res.data?.data
+        if (created?.id) setSelectedId(String(created.id))
       }
       setText('')
-      await loadConversation()
+      await loadThreads()
     } catch (error) {
       toast.error(error.response?.data?.message || t('support.chat.sendFailed', 'Message could not be sent'))
     } finally {
@@ -122,10 +141,14 @@ export default function SupportChatWidget() {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0FD452]/20">
             <MessageCircle className="h-5 w-5 text-[#0FD452]" />
           </div>
-          <div>
-            <p className="text-sm font-bold">{t('support.chat.title', 'Helix Support')}</p>
-            <p className="text-xs text-white/60">
-              {t('support.chat.subtitle', 'Ask us anything about your pharmacy account')}
+          <div className="min-w-0">
+            <p className="text-sm font-bold">
+              {isSuperadmin ? 'Superadmin support desk' : t('support.chat.title', 'Helix Support')}
+            </p>
+            <p className="truncate text-xs text-white/60">
+              {isSuperadmin
+                ? 'Reply to pharmacies, manufacturers and wholesalers'
+                : t('support.chat.subtitle', 'Chat with the Helix support team')}
             </p>
           </div>
         </div>
@@ -137,6 +160,27 @@ export default function SupportChatWidget() {
           <X className="h-5 w-5" />
         </button>
       </div>
+
+      {tickets.length > 0 && (
+        <div className="border-b border-gray-200 bg-white px-3 py-2">
+          <div className="relative">
+            <select
+              value={String(selectedId)}
+              onChange={(e) => setSelectedId(e.target.value)}
+              className="w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 pr-8 text-xs font-medium text-gray-700 outline-none focus:border-[#0FD452]"
+              aria-label="Choose conversation"
+            >
+              {tickets.map((ticket) => (
+                <option key={ticket.id} value={String(ticket.id)}>
+                  {threadLabel(ticket)}
+                </option>
+              ))}
+              <option value="new">+ New conversation</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          </div>
+        </div>
+      )}
 
       <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto bg-[#f5f7f5] p-4">
         {loading && messages.length === 0 ? (
@@ -156,7 +200,9 @@ export default function SupportChatWidget() {
         ) : (
           messages.map((m) => (
             <div key={m.id} className={`flex flex-col ${m.mine ? 'items-end' : 'items-start'}`}>
-              {!m.mine && m.name && <span className="mb-1 text-[11px] font-semibold text-gray-500">{m.name}</span>}
+              {!m.mine && m.name && (
+                <span className="mb-1 text-[11px] font-semibold text-gray-500">{m.name}</span>
+              )}
               <div
                 className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   m.mine

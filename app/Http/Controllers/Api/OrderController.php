@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\LoyaltyService;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -81,6 +82,7 @@ class OrderController extends Controller
                 'items' => 'required|array|min:1',
                 'items.*.drug_id' => 'required|exists:drugs,id',
                 'items.*.quantity' => 'required|integer|min:1',
+                'items.*.price_type' => 'sometimes|in:retail,wholesale',
                 'discount' => 'sometimes|numeric|min:0',
                 'tax' => 'sometimes|numeric|min:0',
                 'payment_method' => 'sometimes|in:cash,card,mobile,bank,mobile_money,bank_transfer',
@@ -100,6 +102,7 @@ class OrderController extends Controller
 
             $subtotal = 0;
             $orderItems = [];
+            $lowStockCandidates = [];
 
             foreach ($validated['items'] as $item) {
                 $drug = Drug::lockForUpdate()->findOrFail($item['drug_id']);
@@ -128,7 +131,10 @@ class OrderController extends Controller
                     ], 422);
                 }
 
-                $unitPrice = ($validated['price_type'] ?? 'retail') === 'wholesale' && $drug->wholesale_price > 0
+                // Per-line price type wins so a mixed retail/wholesale basket is
+                // billed exactly as the cashier saw it in the POS cart.
+                $linePriceType = $item['price_type'] ?? ($validated['price_type'] ?? 'retail');
+                $unitPrice = $linePriceType === 'wholesale' && $drug->wholesale_price > 0
                     ? $drug->wholesale_price
                     : $drug->selling_price;
 
@@ -143,7 +149,9 @@ class OrderController extends Controller
                         continue;
                     }
 
+                    $previousQuantity = (int) $batch->quantity;
                     $batch->decrement('quantity', $take);
+                    $lowStockCandidates[] = [$batch, $previousQuantity];
 
                     DrugMovement::create([
                         'pharmacy_id' => $validated['pharmacy_id'],
@@ -191,6 +199,10 @@ class OrderController extends Controller
             $order->items()->createMany($orderItems);
 
             DB::commit();
+
+            foreach ($lowStockCandidates as [$drug, $previousQuantity]) {
+                app(NotificationService::class)->notifyLowStock($drug->fresh(), $previousQuantity);
+            }
 
             return response()->json([
                 'message' => 'Order created successfully.',

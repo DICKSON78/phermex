@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Drug;
 use App\Models\DrugCategory;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -111,6 +112,11 @@ class DrugController extends Controller
 
             $drug = Drug::create($validated);
 
+            $reorder = (int) ($drug->reorder_level ?? 0);
+            if ($drug->quantity <= $reorder) {
+                app(NotificationService::class)->notifyLowStock($drug, $reorder + 1);
+            }
+
             return response()->json([
                 'message' => 'Drug created successfully.',
                 'drug' => $drug->load('category'),
@@ -194,7 +200,9 @@ class DrugController extends Controller
 
             unset($validated['image']);
 
+            $previousQuantity = (int) $drug->quantity;
             $drug->update($validated);
+            app(NotificationService::class)->notifyLowStock($drug->fresh(), $previousQuantity);
 
             return response()->json([
                 'message' => 'Drug updated successfully.',

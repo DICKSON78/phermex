@@ -15,6 +15,7 @@ use App\Models\Prescription;
 use App\Models\SupportTicket;
 use App\Models\TicketReply;
 use App\Models\User;
+use App\Services\NotificationService;
 use App\Support\CacheKey;
 use App\Support\OrderProgress;
 use App\Support\Search;
@@ -480,6 +481,7 @@ class CustomerAppController extends Controller
             $pharmacy = Pharmacy::findOrFail($validated['pharmacy_id']);
             $subtotal = 0;
             $orderItems = [];
+            $lowStockCandidates = [];
 
             $orderCode = 'ORD-'.now()->format('Y').'-'.strtoupper(Str::random(5));
 
@@ -516,7 +518,9 @@ class CustomerAppController extends Controller
                     'total_price' => $totalPrice,
                 ];
 
+                $previousQuantity = (int) $drug->quantity;
                 $drug->decrement('quantity', $item['quantity']);
+                $lowStockCandidates[] = [$drug, $previousQuantity];
 
                 DrugMovement::create([
                     'pharmacy_id' => $pharmacy->id,
@@ -603,6 +607,10 @@ class CustomerAppController extends Controller
             $order->load('items.drug', 'pharmacy', 'user');
 
             DB::commit();
+
+            foreach ($lowStockCandidates as [$drug, $previousQuantity]) {
+                app(NotificationService::class)->notifyLowStock($drug->fresh(), $previousQuantity);
+            }
 
             return response()->json([
                 'message' => 'Order placed successfully.',
@@ -940,6 +948,14 @@ class CustomerAppController extends Controller
 
             $ticket = SupportTicket::create($validated);
 
+            app(NotificationService::class)->notifyAdmins(
+                'New customer support ticket',
+                $request->user()->name.': '.mb_substr($ticket->subject, 0, 140),
+                'info',
+                '/dashboard/support/'.$ticket->id,
+                $ticket->user_id
+            );
+
             return response()->json([
                 'message' => 'Support ticket submitted. We will get back to you.',
                 'data' => $ticket->load('pharmacy'),
@@ -974,9 +990,21 @@ class CustomerAppController extends Controller
                 'message' => $validated['message'],
             ]);
 
-            if ($ticket->status === 'closed') {
-                $ticket->update(['status' => 'open']);
+            if (in_array($ticket->status, ['resolved', 'closed'], true)) {
+                $ticket->update([
+                    'status' => 'open',
+                    'resolved_at' => null,
+                    'closed_at' => null,
+                ]);
             }
+
+            app(NotificationService::class)->notifyAdmins(
+                'New customer support reply',
+                $request->user()->name.': '.mb_substr($validated['message'], 0, 140),
+                'info',
+                '/dashboard/support/'.$ticket->id,
+                $ticket->user_id
+            );
 
             return response()->json([
                 'message' => 'Reply added.',

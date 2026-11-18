@@ -19,15 +19,23 @@ import {
   ShieldCheck,
   Calendar,
   Zap,
+  Reply,
 } from 'lucide-react'
 import api from '../../services/api'
 import { textValue } from '../../utils/text'
 
 const PRIORITY_STYLES = {
-  Low: 'badge badge-gray',
-  Medium: 'badge badge-yellow',
-  High: 'badge bg-orange-100 text-orange-700',
-  Critical: 'badge badge-red',
+  low: 'badge badge-gray',
+  medium: 'badge badge-yellow',
+  high: 'badge bg-orange-100 text-orange-700',
+  urgent: 'badge badge-red',
+}
+
+const PRIORITY_LABELS = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  urgent: 'Urgent',
 }
 
 const STATUS_STYLES = {
@@ -44,8 +52,31 @@ const STATUS_LABELS = {
   closed: 'Closed',
 }
 
-const PRIORITIES = ['Low', 'Medium', 'High', 'Critical']
+const PRIORITIES = ['low', 'medium', 'high', 'urgent']
 const STATUSES = ['open', 'in_progress', 'resolved', 'closed']
+const SOURCES = ['Pharmacy', 'Manufacturer', 'Wholesaler', 'Customer', 'Superadmin']
+
+const SOURCE_STYLES = {
+  Pharmacy: 'badge badge-green',
+  Manufacturer: 'badge badge-blue',
+  Wholesaler: 'badge badge-yellow',
+  Customer: 'badge badge-purple',
+  Superadmin: 'badge badge-gray',
+}
+
+function sourceOf(ticket) {
+  const category = String(ticket.category || '')
+  if (/manufacturer/i.test(category)) return 'Manufacturer'
+  if (/wholesaler/i.test(category)) return 'Wholesaler'
+  if (/customer/i.test(category)) return 'Customer'
+  if (/superadmin/i.test(category)) return 'Superadmin'
+  const role = ticket.user?.role
+  if (role === 'manufacturer') return 'Manufacturer'
+  if (role === 'wholesaler') return 'Wholesaler'
+  if (role === 'customer') return 'Customer'
+  if (role === 'admin') return 'Superadmin'
+  return 'Pharmacy'
+}
 
 export default function AdminSupportPage() {
   const navigate = useNavigate()
@@ -55,6 +86,7 @@ export default function AdminSupportPage() {
   const [search, setSearch] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [sourceFilter, setSourceFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 10
 
@@ -64,7 +96,7 @@ export default function AdminSupportPage() {
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, priorityFilter, statusFilter])
+  }, [search, priorityFilter, statusFilter, sourceFilter])
 
   const fetchTickets = async () => {
     try {
@@ -134,6 +166,7 @@ export default function AdminSupportPage() {
     }
     if (priorityFilter && t.priority !== priorityFilter) return false
     if (statusFilter && t.status !== statusFilter) return false
+    if (sourceFilter && sourceOf(t) !== sourceFilter) return false
     return true
   })
 
@@ -193,7 +226,7 @@ export default function AdminSupportPage() {
 
       <div className="card">
         <div className="p-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
@@ -205,13 +238,23 @@ export default function AdminSupportPage() {
               />
             </div>
             <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
+            >
+              <option value="">All Sources</option>
+              {SOURCES.map((source) => (
+                <option key={source} value={source}>{source}</option>
+              ))}
+            </select>
+            <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-[#000F14] outline-none transition-all focus:border-[#0FD452] focus:ring-2 focus:ring-[#0FD452]/20"
             >
               <option value="">All Priorities</option>
               {PRIORITIES.map((p) => (
-                <option key={p} value={p}>{p}</option>
+                <option key={p} value={p}>{PRIORITY_LABELS[p]}</option>
               ))}
             </select>
             <select
@@ -260,6 +303,12 @@ export default function AdminSupportPage() {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <div className="flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#0FD452]" />
+                      <span>Source</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <div className="flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5 text-[#0FD452]" />
                       <span>Priority</span>
                     </div>
@@ -298,12 +347,17 @@ export default function AdminSupportPage() {
                     <td className="px-6 py-4 font-medium text-sm text-[#000F14] max-w-xs truncate">{ticket.subject}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{textValue(ticket.pharmacy)}</td>
                     <td className="px-6 py-4">
-                      <span className={PRIORITY_STYLES[ticket.priority]}>{ticket.priority}</span>
+                      <span className={SOURCE_STYLES[sourceOf(ticket)] || 'badge badge-gray'}>{sourceOf(ticket)}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={PRIORITY_STYLES[ticket.priority]}>{PRIORITY_LABELS[ticket.priority] || ticket.priority}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={STATUS_STYLES[ticket.status]}>{STATUS_LABELS[ticket.status]}</span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{ticket.created}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
@@ -312,6 +366,13 @@ export default function AdminSupportPage() {
                           title="View"
                         >
                           <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => navigate('/dashboard/support/' + ticket.id)}
+                          className="btn-icon-blue"
+                          title="Reply"
+                        >
+                          <Reply className="h-4 w-4" />
                         </button>
                         {ticket.status !== 'resolved' && ticket.status !== 'closed' && (
                           <button

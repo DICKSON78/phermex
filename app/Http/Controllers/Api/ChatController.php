@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Models\Pharmacy;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,13 +63,27 @@ class ChatController extends Controller
             $userId = $request->user()->id;
             $pharmacy = Pharmacy::findOrFail($pharmacyId);
 
-            $messages = Message::conversation($userId, $pharmacy->owner_id, $pharmacyId)
+            // A customer may be answered by the owner or by any pharmacy
+            // staff member, so the whole pharmacy team is part of the thread.
+            $staffIds = $this->pharmacyStaffIds($pharmacy);
+
+            $messages = Message::withoutGlobalScope('tenant')
+                ->where('pharmacy_id', $pharmacy->id)
+                ->where(function ($q) use ($userId, $staffIds) {
+                    $q->where(function ($q) use ($userId, $staffIds) {
+                        $q->where('sender_id', $userId)->whereIn('receiver_id', $staffIds);
+                    })->orWhere(function ($q) use ($userId, $staffIds) {
+                        $q->whereIn('sender_id', $staffIds)->where('receiver_id', $userId);
+                    });
+                })
                 ->with('sender')
+                ->orderBy('created_at')
                 ->get();
 
-            // Mark pharmacy→customer as read
-            Message::where('pharmacy_id', $pharmacyId)
-                ->where('sender_id', $pharmacy->owner_id)
+            // Mark pharmacy→customer messages as read.
+            Message::withoutGlobalScope('tenant')
+                ->where('pharmacy_id', $pharmacy->id)
+                ->whereIn('sender_id', $staffIds)
                 ->where('receiver_id', $userId)
                 ->where('is_read', false)
                 ->update(['is_read' => true]);
@@ -107,6 +122,14 @@ class ChatController extends Controller
                 'is_read' => false,
             ]);
 
+            app(NotificationService::class)->notifyPharmacy(
+                $pharmacy,
+                'New customer chat',
+                $user->name.': '.mb_substr($validated['message'], 0, 140),
+                'info',
+                '/dashboard/chats/'.$user->id
+            );
+
             $msg->load('sender');
 
             return response()->json([
@@ -128,8 +151,9 @@ class ChatController extends Controller
             $userId = $request->user()->id;
             $pharmacy = Pharmacy::findOrFail($pharmacyId);
 
-            Message::where('pharmacy_id', $pharmacyId)
-                ->where('sender_id', $pharmacy->owner_id)
+            Message::withoutGlobalScope('tenant')
+                ->where('pharmacy_id', $pharmacy->id)
+                ->whereIn('sender_id', $this->pharmacyStaffIds($pharmacy))
                 ->where('receiver_id', $userId)
                 ->where('is_read', false)
                 ->update(['is_read' => true]);
@@ -159,6 +183,18 @@ class ChatController extends Controller
         return Pharmacy::find($pharmacyId);
     }
 
+    /** Owner plus every staff member attached to the pharmacy. */
+    private function pharmacyStaffIds(Pharmacy $pharmacy): array
+    {
+        $ids = [$pharmacy->owner_id];
+
+        foreach ($pharmacy->users()->pluck('users.id') as $userId) {
+            $ids[] = $userId;
+        }
+
+        return array_values(array_unique(array_filter($ids)));
+    }
+
     public function pharmacyConversations(Request $request): JsonResponse
     {
         try {
@@ -169,29 +205,41 @@ class ChatController extends Controller
                 return response()->json(['message' => 'No pharmacy found.'], 404);
             }
 
-            $conversations = Message::selectRaw('CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END as other_user_id, MAX(id) as last_id, COUNT(CASE WHEN receiver_id = ? AND is_read = 0 THEN 1 END) as unread_count', [$userId, $userId])
+            $staffIds = $this->pharmacyStaffIds($pharmacy);
+
+            $conversations = Message::withoutGlobalScope('tenant')
                 ->where('pharmacy_id', $pharmacy->id)
-                ->where(function ($q) use ($userId) {
-                    $q->where('sender_id', $userId)->orWhere('receiver_id', $userId);
+                ->where(function ($q) use ($staffIds) {
+                    $q->where(function ($q) use ($staffIds) {
+                        $q->whereIn('sender_id', $staffIds)->whereNotIn('receiver_id', $staffIds);
+                    })->orWhere(function ($q) use ($staffIds) {
+                        $q->whereNotIn('sender_id', $staffIds)->whereIn('receiver_id', $staffIds);
+                    });
                 })
-                ->groupBy('other_user_id')
-                ->orderByDesc('last_id')
+                ->with('sender')
+                ->orderByDesc('id')
                 ->get()
-                ->map(function ($c) use ($userId) {
-                    $last = Message::with('sender')->find($c->last_id);
-                    $otherUserId = $c->other_user_id;
+                ->groupBy(function ($message) use ($staffIds) {
+                    return in_array((int) $message->sender_id, $staffIds, true)
+                        ? $message->receiver_id
+                        : $message->sender_id;
+                })
+                ->map(function ($items, $otherUserId) use ($userId) {
+                    $last = $items->first();
                     $otherUser = User::find($otherUserId);
 
                     return [
-                        'customer_id' => $otherUserId,
+                        'customer_id' => (int) $otherUserId,
                         'customer_name' => $otherUser->name ?? 'Customer',
                         'customer_phone' => $otherUser->phone ?? '',
                         'last_message' => $last->message,
                         'last_message_time' => $last->created_at,
-                        'unread_count' => (int) $c->unread_count,
+                        'unread_count' => (int) $items->where('receiver_id', $userId)->where('is_read', false)->count(),
                         'message_type' => $last->message_type,
                     ];
-                });
+                })
+                ->sortByDesc('last_message_time')
+                ->values();
 
             return response()->json([
                 'message' => 'Conversations retrieved.',
@@ -212,12 +260,24 @@ class ChatController extends Controller
                 return response()->json(['message' => 'No pharmacy found.'], 404);
             }
 
-            $messages = Message::conversation($customerId, $userId, $pharmacy->id)
+            $staffIds = $this->pharmacyStaffIds($pharmacy);
+
+            $messages = Message::withoutGlobalScope('tenant')
+                ->where('pharmacy_id', $pharmacy->id)
+                ->where(function ($q) use ($customerId, $staffIds) {
+                    $q->where(function ($q) use ($customerId, $staffIds) {
+                        $q->where('sender_id', $customerId)->whereIn('receiver_id', $staffIds);
+                    })->orWhere(function ($q) use ($customerId, $staffIds) {
+                        $q->whereIn('sender_id', $staffIds)->where('receiver_id', $customerId);
+                    });
+                })
                 ->with('sender')
+                ->orderBy('created_at')
                 ->get();
 
-            // Mark customer→pharmacy as read
-            Message::where('pharmacy_id', $pharmacy->id)
+            // Mark customer→pharmacy messages read for the current user.
+            Message::withoutGlobalScope('tenant')
+                ->where('pharmacy_id', $pharmacy->id)
                 ->where('sender_id', $customerId)
                 ->where('receiver_id', $userId)
                 ->where('is_read', false)
@@ -246,14 +306,25 @@ class ChatController extends Controller
                 return response()->json(['message' => 'No pharmacy found.'], 404);
             }
 
+            $customer = User::findOrFail($customerId);
+
             $msg = Message::create([
                 'pharmacy_id' => $pharmacy->id,
                 'sender_id' => $userId,
-                'receiver_id' => $customerId,
+                'receiver_id' => $customer->id,
                 'message' => $validated['message'],
                 'message_type' => 'text',
                 'is_read' => false,
             ]);
+
+            app(NotificationService::class)->notifyUser(
+                (int) $customer->id,
+                $pharmacy->id,
+                'New message from '.$pharmacy->pharmacy_name,
+                $request->user()->name.': '.mb_substr($validated['message'], 0, 140),
+                'info',
+                null
+            );
 
             $msg->load('sender');
 

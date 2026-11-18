@@ -286,6 +286,7 @@ export const en = {
     saleFailed: 'Sale could not be completed. Please try again.',
     downloadReceipt: 'Download Receipt',
     printReceipt: 'Print Receipt',
+    completeWithoutReceipt: 'Complete without receipt',
     newSale: 'New Sale',
     items: 'Items',
     quantity: 'Quantity',

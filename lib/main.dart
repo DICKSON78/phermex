@@ -14,6 +14,7 @@ import 'theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home_shell.dart';
 import 'screens/notifications/notifications_screen.dart';
+import 'screens/chat/chat_list_screen.dart';
 import 'screens/orders/orders_list_screen.dart';
 import 'screens/telemedicine/video_consult_view.dart';
 import 'screens/profile/settings_screen.dart' as profile;
@@ -88,6 +89,7 @@ class HelixApp extends StatelessWidget {
         '/home': (_) => const HomeShell(),
         '/settings': (_) => const profile.SettingsScreen(),
         '/notifications': (_) => const NotificationsScreen(),
+        '/chats': (_) => const ChatListScreen(),
         '/orders': (_) => const OrdersListScreen(),
         '/consult': (args) => ConsultRoute(args: args),
       },

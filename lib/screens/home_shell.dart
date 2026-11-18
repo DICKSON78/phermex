@@ -35,8 +35,10 @@ class _HomeShellState extends State<HomeShell> {
     try {
       final data = await ApiService.get('/customer-app/notifications/unread-count');
       if (!mounted) return;
+      final payload = data is Map ? data['data'] : null;
+      final count = payload is Map ? (payload['count'] ?? 0) : (data is Map ? (data['unread_count'] ?? 0) : 0);
       setState(() {
-        _unreadNotifications = data is Map ? (data['unread_count'] ?? 0) : 0;
+        _unreadNotifications = count is int ? count : (int.tryParse('$count') ?? 0);
       });
     } catch (_) {}
   }

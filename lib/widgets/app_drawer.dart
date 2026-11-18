@@ -11,6 +11,7 @@ import '../screens/insurance/insurance_screen.dart';
 import '../screens/loyalty/loyalty_screen.dart';
 import '../screens/support/support_screen.dart';
 import '../screens/chatbot/chatbot_screen.dart';
+import '../screens/chat/chat_list_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../theme.dart';
 
@@ -112,6 +113,11 @@ class AppDrawer extends StatelessWidget {
                   icon: Icons.smart_toy_outlined,
                   label: L.t('chatAssistant'),
                   onTap: () => _push(context, const ChatbotScreen()),
+                ),
+                _DrawerTile(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: L.t('misc.chats'),
+                  onTap: () => _push(context, const ChatListScreen()),
                 ),
                 _DrawerTile(
                   icon: Icons.help_outline_rounded,
